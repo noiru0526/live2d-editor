@@ -332,6 +332,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
+    <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
+      <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
+      <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
+      <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:3px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
+    </div>
     <div id="params"></div>
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="padding:5px 4px 2px;display:flex;align-items:center;">
@@ -742,6 +747,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <span id="tl-playhead-time" style="font-size:10px;color:var(--accent);font-family:monospace;margin-left:4px;">0.000s</span>
+    <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ開始点（秒）">イン:
+      <input type="number" id="tl-loop-in" value="0" min="0" step="0.1"
+        style="width:36px;background:#1a1e2e;border:1px solid var(--border);color:#80ffa0;padding:1px 3px;border-radius:3px;font-size:10px;"
+        onchange="M.animation.loopIn=parseFloat(this.value)||0;">
+    </label>
+    <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ終了点（秒・空欄=尺全体）">アウト:
+      <input type="number" id="tl-loop-out" placeholder="末" min="0" step="0.1"
+        style="width:36px;background:#1a1e2e;border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
+        onchange="M.animation.loopOut=this.value===''?null:(parseFloat(this.value)||null);">
+    </label>
     <button onclick="addAnimKF()" style="margin-left:auto;background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
     <button onclick="copyAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
     <button onclick="pasteAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
@@ -858,6 +873,8 @@ const M = {
     fps: 60,
     tracks: {},   // {paramId: [{t:秒, v:値}, ...]}
     loop: true,
+    loopIn: 0,    // loop region start (seconds)
+    loopOut: null, // loop region end (null = use duration)
   },
   physGlobal: { gravity:{x:0,y:0.3}, wind:{x:0,y:0}, inertia:1.0 },
   paramGroups: [
@@ -865,6 +882,7 @@ const M = {
     { id:'grp_eyes',  name:'目',    paramIds:['blinkL','blinkR'],       collapsed:false },
     { id:'grp_mouth', name:'口',    paramIds:['mouthOpen'],             collapsed:false },
   ],
+  posePresets: [], // [{name:'ポーズ名', vals:{paramId:value,...}}]
   profile: {
     name: 'noiru',
     author: '',
@@ -2074,6 +2092,7 @@ function updateSliderFill(el, val, min, max) {
 }
 
 function buildParamUI() {
+  renderPosePresets();
   const cont=document.getElementById('params');
   cont.innerHTML='';
   for (const [name,p] of Object.entries(M.params)) {
@@ -2498,6 +2517,7 @@ function modelJSON() {
     animation:M.animation,
     physGlobal:M.physGlobal,
     paramGroups:M.paramGroups,
+    posePresets:M.posePresets||[],
     profile:M.profile||null,
   },null,2);
 }
@@ -2515,6 +2535,7 @@ function loadJSON(json, filePath) {
     if (d.animation) M.animation=Object.assign(M.animation, d.animation);
     if (d.physGlobal) M.physGlobal=Object.assign(M.physGlobal, d.physGlobal);
     if (d.paramGroups) M.paramGroups=d.paramGroups;
+    if (d.posePresets) M.posePresets=d.posePresets;
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
 
@@ -3842,6 +3863,44 @@ function fullAutoSetup() {
 function resetToNeutral() {
   for (const p of Object.values(M.params)) if (!p.locked) p.val=0;
   syncSliders(); ST.cachedVerts=null; redraw(); drawTimeline();
+}
+
+// ==================== POSE PRESETS ====================
+function renderPosePresets() {
+  const list = document.getElementById('pose-preset-list');
+  if (!list) return;
+  if (!M.posePresets) M.posePresets = [];
+  list.innerHTML = '';
+  M.posePresets.forEach((preset, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = preset.name;
+    btn.title = `クリックで適用 / 右クリックで削除 (${Object.keys(preset.vals).length}パラメータ)`;
+    btn.style.cssText = 'background:#1a1e2e;border:1px solid var(--border);color:#a0c0ff;border-radius:3px;padding:0 6px;cursor:pointer;font-size:10px;height:18px;';
+    btn.onclick = () => loadPosePreset(i);
+    btn.oncontextmenu = e => { e.preventDefault(); if (confirm(`プリセット「${preset.name}」を削除しますか？`)) { M.posePresets.splice(i,1); renderPosePresets(); } };
+    list.appendChild(btn);
+  });
+}
+
+function savePosePreset() {
+  const name = prompt('ポーズプリセット名', `ポーズ${(M.posePresets?.length||0)+1}`);
+  if (!name) return;
+  if (!M.posePresets) M.posePresets = [];
+  const vals = {};
+  for (const [k,p] of Object.entries(M.params)) vals[k] = p.val;
+  M.posePresets.push({ name, vals });
+  renderPosePresets();
+  document.getElementById('lbl-status').textContent = `ポーズプリセット「${name}」を保存しました`;
+}
+
+function loadPosePreset(i) {
+  const preset = M.posePresets?.[i];
+  if (!preset) return;
+  for (const [k,v] of Object.entries(preset.vals)) {
+    if (M.params[k]) M.params[k].val = v;
+  }
+  syncSliders(); ST.cachedVerts=null; redraw();
+  document.getElementById('lbl-status').textContent = `ポーズ「${preset.name}」を適用しました`;
 }
 
 function filterParams(q) {
@@ -5493,6 +5552,18 @@ function drawMultiTimeline() {
   const toKX = t => ((t - tlZoomOff) / visibleDur) * (W-2) + 1;
   const fromKX = x => tlZoomOff + ((x-1)/(W-2)) * visibleDur;
 
+  // Loop region highlight
+  const loopIn = M.animation.loopIn ?? 0;
+  const loopOut = M.animation.loopOut ?? dur;
+  if (loopIn > 0 || loopOut < dur) {
+    tlMultiCtx.fillStyle = 'rgba(78,200,120,.07)';
+    tlMultiCtx.fillRect(toKX(loopIn), 0, toKX(loopOut) - toKX(loopIn), H);
+    tlMultiCtx.strokeStyle = 'rgba(78,200,120,.4)';
+    tlMultiCtx.lineWidth = 1;
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(toKX(loopIn), 0); tlMultiCtx.lineTo(toKX(loopIn), H); tlMultiCtx.stroke();
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(toKX(loopOut), 0); tlMultiCtx.lineTo(toKX(loopOut), H); tlMultiCtx.stroke();
+  }
+
   // Time axis labels (top)
   tlMultiCtx.fillStyle='rgba(104,120,160,.6)'; tlMultiCtx.font='8px monospace';
   const secStep = visibleDur>10?2:visibleDur>5?1:visibleDur>2?0.5:visibleDur>1?0.25:0.1;
@@ -5655,7 +5726,10 @@ function animMultiPlay() {
   function tick(now) {
     let t = (now-t0)/1000;
     const loop = document.getElementById('tl-loop')?.checked !== false;
-    if (loop) t = t % dur; else t = Math.min(t,dur);
+    const loopIn = M.animation.loopIn ?? 0;
+    const loopOut = M.animation.loopOut ?? dur;
+    const loopLen = Math.max(loopOut - loopIn, 0.01);
+    if (loop) t = loopIn + ((t - loopIn) % loopLen); else t = Math.min(t, loopOut);
     ST.animPlayhead = t;
     // Apply track values with proper interpolation
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
