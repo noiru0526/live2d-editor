@@ -3998,7 +3998,21 @@ function loadPosePreset(i) {
     if (M.params[k]) M.params[k].val = v;
   }
   syncSliders(); ST.cachedVerts=null; redraw();
-  document.getElementById('lbl-status').textContent = `ポーズ「${preset.name}」を適用しました`;
+  // In animation mode, also insert KFs at current playhead
+  if (ST.animMode) {
+    const t = ST.animPlayhead;
+    for (const [k,v] of Object.entries(preset.vals)) {
+      if (!M.params[k]) continue;
+      if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+      M.animation.tracks[k] = M.animation.tracks[k].filter(kf => Math.abs(kf.t - t) > 0.01);
+      M.animation.tracks[k].push({t, v});
+      M.animation.tracks[k].sort((a,b)=>a.t-b.t);
+    }
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `ポーズ「${preset.name}」をKFとして追加 @ ${t.toFixed(3)}s`;
+  } else {
+    document.getElementById('lbl-status').textContent = `ポーズ「${preset.name}」を適用しました`;
+  }
 }
 
 function filterParams(q) {
