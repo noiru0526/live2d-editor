@@ -535,6 +535,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           コントロールパネル埋め込み（🎛ボタンでスライダー表示）
         </label>
       </div>
+      <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
+        <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+      </div>
       </div><!-- embed-cfg-body -->
     </div>
     <div id="auto-preset">
@@ -2727,6 +2731,7 @@ function genAvatarHTML() {
   const smoothMode=document.getElementById('export-smooth')?.value||'soft';
   const idleMode=document.getElementById('export-idle')?.value||'full';
   const includeCtrlPanel=document.getElementById('export-ctrlpanel')?.checked||false;
+  const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
   // EMA alphas per smoothness mode: soft=slow, medium=medium, fast=fast
   const emaAlphas={soft:{hx:.10,hy:.10,hz:.08,bl:.25,br:.25,mo:.22,bw:.15,ex:.15,ey:.15},
     medium:{hx:.15,hy:.15,hz:.12,bl:.30,br:.30,mo:.28,bw:.20,ex:.20,ey:.20},
@@ -2739,7 +2744,7 @@ function genAvatarHTML() {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;background:${bgColor};overflow:hidden;}
+html,body{width:100%;height:100%;background:${bgColor};${bgImgUrl?`background-image:url('${bgImgUrl.replace(/'/g,"\\'")}');background-size:cover;background-position:center;background-repeat:no-repeat;`:''}overflow:hidden;}
 body{display:flex;justify-content:center;align-items:center;}
 #wrap{position:relative;flex-shrink:0;}
 canvas{display:block;image-rendering:auto;}
