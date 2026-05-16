@@ -6194,6 +6194,26 @@ function showCameraTrackMenu() {
   ]);
 }
 
+function scaleSelectedKFTimes() {
+  if (tlSelectedKFs.size < 2) { document.getElementById('lbl-status').textContent = 'タイムスケール: 2つ以上のKFを選択してください'; return; }
+  const scale = parseFloat(prompt('タイムスケール倍率を入力 (例: 0.5で2倍速、2.0で半速):', '0.5'));
+  if (isNaN(scale)||scale<=0) return;
+  // Find min time of selected KFs (pivot)
+  let minT = Infinity;
+  for (const kf of tlSelectedKFs) minT = Math.min(minT, kf.t);
+  // Scale times relative to minT
+  const affectedNames = new Set();
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  for (const kf of tlSelectedKFs) {
+    kf.t = Math.round((minT + (kf.t - minT) * scale)*1000)/1000;
+    const nm = kfToName.get(kf); if(nm) affectedNames.add(nm);
+  }
+  for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `タイムスケール x${scale}: ${tlSelectedKFs.size}個のKFに適用`;
+}
+
 function equalizeSelectedKFs() {
   // Distribute selected KFs evenly between their min and max times (per track)
   if (tlSelectedKFs.size < 3) { document.getElementById('lbl-status').textContent = '均等化: 3つ以上のKFを選択してください'; return; }
@@ -6522,6 +6542,7 @@ function applyPlayheadToParams() {
       { icon:'〜', label:'イージング: Ease-Out', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
       null,
       { icon:'⇿', label:'選択KFを均等配置', action:()=>equalizeSelectedKFs() },
+      { icon:'⟺', label:'選択KFをタイムスケール', action:()=>scaleSelectedKFTimes() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
         M.animation.tracks[hit.name]=M.animation.tracks[hit.name].filter(f=>f!==hit.kf);
