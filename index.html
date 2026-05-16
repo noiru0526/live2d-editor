@@ -497,6 +497,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <option value="480x480">480×480 (正方形)</option>
           <option value="720x720">720×720 (正方形HD)</option>
           <option value="540x960">540×960 (縦型)</option>
+          <option value="custom">カスタム...</option>
         </select>
       </div>
       <div class="mcfg-row">
@@ -2688,7 +2689,12 @@ function genAvatarHTML() {
     } : null,
   };
   const imgSrc=M.img.src;
-  const sizeStr=document.getElementById('export-size').value;
+  let sizeStr=document.getElementById('export-size').value;
+  if (sizeStr==='custom') {
+    const cw=parseInt(prompt('幅(px):','480'))||480;
+    const ch=parseInt(prompt('高さ(px):','540'))||540;
+    sizeStr=`${cw}x${ch}`;
+  }
   const [EW,EH]=sizeStr.split('x').map(Number);
   const sens=parseFloat(document.getElementById('export-sens').value);
   const chromaKey=document.getElementById('export-chromakey')?.checked;
@@ -3210,7 +3216,7 @@ document.addEventListener('keydown',e=>{
   }
 
   if (!e.ctrlKey&&!e.altKey) {
-    if (e.key==='m'||e.key==='M') toggleMesh();
+    if (e.key==='m'||e.key==='M') { if (ST.animMode) addAnimMarker(); else toggleMesh(); }
     if (e.key==='r'||e.key==='R') toggleRec();
     if (e.key==='x'||e.key==='X') toggleMirror();
     if (e.key==='o'||e.key==='O') toggleOnion();
