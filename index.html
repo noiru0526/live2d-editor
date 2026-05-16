@@ -186,7 +186,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 #tl-multi-header{display:flex;align-items:center;gap:6px;padding:3px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 #tl-multi-tracks{flex:1;overflow:hidden;position:relative;}
 #tl-multi-canvas{position:absolute;inset:0;cursor:pointer;}
-#tl-label-col{position:relative;width:90px;overflow:hidden;pointer-events:none;flex-shrink:0;}
+#tl-label-col{position:relative;width:90px;overflow:hidden;pointer-events:auto;flex-shrink:0;cursor:pointer;}
 
 /* Texture atlas panel */
 #atlas-panel{padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;}
@@ -747,6 +747,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="selectAllAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
     <button onclick="showAnimEasing()" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
     <button onclick="clearAnimTracks()" style="background:#2e3656;border:1px solid var(--border);color:#f08080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
+    <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
   </div>
   <div id="tl-multi-body" style="display:flex;flex:1;overflow:hidden;min-height:0;">
@@ -5389,6 +5390,8 @@ let animMultiRAF = null;
 const TL_ROW_H = 24;
 const TL_LABEL_W = 90;
 let tlScrollY = 0;
+let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
+let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 
 // Shared interp helper — used by playback, seek, and curve display
@@ -5459,15 +5462,22 @@ function drawMultiTimeline() {
     tlLabelCtx.fillRect(0,0,LW,LH);
   }
 
+  // Zoom-aware coordinate functions
+  const visibleDur = dur / tlZoom;
+  tlZoomOff = Math.max(0, Math.min(tlZoomOff, dur - visibleDur));
+  const toKX = t => ((t - tlZoomOff) / visibleDur) * (W-2) + 1;
+  const fromKX = x => tlZoomOff + ((x-1)/(W-2)) * visibleDur;
+
   // Time axis labels (top)
   tlMultiCtx.fillStyle='rgba(104,120,160,.6)'; tlMultiCtx.font='8px monospace';
-  const secStep = dur>10?2:dur>5?1:0.5;
-  for (let s=0;s<=dur;s+=secStep) {
-    const x=s/dur*(W-2)+1;
+  const secStep = visibleDur>10?2:visibleDur>5?1:visibleDur>2?0.5:visibleDur>1?0.25:0.1;
+  for (let s=Math.floor(tlZoomOff/secStep)*secStep; s<=tlZoomOff+visibleDur+secStep; s=Math.round((s+secStep)*1000)/1000) {
+    const x=toKX(s);
+    if (x<0||x>W) continue;
     tlMultiCtx.fillStyle='rgba(255,255,255,.05)';
     tlMultiCtx.fillRect(x,0,1,H);
     tlMultiCtx.fillStyle='rgba(104,120,160,.7)';
-    tlMultiCtx.fillText(s.toFixed(1)+'s',x+2,10);
+    tlMultiCtx.fillText(s.toFixed(2)+'s',x+2,10);
   }
 
   // Clamp scroll
@@ -5505,7 +5515,6 @@ function drawMultiTimeline() {
     if (frames && frames.length > 0) {
       const range = p.max-p.min||1;
       const toKY = v => ry+TL_ROW_H - 2 - ((v-p.min)/range)*(TL_ROW_H-6);
-      const toKX = t => t/dur*(W-2)+1;
       // Draw smooth interpolated value curve
       tlMultiCtx.beginPath();
       const sorted=[...frames].sort((a,b)=>a.t-b.t);
@@ -5549,7 +5558,7 @@ function drawMultiTimeline() {
   });
 
   // Playhead
-  const phx = ph/dur*(W-2)+1;
+  const phx = toKX(ph);
   tlMultiCtx.strokeStyle='rgba(255,255,255,.85)'; tlMultiCtx.lineWidth=1.5;
   tlMultiCtx.beginPath(); tlMultiCtx.moveTo(phx,0); tlMultiCtx.lineTo(phx,H); tlMultiCtx.stroke();
   tlMultiCtx.fillStyle='#fff';
@@ -5655,8 +5664,12 @@ function animMultiStop() {
     const r=trk.getBoundingClientRect();
     if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return null;
     const dur=M.animation.duration||3;
-    const px=(e.clientX-r.left)/r.width;
-    const py=(e.clientY-r.top) + tlScrollY; // account for scroll offset
+    // Zoom-aware: convert pixel x → time
+    const visibleDur=dur/tlZoom;
+    const relX=(e.clientX-r.left)/r.width; // 0..1
+    const t=tlZoomOff+relX*visibleDur;
+    const py=(e.clientY-r.top) + tlScrollY;
+    const W=r.width;
     const params=Object.entries(M.params);
     for (let ri=0;ri<params.length;ri++) {
       const [name]=params[ri];
@@ -5665,8 +5678,9 @@ function animMultiStop() {
       const ry=ri*TL_ROW_H;
       if (py<ry||py>ry+TL_ROW_H) continue;
       for (const kf of frames) {
-        const kx=kf.t/dur;
-        if (Math.abs(px-kx)*r.width<8) return {name, kf};
+        const kxPx=((kf.t-tlZoomOff)/visibleDur)*W;
+        const mxPx=(e.clientX-r.left);
+        if (Math.abs(mxPx-kxPx)<8) return {name, kf};
       }
     }
     return null;
@@ -5714,7 +5728,8 @@ function animMultiStop() {
     }
     tlmDragging=true;
     const dur=M.animation.duration||3;
-    ST.animPlayhead=Math.max(0,Math.min(dur,(e.clientX-r.left)/r.width*dur));
+    const visibleDur2=dur/tlZoom;
+    ST.animPlayhead=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur2));
     drawMultiTimeline();
   });
 
@@ -5723,7 +5738,8 @@ function animMultiStop() {
       const trk=getTracks(); if(!trk) return;
       const r=trk.getBoundingClientRect();
       const dur=M.animation.duration||3;
-      const dx=(e.clientX-tlmKFDrag.startX)/r.width*dur;
+      const visibleDur=dur/tlZoom;
+      const dx=(e.clientX-tlmKFDrag.startX)/r.width*visibleDur;
       tlmKFDrag.kf.t=Math.max(0,Math.min(dur,tlmKFDrag.origT+dx));
       M.animation.tracks[tlmKFDrag.name].sort((a,b)=>a.t-b.t);
       drawMultiTimeline();
@@ -5733,7 +5749,8 @@ function animMultiStop() {
     const trk=getTracks(); if(!trk) return;
     const r=trk.getBoundingClientRect();
     const dur=M.animation.duration||3;
-    ST.animPlayhead=Math.max(0,Math.min(dur,(e.clientX-r.left)/r.width*dur));
+    const visibleDur=dur/tlZoom;
+    ST.animPlayhead=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       const p=M.params[name]; if(!p||!frames.length) continue;
       p.val=evalAnimTrack(frames, p, ST.animPlayhead);
@@ -5749,7 +5766,7 @@ function animMultiStop() {
     tlmDragging=false;
   });
 
-  // Mouse wheel scroll for timeline tracks
+  // Mouse wheel scroll/zoom for timeline tracks
   document.addEventListener('wheel', e=>{
     const trk=getTracks(); if(!trk) return;
     const r=trk.getBoundingClientRect();
@@ -5759,7 +5776,20 @@ function animMultiStop() {
       ||(lr&&e.clientX>=lr.left&&e.clientX<=lr.right&&e.clientY>=lr.top&&e.clientY<=lr.bottom);
     if (!inTimeline) return;
     e.preventDefault();
-    tlScrollY += e.deltaY > 0 ? TL_ROW_H : -TL_ROW_H;
+    if (e.ctrlKey) {
+      // Ctrl+Wheel: horizontal zoom
+      const zoomFactor = e.deltaY > 0 ? 0.8 : 1.25;
+      const dur=M.animation.duration||3;
+      // Zoom toward mouse cursor position
+      const relX=(e.clientX-r.left)/r.width;
+      const tAtCursor=tlZoomOff+relX*(dur/tlZoom);
+      tlZoom=Math.max(1,Math.min(20,tlZoom*zoomFactor));
+      // Keep tAtCursor under cursor
+      tlZoomOff=Math.max(0,tAtCursor-relX*(dur/tlZoom));
+    } else {
+      // Normal wheel: vertical scroll
+      tlScrollY += e.deltaY > 0 ? TL_ROW_H : -TL_ROW_H;
+    }
     drawMultiTimeline();
   }, {passive:false});
 
