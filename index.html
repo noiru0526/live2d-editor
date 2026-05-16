@@ -779,6 +779,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="selectAllAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
     <button onclick="showAnimEasing()" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
     <button onclick="clearAnimTracks()" style="background:#2e3656;border:1px solid var(--border);color:#f08080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
+    <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2e3656;border:1px solid var(--border);color:#c0a080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
   </div>
@@ -5908,6 +5909,20 @@ function clearAnimTracks() {
   M.animation.tracks={};
   ST.animPlayhead=0;
   drawMultiTimeline();
+}
+
+function cleanAnimTracks() {
+  // Remove tracks where all KF values are within threshold of each other (flat/useless)
+  const threshold = 0.001;
+  let removed = 0;
+  for (const [k, frames] of Object.entries(M.animation.tracks)) {
+    if (!frames || frames.length === 0) { delete M.animation.tracks[k]; removed++; continue; }
+    const min = Math.min(...frames.map(f=>f.v));
+    const max = Math.max(...frames.map(f=>f.v));
+    if (max - min <= threshold) { delete M.animation.tracks[k]; removed++; }
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `フラットトラック削除: ${removed}個のトラックを削除しました`;
 }
 
 function animMultiPlay() {
