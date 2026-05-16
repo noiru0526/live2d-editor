@@ -268,9 +268,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-brush" onclick="toggleBrush()" title="ブラシ選択 (B)">ブラシ<span class="sk">B</span></button>
   <button class="tbtn" id="btn-sculpt" onclick="toggleSculpt()" title="スカルプト変形 (S)">スカルプト<span class="sk">S</span></button>
   <button class="tbtn" id="btn-lasso" onclick="toggleLasso()" title="投げ縄選択 (L)">投げ縄<span class="sk">L</span></button>
-  <button class="tbtn" id="btn-weight" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">ウェイト<span class="sk">W</span></button>
-  <button class="tbtn" onclick="takeSnapshot()" title="現在のビューをスナップショット保存">📸 スナップ</button>
-  <button class="tbtn" id="btn-compare" onclick="toggleSnapshotCompare()" title="スナップショット比較モード">比較</button>
+  <button class="tbtn" id="btn-weight-paint" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">ウェイト<span class="sk">W</span></button>
   <button class="tbtn" onclick="showMiniPreview()" title="ミニプレビュー">▣ プレビュー</button>
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
@@ -5998,8 +5996,8 @@ const WT = {
 
 function toggleWeightPaint() {
   WT.active = !WT.active;
-  const btn = document.getElementById('btn-weight');
-  btn.classList.toggle('on', WT.active);
+  const btn = document.getElementById('btn-weight-paint');
+  if (btn) btn.classList.toggle('on', WT.active);
   document.getElementById('weight-hud').style.display = WT.active ? '' : 'none';
   canvas.style.cursor = WT.active ? 'none' : 'crosshair';
   if (WT.active) {
