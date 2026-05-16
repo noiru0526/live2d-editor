@@ -780,6 +780,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
       <input type="checkbox" id="tl-loop" checked style="accent-color:var(--accent);">ループ
     </label>
+    <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
+      <input type="checkbox" id="tl-pingpong" style="accent-color:#ff80c0;">🏓 往復
+    </label>
     <span style="font-size:10px;color:var(--dim)">尺:</span>
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
       style="width:48px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
@@ -813,6 +816,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
+    <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
+  </div>
+  <!-- Animation Clips bar -->
+  <div id="tl-clips-bar" style="display:none;flex-shrink:0;background:#131828;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:4px;min-height:26px;flex-wrap:wrap;">
+    <span style="font-size:10px;color:var(--dim);white-space:nowrap;">クリップ:</span>
+    <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
+    <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
   </div>
   <div id="tl-multi-body" style="display:flex;flex:1;overflow:hidden;min-height:0;">
     <div id="tl-label-col" style="position:relative;width:90px;flex-shrink:0;overflow:hidden;background:#1a1e2e;border-right:1px solid var(--border);">
@@ -932,6 +942,7 @@ const M = {
     { id:'grp_mouth', name:'口',    paramIds:['mouthOpen'],             collapsed:false },
   ],
   posePresets: [], // [{name:'ポーズ名', vals:{paramId:value,...}}]
+  animClips: [],   // [{name:'クリップ名', animation:{...}}] named animation clips
   profile: {
     name: 'noiru',
     author: '',
@@ -2602,6 +2613,7 @@ function modelJSON() {
     physGlobal:M.physGlobal,
     paramGroups:M.paramGroups,
     posePresets:M.posePresets||[],
+    animClips:M.animClips||[],
     profile:M.profile||null,
   },null,2);
 }
@@ -2620,6 +2632,7 @@ function loadJSON(json, filePath) {
     if (d.physGlobal) M.physGlobal=Object.assign(M.physGlobal, d.physGlobal);
     if (d.paramGroups) M.paramGroups=d.paramGroups;
     if (d.posePresets) M.posePresets=d.posePresets;
+    if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
 
@@ -2657,6 +2670,7 @@ function loadJSON(json, filePath) {
       renderPartsList();
     }
     renderSpringList(); renderPoseList();
+    if (typeof renderClipTabs === 'function') renderClipTabs();
     document.getElementById('lbl-status').textContent=filePath?filePath.split(/[/\\]/).pop():'モデル読込済み';
   } catch(e){ alert('読み込みエラー: '+e.message); }
 }
@@ -6421,6 +6435,82 @@ function toggleParamRecord() {
   }
 }
 
+// ==================== ANIMATION CLIPS ====================
+let _activeClipIdx = -1; // -1 = no saved clip selected (editing M.animation directly)
+
+function _cloneAnim(anim) {
+  return JSON.parse(JSON.stringify(anim));
+}
+
+function renderClipTabs() {
+  const bar = document.getElementById('tl-clips-bar');
+  const tabs = document.getElementById('tl-clip-tabs');
+  if (!bar || !tabs) return;
+  if (!M.animClips?.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  tabs.innerHTML = '';
+  M.animClips.forEach((clip, i) => {
+    const isActive = i === _activeClipIdx;
+    const btn = document.createElement('button');
+    btn.textContent = clip.name;
+    btn.title = `クリップ「${clip.name}」に切り替え`;
+    btn.style.cssText = `background:${isActive?'#2a1e4a':'#1a1e2e'};border:1px solid ${isActive?'rgba(160,80,255,.8)':'var(--border)'};color:${isActive?'#c080ff':'var(--dim)'};border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;`;
+    btn.onclick = () => loadClip(i);
+    btn.oncontextmenu = (e) => {
+      e.preventDefault();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon:'✏', label:`「${clip.name}」名前を変更`, action:()=>{ const n=prompt('クリップ名:', clip.name); if(n) { clip.name=n; renderClipTabs(); }}},
+        { icon:'💾', label:'上書き保存（現在の内容で更新）', action:()=>{ clip.animation=_cloneAnim(M.animation); renderClipTabs(); document.getElementById('lbl-status').textContent=`クリップ「${clip.name}」を上書き保存`; }},
+        null,
+        { icon:'🗑', label:`「${clip.name}」を削除`, action:()=>{ M.animClips.splice(i,1); if(_activeClipIdx===i)_activeClipIdx=-1; else if(_activeClipIdx>i)_activeClipIdx--; renderClipTabs(); }},
+      ]);
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+function saveNewClip() {
+  const name = prompt('クリップ名:', `クリップ${(M.animClips?.length||0)+1}`) ;
+  if (!name) return;
+  if (!M.animClips) M.animClips = [];
+  M.animClips.push({ name, animation: _cloneAnim(M.animation) });
+  _activeClipIdx = M.animClips.length - 1;
+  renderClipTabs();
+  document.getElementById('lbl-status').textContent = `クリップ「${name}」を保存しました`;
+}
+
+function loadClip(i) {
+  if (i === _activeClipIdx) return;
+  // Save current animation back to active clip before switching
+  if (_activeClipIdx >= 0 && M.animClips[_activeClipIdx]) {
+    M.animClips[_activeClipIdx].animation = _cloneAnim(M.animation);
+  }
+  _activeClipIdx = i;
+  const clip = M.animClips[i];
+  M.animation = _cloneAnim(clip.animation);
+  // Sync UI duration input
+  const durEl = document.getElementById('tl-duration');
+  if (durEl) durEl.value = (M.animation.duration||3).toFixed(1);
+  const loopInEl = document.getElementById('tl-loop-in');
+  if (loopInEl) loopInEl.value = M.animation.loopIn ?? 0;
+  const loopOutEl = document.getElementById('tl-loop-out');
+  if (loopOutEl) loopOutEl.value = M.animation.loopOut ?? '';
+  ST.animPlayhead = 0;
+  renderClipTabs();
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `クリップ「${clip.name}」を読み込みました`;
+}
+
+function showAnimClips() {
+  if (!M.animClips) M.animClips = [];
+  renderClipTabs();
+  const bar = document.getElementById('tl-clips-bar');
+  if (bar) bar.style.display = bar.style.display === 'none' ? 'flex' : 'none';
+  if (!M.animClips.length) {
+    document.getElementById('lbl-status').textContent = 'クリップなし。「＋ 新規」で現在のアニメーションを保存できます。';
+  }
+}
+
 function insertPoseKF() {
   // Insert KF for every param at current playhead using current param values
   if (!ST.animMode) { document.getElementById('lbl-status').textContent = 'アニメモードで使用してください'; return; }
@@ -6472,25 +6562,33 @@ function animMultiPlay() {
   if (btn) btn.textContent='■';
   let lastTick=performance.now();
   const dur=M.animation.duration||3;
+  let ppDir = 1; // ping-pong direction: +1 forward, -1 backward
   function tick(now) {
     const sp=parseFloat(document.getElementById('tl-speed')?.value||1);
-    ST.animPlayhead += (now-lastTick)/1000*sp;
+    const dt=(now-lastTick)/1000;
     lastTick=now;
-    let t = ST.animPlayhead;
     const loop = document.getElementById('tl-loop')?.checked !== false;
+    const pingpong = document.getElementById('tl-pingpong')?.checked;
     const loopIn = M.animation.loopIn ?? 0;
     const loopOut = M.animation.loopOut ?? dur;
     const loopLen = Math.max(loopOut - loopIn, 0.01);
-    if (loop) {
-      if (sp < 0) {
-        // Reverse: wrap around from loopIn backwards
-        let rel = ((t - loopIn) % loopLen + loopLen) % loopLen;
-        t = loopIn + rel;
-      } else {
-        t = loopIn + ((t - loopIn) % loopLen);
-      }
+    let t = ST.animPlayhead;
+    if (pingpong && loop) {
+      t += dt * sp * ppDir;
+      if (t >= loopOut) { t = loopOut; ppDir = -1; }
+      else if (t <= loopIn) { t = loopIn; ppDir = 1; }
     } else {
-      t = sp < 0 ? Math.max(loopIn, t) : Math.min(t, loopOut);
+      t += dt * sp;
+      if (loop) {
+        if (sp < 0) {
+          let rel = ((t - loopIn) % loopLen + loopLen) % loopLen;
+          t = loopIn + rel;
+        } else {
+          t = loopIn + ((t - loopIn) % loopLen);
+        }
+      } else {
+        t = sp < 0 ? Math.max(loopIn, t) : Math.min(t, loopOut);
+      }
     }
     ST.animPlayhead = t;
     // Apply track values with proper interpolation (hidden tracks are muted)
