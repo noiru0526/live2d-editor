@@ -276,6 +276,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="resetToNeutral()" title="全パラメータをゼロに戻す">ニュートラル</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-anim-rec" onclick="toggleAnimRec()" title="パラメータ変化をリアルタイム録音">⏺ アニメ録音</button>
+  <button class="tbtn" id="btn-face-rec" onclick="toggleFaceRec()" title="ウェブカム顔トラッキング + 録音を同時開始" style="color:#ff80c0;">🎭 顔録音</button>
   <button class="tbtn" id="btn-anim-play" onclick="animPlay()" title="録音したアニメを再生">▶ アニメ再生</button>
   <button class="tbtn" onclick="bakeAnimToTimeline()" title="録音データをタイムラインKFに変換" style="color:#d0c060;">🍞 ベイク</button>
   <button class="tbtn" onclick="gradientKFBetween()" title="KF間に滑らかなグラジェント補間を追加" style="color:#80c0ff;">〜 補間</button>
@@ -3626,6 +3627,32 @@ function animStop() {
 
 function toggleAnimRec() {
   if (ANIM.recording) animRecordStop(); else animRecordStart();
+}
+
+let _faceRecActive = false;
+function toggleFaceRec() {
+  const btn = document.getElementById('btn-face-rec');
+  if (_faceRecActive) {
+    // Stop both
+    _faceRecActive = false;
+    animRecordStop();
+    // Stop webcam if active
+    if (_wcActive) toggleWebcamTest();
+    if (btn) { btn.textContent='🎭 顔録音'; btn.style.color='#ff80c0'; btn.classList.remove('on'); }
+    document.getElementById('lbl-status').textContent = '顔録音停止 — 🍞 ベイクボタンでタイムラインに変換できます';
+  } else {
+    _faceRecActive = true;
+    if (btn) { btn.textContent='⏹ 顔録音停止'; btn.style.color='#ff4080'; btn.classList.add('on'); }
+    // Start webcam if not active
+    if (!_wcActive) toggleWebcamTest();
+    // Wait briefly for webcam init then start recording
+    setTimeout(() => {
+      if (_faceRecActive) {
+        animRecordStart();
+        document.getElementById('lbl-status').textContent = '顔録音中 🎭 顔を動かしてください → 停止後🍞ベイク';
+      }
+    }, 800);
+  }
 }
 
 // Ramer-Douglas-Peucker curve simplification for animation bake
