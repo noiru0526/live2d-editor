@@ -5375,7 +5375,7 @@ function applyAnimInterp(frac, mode) {
   const fn = _ANIM_INTERP_FNS[mode] || _ANIM_INTERP_FNS.linear;
   return fn(Math.max(0, Math.min(1, frac)));
 }
-// Evaluate animation track value at time t using p.interp
+// Evaluate animation track value at time t using p.interp (or per-KF interp)
 function evalAnimTrack(frames, p, t) {
   const sorted = [...frames].sort((a,b)=>a.t-b.t);
   let i = sorted.findIndex(f=>f.t>t);
@@ -5383,7 +5383,9 @@ function evalAnimTrack(frames, p, t) {
   if (i===0) return sorted[0].v;
   const f0=sorted[i-1], f1=sorted[i];
   const rawFrac=(t-f0.t)/Math.max(f1.t-f0.t,0.0001);
-  const frac=applyAnimInterp(rawFrac, p.interp??'linear');
+  // Per-KF interp takes priority over param-level interp
+  const interpMode = f0.interp ?? p.interp ?? 'linear';
+  const frac=applyAnimInterp(rawFrac, interpMode);
   return f0.v+(f1.v-f0.v)*frac;
 }
 
@@ -5627,9 +5629,27 @@ function animMultiStop() {
     const hit=hitTestKF(e);
     if (!hit) return;
     e.preventDefault();
-    const frames=M.animation.tracks[hit.name];
-    M.animation.tracks[hit.name]=frames.filter(f=>f!==hit.kf);
-    drawMultiTimeline();
+    const p=M.params[hit.name];
+    // Show context menu with KF options
+    showCtxMenu(e.clientX, e.clientY, [
+      { icon:'✏', label:`値を編集: ${hit.kf.v.toFixed(3)}`, action:()=>{
+        const newV=parseFloat(prompt('KF値を入力:', hit.kf.v.toFixed(3)));
+        if (!isNaN(newV)) { hit.kf.v=Math.max(p.min,Math.min(p.max,newV)); drawMultiTimeline(); }
+      }},
+      { icon:'🕐', label:`時刻を編集: ${hit.kf.t.toFixed(3)}s`, action:()=>{
+        const newT=parseFloat(prompt('時刻を入力(秒):', hit.kf.t.toFixed(3)));
+        if (!isNaN(newT)&&newT>=0) { hit.kf.t=Math.round(newT*1000)/1000; M.animation.tracks[hit.name].sort((a,b)=>a.t-b.t); drawMultiTimeline(); }
+      }},
+      { icon:'〜', label:'イージング: Linear', action:()=>{ hit.kf.interp='linear'; drawMultiTimeline(); }},
+      { icon:'〜', label:'イージング: Smooth', action:()=>{ hit.kf.interp='smooth'; drawMultiTimeline(); }},
+      { icon:'〜', label:'イージング: Ease-In', action:()=>{ hit.kf.interp='ease-in'; drawMultiTimeline(); }},
+      { icon:'〜', label:'イージング: Ease-Out', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
+      null,
+      { icon:'×', label:'このKFを削除', action:()=>{
+        M.animation.tracks[hit.name]=M.animation.tracks[hit.name].filter(f=>f!==hit.kf);
+        drawMultiTimeline();
+      }},
+    ]);
   });
 
   document.addEventListener('mousedown',e=>{
