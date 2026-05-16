@@ -5949,7 +5949,13 @@ function drawMultiTimeline() {
       tlLabelCtx.fillStyle = isSpecial ? 'rgba(255,200,60,.04)' : (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent');
       tlLabelCtx.fillRect(0, lry, LW, TL_ROW_H);
       // Eye icon for visibility
-      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (isSpecial ? '#ffd060' : (name===ST.ap ? '#c8d4f0' : '#6878a0'));
+      // Color dot for track color-coding
+      const _h2 = name.split('').reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffff,7);
+      const _hu2 = (_h2*137.5)%360;
+      const dotColor = isSpecial ? 'hsl(45,90%,60%)' : `hsl(${_hu2},70%,60%)`;
+      tlLabelCtx.fillStyle = dotColor;
+      tlLabelCtx.beginPath(); tlLabelCtx.arc(LW-6, lry+TL_ROW_H/2, 3, 0, Math.PI*2); tlLabelCtx.fill();
+      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
       const shortLbl = (isHidden?'○ ':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
@@ -5974,7 +5980,11 @@ function drawMultiTimeline() {
         const kx=toKX(t),ky=toKY(v);
         if(si===0)tlMultiCtx.moveTo(kx,ky);else tlMultiCtx.lineTo(kx,ky);
       }
-      tlMultiCtx.strokeStyle=isActiveTrack?'rgba(78,124,255,.8)':'rgba(78,124,255,.35)';
+      // Track color: hashed from name for color-coding
+      const _hash = name.split('').reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffff, 7) ;
+      const _hue = (_hash * 137.5) % 360;
+      const trackColor = isSpecial ? `hsl(45,90%,60%)` : `hsl(${_hue},70%,60%)`;
+      tlMultiCtx.strokeStyle=isActiveTrack?trackColor:trackColor.replace('60%)','60%,.4)').replace('hsl(','hsla(');
       tlMultiCtx.lineWidth=isActiveTrack?1.5:1;
       tlMultiCtx.stroke();
 
