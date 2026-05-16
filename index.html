@@ -738,6 +738,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <div id="tl-multi-header">
     <button onclick="animMultiPlay()" id="btn-multi-play" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
     <button onclick="animMultiStop()" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
+    <select id="tl-speed" title="再生速度" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 2px;font-size:10px;cursor:pointer;">
+      <option value="0.25">0.25x</option>
+      <option value="0.5">0.5x</option>
+      <option value="1" selected>1x</option>
+      <option value="2">2x</option>
+      <option value="4">4x</option>
+    </select>
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
       <input type="checkbox" id="tl-loop" checked style="accent-color:var(--accent);">ループ
     </label>
@@ -5721,19 +5728,23 @@ function animMultiPlay() {
   if (animMultiRAF) { animMultiStop(); return; }
   const btn=document.getElementById('btn-multi-play');
   if (btn) btn.textContent='■';
-  const t0=performance.now() - ST.animPlayhead*1000;
+  let lastTick=performance.now();
   const dur=M.animation.duration||3;
   function tick(now) {
-    let t = (now-t0)/1000;
+    const sp=parseFloat(document.getElementById('tl-speed')?.value||1);
+    ST.animPlayhead += (now-lastTick)/1000*sp;
+    lastTick=now;
+    let t = ST.animPlayhead;
     const loop = document.getElementById('tl-loop')?.checked !== false;
     const loopIn = M.animation.loopIn ?? 0;
     const loopOut = M.animation.loopOut ?? dur;
     const loopLen = Math.max(loopOut - loopIn, 0.01);
     if (loop) t = loopIn + ((t - loopIn) % loopLen); else t = Math.min(t, loopOut);
     ST.animPlayhead = t;
-    // Apply track values with proper interpolation
+    // Apply track values with proper interpolation (hidden tracks are muted)
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       const p=M.params[name]; if(!p||!frames.length) continue;
+      if (tlHiddenTracks.has(name)) continue;
       p.val=evalAnimTrack(frames, p, t);
       const s=document.getElementById(`ps-${name}`);
       if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
