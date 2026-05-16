@@ -3107,8 +3107,7 @@ document.addEventListener('keydown',e=>{
   if ((e.ctrlKey&&e.key==='y')||(e.ctrlKey&&e.shiftKey&&e.key==='Z')) { redo(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='s') { saveModel(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
-  // Space: timeline play/pause (only when not typing in an input)
-  if (e.key===' ' && document.activeElement===document.body) { animMultiPlay(); e.preventDefault(); }
+  // Space: timeline play/pause handled below in combined handler
   if (e.ctrlKey&&e.key==='a') {
     ST.selVerts.clear();
     for (let i=0;i<M.mesh.verts.length;i++) ST.selVerts.add(i);
@@ -3163,7 +3162,18 @@ document.addEventListener('keydown',e=>{
     if (e.key==='d'||e.key==='D') toggleDeformerMode();
     if (e.key==='a'||e.key==='A') toggleAnimMode();
     if (e.key==='?') showShortcutHelp();
-    if (e.key===' ') { ST.spaceDown=true; canvas.style.cursor='grab'; e.preventDefault(); }
+    // J/K/L: frame-step in anim mode (standard video shortcut)
+    if (ST.animMode) {
+      const fps = 1/parseFloat(document.getElementById('tl-speed')?.value||1) * (1/30);
+      if (e.key==='j'||e.key==='J') { animMultiStop(); ST.animPlayhead=Math.max(0,ST.animPlayhead-fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
+      if (e.key==='k'||e.key==='K') { animMultiStop(); e.preventDefault(); }
+      if (e.key==='l'||e.key==='L') { animMultiStop(); ST.animPlayhead=Math.min(M.animation.duration,ST.animPlayhead+fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
+    }
+    if (e.key===' ') {
+      if (ST.animMode) { animMultiPlay(); }  // In anim mode: space = play/pause
+      else { ST.spaceDown=true; canvas.style.cursor='grab'; }  // Edit mode: space = pan
+      e.preventDefault();
+    }
     if (e.key==='Escape') {
       if (ST.placing) { ST.placing=null; updatePlaceHint(); redraw(); }
       else { ST.selVerts.clear(); ST.selV=-1; setMode('edit'); ST.rec=false; updateRecUI(); redraw(); }
@@ -5823,6 +5833,19 @@ function animMultiStop() {
   if (animMultiRAF) { cancelAnimationFrame(animMultiRAF); animMultiRAF=null; }
   const btn=document.getElementById('btn-multi-play');
   if (btn) btn.textContent='▶';
+}
+
+function applyPlayheadToParams() {
+  const t = ST.animPlayhead;
+  for (const [name,frames] of Object.entries(M.animation.tracks)) {
+    const p=M.params[name]; if(!p||!frames.length) continue;
+    if (tlHiddenTracks.has(name)) continue;
+    p.val=evalAnimTrack(frames, p, t);
+    const s=document.getElementById(`ps-${name}`);
+    if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+    const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
+  }
+  ST.cachedVerts=null; redraw();
 }
 
 // Multi-track timeline interaction (playhead + KF drag + KF right-click delete)
