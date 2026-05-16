@@ -5575,7 +5575,8 @@ function animMultiPlay() {
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       const p=M.params[name]; if(!p||!frames.length) continue;
       p.val=evalAnimTrack(frames, p, t);
-      const s=document.getElementById(`ps-${name}`); if(s)s.value=p.val;
+      const s=document.getElementById(`ps-${name}`);
+      if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
       const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
     }
     ST.cachedVerts=null; redraw(); drawMultiTimeline();
@@ -5666,7 +5667,8 @@ function animMultiStop() {
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       const p=M.params[name]; if(!p||!frames.length) continue;
       p.val=evalAnimTrack(frames, p, ST.animPlayhead);
-      const s=document.getElementById(`ps-${name}`);if(s)s.value=p.val;
+      const s=document.getElementById(`ps-${name}`);
+      if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
       const pv=document.getElementById(`pv-${name}`);if(pv)pv.textContent=p.val.toFixed(2);
     }
     ST.cachedVerts=null;redraw();drawMultiTimeline();
@@ -6027,8 +6029,11 @@ function buildParamGroupsUI() {
         </div>
         <div class="kfdots" id="kd-${pid}"></div>`;
       row.addEventListener('click', () => setAP(pid));
-      row.querySelector(`#ps-${pid}`).addEventListener('input', e => {
+      const grpSlider = row.querySelector(`#ps-${pid}`);
+      updateSliderFill(grpSlider, p.val, p.min, p.max);
+      grpSlider.addEventListener('input', e => {
         p.val = parseFloat(e.target.value);
+        updateSliderFill(e.target, p.val, p.min, p.max);
         document.getElementById(`pv-${pid}`).textContent = p.val.toFixed(2);
         if (ST.rec) {
           const key = `${pid}:${p.val}`;
