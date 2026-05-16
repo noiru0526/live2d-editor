@@ -24,15 +24,17 @@
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column;user-select:none;}
 
 /* Toolbar */
-#toolbar{display:flex;align-items:center;gap:4px;padding:4px 8px;background:linear-gradient(to bottom,var(--surface2),var(--panel));border-bottom:1px solid var(--border);flex-shrink:0;height:var(--toolbar-h);box-shadow:0 1px 3px rgba(0,0,0,.3);}
-.tbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:3px 10px;cursor:pointer;font-size:12px;transition:background .12s,border-color .12s;}
+#toolbar{display:flex;align-items:center;gap:4px;padding:4px 8px;background:linear-gradient(to bottom,var(--surface2),var(--panel));border-bottom:1px solid var(--border);flex-shrink:0;height:var(--toolbar-h);box-shadow:0 1px 3px rgba(0,0,0,.3);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
+#toolbar::-webkit-scrollbar{height:3px;}
+#toolbar::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px;}
+.tbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:3px 10px;cursor:pointer;font-size:12px;transition:background .12s,border-color .12s;flex-shrink:0;white-space:nowrap;}
 .tbtn:hover{background:var(--surface2);border-color:var(--border-strong);}
 .tbtn:active{transform:translateY(1px);}
 .tbtn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 .tbtn.rec.on{background:rgba(255,68,68,.15);border-color:var(--rec);color:var(--rec);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 .tsep{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0;}
-#lbl-status{color:var(--dim);font-size:11px;margin-left:auto;white-space:nowrap;}
+#lbl-status{color:var(--dim);font-size:11px;margin-left:4px;white-space:nowrap;flex-shrink:0;}
 
 /* Layout */
 #workspace{display:flex;flex:1;overflow:hidden;}
@@ -50,8 +52,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .phead{display:flex;justify-content:space-between;margin-bottom:3px;}
 .plabel{font-size:11px;}
 .pval{font-size:10px;font-family:monospace;color:var(--accent);}
-.pslider{width:100%;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;margin-bottom:3px;}
-.pslider::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--accent);cursor:pointer;}
 .kfdots{display:flex;gap:3px;}
 .kfd{width:6px;height:6px;border-radius:50%;background:var(--kf);opacity:.3;cursor:pointer;}
 .kfd:hover,.kfd.lit{opacity:1;}
@@ -72,9 +72,25 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .kfv{font-family:monospace;font-size:12px;color:var(--kf);}
 .kfd-btn{color:var(--dim);font-size:13px;margin-left:auto;padding:0 3px;}
 .kfd-btn:hover{color:#ff6060;}
-#kf-btns{padding:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
-#kf-btns button{background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;cursor:pointer;font-size:11px;text-align:left;}
-#kf-btns button:hover{background:#3a4470;}
+#kf-btns{padding:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+#kf-btns button{background:rgba(30,36,56,.8);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;cursor:pointer;font-size:11px;text-align:left;transition:background .1s,border-color .1s;}
+#kf-btns button:hover{background:var(--surface2);}
+/* KF button categories — match Live2D Cubism inspector palette */
+#kf-btns .kfb-add{color:#6dd890;border-color:rgba(96,220,144,.3);}
+#kf-btns .kfb-add:hover{background:rgba(96,220,144,.1);border-color:rgba(96,220,144,.6);}
+#kf-btns .kfb-del{color:#ff8080;border-color:rgba(255,100,100,.25);}
+#kf-btns .kfb-del:hover{background:rgba(255,80,80,.12);border-color:rgba(255,100,100,.5);}
+#kf-btns .kfb-copy{color:#a0c4ff;border-color:rgba(120,180,255,.25);}
+#kf-btns .kfb-copy:hover{background:rgba(100,160,255,.1);}
+#kf-btns .kfb-deform{color:#c0a0ff;border-color:rgba(180,140,255,.2);}
+#kf-btns .kfb-deform:hover{background:rgba(160,100,255,.1);}
+#kf-btns .kfb-loop{color:#60d0ff;border-color:rgba(80,200,255,.2);}
+#kf-btns .kfb-loop:hover{background:rgba(60,200,255,.1);}
+
+/* Parameter slider fill (Cubism style) */
+.pslider{width:100%;height:4px;-webkit-appearance:none;border-radius:2px;outline:none;cursor:pointer;margin-bottom:3px;background:linear-gradient(to right,var(--accent) var(--fill,50%),var(--border) var(--fill,50%));}
+.pslider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--accent);cursor:pointer;transition:box-shadow .1s;}
+.pslider::-webkit-slider-thumb:hover{box-shadow:0 0 0 3px var(--accent),0 0 8px rgba(78,124,255,.5);}
 
 /* Mesh settings */
 #mesh-cfg{padding:8px 10px;border-top:1px solid var(--border);flex-shrink:0;}
@@ -431,22 +447,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div class="ptitle">KF: <span id="ap-label" style="color:var(--accent2)">—</span></div>
     <div id="kf-list"></div>
     <div id="kf-btns">
-      <button onclick="addKF()">＋ 現在値をKFに追加</button>
-      <button onclick="delKFData()">↺ このKFのデータを消す</button>
-      <button onclick="delKF()">× KFを削除</button>
-      <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-      <button onclick="copyKFData()" id="btn-copy-kf">↑ KFデータをコピー</button>
-      <button onclick="pasteKFData()">↓ KFデータを貼り付け</button>
-      <button onclick="flipDeformH()">⟺ 左右反転して貼り付け</button>
-      <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-      <button onclick="smoothDeform()" title="選択頂点の変形をなめらかに">〜 スムーズ (選択頂点)</button>
-      <button onclick="gradientDeform()" title="選択頂点の変形にグラデーションをかける" style="color:#a0d0ff;">▽ グラデーション変形</button>
-      <button onclick="scaleSelection()" title="選択頂点を拡大縮小" style="color:#a0e8ff;">⤡ 拡大縮小</button>
-      <button onclick="rotateSelection()" title="選択頂点を回転" style="color:#a0e8ff;">↻ 回転</button>
-      <button onclick="weldVertices()" title="近接頂点を溶接して結合" style="color:#ffa080;">⊕ 頂点溶接</button>
-      <button onclick="deleteActiveParam()" id="btn-del-param" style="display:none;color:#f08080;">× このパラメータを削除</button>
-      <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-      <button onclick="toggleLoopPreview()" id="btn-loop-prev" style="color:#80d8ff;">⟳ このパラメータをループ再生</button>
+      <button class="kfb-add" onclick="addKF()">＋ 現在値をKFに追加</button>
+      <button class="kfb-del" onclick="delKFData()">↺ このKFのデータを消す</button>
+      <button class="kfb-del" onclick="delKF()">× KFを削除</button>
+      <div style="height:1px;background:var(--border);margin:3px 0;"></div>
+      <button class="kfb-copy" onclick="copyKFData()" id="btn-copy-kf">↑ KFデータをコピー</button>
+      <button class="kfb-copy" onclick="pasteKFData()">↓ KFデータを貼り付け</button>
+      <button class="kfb-copy" onclick="flipDeformH()">⟺ 左右反転して貼り付け</button>
+      <div style="height:1px;background:var(--border);margin:3px 0;"></div>
+      <button class="kfb-deform" onclick="smoothDeform()" title="選択頂点の変形をなめらかに">〜 スムーズ (選択頂点)</button>
+      <button class="kfb-deform" onclick="gradientDeform()" title="選択頂点の変形にグラデーションをかける">▽ グラデーション変形</button>
+      <button class="kfb-deform" onclick="scaleSelection()" title="選択頂点を拡大縮小">⤡ 拡大縮小</button>
+      <button class="kfb-deform" onclick="rotateSelection()" title="選択頂点を回転">↻ 回転</button>
+      <button class="kfb-deform" onclick="weldVertices()" title="近接頂点を溶接して結合">⊕ 頂点溶接</button>
+      <button class="kfb-del" onclick="deleteActiveParam()" id="btn-del-param" style="display:none;">× このパラメータを削除</button>
+      <div style="height:1px;background:var(--border);margin:3px 0;"></div>
+      <button class="kfb-loop" onclick="toggleLoopPreview()" id="btn-loop-prev">⟳ このパラメータをループ再生</button>
     </div>
     <div id="mesh-cfg">
       <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
@@ -2014,6 +2030,11 @@ function finalizeLasso() {
 }
 
 // ==================== PARAM UI ====================
+function updateSliderFill(el, val, min, max) {
+  const pct = ((val - min) / (max - min) * 100).toFixed(1) + '%';
+  el.style.setProperty('--fill', pct);
+}
+
 function buildParamUI() {
   const cont=document.getElementById('params');
   cont.innerHTML='';
@@ -2042,9 +2063,12 @@ function buildParamUI() {
       </div>`;
     row.addEventListener('click',()=>setAP(name));
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
-    row.querySelector(`#ps-${name}`).addEventListener('input',e=>{
+    const sl = row.querySelector(`#ps-${name}`);
+    updateSliderFill(sl, p.val, p.min, p.max);
+    sl.addEventListener('input',e=>{
       if (p.locked) { e.target.value=p.val; return; }
       p.val=parseFloat(e.target.value);
+      updateSliderFill(e.target, p.val, p.min, p.max);
       document.getElementById(`pv-${name}`).textContent=p.val.toFixed(2);
       setAP(name);
       updateParamHUD();
@@ -6783,7 +6807,9 @@ const GE = {
   viewMaxT: null,    // visible time range end
   viewMinV: -1.05,   // visible value range
   viewMaxV: 1.05,
+  overlayParams: [], // additional params drawn as ghost curves
 };
+const GE_OVERLAY_COLORS = ['#ff6090','#60d890','#ffd060','#a06cff','#60d0ff','#ff9060'];
 
 function toggleGraphEditor() {
   GE.visible = !GE.visible;
