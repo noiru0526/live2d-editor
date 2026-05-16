@@ -295,6 +295,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
   <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
   <button class="tbtn" onclick="exportPNGSequence()" title="タイムラインアニメをPNG連番+ZIPで出力（JSZip使用）" style="color:#a0e8ff;">🖼 PNG列</button>
+  <button class="tbtn" id="btn-hq" onclick="toggleHQRender()" title="高品質レンダリング ON/OFF（三角形サブディビジョン・重い）" style="color:#ffe090;">✨ HQ</button>
   <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
@@ -1212,6 +1213,40 @@ function buildDeformerKey(def) {
   return `${ST.ap}:${M.params[ST.ap]?.val.toFixed(3)??'0.000'}`;
 }
 
+// Draw a single UV-mapped triangle (affine)
+function _drawAffineTriangle(u0,v0,u1,v1,u2,v2, p0x,p0y,p1x,p1y,p2x,p2y, img, _ctx) {
+  const det=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0);
+  if (Math.abs(det)<.001) return;
+  const a=((p1x-p0x)*(v2-v0)-(p2x-p0x)*(v1-v0))/det;
+  const b=((p2x-p0x)*(u1-u0)-(p1x-p0x)*(u2-u0))/det;
+  const cc=p0x-a*u0-b*v0;
+  const e=((p1y-p0y)*(v2-v0)-(p2y-p0y)*(v1-v0))/det;
+  const f=((p2y-p0y)*(u1-u0)-(p1y-p0y)*(u2-u0))/det;
+  const g=p0y-e*u0-f*v0;
+  _ctx.save();
+  _ctx.beginPath(); _ctx.moveTo(p0x,p0y); _ctx.lineTo(p1x,p1y); _ctx.lineTo(p2x,p2y); _ctx.closePath(); _ctx.clip();
+  _ctx.transform(a,e,b,f,cc,g); _ctx.drawImage(img,0,0);
+  _ctx.restore();
+}
+
+// Sub-divide triangle recursively for better UV accuracy (reduces affine distortion)
+let _hqRender = false; // toggled by "高品質" checkbox
+function _drawTriHQ(u0,v0,u1,v1,u2,v2, p0x,p0y,p1x,p1y,p2x,p2y, img, _ctx, depth) {
+  if (depth<=0) {
+    _drawAffineTriangle(u0,v0,u1,v1,u2,v2, p0x,p0y,p1x,p1y,p2x,p2y, img, _ctx);
+    return;
+  }
+  // Midpoints
+  const mu01=(u0+u1)/2, mv01=(v0+v1)/2, mp01x=(p0x+p1x)/2, mp01y=(p0y+p1y)/2;
+  const mu12=(u1+u2)/2, mv12=(v1+v2)/2, mp12x=(p1x+p2x)/2, mp12y=(p1y+p2y)/2;
+  const mu20=(u2+u0)/2, mv20=(v2+v0)/2, mp20x=(p2x+p0x)/2, mp20y=(p2y+p0y)/2;
+  const d=depth-1;
+  _drawTriHQ(u0,v0,mu01,mv01,mu20,mv20, p0x,p0y,mp01x,mp01y,mp20x,mp20y, img,_ctx,d);
+  _drawTriHQ(u1,v1,mu12,mv12,mu01,mv01, p1x,p1y,mp12x,mp12y,mp01x,mp01y, img,_ctx,d);
+  _drawTriHQ(u2,v2,mu20,mv20,mu12,mv12, p2x,p2y,mp20x,mp20y,mp12x,mp12y, img,_ctx,d);
+  _drawTriHQ(mu01,mv01,mu12,mv12,mu20,mv20, mp01x,mp01y,mp12x,mp12y,mp20x,mp20y, img,_ctx,d);
+}
+
 function drawTriLayer(t, verts, img, mesh, _ctx=ctx) {
   for (const [i0,i1,i2] of mesh.tris) {
     const u0=mesh.verts[i0].x, v0=mesh.verts[i0].y;
@@ -1220,21 +1255,11 @@ function drawTriLayer(t, verts, img, mesh, _ctx=ctx) {
     const p0=i2c(verts[i0].x,verts[i0].y,t);
     const p1=i2c(verts[i1].x,verts[i1].y,t);
     const p2=i2c(verts[i2].x,verts[i2].y,t);
-    const det=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0);
-    if (Math.abs(det)<.01) continue;
-    const a =((p1.x-p0.x)*(v2-v0)-(p2.x-p0.x)*(v1-v0))/det;
-    const b =((p2.x-p0.x)*(u1-u0)-(p1.x-p0.x)*(u2-u0))/det;
-    const cc=p0.x-a*u0-b*v0;
-    const e =((p1.y-p0.y)*(v2-v0)-(p2.y-p0.y)*(v1-v0))/det;
-    const f =((p2.y-p0.y)*(u1-u0)-(p1.y-p0.y)*(u2-u0))/det;
-    const g =p0.y-e*u0-f*v0;
-    _ctx.save();
-    _ctx.beginPath();
-    _ctx.moveTo(p0.x,p0.y); _ctx.lineTo(p1.x,p1.y); _ctx.lineTo(p2.x,p2.y); _ctx.closePath();
-    _ctx.clip();
-    _ctx.transform(a,e,b,f,cc,g);
-    _ctx.drawImage(img,0,0);
-    _ctx.restore();
+    if (_hqRender) {
+      _drawTriHQ(u0,v0,u1,v1,u2,v2, p0.x,p0.y,p1.x,p1.y,p2.x,p2.y, img, _ctx, 2);
+    } else {
+      _drawAffineTriangle(u0,v0,u1,v1,u2,v2, p0.x,p0.y,p1.x,p1.y,p2.x,p2.y, img, _ctx);
+    }
   }
 }
 
@@ -1956,6 +1981,13 @@ function updateParamHUD() {
 function toggleMesh() {
   ST.mesh=!ST.mesh;
   document.getElementById('btn-mesh').classList.toggle('on',ST.mesh);
+  redraw();
+}
+
+function toggleHQRender() {
+  _hqRender = !_hqRender;
+  document.getElementById('btn-hq').classList.toggle('on', _hqRender);
+  document.getElementById('lbl-status').textContent = _hqRender ? '高品質レンダリング ON（三角形サブディビジョン）' : '高品質レンダリング OFF';
   redraw();
 }
 
@@ -2723,21 +2755,14 @@ function drawDeformedPart(pd,verts,img,_ctx=ctx){
     const u0=pd.mesh.verts[i0].x,v0=pd.mesh.verts[i0].y;
     const u1=pd.mesh.verts[i1].x,v1=pd.mesh.verts[i1].y;
     const u2=pd.mesh.verts[i2].x,v2=pd.mesh.verts[i2].y;
-    const p0={x:pox+verts[i0].x*psc,y:poy+verts[i0].y*psc};
-    const p1={x:pox+verts[i1].x*psc,y:poy+verts[i1].y*psc};
-    const p2={x:pox+verts[i2].x*psc,y:poy+verts[i2].y*psc};
-    const det=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0);
-    if(Math.abs(det)<.01)continue;
-    const a=((p1.x-p0.x)*(v2-v0)-(p2.x-p0.x)*(v1-v0))/det;
-    const b=((p2.x-p0.x)*(u1-u0)-(p1.x-p0.x)*(u2-u0))/det;
-    const c=p0.x-a*u0-b*v0;
-    const e=((p1.y-p0.y)*(v2-v0)-(p2.y-p0.y)*(v1-v0))/det;
-    const f=((p2.y-p0.y)*(u1-u0)-(p1.y-p0.y)*(u2-u0))/det;
-    const g=p0.y-e*u0-f*v0;
-    _ctx.save();
-    _ctx.beginPath();_ctx.moveTo(p0.x,p0.y);_ctx.lineTo(p1.x,p1.y);_ctx.lineTo(p2.x,p2.y);_ctx.closePath();_ctx.clip();
-    _ctx.transform(a,e,b,f,c,g);_ctx.drawImage(img,0,0);
-    _ctx.restore();
+    const p0x=pox+verts[i0].x*psc, p0y=poy+verts[i0].y*psc;
+    const p1x=pox+verts[i1].x*psc, p1y=poy+verts[i1].y*psc;
+    const p2x=pox+verts[i2].x*psc, p2y=poy+verts[i2].y*psc;
+    if (_hqRender) {
+      _drawTriHQ(u0,v0,u1,v1,u2,v2, p0x,p0y,p1x,p1y,p2x,p2y, img, _ctx, 2);
+    } else {
+      _drawAffineTriangle(u0,v0,u1,v1,u2,v2, p0x,p0y,p1x,p1y,p2x,p2y, img, _ctx);
+    }
   }
 }
 
@@ -7534,7 +7559,11 @@ async function exportPNGSequence() {
   const hasTracks = Object.values(tracks).some(f=>f&&f.length>0);
   if (!hasTracks) { document.getElementById('lbl-status').textContent = 'タイムラインにKFがありません'; return; }
   const dur = M.animation.duration || 3;
-  const fps = 24;
+  // FPS selection dialog
+  const fpsOpts = [8,12,15,24,30,60];
+  const fpsStr = prompt(`フレームレートを選択してください:\n${fpsOpts.map((v,i)=>`${i+1}: ${v}fps`).join('\n')}`, '24');
+  const fps = fpsOpts.find(v=>v===parseInt(fpsStr)) || parseInt(fpsStr) || 24;
+  if (isNaN(fps)||fps<=0||fps>120) { document.getElementById('lbl-status').textContent = 'FPS値が無効です'; return; }
   const totalFrames = Math.round(dur * fps);
   document.getElementById('lbl-status').textContent = 'PNG連番出力中...';
   // Save current param values
@@ -7571,7 +7600,7 @@ async function exportPNGSequence() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='frames.zip'; a.click();
   setTimeout(()=>URL.revokeObjectURL(url),10000);
-  document.getElementById('lbl-status').textContent = `PNG連番出力完了 (${totalFrames+1}フレーム, 24fps) → frames.zip`;
+  document.getElementById('lbl-status').textContent = `PNG連番出力完了 (${totalFrames+1}フレーム, ${fps}fps) → frames.zip`;
 }
 
 // ==================== GIF EXPORT ====================
