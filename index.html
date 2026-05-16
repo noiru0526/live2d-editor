@@ -5389,6 +5389,7 @@ let animMultiRAF = null;
 const TL_ROW_H = 24;
 const TL_LABEL_W = 90;
 let tlScrollY = 0;
+const tlHiddenTracks = new Set(); // hidden param names
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -5485,15 +5486,18 @@ function drawMultiTimeline() {
     tlMultiCtx.fillRect(0, ry+TL_ROW_H-1, W, 1);
 
     // Label
+    const isHidden = tlHiddenTracks.has(name);
     if (tlLabelCtx) {
       const lry = ri*TL_ROW_H - tlScrollY;
       tlLabelCtx.fillStyle = ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent';
       tlLabelCtx.fillRect(0, lry, LW, TL_ROW_H);
-      tlLabelCtx.fillStyle = name===ST.ap ? '#c8d4f0' : '#6878a0';
+      // Eye icon for visibility
+      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
       tlLabelCtx.font = '9px Segoe UI';
-      const shortLbl = p.lbl.length>11 ? p.lbl.slice(0,10)+'…' : p.lbl;
+      const shortLbl = (isHidden?'○ ':'') + (p.lbl.length>10 ? p.lbl.slice(0,9)+'…' : p.lbl);
       tlLabelCtx.fillText(shortLbl, 3, lry+TL_ROW_H/2+4);
     }
+    if (isHidden) return; // skip drawing KF data for hidden tracks
 
     // KF track line
     const frames = M.animation.tracks[name];
@@ -5555,6 +5559,20 @@ function drawMultiTimeline() {
   const tle=document.getElementById('tl-playhead-time');
   if (tle) tle.textContent=ph.toFixed(3)+'s';
 }
+
+// Label canvas click → toggle track visibility
+tlLabelCanvas.addEventListener('click', e=>{
+  const r = tlLabelCanvas.getBoundingClientRect();
+  const py = (e.clientY - r.top) + tlScrollY;
+  const params = Object.entries(M.params);
+  const ri = Math.floor(py / TL_ROW_H);
+  if (ri >= 0 && ri < params.length) {
+    const name = params[ri][0];
+    if (tlHiddenTracks.has(name)) tlHiddenTracks.delete(name);
+    else tlHiddenTracks.add(name);
+    drawMultiTimeline();
+  }
+});
 
 function toggleAnimMode() {
   ST.animMode = !ST.animMode;
