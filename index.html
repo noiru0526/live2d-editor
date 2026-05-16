@@ -608,6 +608,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="height:8px"></td></tr>
       <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">E</td><td>編集モード</td></tr>
       <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">P</td><td>プレビューモード</td></tr>
+      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">A</td><td>アニメーションタイムライン切替</td></tr>
+      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">D</td><td>デフォーマーモード切替</td></tr>
       <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">R</td><td>REC オン/オフ</td></tr>
       <tr><td style="height:8px"></td></tr>
       <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">M</td><td>メッシュ表示切替</td></tr>
@@ -3774,10 +3776,30 @@ function resetToNeutral() {
 
 function filterParams(q) {
   const lq=q.toLowerCase();
+  const searching = lq !== '';
+  // Track which groups have visible params
+  const grpHasMatch = {};
   for (const [name,p] of Object.entries(M.params)) {
     const row=document.getElementById(`pr-${name}`);
     if (!row) continue;
-    row.style.display=(lq===''||p.lbl.toLowerCase().includes(lq)||name.toLowerCase().includes(lq))?'':'none';
+    const match = !searching || p.lbl.toLowerCase().includes(lq) || name.toLowerCase().includes(lq);
+    row.style.display = match ? '' : 'none';
+    if (match) {
+      // Find which group this param belongs to
+      for (const [grp, ids] of Object.entries(PGROUPS)) {
+        if (ids.includes(name)) grpHasMatch[grp] = true;
+      }
+    }
+  }
+  // Expand groups with matches when searching; restore saved state when clearing
+  for (const [grp] of Object.entries(PGROUPS)) {
+    const body = document.getElementById('pgrp-body-'+grp);
+    const header = document.querySelector(`[data-grp-id="${grp}"]`);
+    if (!body) continue;
+    const shouldExpand = searching ? !!grpHasMatch[grp] : pgroupVisible[grp] !== false;
+    body.style.display = shouldExpand ? '' : 'none';
+    const icon = body.previousElementSibling?.querySelector('.pgroup-icon');
+    if (icon) icon.textContent = shouldExpand ? '▾' : '▸';
   }
 }
 
@@ -5323,6 +5345,30 @@ let animMultiRAF = null;
 const TL_ROW_H = 24;
 const TL_LABEL_W = 90;
 
+// Shared interp helper — used by playback, seek, and curve display
+const _ANIM_INTERP_FNS = {
+  linear: t=>t,
+  smooth: t=>t*t*(3-2*t),
+  'ease-in': t=>t*t,
+  'ease-out': t=>1-(1-t)*(1-t),
+  bounce: t=>{ const k=t<.5?2*t:2-2*t; return t<.5?k*k/2:1-k*k/2; }
+};
+function applyAnimInterp(frac, mode) {
+  const fn = _ANIM_INTERP_FNS[mode] || _ANIM_INTERP_FNS.linear;
+  return fn(Math.max(0, Math.min(1, frac)));
+}
+// Evaluate animation track value at time t using p.interp
+function evalAnimTrack(frames, p, t) {
+  const sorted = [...frames].sort((a,b)=>a.t-b.t);
+  let i = sorted.findIndex(f=>f.t>t);
+  if (i<0) return sorted[sorted.length-1].v;
+  if (i===0) return sorted[0].v;
+  const f0=sorted[i-1], f1=sorted[i];
+  const rawFrac=(t-f0.t)/Math.max(f1.t-f0.t,0.0001);
+  const frac=applyAnimInterp(rawFrac, p.interp??'linear');
+  return f0.v+(f1.v-f0.v)*frac;
+}
+
 function initMultiTimeline() {
   tlMultiCtx = tlMultiCanvas.getContext('2d');
   tlLabelCtx = tlLabelCanvas.getContext('2d');
@@ -5410,20 +5456,7 @@ function drawMultiTimeline() {
       const steps=Math.min(Math.ceil(W/2),120);
       for (let si=0;si<=steps;si++) {
         const t=si/steps*dur;
-        let v;
-        let idx=sorted.findIndex(f=>f.t>t);
-        if (idx<0){v=sorted[sorted.length-1].v;}
-        else if(idx===0){v=sorted[0].v;}
-        else{
-          const f0=sorted[idx-1],f1=sorted[idx];
-          let frac=(t-f0.t)/Math.max(f1.t-f0.t,.0001);
-          // Apply param interp
-          const interp=p.interp??'linear';
-          if(interp==='smooth'){frac=frac*frac*(3-2*frac);}
-          else if(interp==='ease-in'){frac=frac*frac;}
-          else if(interp==='ease-out'){frac=1-(1-frac)*(1-frac);}
-          v=f0.v+(f1.v-f0.v)*frac;
-        }
+        const v=evalAnimTrack(sorted, p, t);
         const kx=toKX(t),ky=toKY(v);
         if(si===0)tlMultiCtx.moveTo(kx,ky);else tlMultiCtx.lineTo(kx,ky);
       }
@@ -5514,17 +5547,12 @@ function animMultiPlay() {
     const loop = document.getElementById('tl-loop')?.checked !== false;
     if (loop) t = t % dur; else t = Math.min(t,dur);
     ST.animPlayhead = t;
-    // Apply track values
+    // Apply track values with proper interpolation
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
-      if (!M.params[name]||!frames.length) continue;
-      let i=frames.findIndex(f=>f.t>t);
-      if (i<0) { M.params[name].val=frames[frames.length-1].v; continue; }
-      if (i===0) { M.params[name].val=frames[0].v; continue; }
-      const f0=frames[i-1],f1=frames[i];
-      const frac=(t-f0.t)/Math.max(f1.t-f0.t,0.001);
-      M.params[name].val=f0.v+(f1.v-f0.v)*frac;
-      const s=document.getElementById(`ps-${name}`); if(s)s.value=M.params[name].val;
-      const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=M.params[name].val.toFixed(2);
+      const p=M.params[name]; if(!p||!frames.length) continue;
+      p.val=evalAnimTrack(frames, p, t);
+      const s=document.getElementById(`ps-${name}`); if(s)s.value=p.val;
+      const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
     }
     ST.cachedVerts=null; redraw(); drawMultiTimeline();
     if (!loop && t>=dur) { animMultiStop(); return; }
@@ -5612,16 +5640,10 @@ function animMultiStop() {
     const dur=M.animation.duration||3;
     ST.animPlayhead=Math.max(0,Math.min(dur,(e.clientX-r.left)/r.width*dur));
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
-      if (!M.params[name]||!frames.length) continue;
-      const t=ST.animPlayhead;
-      let i=frames.findIndex(f=>f.t>t);
-      if (i<0){M.params[name].val=frames[frames.length-1].v;continue;}
-      if (i===0){M.params[name].val=frames[0].v;continue;}
-      const f0=frames[i-1],f1=frames[i];
-      const frac=(t-f0.t)/Math.max(f1.t-f0.t,.001);
-      M.params[name].val=f0.v+(f1.v-f0.v)*frac;
-      const s=document.getElementById(`ps-${name}`);if(s)s.value=M.params[name].val;
-      const pv=document.getElementById(`pv-${name}`);if(pv)pv.textContent=M.params[name].val.toFixed(2);
+      const p=M.params[name]; if(!p||!frames.length) continue;
+      p.val=evalAnimTrack(frames, p, ST.animPlayhead);
+      const s=document.getElementById(`ps-${name}`);if(s)s.value=p.val;
+      const pv=document.getElementById(`pv-${name}`);if(pv)pv.textContent=p.val.toFixed(2);
     }
     ST.cachedVerts=null;redraw();drawMultiTimeline();
   });
@@ -5901,8 +5923,12 @@ const PGROUPS = {
   '口':    ['mouthOpen','mouthA','mouthI','mouthU','cheekPuff','tongue'],
   '体':    [],
 };
-let pgroupVisible = {}; // groupName -> bool (collapsed?)
-for (const k of Object.keys(PGROUPS)) pgroupVisible[k] = true;
+let pgroupVisible = {}; // groupName -> bool (expanded?)
+(()=>{
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('pgroupVisible')||'{}'); } catch(e){}
+  for (const k of Object.keys(PGROUPS)) pgroupVisible[k] = saved[k] !== false;
+})();
 
 function showParamGroupManager() {
   const paramNames = Object.keys(M.params);
@@ -5943,6 +5969,7 @@ function buildParamGroupsUI() {
     const expanded = pgroupVisible[grp] !== false;
     const header = document.createElement('div');
     header.className = 'pgroup-header';
+    header.setAttribute('data-grp-id', grp);
     header.innerHTML = `<span class="pgroup-icon">▾</span><span class="pgroup-label">${grp}</span><span class="pgroup-count">${present.length}</span>`;
     header.style.transform = expanded ? '' : 'none';
     const body = document.createElement('div');
@@ -5977,6 +6004,7 @@ function buildParamGroupsUI() {
       pgroupVisible[grp] = !pgroupVisible[grp];
       body.style.display = pgroupVisible[grp] ? '' : 'none';
       header.querySelector('.pgroup-icon').textContent = pgroupVisible[grp] ? '▾' : '▸';
+      try { localStorage.setItem('pgroupVisible', JSON.stringify(pgroupVisible)); } catch(e){}
     });
     cont.appendChild(header);
     cont.appendChild(body);
