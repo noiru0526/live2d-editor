@@ -6154,6 +6154,30 @@ function addAnimKF() {
   document.getElementById('lbl-status').textContent=`アニメKF追加 @ ${t.toFixed(3)}s`;
 }
 
+function equalizeSelectedKFs() {
+  // Distribute selected KFs evenly between their min and max times (per track)
+  if (tlSelectedKFs.size < 3) { document.getElementById('lbl-status').textContent = '均等化: 3つ以上のKFを選択してください'; return; }
+  // Group by track
+  const byTrack = new Map();
+  for (const [nm, frms] of Object.entries(M.animation.tracks)) {
+    for (const kf of frms) {
+      if (tlSelectedKFs.has(kf)) {
+        if (!byTrack.has(nm)) byTrack.set(nm, []);
+        byTrack.get(nm).push(kf);
+      }
+    }
+  }
+  for (const [nm, kfs] of byTrack) {
+    kfs.sort((a,b)=>a.t-b.t);
+    const tMin = kfs[0].t, tMax = kfs[kfs.length-1].t;
+    const step = (tMax - tMin) / (kfs.length - 1);
+    kfs.forEach((kf, i) => { kf.t = Math.round((tMin + i*step)*1000)/1000; });
+    M.animation.tracks[nm].sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `KF均等化: ${tlSelectedKFs.size}個のKFを等間隔に配置`;
+}
+
 function clearAnimTracks() {
   if (!confirm('アニメーションデータをすべてクリアしますか？')) return;
   M.animation.tracks={};
@@ -6456,6 +6480,8 @@ function applyPlayheadToParams() {
       { icon:'〜', label:'イージング: Smooth', action:()=>{ hit.kf.interp='smooth'; drawMultiTimeline(); }},
       { icon:'〜', label:'イージング: Ease-In', action:()=>{ hit.kf.interp='ease-in'; drawMultiTimeline(); }},
       { icon:'〜', label:'イージング: Ease-Out', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
+      null,
+      { icon:'⇿', label:'選択KFを均等配置', action:()=>equalizeSelectedKFs() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
         M.animation.tracks[hit.name]=M.animation.tracks[hit.name].filter(f=>f!==hit.kf);
