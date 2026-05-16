@@ -281,6 +281,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="bakeAnimToTimeline()" title="録音データをタイムラインKFに変換" style="color:#d0c060;">🍞 ベイク</button>
   <button class="tbtn" onclick="gradientKFBetween()" title="KF間に滑らかなグラジェント補間を追加" style="color:#80c0ff;">〜 補間</button>
   <button class="tbtn" onclick="reduceKFDensity()" title="冗長なKFを間引いて軽量化" style="color:#a0c080;">✂ 間引き</button>
+  <button class="tbtn" onclick="pingPongAnim()" title="アニメーションを逆転させてピンポンループを作成" style="color:#ffd0a0;">⇌ ピンポン</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-def-mode" onclick="toggleDeformerMode()" title="デフォーマー操作モード (D)">デフォーマー<span class="sk">D</span></button>
   <button class="tbtn" onclick="addWarpDeformer()" title="ワープデフォーマーを追加">＋ワープ</button>
@@ -6620,6 +6621,25 @@ function reduceKFDensity() {
   }
   drawTimeline();
   document.getElementById('lbl-status').textContent = `KF間引き: ${removed}個削除`;
+}
+
+function pingPongAnim() {
+  const tracks = M.animation.tracks;
+  const dur = M.animation.duration || 3;
+  const paramIds = Object.keys(tracks).filter(k => tracks[k]?.length);
+  if (!paramIds.length) { document.getElementById('lbl-status').textContent = 'アニメーションデータがありません'; return; }
+  for (const paramId of paramIds) {
+    const frames = tracks[paramId];
+    const reversed = frames.map(kf => ({ ...kf, t: 2 * dur - kf.t })).reverse();
+    // Remove duplicate at the junction point (t=dur)
+    const noJoin = reversed.filter(kf => Math.abs(kf.t - dur) > 0.001);
+    tracks[paramId] = [...frames, ...noJoin].sort((a,b)=>a.t-b.t);
+  }
+  M.animation.duration = dur * 2;
+  const durEl = document.getElementById('tl-duration');
+  if (durEl) durEl.value = M.animation.duration;
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ピンポンループ作成: ${dur}s → ${M.animation.duration}s`;
 }
 
 // ==================== ANIMATION TIMELINE: KF COPY/PASTE ====================
