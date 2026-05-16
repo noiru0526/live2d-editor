@@ -3214,6 +3214,28 @@ window.addEventListener('message',e=>{
     if(d.type==='anim'){if(d.action==='play'&&!animPlaying)toggleExportAnim();else if(d.action==='stop'&&animPlaying)toggleExportAnim();}
   }catch(_){}
 });
+// Mouse tracking mode
+let _mouseTracking = false;
+const _mtBtn = document.createElement('button');
+_mtBtn.id = 'mt-btn';
+_mtBtn.textContent = '🖱 マウス追従';
+_mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+_mtBtn.onclick = () => {
+  _mouseTracking = !_mouseTracking;
+  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#a0d0ff';
+  _mtBtn.style.borderColor = _mouseTracking ? 'rgba(96,216,144,.5)' : '#3a4470';
+  _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
+};
+document.body.appendChild(_mtBtn);
+window.addEventListener('mousemove', e => {
+  if (!_mouseTracking) return;
+  const nx = (e.clientX / window.innerWidth) * 2 - 1;  // -1..1
+  const ny = -((e.clientY / window.innerHeight) * 2 - 1); // -1..1 (inverted Y)
+  if (params.headX) params.headX.val = Math.max(params.headX.min, Math.min(params.headX.max, nx));
+  if (params.headY) params.headY.val = Math.max(params.headY.min, Math.min(params.headY.max, ny * 0.5));
+  if (params.eyeX) params.eyeX.val = Math.max(params.eyeX.min, Math.min(params.eyeX.max, nx * 0.8));
+  if (params.eyeY) params.eyeY.val = Math.max(params.eyeY.min, Math.min(params.eyeY.max, ny * 0.4));
+});
 <\/script>
 </body>
 </html>`;
