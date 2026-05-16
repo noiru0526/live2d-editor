@@ -2957,6 +2957,15 @@ function draw(ts){
   // Offscreen canvas for clipping mask
   let _clipOff=null;
   const getClipOff=(w,h)=>{if(!_clipOff){_clipOff=document.createElement('canvas');}if(_clipOff.width!==w||_clipOff.height!==h){_clipOff.width=w;_clipOff.height=h;}return _clipOff;};
+  // Apply __opacity: special animation tracks to part opacity
+  for (const [tname, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!tname.startsWith('__opacity:') || !frames?.length) continue;
+    const pid = tname.slice(10);
+    const pd = PARTS.find(p=>p.id===pid); if (!pd) continue;
+    const t = ST.animMode ? ST.animPlayhead : 0;
+    const fakeP = {min:0,max:1,val:1};
+    pd.opacity = evalAnimTrack(frames, fakeP, t);
+  }
   // Draw all parts in order
   for(let pi=0;pi<PARTS.length;pi++){
     const pd=PARTS[pi];
@@ -4741,6 +4750,25 @@ function renderPartsList() {
       ST.cachedVerts = null; renderPartsList(); redraw();
     });
     actions.appendChild(dup);
+    // Opacity animation track button
+    const opKey = '__opacity:' + part.id;
+    const opBtn = document.createElement('button');
+    opBtn.className = 'part-move';
+    opBtn.textContent = M.animation.tracks[opKey] ? '✨' : '🎚';
+    opBtn.title = M.animation.tracks[opKey] ? '不透明度トラックあり（クリックで削除）' : '不透明度アニメーショントラックを追加';
+    opBtn.style.color = M.animation.tracks[opKey] ? '#ffd060' : '';
+    opBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (M.animation.tracks[opKey]) {
+        if (!confirm('不透明度トラックを削除しますか？')) return;
+        delete M.animation.tracks[opKey];
+      } else {
+        // Create track with two KFs: full opacity at 0 and 1
+        M.animation.tracks[opKey] = [{t:0,v:1,interp:'smooth'},{t:M.animation.duration||3,v:1,interp:'smooth'}];
+      }
+      renderPartsList(); drawMultiTimeline();
+    });
+    actions.appendChild(opBtn);
     // Delete (only if >1 parts)
     if (M.parts.length > 1) {
       const del = document.createElement('button');
@@ -5781,16 +5809,23 @@ function drawMultiTimeline() {
     tlMultiCtx.fillText(s.toFixed(2)+'s',x+2,10);
   }
 
+  // Append special __opacity: tracks (not in M.params) to the display list
+  const specialTracks = Object.keys(M.animation.tracks||{})
+    .filter(k=>k.startsWith('__opacity:'))
+    .map(k => [k, {lbl:'⬜ '+k.slice(10), min:0, max:1}]);
+  const allTrackRows = [...params, ...specialTracks];
+
   // Clamp scroll
-  const totalH = params.length * TL_ROW_H;
+  const totalH = allTrackRows.length * TL_ROW_H;
   tlScrollY = Math.max(0, Math.min(tlScrollY, Math.max(0, totalH - H)));
 
   // Draw each param track
-  params.forEach(([name,p],ri) => {
+  allTrackRows.forEach(([name,p],ri) => {
     const ry = ri*TL_ROW_H - tlScrollY;
     if (ry+TL_ROW_H < 0 || ry > H) return; // skip off-screen rows
     // Row background
-    tlMultiCtx.fillStyle = ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent';
+    const isSpecial = name.startsWith('__opacity:');
+    tlMultiCtx.fillStyle = isSpecial ? 'rgba(255,200,60,.03)' : (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent');
     tlMultiCtx.fillRect(0, ry, W, TL_ROW_H);
     // Separator
     tlMultiCtx.fillStyle='rgba(46,54,86,.5)';
@@ -5800,12 +5835,13 @@ function drawMultiTimeline() {
     const isHidden = tlHiddenTracks.has(name);
     if (tlLabelCtx) {
       const lry = ri*TL_ROW_H - tlScrollY;
-      tlLabelCtx.fillStyle = ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent';
+      tlLabelCtx.fillStyle = isSpecial ? 'rgba(255,200,60,.04)' : (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent');
       tlLabelCtx.fillRect(0, lry, LW, TL_ROW_H);
       // Eye icon for visibility
-      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
+      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (isSpecial ? '#ffd060' : (name===ST.ap ? '#c8d4f0' : '#6878a0'));
       tlLabelCtx.font = '9px Segoe UI';
-      const shortLbl = (isHidden?'○ ':'') + (p.lbl.length>10 ? p.lbl.slice(0,9)+'…' : p.lbl);
+      const lbl = p.lbl||name;
+      const shortLbl = (isHidden?'○ ':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
       tlLabelCtx.fillText(shortLbl, 3, lry+TL_ROW_H/2+4);
     }
     if (isHidden) return; // skip drawing KF data for hidden tracks
@@ -6158,9 +6194,12 @@ function applyPlayheadToParams() {
     const t=tlZoomOff+relX*visibleDur;
     const py=(e.clientY-r.top) + tlScrollY;
     const W=r.width;
-    const params=Object.entries(M.params);
-    for (let ri=0;ri<params.length;ri++) {
-      const [name]=params[ri];
+    // Include both normal params and special tracks (__opacity:) in hit test
+    const paramRows=Object.entries(M.params);
+    const specialRows=Object.keys(M.animation.tracks||{}).filter(k=>k.startsWith('__opacity:')).map(k=>[k,null]);
+    const allRows=[...paramRows,...specialRows];
+    for (let ri=0;ri<allRows.length;ri++) {
+      const [name]=allRows[ri];
       const frames=M.animation.tracks[name];
       if (!frames||!frames.length) continue;
       const ry=ri*TL_ROW_H;
