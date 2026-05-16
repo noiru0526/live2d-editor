@@ -3179,13 +3179,24 @@ document.addEventListener('keydown',e=>{
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
   // Space: timeline play/pause handled below in combined handler
   if (e.ctrlKey&&e.key==='a') {
-    ST.selVerts.clear();
-    for (let i=0;i<M.mesh.verts.length;i++) ST.selVerts.add(i);
-    if (M.mesh.verts.length>0) ST.selV=0;
-    document.getElementById('sb-vtx').textContent=`頂点: ${ST.selVerts.size}個選択`;
-    redraw(); e.preventDefault();
+    if (ST.animMode) {
+      // In anim mode: select all KFs in active track
+      tlSelectedKFs.clear();
+      const frames=M.animation.tracks[ST.ap];
+      if (frames) for (const kf of frames) tlSelectedKFs.add(kf);
+      drawMultiTimeline(); e.preventDefault();
+    } else {
+      ST.selVerts.clear();
+      for (let i=0;i<M.mesh.verts.length;i++) ST.selVerts.add(i);
+      if (M.mesh.verts.length>0) ST.selV=0;
+      document.getElementById('sb-vtx').textContent=`頂点: ${ST.selVerts.size}個選択`;
+      redraw(); e.preventDefault();
+    }
   }
-  if (e.ctrlKey&&e.key==='d') { ST.selVerts.clear(); ST.selV=-1; redraw(); e.preventDefault(); }
+  if (e.ctrlKey&&e.key==='d') {
+    if (ST.animMode) { tlSelectedKFs.clear(); drawMultiTimeline(); e.preventDefault(); }
+    else { ST.selVerts.clear(); ST.selV=-1; redraw(); e.preventDefault(); }
+  }
 
   // Arrow key nudge
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) && ST.selVerts.size>0 && document.activeElement===document.body) {
@@ -3206,6 +3217,13 @@ document.addEventListener('keydown',e=>{
     ST.cachedVerts=null; redraw(); drawTimeline(); e.preventDefault();
   }
 
+  // Delete/Backspace: in anim mode, delete selected KFs; otherwise reset deform
+  if ((e.key==='Delete'||e.key==='Backspace') && ST.animMode && tlSelectedKFs.size>0 && document.activeElement===document.body) {
+    for (const [name,frames] of Object.entries(M.animation.tracks)) {
+      M.animation.tracks[name]=frames.filter(kf=>!tlSelectedKFs.has(kf));
+    }
+    tlSelectedKFs.clear(); drawMultiTimeline(); e.preventDefault(); return;
+  }
   // Delete/Backspace: reset deform for selected vertices
   if ((e.key==='Delete'||e.key==='Backspace') && ST.selVerts.size>0 && document.activeElement===document.body) {
     if (ST.rec) {
@@ -5640,6 +5658,7 @@ let tlScrollY = 0;
 let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
 let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
+const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -5812,6 +5831,15 @@ function drawMultiTimeline() {
         tlMultiCtx.lineTo(kx,ky+sz);tlMultiCtx.lineTo(kx-sz,ky);
         tlMultiCtx.closePath();tlMultiCtx.fill();
         tlMultiCtx.globalAlpha=1;
+        // Selection highlight ring
+        if (tlSelectedKFs.has(kf)) {
+          tlMultiCtx.strokeStyle='#fff';
+          tlMultiCtx.lineWidth=1.5;
+          tlMultiCtx.beginPath();
+          tlMultiCtx.moveTo(kx,ky-sz-2);tlMultiCtx.lineTo(kx+sz+2,ky);
+          tlMultiCtx.lineTo(kx,ky+sz+2);tlMultiCtx.lineTo(kx-sz-2,ky);
+          tlMultiCtx.closePath();tlMultiCtx.stroke();
+        }
       }
     }
   });
@@ -6083,7 +6111,7 @@ function applyPlayheadToParams() {
 // Multi-track timeline interaction (playhead + KF drag + KF right-click delete)
 (()=>{
   let tlmDragging = false;
-  let tlmKFDrag = null; // {name, kf, startT, startX}
+  let tlmKFDrag = null; // {startX, entries:[{kf,name,origT}]}
   const getTracks = ()=>document.getElementById('tl-multi-tracks');
 
   function hitTestKF(e) {
@@ -6161,10 +6189,24 @@ function applyPlayheadToParams() {
     if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return;
     const hit=hitTestKF(e);
     if (hit && e.button===0) {
-      tlmKFDrag={...hit, startT:hit.kf.t, startX:e.clientX, origT:hit.kf.t};
-      e.stopPropagation();
-      return;
+      if (e.ctrlKey||e.metaKey) {
+        // Ctrl+click: toggle KF in/out of selection
+        if (tlSelectedKFs.has(hit.kf)) tlSelectedKFs.delete(hit.kf);
+        else tlSelectedKFs.add(hit.kf);
+        drawMultiTimeline(); e.stopPropagation(); return;
+      }
+      // Click on unselected KF: clear selection and select this one
+      if (!tlSelectedKFs.has(hit.kf)) { tlSelectedKFs.clear(); tlSelectedKFs.add(hit.kf); }
+      // Build drag entries for all selected KFs
+      const kfToName = new Map();
+      for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+      const entries = [];
+      for (const selKf of tlSelectedKFs) entries.push({kf:selKf, name:kfToName.get(selKf)||hit.name, origT:selKf.t});
+      tlmKFDrag={startX:e.clientX, entries};
+      e.stopPropagation(); return;
     }
+    // Click on empty area: clear selection, move playhead
+    tlSelectedKFs.clear();
     tlmDragging=true;
     const dur=M.animation.duration||3;
     const visibleDur2=dur/tlZoom;
@@ -6179,10 +6221,13 @@ function applyPlayheadToParams() {
       const dur=M.animation.duration||3;
       const visibleDur=dur/tlZoom;
       const dx=(e.clientX-tlmKFDrag.startX)/r.width*visibleDur;
-      tlmKFDrag.kf.t=Math.max(0,Math.min(dur,tlmKFDrag.origT+dx));
-      M.animation.tracks[tlmKFDrag.name].sort((a,b)=>a.t-b.t);
-      drawMultiTimeline();
-      return;
+      const affectedNames=new Set();
+      for (const {kf,name,origT} of tlmKFDrag.entries) {
+        kf.t=Math.max(0,Math.min(dur,origT+dx));
+        affectedNames.add(name);
+      }
+      for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+      drawMultiTimeline(); return;
     }
     if (!tlmDragging) return;
     const trk=getTracks(); if(!trk) return;
