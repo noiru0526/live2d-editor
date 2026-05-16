@@ -7424,7 +7424,7 @@ function toggleVideoRec() {
 
 // ==================== PNG SEQUENCE EXPORT ====================
 async function exportPNGSequence() {
-  if (!M.img) { document.getElementById('lbl-status').textContent = '画像を開いてください'; return; }
+  if (!M.parts.some(p=>p.img)) { document.getElementById('lbl-status').textContent = '画像を開いてください'; return; }
   const tracks = M.animation.tracks;
   const hasTracks = Object.values(tracks).some(f=>f&&f.length>0);
   if (!hasTracks) { document.getElementById('lbl-status').textContent = 'タイムラインにKFがありません'; return; }
@@ -7432,10 +7432,7 @@ async function exportPNGSequence() {
   const fps = 24;
   const totalFrames = Math.round(dur * fps);
   document.getElementById('lbl-status').textContent = 'PNG連番出力中...';
-  // Render each frame to offscreen canvas
-  const offC = document.createElement('canvas');
-  offC.width = M.iw; offC.height = M.ih;
-  const offCtx = offC.getContext('2d');
+  // Save current param values
   const savedVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
   // Load JSZip for bundling
   if (!window.JSZip) {
@@ -7446,41 +7443,17 @@ async function exportPNGSequence() {
     });
   }
   const zip = new JSZip();
-  function renderFrameToCanvas(t, c, cx) {
+  for (let fi = 0; fi <= totalFrames; fi++) {
+    const t = (fi / fps) % dur;
     // Apply track values
     for (const [name, frames] of Object.entries(tracks)) {
       const p = M.params[name]; if (!p||!frames.length) continue;
       p.val = evalAnimTrack(frames, p, t);
     }
-    const verts = deformedVerts();
-    cx.clearRect(0,0,c.width,c.height);
-    const sc = Math.min(c.width/M.iw, c.height/M.ih);
-    const ox = (c.width - M.iw*sc)/2, oy = (c.height - M.ih*sc)/2;
-    cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
-    for (const [i0,i1,i2] of M.mesh.tris) {
-      const u0=M.mesh.verts[i0].x,v0=M.mesh.verts[i0].y;
-      const u1=M.mesh.verts[i1].x,v1=M.mesh.verts[i1].y;
-      const u2=M.mesh.verts[i2].x,v2=M.mesh.verts[i2].y;
-      const p0={x:ox+verts[i0].x*sc,y:oy+verts[i0].y*sc};
-      const p1={x:ox+verts[i1].x*sc,y:oy+verts[i1].y*sc};
-      const p2={x:ox+verts[i2].x*sc,y:oy+verts[i2].y*sc};
-      const det=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0);
-      if(Math.abs(det)<.01) continue;
-      const a=((p1.x-p0.x)*(v2-v0)-(p2.x-p0.x)*(v1-v0))/det;
-      const b=((p2.x-p0.x)*(u1-u0)-(p1.x-p0.x)*(u2-u0))/det;
-      const cc=p0.x-a*u0-b*v0;
-      const e=((p1.y-p0.y)*(v2-v0)-(p2.y-p0.y)*(v1-v0))/det;
-      const f=((p2.y-p0.y)*(u1-u0)-(p1.y-p0.y)*(u2-u0))/det;
-      const g=p0.y-e*u0-f*v0;
-      cx.save(); cx.beginPath();
-      cx.moveTo(p0.x,p0.y);cx.lineTo(p1.x,p1.y);cx.lineTo(p2.x,p2.y);cx.closePath();cx.clip();
-      cx.transform(a,e,b,f,cc,g); cx.drawImage(M.img,0,0); cx.restore();
-    }
-  }
-  for (let fi = 0; fi <= totalFrames; fi++) {
-    const t = (fi / fps) % dur;
-    renderFrameToCanvas(t, offC, offCtx);
-    const pngData = offC.toDataURL('image/png').split(',')[1];
+    // Use redraw() to render all parts with full pipeline onto main canvas
+    ST.cachedVerts=null; redraw();
+    // Capture main canvas as PNG
+    const pngData = canvas.toDataURL('image/png').split(',')[1];
     const fn = 'frame_' + String(fi).padStart(4,'0') + '.png';
     zip.file(fn, pngData, {base64:true});
     if (fi % 12 === 0) document.getElementById('lbl-status').textContent = `PNG連番: ${fi}/${totalFrames}フレーム処理中...`;
