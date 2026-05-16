@@ -3107,6 +3107,8 @@ document.addEventListener('keydown',e=>{
   if ((e.ctrlKey&&e.key==='y')||(e.ctrlKey&&e.shiftKey&&e.key==='Z')) { redo(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='s') { saveModel(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
+  // Space: timeline play/pause (only when not typing in an input)
+  if (e.key===' ' && document.activeElement===document.body) { animMultiPlay(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='a') {
     ST.selVerts.clear();
     for (let i=0;i<M.mesh.verts.length;i++) ST.selVerts.add(i);
@@ -4590,6 +4592,21 @@ function renderPartsList() {
       md.addEventListener('click', e => { e.stopPropagation(); const tmp=M.parts[pi]; M.parts[pi]=M.parts[pi-1]; M.parts[pi-1]=tmp; if(M.activePart===pi)M.activePart=pi-1; else if(M.activePart===pi-1)M.activePart=pi; renderPartsList(); redraw(); });
       actions.appendChild(md);
     }
+    // Duplicate
+    const dup = document.createElement('button');
+    dup.className = 'part-move'; dup.textContent = '⧉'; dup.title = 'パーツを複製';
+    dup.addEventListener('click', e => {
+      e.stopPropagation();
+      const clone = JSON.parse(JSON.stringify(part));
+      clone.id = 'p' + Date.now();
+      clone.name = part.name + '(複製)';
+      // Copy image reference
+      clone.img = part.img;
+      M.parts.splice(pi+1, 0, clone);
+      M.activePart = pi+1;
+      ST.cachedVerts = null; renderPartsList(); redraw();
+    });
+    actions.appendChild(dup);
     // Delete (only if >1 parts)
     if (M.parts.length > 1) {
       const del = document.createElement('button');
