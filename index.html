@@ -811,7 +811,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
-    <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (30fps基準)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🧲</button>
+    <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
@@ -6369,6 +6369,28 @@ function toggleTLSnap() {
 }
 function snapT(t) { return tlSnapEnabled ? Math.round(t / tlSnapGrid) * tlSnapGrid : t; }
 
+function showSnapMenu(e) {
+  const bpmToGrid = bpm => 60 / bpm;
+  showCtxMenu(e.clientX, e.clientY, [
+    { icon:'🎵', label:`BPM入力でスナップグリッドを設定`, action:()=>{
+      const bpm = parseFloat(prompt('BPM（テンポ）を入力してください:', '120'));
+      if (!isNaN(bpm) && bpm > 0) {
+        tlSnapGrid = bpmToGrid(bpm);
+        tlSnapEnabled = true;
+        const btn = document.getElementById('btn-tl-snap');
+        if (btn) { btn.style.background='#1e3050'; btn.style.color='#4e9cff'; btn.style.borderColor='rgba(78,124,255,.5)'; btn.title=`KFスナップ: ${bpm}BPM (${(tlSnapGrid*1000).toFixed(0)}ms)`; }
+        document.getElementById('lbl-status').textContent = `スナップ: ${bpm}BPM = 1拍 ${(tlSnapGrid*1000).toFixed(0)}ms`;
+      }
+    }},
+    null,
+    { icon:'⬛', label:'30fps (1/30秒)', action:()=>{ tlSnapGrid=1/30; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 30fps'; }},
+    { icon:'⬛', label:'24fps (1/24秒)', action:()=>{ tlSnapGrid=1/24; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 24fps'; }},
+    { icon:'⬛', label:'60fps (1/60秒)', action:()=>{ tlSnapGrid=1/60; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 60fps'; }},
+    { icon:'⬛', label:'0.1秒刻み', action:()=>{ tlSnapGrid=0.1; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.1秒'; }},
+    { icon:'⬛', label:'0.5秒刻み', action:()=>{ tlSnapGrid=0.5; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.5秒'; }},
+  ]);
+}
+
 function toggleAutoKF() {
   tlAutoKF = !tlAutoKF;
   const btn = document.getElementById('btn-auto-kf');
@@ -6835,14 +6857,29 @@ function applyPlayheadToParams() {
     drawMultiTimeline();
   }, {passive:false});
 
-  // Cursor change on KF hover
+  // Cursor change and tooltip on KF hover
+  let _kfTip = null;
   document.addEventListener('mousemove',e=>{
     const trk=getTracks(); if(!trk) return;
     const r=trk.getBoundingClientRect();
     if (e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom) {
       const hit=hitTestKF(e);
       tlMultiCanvas.style.cursor=hit?'ew-resize':'col-resize';
-    }
+      // Tooltip
+      if (hit) {
+        if (!_kfTip) {
+          _kfTip = document.createElement('div');
+          _kfTip.style.cssText='position:fixed;background:#1a1e3a;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;pointer-events:none;z-index:9999;font-family:monospace;white-space:nowrap;';
+          document.body.appendChild(_kfTip);
+        }
+        const itype = hit.kf.interp || 'linear';
+        const pname = M.params[hit.name]?.lbl || hit.name;
+        _kfTip.textContent = `${pname}  t=${hit.kf.t.toFixed(3)}s  v=${hit.kf.v.toFixed(3)}  [${itype}]`;
+        _kfTip.style.left = (e.clientX+14)+'px';
+        _kfTip.style.top = (e.clientY-6)+'px';
+        _kfTip.style.display = 'block';
+      } else if (_kfTip) { _kfTip.style.display='none'; }
+    } else if (_kfTip) { _kfTip.style.display='none'; }
   });
 })();
 
