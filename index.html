@@ -293,6 +293,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="quickPreviewExport()" title="エクスポートをプレビュー" style="color:#ffd060;">▶ テスト</button>
   <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
   <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
+  <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
   <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
@@ -7342,6 +7343,46 @@ function showGEEasingMenu(cx, cy, kf) {
   setTimeout(() => document.addEventListener('click', function h(e) {
     if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', h); }
   }), 10);
+}
+
+// ==================== VIDEO RECORDING ====================
+let _videoRec = null, _videoChunks = [];
+function toggleVideoRec() {
+  const btn = document.getElementById('btn-video-rec');
+  if (_videoRec && _videoRec.state !== 'inactive') {
+    _videoRec.stop();
+    return;
+  }
+  if (!window.MediaRecorder) {
+    document.getElementById('lbl-status').textContent = 'このブラウザはMediaRecorder非対応です';
+    return;
+  }
+  const c = document.getElementById('c');
+  if (!c) return;
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : MediaRecorder.isTypeSupported('video/webm')
+    ? 'video/webm' : '';
+  _videoChunks = [];
+  try {
+    const stream = c.captureStream(30);
+    _videoRec = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+    _videoRec.ondataavailable = e => { if (e.data.size > 0) _videoChunks.push(e.data); };
+    _videoRec.onstop = () => {
+      const blob = new Blob(_videoChunks, {type: mimeType||'video/webm'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'live2d-rec.webm'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      if (btn) { btn.textContent='🎥 録画'; btn.style.color=''; btn.classList.remove('on'); }
+      document.getElementById('lbl-status').textContent = '録画完了 — live2d-rec.webm をダウンロードしました';
+    };
+    _videoRec.start(100);
+    if (btn) { btn.textContent='⏹ 停止'; btn.style.color='#ff6060'; btn.classList.add('on'); }
+    document.getElementById('lbl-status').textContent = '録画中... ⏹ 停止ボタンで終了';
+  } catch(e) {
+    document.getElementById('lbl-status').textContent = '録画開始エラー: ' + e.message;
+  }
 }
 
 // ==================== GIF EXPORT ====================
