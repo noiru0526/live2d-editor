@@ -2980,11 +2980,13 @@ function draw(ts){
   const useRotZ=!(ref0def['headZ:-1']||ref0def['headZ:1']);
   // Camera animation tracks: __camZoom / __camX / __camY
   let _camZoom = 1, _camX = 0, _camY = 0;
-  if (M.animation.tracks) {
-    if (M.animation.tracks['__camZoom']?.length) _camZoom = evalAnimTrack(M.animation.tracks['__camZoom'], {min:0.1,max:4,val:1}, _animT);
-    if (M.animation.tracks['__camX']?.length) _camX = evalAnimTrack(M.animation.tracks['__camX'], {min:-200,max:200,val:0}, _animT);
-    if (M.animation.tracks['__camY']?.length) _camY = evalAnimTrack(M.animation.tracks['__camY'], {min:-200,max:200,val:0}, _animT);
-  }
+  // Use MD (exported HTML) or M (editor), and appropriate evalFn
+  const _trks = (typeof MD!=='undefined'?MD:M).animation?.tracks||{};
+  const _evalFn = typeof evalAnimTrackExport!=='undefined' ? evalAnimTrackExport : evalAnimTrack;
+  const _animCamT = typeof animT!=='undefined' ? animT : (ST.animMode ? ST.animPlayhead : 0);
+  if (_trks['__camZoom']?.length) _camZoom = _evalFn(_trks['__camZoom'], {min:0.1,max:4,val:1}, _animCamT);
+  if (_trks['__camX']?.length) _camX = _evalFn(_trks['__camX'], {min:-200,max:200,val:0}, _animCamT);
+  if (_trks['__camY']?.length) _camY = _evalFn(_trks['__camY'], {min:-200,max:200,val:0}, _animCamT);
   // Apply camera transform (zoom around center, then pan)
   ctx.translate(W/2+ix+(useTransX?params.headX.val*20:0)+_camX, H/2+by+(useTransY?params.headY.val*15:0)+_camY);
   ctx.scale(_camZoom, _camZoom);
@@ -3016,29 +3018,32 @@ function draw(ts){
   // Offscreen canvas for clipping mask
   let _clipOff=null;
   const getClipOff=(w,h)=>{if(!_clipOff){_clipOff=document.createElement('canvas');}if(_clipOff.width!==w||_clipOff.height!==h){_clipOff.width=w;_clipOff.height=h;}return _clipOff;};
-  // Apply special animation tracks: __opacity, __brightness, __contrast, __saturation
-  const _animT = ST.animMode ? ST.animPlayhead : 0;
-  for (const [tname, frames] of Object.entries(M.animation.tracks||{})) {
+  // Apply special animation tracks: __opacity, __brightness, __contrast, __saturation, __hue
+  // Works in both editor context (M/evalAnimTrack/ST) and exported HTML (MD/evalAnimTrackExport/animT)
+  const _animT = typeof animT!=='undefined' ? animT : (ST.animMode ? ST.animPlayhead : 0);
+  const _animFn = typeof evalAnimTrackExport!=='undefined' ? evalAnimTrackExport : evalAnimTrack;
+  const _animTrks = (typeof MD!=='undefined'?MD:M).animation?.tracks||{};
+  for (const [tname, frames] of Object.entries(_animTrks)) {
     if (!frames?.length) continue;
     if (tname.startsWith('__opacity:')) {
       const pd = PARTS.find(p=>p.id===tname.slice(10)); if (!pd) continue;
-      pd.opacity = evalAnimTrack(frames, {min:0,max:1,val:1}, _animT);
+      pd.opacity = _animFn(frames, {min:0,max:1,val:1}, _animT);
     } else if (tname.startsWith('__brightness:')) {
       const pd = PARTS.find(p=>p.id===tname.slice(13)); if (!pd) continue;
       if (!pd.filter) pd.filter={b:100,c:100,s:100,h:0};
-      pd.filter.b = evalAnimTrack(frames, {min:0,max:200,val:100}, _animT);
+      pd.filter.b = _animFn(frames, {min:0,max:200,val:100}, _animT);
     } else if (tname.startsWith('__contrast:')) {
       const pd = PARTS.find(p=>p.id===tname.slice(11)); if (!pd) continue;
       if (!pd.filter) pd.filter={b:100,c:100,s:100,h:0};
-      pd.filter.c = evalAnimTrack(frames, {min:0,max:200,val:100}, _animT);
+      pd.filter.c = _animFn(frames, {min:0,max:200,val:100}, _animT);
     } else if (tname.startsWith('__saturation:')) {
       const pd = PARTS.find(p=>p.id===tname.slice(13)); if (!pd) continue;
       if (!pd.filter) pd.filter={b:100,c:100,s:100,h:0};
-      pd.filter.s = evalAnimTrack(frames, {min:0,max:200,val:100}, _animT);
+      pd.filter.s = _animFn(frames, {min:0,max:200,val:100}, _animT);
     } else if (tname.startsWith('__hue:')) {
       const pd = PARTS.find(p=>p.id===tname.slice(6)); if (!pd) continue;
       if (!pd.filter) pd.filter={b:100,c:100,s:100,h:0};
-      pd.filter.h = evalAnimTrack(frames, {min:-180,max:180,val:0}, _animT);
+      pd.filter.h = _animFn(frames, {min:-180,max:180,val:0}, _animT);
     }
   }
   // Draw all parts in order
