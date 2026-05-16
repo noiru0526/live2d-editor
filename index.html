@@ -2640,6 +2640,13 @@ function genAvatarHTML() {
     customParams:Object.fromEntries(Object.entries(M.params).filter(([,p])=>p.custom).map(([k,p])=>[k,{lbl:p.lbl,min:p.min,max:p.max,step:p.step,kfs:p.kfs}])),
     springs:M.springs,
     poses:M.poses,
+    animation: Object.keys(M.animation.tracks).length > 0 ? {
+      duration: M.animation.duration,
+      loop: M.animation.loop !== false,
+      loopIn: M.animation.loopIn ?? 0,
+      loopOut: M.animation.loopOut ?? M.animation.duration,
+      tracks: M.animation.tracks,
+    } : null,
   };
   const imgSrc=M.img.src;
   const sizeStr=document.getElementById('export-size').value;
@@ -2683,6 +2690,7 @@ canvas{display:block;image-rendering:auto;}
 <div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div></div>
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
+${Object.keys(M.animation.tracks).length > 0 ? `<button id="anim-btn" onclick="toggleExportAnim()" style="position:fixed;bottom:10px;right:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;">▶ Anim</button>` : ''}
 <div id="expr-hud"></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 <div id="obs-tip">
@@ -2744,6 +2752,41 @@ const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,abli
 const ema=(c,t,a)=>c+(t-c)*a;
 
 const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;}};
+
+// Timeline animation playback
+let animT=0, animLastNow=null, animPlaying=false;
+function evalAnimTrackExport(frames,p,t){
+  const sorted=[...frames].sort((a,b)=>a.t-b.t);
+  let i=sorted.findIndex(f=>f.t>t);
+  if(i<0)return sorted[sorted.length-1].v;
+  if(i===0)return sorted[0].v;
+  const f0=sorted[i-1],f1=sorted[i];
+  const rawFrac=(t-f0.t)/Math.max(f1.t-f0.t,.0001);
+  const ifn=IFN[f0.interp??p.interp??'linear']||IFN.linear;
+  return f0.v+(f1.v-f0.v)*ifn(Math.max(0,Math.min(1,rawFrac)));
+}
+function applyAnimTracks(now){
+  if(!MD.animation)return;
+  const dur=MD.animation.duration||3;
+  const loopIn=MD.animation.loopIn??0;
+  const loopOut=MD.animation.loopOut??dur;
+  const loopLen=Math.max(loopOut-loopIn,.01);
+  if(animLastNow!=null){const dt=(now-animLastNow)/1000;animT+=dt;}
+  animLastNow=now;
+  let t=MD.animation.loop?loopIn+((animT-loopIn)%loopLen):Math.min(animT,loopOut);
+  if(t<0)t=loopIn+((t-loopIn)%loopLen+loopLen)%loopLen;
+  animT=t;
+  for(const[k,frames]of Object.entries(MD.animation.tracks)){
+    if(!params[k]||!frames.length)continue;
+    params[k].val=evalAnimTrackExport(frames,params[k],t);
+  }
+}
+function toggleExportAnim(){
+  animPlaying=!animPlaying;
+  const btn=document.getElementById('anim-btn');
+  if(btn)btn.textContent=animPlaying?'⏸ Stop':'▶ Anim';
+  if(animPlaying)animLastNow=null;
+}
 
 function pdeltaForPart(name,v,pd){
   const p=params[name];
@@ -2827,6 +2870,8 @@ function draw(ts){
   if(params.mouthA) params.mouthA.val=tracking?S.ma:0;
   if(params.mouthI) params.mouthI.val=tracking?S.mi:0;
   if(params.mouthU) params.mouthU.val=tracking?S.mu:0;
+  // Apply timeline animation tracks (overlays on top of face tracking)
+  if(animPlaying) applyAnimTracks(ts);
   // Expression pose blend (overlays on top of tracking)
   applyPoseBlend(dt);
   ctx.clearRect(0,0,W*DPR,H*DPR);
