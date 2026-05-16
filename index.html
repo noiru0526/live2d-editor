@@ -791,6 +791,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
+    <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (30fps基準)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🧲</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
   </div>
@@ -5737,6 +5738,8 @@ let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
+let tlSnapEnabled = false; // KF snap to grid
+let tlSnapGrid = 1/30; // snap grid size in seconds (30fps default)
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -6128,6 +6131,13 @@ function addAnimMarker() {
   document.getElementById('lbl-status').textContent = `マーカー「${label}」@ ${t.toFixed(3)}s`;
 }
 
+function toggleTLSnap() {
+  tlSnapEnabled = !tlSnapEnabled;
+  const btn = document.getElementById('btn-tl-snap');
+  if (btn) { btn.style.background = tlSnapEnabled ? '#1e3050' : '#2e3656'; btn.style.color = tlSnapEnabled ? '#4e9cff' : '#80a0d0'; btn.style.borderColor = tlSnapEnabled ? 'rgba(78,124,255,.5)' : 'var(--border)'; }
+}
+function snapT(t) { return tlSnapEnabled ? Math.round(t / tlSnapGrid) * tlSnapGrid : t; }
+
 // ==================== PARAM RECORDING ====================
 let _paramRecActive = false;
 let _paramRecRAF = null;
@@ -6369,7 +6379,7 @@ function applyPlayheadToParams() {
     tlmDragging=true;
     const dur=M.animation.duration||3;
     const visibleDur2=dur/tlZoom;
-    ST.animPlayhead=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur2));
+    ST.animPlayhead=snapT(Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur2)));
     drawMultiTimeline();
   });
 
@@ -6382,7 +6392,7 @@ function applyPlayheadToParams() {
       const dx=(e.clientX-tlmKFDrag.startX)/r.width*visibleDur;
       const affectedNames=new Set();
       for (const {kf,name,origT} of tlmKFDrag.entries) {
-        kf.t=Math.max(0,Math.min(dur,origT+dx));
+        kf.t=snapT(Math.max(0,Math.min(dur,origT+dx)));
         affectedNames.add(name);
       }
       for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
@@ -6393,7 +6403,7 @@ function applyPlayheadToParams() {
     const r=trk.getBoundingClientRect();
     const dur=M.animation.duration||3;
     const visibleDur=dur/tlZoom;
-    ST.animPlayhead=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
+    ST.animPlayhead=snapT(Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur)));
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       const p=M.params[name]; if(!p||!frames.length) continue;
       p.val=evalAnimTrack(frames, p, ST.animPlayhead);
