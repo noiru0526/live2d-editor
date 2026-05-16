@@ -786,6 +786,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
+    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
   </div>
   <div id="tl-multi-body" style="display:flex;flex:1;overflow:hidden;min-height:0;">
     <div id="tl-label-col" style="position:relative;width:90px;flex-shrink:0;overflow:hidden;background:#1a1e2e;border-right:1px solid var(--border);">
@@ -6099,6 +6100,66 @@ function addAnimMarker() {
   M.animation.markers.sort((a,b)=>a.t-b.t);
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `マーカー「${label}」@ ${t.toFixed(3)}s`;
+}
+
+// ==================== PARAM RECORDING ====================
+let _paramRecActive = false;
+let _paramRecRAF = null;
+let _paramRecStart = 0;  // performance.now() at record start
+let _paramRecBuf = {};   // {paramName: [{t, v}]}
+const _PARAM_REC_INTERVAL = 1000 / 30; // 30fps sample
+
+function toggleParamRecord() {
+  if (_paramRecActive) {
+    // Stop recording: flush buffer into M.animation.tracks
+    _paramRecActive = false;
+    if (_paramRecRAF) { cancelAnimationFrame(_paramRecRAF); _paramRecRAF = null; }
+    const btn = document.getElementById('btn-param-rec');
+    if (btn) { btn.textContent = '⏺ 録音'; btn.style.background = '#2e1a1a'; btn.style.borderColor = 'rgba(255,80,80,.4)'; btn.style.color = '#ff6060'; }
+    // Insert sampled KFs starting at current playhead
+    const baseT = ST.animPlayhead;
+    let kfCount = 0;
+    for (const [name, samples] of Object.entries(_paramRecBuf)) {
+      if (!samples.length) continue;
+      if (!M.animation.tracks[name]) M.animation.tracks[name] = [];
+      for (const {t, v} of samples) {
+        const absT = Math.round((baseT + t) * 1000) / 1000;
+        M.animation.tracks[name].push({t: absT, v, interp: 'smooth'});
+      }
+      M.animation.tracks[name].sort((a, b) => a.t - b.t);
+      kfCount += samples.length;
+    }
+    _paramRecBuf = {};
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `録音完了: ${kfCount}個のKFを挿入しました`;
+  } else {
+    // Start recording
+    _paramRecActive = true;
+    _paramRecStart = performance.now();
+    _paramRecBuf = {};
+    let lastSampleT = -1;
+    const btn = document.getElementById('btn-param-rec');
+    if (btn) { btn.textContent = '⏹ 停止'; btn.style.background = '#3a1010'; btn.style.borderColor = 'rgba(255,50,50,.8)'; btn.style.color = '#ff3030'; }
+    document.getElementById('lbl-status').textContent = '⏺ 録音中... スライダーを動かしてください。「停止」で記録を終了します。';
+    function sample() {
+      if (!_paramRecActive) return;
+      const elapsed = (performance.now() - _paramRecStart) / 1000;
+      if (elapsed - lastSampleT >= _PARAM_REC_INTERVAL / 1000 - 0.001) {
+        lastSampleT = elapsed;
+        for (const [name, p] of Object.entries(M.params)) {
+          if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
+          const buf = _paramRecBuf[name];
+          const v = Math.round(p.val * 10000) / 10000;
+          // Only record if value changed (or first sample)
+          if (!buf.length || Math.abs(v - buf[buf.length-1].v) > 0.001) {
+            buf.push({t: elapsed, v});
+          }
+        }
+      }
+      _paramRecRAF = requestAnimationFrame(sample);
+    }
+    _paramRecRAF = requestAnimationFrame(sample);
+  }
 }
 
 function cleanAnimTracks() {
