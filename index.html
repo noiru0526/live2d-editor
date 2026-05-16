@@ -792,6 +792,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (30fps基準)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🧲</button>
+    <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
   </div>
@@ -2188,6 +2189,15 @@ function buildParamUI() {
       ST.cachedVerts=null;
       redraw();
       drawTimeline();
+      // Auto-KF: when in anim mode and auto-KF is enabled, insert KF
+      if (ST.animMode && tlAutoKF) {
+        const t=snapT(ST.animPlayhead);
+        if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
+        M.animation.tracks[name]=M.animation.tracks[name].filter(k=>Math.abs(k.t-t)>0.005);
+        M.animation.tracks[name].push({t,v:p.val});
+        M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+        drawMultiTimeline();
+      }
     });
     cont.appendChild(row);
     updateKFDots(name);
@@ -5740,6 +5750,7 @@ const tlSelectedKFs = new Set(); // selected KF object references (for multi-sel
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
 let tlSnapGrid = 1/30; // snap grid size in seconds (30fps default)
+let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -6137,6 +6148,12 @@ function toggleTLSnap() {
   if (btn) { btn.style.background = tlSnapEnabled ? '#1e3050' : '#2e3656'; btn.style.color = tlSnapEnabled ? '#4e9cff' : '#80a0d0'; btn.style.borderColor = tlSnapEnabled ? 'rgba(78,124,255,.5)' : 'var(--border)'; }
 }
 function snapT(t) { return tlSnapEnabled ? Math.round(t / tlSnapGrid) * tlSnapGrid : t; }
+
+function toggleAutoKF() {
+  tlAutoKF = !tlAutoKF;
+  const btn = document.getElementById('btn-auto-kf');
+  if (btn) { btn.style.background = tlAutoKF ? '#3a1010' : '#2e3656'; btn.style.color = tlAutoKF ? '#ff6060' : '#c0a0ff'; btn.style.borderColor = tlAutoKF ? 'rgba(255,60,60,.6)' : 'var(--border)'; btn.textContent = tlAutoKF ? '⊕ ON' : '⊕ KF'; }
+}
 
 // ==================== PARAM RECORDING ====================
 let _paramRecActive = false;
