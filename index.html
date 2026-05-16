@@ -278,6 +278,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="exportMoc3JSON()" title="Live2D Cubism互換 .moc3 JSON出力" style="color:#c0a0ff;">.moc3</button>
   <button class="tbtn" onclick="quickPreviewExport()" title="エクスポートをプレビュー" style="color:#ffd060;">▶ テスト</button>
   <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
+  <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
   <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
@@ -6898,25 +6899,45 @@ function geRender() {
     ctx.setLineDash([]);
   }
 
-  // KF diamonds
+  // KF diamonds (color = easing type)
   kfs.forEach((kf, idx) => {
     const x = tToX(kf.frame), y = vToY(kf.value);
     const r = 6 * dpr;
     const isSel = GE.selKF === idx;
+    const easingCol = KF_EASING_COLORS[kf.easing || 'ease'] || '#4e7cff';
     ctx.save();
     if (isSel) {
       ctx.shadowColor = 'rgba(255,200,80,0.8)';
       ctx.shadowBlur = 8 * dpr;
     }
-    ctx.fillStyle = isSel ? '#ffd060' : '#4e7cff';
+    ctx.fillStyle = isSel ? '#ffd060' : easingCol;
     ctx.strokeStyle = isSel ? '#fff' : '#c8d4f0';
     ctx.lineWidth = 1.5 * dpr;
     ctx.beginPath();
     ctx.moveTo(x, y - r); ctx.lineTo(x + r, y);
     ctx.lineTo(x, y + r); ctx.lineTo(x - r, y);
     ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Easing label below diamond
+    if (!isSel && kf.easing && kf.easing !== 'ease') {
+      ctx.fillStyle = easingCol;
+      ctx.font = `${8*dpr}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText(kf.easing, x, y + r + 9*dpr);
+    }
     ctx.restore();
   });
+}
+
+const KF_EASING_COLORS = { ease:'#4e7cff', linear:'#60d890', easeIn:'#ffd060', easeOut:'#f0a040', step:'#ff6060' };
+
+function applyEasing(f, type) {
+  switch (type) {
+    case 'linear':  return f;
+    case 'easeIn':  return f * f * f;
+    case 'easeOut': return 1 - Math.pow(1 - f, 3);
+    case 'step':    return 0;
+    default:        return f < 0.5 ? 2*f*f : 1 - Math.pow(-2*f+2,2)/2;
+  }
 }
 
 function interpKF(kfs, t) {
@@ -6926,8 +6947,8 @@ function interpKF(kfs, t) {
   for (let i = 0; i < kfs.length - 1; i++) {
     if (t >= kfs[i].frame && t <= kfs[i+1].frame) {
       const f = (t - kfs[i].frame) / (kfs[i+1].frame - kfs[i].frame);
-      const ease = f < 0.5 ? 2*f*f : 1 - Math.pow(-2*f+2,2)/2;
-      return kfs[i].value + (kfs[i+1].value - kfs[i].value) * ease;
+      const e = applyEasing(f, kfs[i].easing || 'ease');
+      return kfs[i].value + (kfs[i+1].value - kfs[i].value) * e;
     }
   }
   return 0;
@@ -7039,7 +7060,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    geDeleteKF();
+    const rect = canvas.getBoundingClientRect();
+    const dpr = devicePixelRatio;
+    const mx = (e.clientX - rect.left) * dpr;
+    const my = (e.clientY - rect.top) * dpr;
+    const ge = canvas._ge;
+    if (!ge) { geDeleteKF(); return; }
+    const track = M.kfTracks && M.kfTracks[GE.param];
+    const kfs = track ? [...track].sort((a,b) => a.frame - b.frame) : [];
+    const HIT = 12 * dpr;
+    let hitKF = null;
+    kfs.forEach(kf => {
+      const kx = ge.tToX(kf.frame), ky = ge.vToY(kf.value);
+      if (Math.abs(mx - kx) < HIT && Math.abs(my - ky) < HIT) hitKF = kf;
+    });
+    if (hitKF) showGEEasingMenu(e.clientX, e.clientY, hitKF);
+    else geDeleteKF();
   });
 
   // Scroll to zoom time range
@@ -7141,6 +7177,101 @@ const _origSeekFrame = (typeof seekFrame !== 'undefined') ? seekFrame : null;
 window.addEventListener('resize', () => {
   if (GE.visible) { geResize(); geRender(); }
 });
+
+// ==================== GE EASING MENU ====================
+function showGEEasingMenu(cx, cy, kf) {
+  const existing = document.getElementById('ge-easing-menu');
+  if (existing) existing.remove();
+  const menu = document.createElement('div');
+  menu.id = 'ge-easing-menu';
+  menu.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;background:#1e2438;border:1px solid #4e5880;border-radius:6px;padding:4px;z-index:1000;min-width:120px;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  const types = [
+    { id:'ease',    label:'⟿ Ease (デフォルト)', col:'#4e7cff' },
+    { id:'linear',  label:'→ Linear',             col:'#60d890' },
+    { id:'easeIn',  label:'⟶ Ease In',            col:'#ffd060' },
+    { id:'easeOut', label:'⟹ Ease Out',           col:'#f0a040' },
+    { id:'step',    label:'⌐ Step (定数)',          col:'#ff6060' },
+  ];
+  types.forEach(t => {
+    const btn = document.createElement('div');
+    const isCur = (kf.easing || 'ease') === t.id;
+    btn.style.cssText = `padding:5px 10px;cursor:pointer;border-radius:4px;font-size:12px;color:${t.col};${isCur?'background:rgba(255,255,255,.08);font-weight:700;':''}`;
+    btn.textContent = (isCur ? '✓ ' : '') + t.label;
+    btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,.06)';
+    btn.onmouseleave = () => btn.style.background = isCur ? 'rgba(255,255,255,.08)' : '';
+    btn.onclick = () => { kf.easing = t.id; menu.remove(); geRender(); pushUndo(); };
+    menu.appendChild(btn);
+  });
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', h); }
+  }), 10);
+}
+
+// ==================== GIF EXPORT ====================
+let _gifLib = null;
+async function loadGifLib() {
+  if (window.GIF) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function exportGIF() {
+  const btn = document.getElementById('btn-gif');
+  if (btn && btn.classList.contains('on')) return;
+  const totalFrames = M.totalFrames || 120;
+  const fps = 12;
+  const frameStep = Math.max(1, Math.round(60 / fps));
+  document.getElementById('lbl-status').textContent = 'GIF: gif.jsを読み込み中...';
+  try {
+    await loadGifLib();
+  } catch(e) {
+    document.getElementById('lbl-status').textContent = 'GIF出力失敗: インターネット接続が必要です';
+    return;
+  }
+  if (btn) { btn.textContent = '⏳ GIF生成中'; btn.classList.add('on'); }
+  const gif = new GIF({
+    workers: 2,
+    quality: 8,
+    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js',
+    width: canvas.width,
+    height: canvas.height,
+  });
+  const savedFrame = ST.frame;
+  const frameDelay = Math.round(1000 / fps);
+  let f = 0;
+  function captureNextFrame() {
+    if (f > totalFrames) {
+      document.getElementById('lbl-status').textContent = 'GIF: エンコード中...';
+      gif.render();
+      return;
+    }
+    ST.frame = f;
+    redraw();
+    gif.addFrame(canvas, { delay: frameDelay, copy: true });
+    document.getElementById('lbl-status').textContent = `GIF: フレーム ${f}/${totalFrames}`;
+    f += frameStep;
+    setTimeout(captureNextFrame, 0);
+  }
+  gif.on('finished', blob => {
+    ST.frame = savedFrame; redraw();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'noiru-animation.gif'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    if (btn) { btn.textContent = '🎞 GIF'; btn.classList.remove('on'); }
+    document.getElementById('lbl-status').textContent = `GIF出力完了 (${(blob.size/1024).toFixed(0)}KB)`;
+  });
+  gif.on('error', err => {
+    if (btn) { btn.textContent = '🎞 GIF'; btn.classList.remove('on'); }
+    document.getElementById('lbl-status').textContent = 'GIF出力エラー: ' + err;
+  });
+  captureNextFrame();
+}
 
 // ==================== INIT ====================
 buildParamUI();
