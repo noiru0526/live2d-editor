@@ -6038,6 +6038,20 @@ function drawMultiTimeline() {
   // Update time label
   const tle=document.getElementById('tl-playhead-time');
   if (tle) tle.textContent=ph.toFixed(3)+'s';
+
+  // Rubber-band selection rectangle
+  if (typeof tlmRubber !== 'undefined' && tlmRubber) {
+    const rb = tlmRubber;
+    const rx = Math.min(rb.startX, rb.curX);
+    const ry = Math.min(rb.startY - tlScrollY, rb.curY - tlScrollY);
+    const rw = Math.abs(rb.curX - rb.startX);
+    const rh = Math.abs((rb.curY - tlScrollY) - (rb.startY - tlScrollY));
+    tlMultiCtx.fillStyle = 'rgba(78,124,255,.1)';
+    tlMultiCtx.fillRect(rx, ry, rw, rh);
+    tlMultiCtx.strokeStyle = 'rgba(78,124,255,.6)';
+    tlMultiCtx.lineWidth = 1;
+    tlMultiCtx.strokeRect(rx, ry, rw, rh);
+  }
 }
 
 // Label canvas click → toggle track visibility
@@ -6360,6 +6374,7 @@ function applyPlayheadToParams() {
 (()=>{
   let tlmDragging = false;
   let tlmKFDrag = null; // {startX, entries:[{kf,name,origT}]}
+  let tlmRubber = null; // {startX, startY, curX, curY} rubber-band selection state
   const getTracks = ()=>document.getElementById('tl-multi-tracks');
 
   function hitTestKF(e) {
@@ -6456,12 +6471,18 @@ function applyPlayheadToParams() {
       tlmKFDrag={startX:e.clientX, entries};
       e.stopPropagation(); return;
     }
-    // Click on empty area: clear selection, move playhead
-    tlSelectedKFs.clear();
-    tlmDragging=true;
-    const dur=M.animation.duration||3;
-    const visibleDur2=dur/tlZoom;
-    ST.animPlayhead=snapT(Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur2)));
+    // Click on empty area: start rubber-band OR move playhead
+    if (e.shiftKey) {
+      // Shift+drag: rubber-band select
+      if (!e.ctrlKey && !e.metaKey) tlSelectedKFs.clear();
+      tlmRubber = {startX: e.clientX-r.left, startY: e.clientY-r.top+tlScrollY, curX: e.clientX-r.left, curY: e.clientY-r.top+tlScrollY, r};
+    } else {
+      tlSelectedKFs.clear();
+      tlmDragging=true;
+      const dur=M.animation.duration||3;
+      const visibleDur2=dur/tlZoom;
+      ST.animPlayhead=snapT(Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur2)));
+    }
     drawMultiTimeline();
   });
 
@@ -6478,6 +6499,31 @@ function applyPlayheadToParams() {
         affectedNames.add(name);
       }
       for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+      drawMultiTimeline(); return;
+    }
+    if (tlmRubber) {
+      const rb = tlmRubber;
+      rb.curX = e.clientX - rb.r.left;
+      rb.curY = e.clientY - rb.r.top + tlScrollY;
+      // Hit-test all KFs in rubber-band rectangle
+      const rxMin = Math.min(rb.startX, rb.curX), rxMax = Math.max(rb.startX, rb.curX);
+      const ryMin = Math.min(rb.startY, rb.curY), ryMax = Math.max(rb.startY, rb.curY);
+      const dur2 = M.animation.duration||3;
+      const visibleDur2 = dur2/tlZoom;
+      const W2 = rb.r.width;
+      const paramRows2=Object.entries(M.params);
+      const specRows2=Object.keys(M.animation.tracks||{}).filter(k=>/^__\w+:/.test(k)).map(k=>[k,null]);
+      const allRows2=[...paramRows2,...specRows2];
+      for (let ri=0;ri<allRows2.length;ri++) {
+        const [nm]=allRows2[ri];
+        const frms=M.animation.tracks[nm]; if(!frms?.length) continue;
+        const ry=ri*TL_ROW_H;
+        if (ry+TL_ROW_H<ryMin||ry>ryMax) continue;
+        for (const kf of frms) {
+          const kxPx=((kf.t-tlZoomOff)/visibleDur2)*W2;
+          if (kxPx>=rxMin-6&&kxPx<=rxMax+6) tlSelectedKFs.add(kf);
+        }
+      }
       drawMultiTimeline(); return;
     }
     if (!tlmDragging) return;
@@ -6498,6 +6544,7 @@ function applyPlayheadToParams() {
 
   document.addEventListener('mouseup',()=>{
     if (tlmKFDrag) { tlmKFDrag=null; drawMultiTimeline(); }
+    if (tlmRubber) { tlmRubber=null; drawMultiTimeline(); }
     tlmDragging=false;
   });
 
