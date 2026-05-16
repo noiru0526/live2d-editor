@@ -2107,6 +2107,32 @@ function updateSliderFill(el, val, min, max) {
   el.style.setProperty('--fill', pct);
 }
 
+function editParamVal(name, spanEl) {
+  const p = M.params[name]; if (!p || p.locked) return;
+  const inp = document.createElement('input');
+  inp.type = 'number'; inp.value = p.val.toFixed(3);
+  inp.step = p.step; inp.min = p.min; inp.max = p.max;
+  inp.style.cssText = 'width:52px;background:#0a0d18;border:1px solid var(--accent);color:var(--kf);font-size:10px;font-family:monospace;padding:0 3px;border-radius:2px;outline:none;';
+  spanEl.replaceWith(inp);
+  inp.focus(); inp.select();
+  const commit = () => {
+    const v = Math.max(p.min, Math.min(p.max, parseFloat(inp.value) || p.val));
+    p.val = v;
+    const newSpan = document.createElement('span');
+    newSpan.className = 'pval'; newSpan.id = `pv-${name}`;
+    newSpan.title = 'クリックで値を直接入力'; newSpan.style.cursor = 'text';
+    newSpan.textContent = v.toFixed(2);
+    newSpan.ondblclick = () => editParamVal(name, newSpan);
+    inp.replaceWith(newSpan);
+    const s = document.getElementById(`ps-${name}`);
+    if (s) { s.value = v; updateSliderFill(s, v, p.min, p.max); }
+    if (ST.rec) { const key=`${ST.ap}:${M.params[ST.ap].val}`; if(!M.def[key])M.def[key]=M.mesh.verts.map(()=>({dx:0,dy:0})); }
+    ST.cachedVerts = null; redraw(); drawTimeline();
+  };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { p.val=parseFloat(spanEl.textContent)||p.val; inp.blur(); } });
+}
+
 function buildParamUI() {
   renderPosePresets();
   const cont=document.getElementById('params');
@@ -2120,7 +2146,7 @@ function buildParamUI() {
     row.innerHTML=`
       <div class="phead">
         <span class="plabel">${p.lbl}</span>
-        <span class="pval" id="pv-${name}">${p.val.toFixed(2)}</span>
+        <span class="pval" id="pv-${name}" title="クリックで値を直接入力" style="cursor:text;" ondblclick="editParamVal('${name}',this)">${p.val.toFixed(2)}</span>
         <button id="lock-${name}" onclick="toggleParamLock('${name}',event)" title="ロック"
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
       </div>
