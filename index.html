@@ -781,6 +781,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="clearAnimTracks()" style="background:#2e3656;border:1px solid var(--border);color:#f08080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
     <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2e3656;border:1px solid var(--border);color:#c0a080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
+    <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
   </div>
@@ -5930,6 +5931,67 @@ function clearAnimTracks() {
   M.animation.tracks={};
   ST.animPlayhead=0;
   drawMultiTimeline();
+}
+
+function showAnimTemplates() {
+  const templates = [
+    { id:'blink', name:'自動まばたき (3秒ループ)', desc:'blinkL/R を自然なまばたきパターンで' },
+    { id:'breath', name:'呼吸 (4秒ループ)', desc:'headY + headZ をゆっくり上下' },
+    { id:'nod', name:'頷き (1秒)', desc:'headY を一瞬下げて戻す' },
+    { id:'shake', name:'首振り (1秒)', desc:'headZ を左右に振る' },
+    { id:'idle', name:'アイドル複合 (4秒)', desc:'まばたき+呼吸の自然なコンボ' },
+  ];
+  showModal('アニメーションテンプレート', `
+    <div style="font-size:12px;display:grid;gap:8px;">
+      <div style="color:var(--dim);font-size:10px;">テンプレートは現在のアニメーションに追加されます（既存KFは保持）</div>
+      ${templates.map(t=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px;background:#1a1e2e;border:1px solid var(--border);border-radius:4px;cursor:pointer;"
+          onclick="applyAnimTemplate('${t.id}');document.getElementById('modal-ok').click()">
+          <div style="flex:1"><div style="color:var(--text)">${t.name}</div><div style="color:var(--dim);font-size:10px;">${t.desc}</div></div>
+          <span style="color:var(--accent);font-size:11px;">適用 →</span>
+        </div>`).join('')}
+    </div>
+  `, ()=>{});
+}
+
+function applyAnimTemplate(id) {
+  const dur = M.animation.duration || 3;
+  const addKFs = (paramId, kfs) => {
+    if (!M.params[paramId]) return;
+    if (!M.animation.tracks[paramId]) M.animation.tracks[paramId] = [];
+    for (const {t,v} of kfs) M.animation.tracks[paramId].push({t, v});
+    M.animation.tracks[paramId].sort((a,b)=>a.t-b.t);
+  };
+  if (id === 'blink') {
+    M.animation.duration = Math.max(dur, 3);
+    // Natural blink: closed for 0.1s, open quickly
+    const bp = [[0,0],[1.5,0],[1.55,1],[1.65,1],[1.7,0],[3,0]];
+    addKFs('blinkL', bp.map(([t,v])=>({t,v})));
+    addKFs('blinkR', bp.map(([t,v])=>({t,v})));
+  } else if (id === 'breath') {
+    M.animation.duration = Math.max(dur, 4);
+    addKFs('headY', [{t:0,v:0},{t:2,v:-0.05},{t:4,v:0}]);
+    addKFs('headZ', [{t:0,v:0},{t:2,v:0.03},{t:4,v:0}]);
+  } else if (id === 'nod') {
+    const t0 = ST.animPlayhead;
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.15,v:0.3},{t:t0+0.4,v:-0.1},{t:t0+0.7,v:0.05},{t:t0+1,v:0}]);
+    M.animation.duration = Math.max(dur, t0+1);
+  } else if (id === 'shake') {
+    const t0 = ST.animPlayhead;
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.15,v:0.4},{t:t0+0.4,v:-0.4},{t:t0+0.65,v:0.2},{t:t0+0.85,v:-0.1},{t:t0+1,v:0}]);
+    M.animation.duration = Math.max(dur, t0+1);
+  } else if (id === 'idle') {
+    M.animation.duration = Math.max(dur, 4);
+    // Breath
+    addKFs('headY', [{t:0,v:0},{t:2,v:-0.04},{t:4,v:0}]);
+    // Single blink at 1.5s
+    addKFs('blinkL', [{t:0,v:0},{t:1.5,v:0},{t:1.55,v:1},{t:1.65,v:1},{t:1.7,v:0},{t:4,v:0}]);
+    addKFs('blinkR', [{t:0,v:0},{t:1.5,v:0},{t:1.55,v:1},{t:1.65,v:1},{t:1.7,v:0},{t:4,v:0}]);
+  }
+  const durEl = document.getElementById('tl-duration');
+  if (durEl) durEl.value = M.animation.duration;
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `テンプレート「${id}」を適用しました`;
 }
 
 function addAnimMarker() {
