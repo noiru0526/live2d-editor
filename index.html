@@ -767,6 +767,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
     <button onclick="geAddKF()" style="margin-left:4px;background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
     <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
+    <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
+    <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:#1a2030;border:1px solid #3a4060;color:#8090c0;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
     <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
       スナップ<input type="checkbox" id="ge-snap" style="accent-color:var(--accent);">
     </label>
@@ -6897,6 +6899,38 @@ function geRender() {
   ctx.lineWidth = 1.5 * dpr;
   ctx.beginPath(); ctx.moveTo(ph_x, PAD_T); ctx.lineTo(ph_x, H - PAD_B); ctx.stroke();
 
+  // Draw overlay param curves (ghost)
+  const steps = Math.floor(plotW / dpr);
+  GE.overlayParams.forEach((op, oi) => {
+    if (op === GE.param) return;
+    const ocol = GE_OVERLAY_COLORS[oi % GE_OVERLAY_COLORS.length];
+    const otrack = M.kfTracks && M.kfTracks[op];
+    const okfs = otrack ? [...otrack].sort((a,b) => a.frame - b.frame) : [];
+    if (okfs.length < 1) return;
+    ctx.strokeStyle = ocol.replace('#', 'rgba(').replace(/(..)(..)(..)/, (_,r,g,b)=>
+      `rgba(${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)},0.45)`);
+    // fallback simpler approach:
+    ctx.strokeStyle = ocol + '70';
+    ctx.lineWidth = 1.5 * dpr;
+    ctx.setLineDash([3*dpr, 2*dpr]);
+    ctx.beginPath();
+    for (let s = 0; s <= steps; s++) {
+      const t = GE.viewMinT + (s / steps) * tRange;
+      const v = interpKF(okfs, t);
+      const x = tToX(t), y = vToY(v);
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Label at right edge
+    const lastV = interpKF(okfs, Math.min(GE.viewMaxT, M.totalFrames || 120));
+    const ly = vToY(lastV);
+    ctx.fillStyle = ocol;
+    ctx.font = `${8*dpr}px monospace`;
+    ctx.textAlign = 'right';
+    ctx.fillText(op, W - PAD_R - 2*dpr, Math.max(PAD_T + 8*dpr, Math.min(H - PAD_B - 2*dpr, ly)));
+  });
+
   // Draw curve + KFs
   const pname = GE.param;
   if (!pname) return;
@@ -7203,6 +7237,56 @@ const _origSeekFrame = (typeof seekFrame !== 'undefined') ? seekFrame : null;
 window.addEventListener('resize', () => {
   if (GE.visible) { geResize(); geRender(); }
 });
+
+// ==================== GE OVERLAY PARAMS ====================
+function geShowOverlayPicker() {
+  const existing = document.getElementById('ge-overlay-menu');
+  if (existing) { existing.remove(); return; }
+  const btn = event.target;
+  const rect = btn.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.id = 'ge-overlay-menu';
+  menu.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.bottom+2}px;background:#1e2438;border:1px solid #4e5880;border-radius:6px;padding:4px;z-index:1000;min-width:140px;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  const params = Object.keys(M.params || {});
+  if (!params.length) { menu.remove(); return; }
+  params.forEach((p, i) => {
+    if (p === GE.param) return;
+    const isOn = GE.overlayParams.includes(p);
+    const col = GE_OVERLAY_COLORS[i % GE_OVERLAY_COLORS.length];
+    const row = document.createElement('div');
+    row.style.cssText = `padding:4px 8px;cursor:pointer;border-radius:3px;font-size:11px;display:flex;align-items:center;gap:6px;color:${isOn?col:'#8090c0'};`;
+    row.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${isOn?col:'#3a4468'};display:inline-block;flex-shrink:0;"></span>${p}`;
+    row.onmouseenter = () => row.style.background = 'rgba(255,255,255,.05)';
+    row.onmouseleave = () => row.style.background = '';
+    row.onclick = () => {
+      if (isOn) GE.overlayParams = GE.overlayParams.filter(x => x !== p);
+      else GE.overlayParams.push(p);
+      menu.remove();
+      geUpdateOverlayChips();
+      geRender();
+    };
+    menu.appendChild(row);
+  });
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target) && e.target !== btn) { menu.remove(); document.removeEventListener('click', h); }
+  }), 10);
+}
+
+function geUpdateOverlayChips() {
+  const cont = document.getElementById('ge-overlay-chips');
+  if (!cont) return;
+  cont.innerHTML = '';
+  GE.overlayParams.forEach((p, i) => {
+    const col = GE_OVERLAY_COLORS[i % GE_OVERLAY_COLORS.length];
+    const chip = document.createElement('span');
+    chip.style.cssText = `display:inline-flex;align-items:center;gap:2px;background:${col}22;border:1px solid ${col}55;border-radius:10px;padding:1px 6px;font-size:9px;color:${col};cursor:pointer;white-space:nowrap;`;
+    chip.innerHTML = `${p} <span style="opacity:.7">×</span>`;
+    chip.title = `${p} を非表示`;
+    chip.onclick = () => { GE.overlayParams = GE.overlayParams.filter(x => x !== p); geUpdateOverlayChips(); geRender(); };
+    cont.appendChild(chip);
+  });
+}
 
 // ==================== GE EASING MENU ====================
 function showGEEasingMenu(cx, cy, kf) {
