@@ -803,6 +803,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (30fps基準)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
+    <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
   </div>
@@ -2977,7 +2978,16 @@ function draw(ts){
   const useTransX=!(ref0def['headX:-1']||ref0def['headX:1']);
   const useTransY=!(ref0def['headY:-1']||ref0def['headY:1']);
   const useRotZ=!(ref0def['headZ:-1']||ref0def['headZ:1']);
-  ctx.translate(W/2+ix+(useTransX?params.headX.val*20:0),H/2+by+(useTransY?params.headY.val*15:0));
+  // Camera animation tracks: __camZoom / __camX / __camY
+  let _camZoom = 1, _camX = 0, _camY = 0;
+  if (M.animation.tracks) {
+    if (M.animation.tracks['__camZoom']?.length) _camZoom = evalAnimTrack(M.animation.tracks['__camZoom'], {min:0.1,max:4,val:1}, _animT);
+    if (M.animation.tracks['__camX']?.length) _camX = evalAnimTrack(M.animation.tracks['__camX'], {min:-200,max:200,val:0}, _animT);
+    if (M.animation.tracks['__camY']?.length) _camY = evalAnimTrack(M.animation.tracks['__camY'], {min:-200,max:200,val:0}, _animT);
+  }
+  // Apply camera transform (zoom around center, then pan)
+  ctx.translate(W/2+ix+(useTransX?params.headX.val*20:0)+_camX, H/2+by+(useTransY?params.headY.val*15:0)+_camY);
+  ctx.scale(_camZoom, _camZoom);
   ctx.rotate(useRotZ?params.headZ.val*.25:0);
   ctx.translate(-W/2,-H/2);
   // Spring physics delta
@@ -5915,15 +5925,26 @@ function drawMultiTimeline() {
     '__saturation:':  {icon:'🎨',unit:'%',min:0,max:200},
     '__hue:':         {icon:'🌈',unit:'°',min:-180,max:180},
   };
-  const specialTracks = Object.keys(M.animation.tracks||{})
-    .filter(k=>Object.keys(_SPECIAL_META).some(pfx=>k.startsWith(pfx)))
-    .map(k => {
-      const pfx = Object.keys(_SPECIAL_META).find(p=>k.startsWith(p));
-      const meta = _SPECIAL_META[pfx];
-      const partId = k.slice(pfx.length);
-      const pName = PARTS?.find?.(p=>p.id===partId)?.name || partId;
-      return [k, {lbl: meta.icon+' '+pName+(meta.unit?'('+meta.unit+')':''), min:meta.min, max:meta.max}];
-    });
+  // Named singleton camera tracks
+  const _CAM_TRACKS = {
+    '__camZoom': {lbl:'📷 ズーム', min:0.1, max:4},
+    '__camX':    {lbl:'📷 X移動', min:-200, max:200},
+    '__camY':    {lbl:'📷 Y移動', min:-200, max:200},
+  };
+  const specialTracks = [
+    // Part-indexed special tracks
+    ...Object.keys(M.animation.tracks||{})
+      .filter(k=>Object.keys(_SPECIAL_META).some(pfx=>k.startsWith(pfx)))
+      .map(k => {
+        const pfx = Object.keys(_SPECIAL_META).find(p=>k.startsWith(p));
+        const meta = _SPECIAL_META[pfx];
+        const partId = k.slice(pfx.length);
+        const pName = PARTS?.find?.(p=>p.id===partId)?.name || partId;
+        return [k, {lbl: meta.icon+' '+pName+(meta.unit?'('+meta.unit+')':''), min:meta.min, max:meta.max}];
+      }),
+    // Camera tracks (only if they exist in animation.tracks)
+    ...Object.keys(_CAM_TRACKS).filter(k=>M.animation.tracks?.[k]?.length).map(k=>[k,_CAM_TRACKS[k]]),
+  ];
   const allTrackRows = [...params, ...specialTracks];
 
   // Clamp scroll
@@ -6152,6 +6173,25 @@ function addAnimKF() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent=`アニメKF追加 @ ${t.toFixed(3)}s`;
+}
+
+function showCameraTrackMenu() {
+  const dur = M.animation.duration || 3;
+  const mkCam = (key, def) => {
+    if (!M.animation.tracks[key]) {
+      M.animation.tracks[key] = [{t:0,v:def,interp:'smooth'},{t:dur,v:def,interp:'smooth'}];
+      drawMultiTimeline();
+    }
+  };
+  const btn = document.querySelector('[onclick="showCameraTrackMenu()"]');
+  const r = btn?.getBoundingClientRect() || {left:100,bottom:40};
+  showCtxMenu(r.left, (r.bottom||40), [
+    {icon:'🔍', label:'ズームトラック追加 (0.1〜4x)', action:()=>mkCam('__camZoom',1)},
+    {icon:'⬌', label:'X移動トラック追加 (±200px)', action:()=>mkCam('__camX',0)},
+    {icon:'⬍', label:'Y移動トラック追加 (±200px)', action:()=>mkCam('__camY',0)},
+    null,
+    {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ ['__camZoom','__camX','__camY'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
+  ]);
 }
 
 function equalizeSelectedKFs() {
