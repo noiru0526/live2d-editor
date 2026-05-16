@@ -749,6 +749,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="animMultiPlay()" id="btn-multi-play" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
     <button onclick="animMultiStop()" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
     <select id="tl-speed" title="再生速度" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 2px;font-size:10px;cursor:pointer;">
+      <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
       <option value="0.5">0.5x</option>
       <option value="1" selected>1x</option>
@@ -3177,6 +3178,27 @@ document.addEventListener('keydown',e=>{
   if ((e.ctrlKey&&e.key==='y')||(e.ctrlKey&&e.shiftKey&&e.key==='Z')) { redo(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='s') { saveModel(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
+  // KF copy/paste (anim mode)
+  if (e.ctrlKey&&e.key==='c'&&ST.animMode&&tlSelectedKFs.size>0) {
+    const kfToName=new Map();
+    for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+    const entries=[...tlSelectedKFs].map(kf=>({name:kfToName.get(kf),t:kf.t,v:kf.v,interp:kf.interp})).filter(e=>e.name);
+    if (entries.length) {
+      const minT=Math.min(...entries.map(e=>e.t));
+      tlKFClipboard=entries.map(e=>({name:e.name,dt:e.t-minT,v:e.v,interp:e.interp}));
+    }
+    e.preventDefault();
+  }
+  if (e.ctrlKey&&e.key==='v'&&ST.animMode&&tlKFClipboard.length>0) {
+    const baseT=ST.animPlayhead;
+    for (const {name,dt,v,interp} of tlKFClipboard) {
+      if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
+      const newKF={t:Math.round((baseT+dt)*1000)/1000,v,interp};
+      M.animation.tracks[name].push(newKF);
+      M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+    }
+    drawMultiTimeline(); e.preventDefault();
+  }
   // Space: timeline play/pause handled below in combined handler
   if (e.ctrlKey&&e.key==='a') {
     if (ST.animMode) {
@@ -5659,6 +5681,7 @@ let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
 let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
+let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -6071,7 +6094,17 @@ function animMultiPlay() {
     const loopIn = M.animation.loopIn ?? 0;
     const loopOut = M.animation.loopOut ?? dur;
     const loopLen = Math.max(loopOut - loopIn, 0.01);
-    if (loop) t = loopIn + ((t - loopIn) % loopLen); else t = Math.min(t, loopOut);
+    if (loop) {
+      if (sp < 0) {
+        // Reverse: wrap around from loopIn backwards
+        let rel = ((t - loopIn) % loopLen + loopLen) % loopLen;
+        t = loopIn + rel;
+      } else {
+        t = loopIn + ((t - loopIn) % loopLen);
+      }
+    } else {
+      t = sp < 0 ? Math.max(loopIn, t) : Math.min(t, loopOut);
+    }
     ST.animPlayhead = t;
     // Apply track values with proper interpolation (hidden tracks are muted)
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
@@ -6083,7 +6116,7 @@ function animMultiPlay() {
       const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
     }
     ST.cachedVerts=null; redraw(); drawMultiTimeline();
-    if (!loop && t>=dur) { animMultiStop(); return; }
+    if (!loop && (sp>=0 ? t>=loopOut : t<=loopIn)) { animMultiStop(); return; }
     animMultiRAF=requestAnimationFrame(tick);
   }
   animMultiRAF=requestAnimationFrame(tick);
