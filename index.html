@@ -5495,7 +5495,10 @@ function drawMultiTimeline() {
         const kx=toKX(kf.t);
         const ky=ry+TL_ROW_H/2;
         const sz=isActiveTrack?5:4;
-        const col=isActiveTrack?'#ffd060':'rgba(255,208,96,.55)';
+        // Color by interp type
+        const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0'};
+        const interpCol = kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)');
+        const col = isActiveTrack ? interpCol : interpCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,(_,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+'.6)';
         // Shadow
         tlMultiCtx.fillStyle='rgba(0,0,0,.3)';
         tlMultiCtx.beginPath();
@@ -5503,11 +5506,13 @@ function drawMultiTimeline() {
         tlMultiCtx.lineTo(kx,ky+sz+1);tlMultiCtx.lineTo(kx-sz,ky+1);
         tlMultiCtx.closePath();tlMultiCtx.fill();
         // Diamond
-        tlMultiCtx.fillStyle=col;
+        tlMultiCtx.fillStyle=interpCol;
+        tlMultiCtx.globalAlpha=isActiveTrack?1:.65;
         tlMultiCtx.beginPath();
         tlMultiCtx.moveTo(kx,ky-sz);tlMultiCtx.lineTo(kx+sz,ky);
         tlMultiCtx.lineTo(kx,ky+sz);tlMultiCtx.lineTo(kx-sz,ky);
         tlMultiCtx.closePath();tlMultiCtx.fill();
+        tlMultiCtx.globalAlpha=1;
       }
     }
   });
