@@ -672,6 +672,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+クリック</td><td>KFを追加選択（マルチ選択）</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+ホイール</td><td>タイムライン横ズーム</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">ホイール</td><td>タイムライン縦スクロール</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">←→ (KF選択時)</td><td>KFを1フレーム前後にナッジ</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+←→ (KF選択時)</td><td>KFを5フレーム前後にナッジ</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+ドラッグ (タイムライン)</td><td>ラバーバンド選択</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">📸 ポーズKF ボタン</td><td>全パラメータを現在時刻にKF挿入</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">✂ トリム ボタン</td><td>継続時間を最後のKFに合わせる</td></tr>
     </table>
     <div style="margin-top:14px;font-size:11px;color:#6878a0;text-align:center">クリックして閉じる</div>
   </div>
@@ -791,7 +796,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         style="width:36px;background:#1a1e2e;border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
         onchange="M.animation.loopOut=this.value===''?null:(parseFloat(this.value)||null);">
     </label>
-    <button onclick="addAnimKF()" style="margin-left:auto;background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
+    <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:#1e2838;border:1px solid #2a3850;color:#80d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
+    <button onclick="addAnimKF()" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
     <button onclick="copyAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
     <button onclick="pasteAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
     <button onclick="selectAllAnimKF()" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
@@ -801,6 +807,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
+    <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (30fps基準)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
@@ -2167,8 +2174,8 @@ function buildParamUI() {
     const row=document.createElement('div');
     row.className='prow'+(name===ST.ap?' active':'');
     row.id=`pr-${name}`;
-    const interpModes=['linear','smooth','ease-in','ease-out','bounce'];
-    const interpLabels={linear:'直線',smooth:'スムーズ','ease-in':'入り','ease-out':'出し',bounce:'バウンス'};
+    const interpModes=['linear','smooth','ease-in','ease-out','bounce','step'];
+    const interpLabels={linear:'直線',smooth:'スムーズ','ease-in':'入り','ease-out':'出し',bounce:'バウンス',step:'ステップ（ホールド）'};
     row.innerHTML=`
       <div class="phead">
         <span class="plabel">${p.lbl}</span>
@@ -2847,7 +2854,7 @@ const IDLE=${JSON.stringify(idleMode)};
 const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
 const ema=(c,t,a)=>c+(t-c)*a;
 
-const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;}};
+const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0};
 
 // Timeline animation playback
 let animT=0, animLastNow=null, animPlaying=false;
@@ -3331,7 +3338,22 @@ document.addEventListener('keydown',e=>{
     else { ST.selVerts.clear(); ST.selV=-1; redraw(); e.preventDefault(); }
   }
 
-  // Arrow key nudge
+  // Arrow key: nudge selected KFs in anim mode (Left/Right = ±1 frame)
+  if (ST.animMode && tlSelectedKFs.size>0 && (e.key==='ArrowLeft'||e.key==='ArrowRight') && document.activeElement===document.body) {
+    const frameStep = 1/30;
+    const dt = (e.key==='ArrowLeft' ? -frameStep : frameStep) * (e.shiftKey ? 5 : 1);
+    const dur = M.animation.duration||3;
+    const affectedNames = new Set();
+    const kfToName = new Map();
+    for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+    for (const kf of tlSelectedKFs) {
+      kf.t = Math.round(Math.max(0,Math.min(dur,kf.t+dt))*1000)/1000;
+      affectedNames.add(kfToName.get(kf));
+    }
+    for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+    drawMultiTimeline(); e.preventDefault(); return;
+  }
+  // Arrow key nudge (vertices)
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) && ST.selVerts.size>0 && document.activeElement===document.body) {
     const step=e.shiftKey?10:1;
     const dx=e.key==='ArrowLeft'?-step:(e.key==='ArrowRight'?step:0);
@@ -5388,7 +5410,7 @@ function drawTimeline() {
     tlCtx.strokeStyle='rgba(255,208,96,.5)'; tlCtx.lineWidth=1.2; tlCtx.stroke();
   }
   // Interp mode label
-  const interpLabels={linear:'LIN',smooth:'SMT','ease-in':'EIN','ease-out':'EOU',bounce:'BNC'};
+  const interpLabels={linear:'LIN',smooth:'SMT','ease-in':'EIN','ease-out':'EOU',bounce:'BNC',step:'STP'};
   tlCtx.fillStyle='rgba(255,208,96,.55)'; tlCtx.font='9px monospace'; tlCtx.textAlign='left';
   tlCtx.fillText(interpLabels[interpMode]||interpMode, 4, 10);
 
@@ -5830,7 +5852,8 @@ const _ANIM_INTERP_FNS = {
   smooth: t=>t*t*(3-2*t),
   'ease-in': t=>t*t,
   'ease-out': t=>1-(1-t)*(1-t),
-  bounce: t=>{ const k=t<.5?2*t:2-2*t; return t<.5?k*k/2:1-k*k/2; }
+  bounce: t=>{ const k=t<.5?2*t:2-2*t; return t<.5?k*k/2:1-k*k/2; },
+  step: ()=>0, // hold current KF value until next KF
 };
 function applyAnimInterp(frac, mode) {
   const fn = _ANIM_INTERP_FNS[mode] || _ANIM_INTERP_FNS.linear;
@@ -6020,7 +6043,7 @@ function drawMultiTimeline() {
         const ky=ry+TL_ROW_H/2;
         const sz=isActiveTrack?5:4;
         // Color by interp type
-        const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0'};
+        const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#c060ff'};
         const interpCol = kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)');
         const col = isActiveTrack ? interpCol : interpCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,(_,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+'.6)';
         // Shadow
@@ -6398,6 +6421,37 @@ function toggleParamRecord() {
   }
 }
 
+function insertPoseKF() {
+  // Insert KF for every param at current playhead using current param values
+  if (!ST.animMode) { document.getElementById('lbl-status').textContent = 'アニメモードで使用してください'; return; }
+  const t = Math.round(ST.animPlayhead * 1000) / 1000;
+  let count = 0;
+  for (const [name, p] of Object.entries(M.params)) {
+    if (!M.animation.tracks[name]) M.animation.tracks[name] = [];
+    // Remove existing KF at exactly this time
+    M.animation.tracks[name] = M.animation.tracks[name].filter(kf => Math.abs(kf.t - t) > 0.002);
+    M.animation.tracks[name].push({ t, v: p.val, interp: p.interp ?? 'linear' });
+    M.animation.tracks[name].sort((a,b) => a.t - b.t);
+    count++;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ポーズKF挿入: ${count}パラメータ @ ${t.toFixed(3)}s`;
+}
+
+function trimAnimDuration() {
+  let maxT = 0;
+  for (const frames of Object.values(M.animation.tracks)) {
+    if (frames?.length) maxT = Math.max(maxT, ...frames.map(f=>f.t));
+  }
+  if (maxT <= 0) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+  const newDur = Math.round((maxT + 0.1) * 10) / 10; // add 0.1s padding
+  M.animation.duration = newDur;
+  const el = document.getElementById('tl-duration');
+  if (el) el.value = newDur.toFixed(1);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `継続時間をトリム: ${newDur.toFixed(1)}秒`;
+}
+
 function cleanAnimTracks() {
   // Remove tracks where all KF values are within threshold of each other (flat/useless)
   const threshold = 0.001;
@@ -6545,6 +6599,7 @@ function applyPlayheadToParams() {
       { icon:'〜', label:'イージング: Smooth', action:()=>{ hit.kf.interp='smooth'; drawMultiTimeline(); }},
       { icon:'〜', label:'イージング: Ease-In', action:()=>{ hit.kf.interp='ease-in'; drawMultiTimeline(); }},
       { icon:'〜', label:'イージング: Ease-Out', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
+      { icon:'⟂', label:'イージング: Step（値をホールド）', action:()=>{ hit.kf.interp='step'; drawMultiTimeline(); }},
       null,
       { icon:'⇿', label:'選択KFを均等配置', action:()=>equalizeSelectedKFs() },
       { icon:'⟺', label:'選択KFをタイムスケール', action:()=>scaleSelectedKFTimes() },
@@ -7359,8 +7414,8 @@ function selectAllAnimKF() {
 }
 
 function showAnimEasing() {
-  const easings = ['linear','smooth','ease-in','ease-out','bounce'];
-  const easingLabels = {linear:'直線',smooth:'スムーズ（S字）','ease-in':'入り','ease-out':'出し',bounce:'バウンス'};
+  const easings = ['linear','smooth','ease-in','ease-out','bounce','step'];
+  const easingLabels = {linear:'直線',smooth:'スムーズ（S字）','ease-in':'入り','ease-out':'出し',bounce:'バウンス',step:'ステップ（値ホールド）'};
   showModal('アニメーション イージング設定', `
     <div style="display:grid;gap:8px;font-size:12px;">
       <div><label style="color:var(--dim);font-size:11px">イージング方式</label><br>
