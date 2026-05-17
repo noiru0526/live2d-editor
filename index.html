@@ -925,6 +925,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
+    <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#1e2a1e;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
@@ -7304,6 +7305,89 @@ function addAnimKF() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent=`アニメKF追加 @ ${t.toFixed(3)}s`;
+}
+
+function showProceduralAnimDialog() {
+  const params = Object.keys(M.params);
+  if (!params.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
+  const existing = document.getElementById('proc-anim-modal');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'proc-anim-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:14px 16px;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:8px;font-size:11px;';
+  const ap = ST.ap || params[0];
+  box.innerHTML = `<div style="color:#a0b0d0;font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
+<div style="display:grid;grid-template-columns:100px 1fr;gap:4px;align-items:center;">
+  <label style="color:var(--dim);">パラメータ</label>
+  <select id="pa-param" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+    ${params.map(n=>`<option value="${n}"${n===ap?' selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}
+  </select>
+  <label style="color:var(--dim);">波形</label>
+  <select id="pa-wave" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+    <option value="sin">サイン波（滑らか）</option>
+    <option value="tri">三角波（線形）</option>
+    <option value="noise">ランダムノイズ</option>
+    <option value="breath">呼吸（非対称サイン）</option>
+  </select>
+  <label style="color:var(--dim);">周期 (秒)</label>
+  <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <label style="color:var(--dim);">振幅</label>
+  <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <label style="color:var(--dim);">中心値</label>
+  <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <label style="color:var(--dim);">解像度 (fps)</label>
+  <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <label style="color:var(--dim);">既存KFを</label>
+  <select id="pa-merge" style="background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+    <option value="replace">上書き</option>
+    <option value="add">追加</option>
+  </select>
+</div>
+<div style="display:flex;gap:6px;margin-top:4px;">
+  <button id="pa-ok" style="flex:1;background:#1a3050;border:1px solid rgba(78,124,255,.5);color:#4e9cff;border-radius:4px;padding:4px 8px;cursor:pointer;">生成</button>
+  <button id="pa-cancel" style="flex:1;background:#2e2e3a;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 8px;cursor:pointer;">キャンセル</button>
+</div>`;
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  box.querySelector('#pa-cancel').onclick = () => overlay.remove();
+  box.querySelector('#pa-ok').onclick = () => {
+    const name = box.querySelector('#pa-param').value;
+    const wave = box.querySelector('#pa-wave').value;
+    const period = parseFloat(box.querySelector('#pa-period').value) || 2;
+    const amp = parseFloat(box.querySelector('#pa-amp').value) || 0.3;
+    const center = parseFloat(box.querySelector('#pa-center').value) || 0;
+    const fps = parseInt(box.querySelector('#pa-fps').value) || 12;
+    const merge = box.querySelector('#pa-merge').value;
+    const p = M.params[name]; if(!p) return;
+    const dur = M.animation.duration || 3;
+    const dt = 1 / fps;
+    pushAnimUndo();
+    if (merge === 'replace') M.animation.tracks[name] = [];
+    else if (!M.animation.tracks[name]) M.animation.tracks[name] = [];
+    const kfs = M.animation.tracks[name];
+    let seed = Math.random() * 1000;
+    const noise = (t) => {
+      // Simple smooth noise: blend multiple sin waves
+      return Math.sin(t*2.7+seed)*0.5 + Math.sin(t*1.3+seed*0.7)*0.3 + Math.sin(t*4.1+seed*1.3)*0.2;
+    };
+    for (let t = 0; t <= dur + 0.001; t = Math.round((t+dt)*1000)/1000) {
+      let v = 0;
+      const phase = (t % period) / period * Math.PI * 2;
+      if (wave === 'sin') v = Math.sin(phase);
+      else if (wave === 'tri') v = (phase < Math.PI ? phase/Math.PI : 2 - phase/Math.PI) * 2 - 1;
+      else if (wave === 'noise') v = noise(t) / 0.7; // normalize roughly
+      else if (wave === 'breath') v = Math.pow((Math.sin(phase - Math.PI/2) + 1) / 2, 0.6) * 2 - 1;
+      const val = Math.max(p.min, Math.min(p.max, center + v * amp));
+      kfs.push({t, v: Math.round(val*10000)/10000, interp: wave==='noise'?'smooth':'smooth'});
+    }
+    kfs.sort((a,b)=>a.t-b.t);
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `プロシージャルアニメ生成: ${name} (${wave}, ${kfs.length}KF)`;
+    overlay.remove();
+  };
 }
 
 function showCameraTrackMenu() {
