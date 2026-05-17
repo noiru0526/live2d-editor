@@ -552,6 +552,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         </select>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <label style="font-size:10px;color:var(--dim)">BGM URL（MP3/OGG・空欄でなし）</label>
+        <input id="export-bgm" type="text" placeholder="https://example.com/bgm.mp3" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;margin-top:2px;">
+          <input type="checkbox" id="export-bgm-loop" checked style="accent-color:var(--accent);">
+          <span>BGMをループ</span>
+          <span style="color:var(--dim);margin-left:8px;">音量:</span>
+          <input id="export-bgm-vol" type="range" min="0" max="100" value="40" style="width:60px;accent-color:var(--accent);">
+          <span id="export-bgm-vol-val" style="font-size:10px;color:var(--dim);width:24px;">40</span>
+        </label>
+      </div>
+      <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">カスタムCSS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
@@ -819,7 +830,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       style="width:48px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
     <span style="font-size:10px;color:var(--dim)">秒</span>
-    <span id="tl-playhead-time" style="font-size:10px;color:var(--accent);font-family:monospace;margin-left:4px;">0.000s</span>
+    <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
+      style="width:46px;background:#1a1e2e;border:1px solid rgba(78,124,255,.4);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
+      onkeydown="if(event.key==='Enter'){const t=parseFloat(this.value);if(!isNaN(t)){ST.animPlayhead=Math.max(0,Math.min(M.animation.duration||3,t));applyPlayheadToParams();drawMultiTimeline();}this.blur();}"
+      onfocus="this.select()"></input>
     <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ開始点（秒）">イン:
       <input type="number" id="tl-loop-in" value="0" min="0" step="0.1"
         style="width:36px;background:#1a1e2e;border:1px solid var(--border);color:#80ffa0;padding:1px 3px;border-radius:3px;font-size:10px;"
@@ -2840,6 +2854,9 @@ function genAvatarHTML() {
   const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
+  const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
+  const bgmLoop=document.getElementById('export-bgm-loop')?.checked!==false;
+  const bgmVol=parseInt(document.getElementById('export-bgm-vol')?.value||'40')/100;
   // EMA alphas per smoothness mode: soft=slow, medium=medium, fast=fast
   const emaAlphas={soft:{hx:.10,hy:.10,hz:.08,bl:.25,br:.25,mo:.22,bw:.15,ex:.15,ey:.15},
     medium:{hx:.15,hy:.15,hz:.12,bl:.30,br:.30,mo:.28,bw:.20,ex:.20,ey:.20},
@@ -2920,6 +2937,7 @@ ${includeCtrlPanel ? `
 <span style="color:#6878a0">カメラへのアクセスを許可してください</span>
 ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#6878a0">0キー = デフォルトに戻す</span>`:''}
 </div>
+${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -3407,6 +3425,15 @@ img.onload=img.onerror=()=>{
   requestAnimationFrame(draw);
   setTimeout(initTracking,500);
   setTimeout(initAudio,1000);
+  // BGM autoplay (triggered by first user interaction if autoplay blocked)
+  const _bgmEl = document.getElementById('bgm-audio');
+  if (_bgmEl) {
+    _bgmEl.volume = ${bgmVol};
+    const _tryBgm = () => { _bgmEl.play().catch(()=>{}); };
+    _tryBgm();
+    document.addEventListener('click', _tryBgm, {once:true});
+    document.addEventListener('keydown', _tryBgm, {once:true});
+  }
   // Apply URL params to params on load
   const usp=new URLSearchParams(location.search);
   for(const[k,v]of usp.entries()){
@@ -5903,6 +5930,9 @@ document.getElementById('export-chromakey').addEventListener('change',e=>{
   const bgEl=document.getElementById('export-bg');
   if (bgEl) bgEl.value=e.target.checked?'#00ff00':'#1a1a2e';
 });
+document.getElementById('export-bgm-vol').addEventListener('input',e=>{
+  document.getElementById('export-bgm-vol-val').textContent=e.target.value;
+});
 
 // ==================== DEFORMER SYSTEM ====================
 let _defIdCounter = 0;
@@ -6492,9 +6522,9 @@ function drawMultiTimeline() {
   tlMultiCtx.fillStyle='#fff';
   tlMultiCtx.beginPath(); tlMultiCtx.moveTo(phx-4,0); tlMultiCtx.lineTo(phx+4,0); tlMultiCtx.lineTo(phx,8); tlMultiCtx.closePath(); tlMultiCtx.fill();
 
-  // Update time label
+  // Update time input (only when not focused)
   const tle=document.getElementById('tl-playhead-time');
-  if (tle) tle.textContent=ph.toFixed(3)+'s';
+  if (tle && document.activeElement!==tle) tle.value=ph.toFixed(3);
   // Sync horizontal scrollbar
   const hscroll=document.getElementById('tl-hscroll');
   if (hscroll) {
