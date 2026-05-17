@@ -344,6 +344,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
       <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:3px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
+      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:#a0d890;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
     </div>
     <div id="params"></div>
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
@@ -5128,6 +5129,25 @@ function renderPosePresets() {
     btn.oncontextmenu = e => { e.preventDefault(); if (confirm(`プリセット「${preset.name}」を削除しますか？`)) { M.posePresets.splice(i,1); renderPosePresets(); } };
     list.appendChild(btn);
   });
+}
+
+function generatePoseVariation() {
+  const strengthStr = prompt('バリエーション強度 (0.0〜1.0):', '0.1');
+  if (strengthStr === null) return;
+  const strength = Math.max(0, Math.min(1, parseFloat(strengthStr) || 0.1));
+  for (const [name, p] of Object.entries(M.params)) {
+    if (p.locked) continue;
+    const range = p.max - p.min;
+    const offset = (Math.random() - 0.5) * range * strength;
+    p.val = Math.max(p.min, Math.min(p.max, p.val + offset));
+    p.val = Math.round(p.val * 1000) / 1000;
+    const s = document.getElementById(`ps-${name}`);
+    if (s) { s.value = p.val; updateSliderFill(s, p.val, p.min, p.max); }
+    const pv = document.getElementById(`pv-${name}`);
+    if (pv) pv.textContent = p.val.toFixed(2);
+  }
+  ST.cachedVerts = null; redraw();
+  document.getElementById('lbl-status').textContent = `ポーズバリエーション生成 (強度: ${strength.toFixed(2)})`;
 }
 
 function savePosePreset() {
