@@ -545,6 +545,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <option value="none">なし</option>
         </select>
       </div>
+      <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <label style="font-size:10px;color:var(--dim)">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
+        <input id="export-html-title" type="text" placeholder="Live2D Viewer" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+      </div>
       <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
           <input type="checkbox" id="export-ctrlpanel" style="accent-color:var(--accent);">
@@ -960,6 +964,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
     <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2e3656;border:1px solid var(--border);color:#a0d0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
+    <button onclick="smartDecimateAnim()" title="スマートデシメーション: パラメータ値域に対する相対閾値で各トラックを個別に最適化" style="background:#2e3656;border:1px solid var(--border);color:#80e0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗜 スマート</button>
+    <button onclick="reverseAnimTimeRange()" title="指定した時間範囲内のKFを時間方向に反転（リバース）" style="background:#2e3656;border:1px solid var(--border);color:#d0a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 反転</button>
     <button onclick="smoothAnimKFValues()" title="KF値をスムージング（録音後の値のブレを滑らかにする）" style="background:#2e3656;border:1px solid var(--border);color:#a0c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 スムージング</button>
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
@@ -972,6 +978,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
+    <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
+    <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2e3656;border:1px solid var(--border);color:#a0e0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
@@ -983,6 +991,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#80a0d0';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
     <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
+    <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2e3656;border:1px solid var(--border);color:#c0a0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
@@ -1018,6 +1027,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
     <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#1e1828;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
+    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:#1a2030;border:1px solid rgba(80,160,255,.4);color:#80b0ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:#0e1120;border-bottom:1px solid rgba(60,70,110,.3);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -3376,6 +3386,7 @@ function genAvatarHTML() {
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
   const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
+  const htmlTitle=(document.getElementById('export-html-title')?.value||'').trim()||'Avatar — noiru';
   const obsMode=document.getElementById('export-obs-mode')?.checked||false;
   const responsiveCanvas=document.getElementById('export-responsive')?.checked||false;
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
@@ -3402,7 +3413,7 @@ function genAvatarHTML() {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Avatar — noiru</title>
+<title>${htmlTitle.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -9317,6 +9328,122 @@ function showAnimClips() {
   }
 }
 
+function mergeAnimClips() {
+  if (!M.animClips?.length) { alert('保存済みクリップがありません。先にクリップを保存してください。'); return; }
+  const allClips = [{name:'メイン（現在）', animation: M.animation}, ...M.animClips];
+  const dlg = document.createElement('div');
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:16px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  const checks = allClips.map((c,i) => `<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;"><input type="checkbox" data-idx="${i}" style="accent-color:#4e7cff;" ${i===0?'checked':''}><span>${c.name}</span><span style="color:var(--dim);font-size:9px;margin-left:auto;">${(c.animation?.duration||3).toFixed(1)}s</span></label>`).join('');
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
+    <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
+    <div id="merge-checks" style="margin-bottom:12px;">${checks}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <label style="font-size:10px;color:var(--dim);">新クリップ名:</label>
+      <input id="merge-name" type="text" value="連結クリップ" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="this.closest('div[style]').remove()" style="background:#2e3656;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button id="merge-ok" style="background:#2a4080;border:1px solid rgba(78,124,255,.5);color:#80c0ff;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">連結</button>
+    </div>`;
+  document.body.appendChild(dlg);
+  dlg.querySelector('#merge-ok').onclick = () => {
+    const selected = [...dlg.querySelectorAll('input[data-idx]:checked')].map(el => allClips[parseInt(el.dataset.idx)]);
+    if (selected.length < 2) { alert('2つ以上選択してください'); return; }
+    const name = dlg.querySelector('#merge-name').value.trim() || '連結クリップ';
+    pushAnimUndo();
+    const merged = { tracks: {}, duration: 0, loop: false };
+    let offset = 0;
+    for (const clip of selected) {
+      const anim = clip.animation || { tracks:{}, duration:3 };
+      const dur = anim.duration || 3;
+      for (const [pName, frames] of Object.entries(anim.tracks||{})) {
+        if (!merged.tracks[pName]) merged.tracks[pName] = [];
+        for (const kf of frames) {
+          merged.tracks[pName].push({ t: kf.t + offset, v: kf.v, interp: kf.interp });
+        }
+      }
+      offset += dur;
+    }
+    merged.duration = offset;
+    for (const frames of Object.values(merged.tracks)) frames.sort((a,b)=>a.t-b.t);
+    if (!M.animClips) M.animClips = [];
+    M.animClips.push({ name, animation: merged });
+    renderClipTabs();
+    dlg.remove();
+    document.getElementById('lbl-status').textContent = `連結完了: 「${name}」(${offset.toFixed(1)}s, ${selected.length}クリップ)`;
+  };
+}
+
+function showKFList() {
+  const name = ST.ap;
+  if (!name) { document.getElementById('lbl-status').textContent = '先にパラメータを選択してください'; return; }
+  const frames = M.animation.tracks[name];
+  if (!frames?.length) { document.getElementById('lbl-status').textContent = `「${M.params[name]?.lbl||name}」にKFがありません`; return; }
+  const sorted = [...frames].sort((a,b)=>a.t-b.t);
+  const rows = sorted.map((kf, i) => {
+    const fmtT = tlSmpteMode ? (() => { const _f=30,h=Math.floor(kf.t/3600),m=Math.floor((kf.t%3600)/60),s=Math.floor(kf.t%60),f=Math.floor((kf.t%1)*_f); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}:${String(f).padStart(2,'0')}`; })() : kf.t.toFixed(3)+'s';
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;" onclick="ST.animPlayhead=${kf.t};drawMultiTimeline();">
+      <td style="padding:3px 8px;color:var(--dim);font-size:9px;text-align:right;">${i+1}</td>
+      <td style="padding:3px 8px;color:#ffd060;font-family:monospace;">${fmtT}</td>
+      <td style="padding:3px 8px;color:#80d0ff;font-family:monospace;">${kf.v.toFixed(4)}</td>
+      <td style="padding:3px 8px;color:var(--dim);font-size:9px;">${kf.interp||'linear'}</td>
+      ${kf.note ? `<td style="padding:3px 8px;color:#ffa040;font-size:9px;" title="${kf.note}">📝</td>` : '<td></td>'}
+    </tr>`;
+  }).join('');
+  const p = M.params[name];
+  showModal(`KFリスト: ${p?.lbl||name} (${sorted.length}個)`,
+    `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#1a1e3a;"><th style="padding:3px 8px;">#</th><th style="padding:3px 8px;">時刻</th><th style="padding:3px 8px;">値</th><th style="padding:3px 8px;">補間</th><th style="padding:3px 8px;">メモ</th></tr>
+        ${rows}
+      </table>
+      <div style="margin-top:8px;color:var(--dim);font-size:9px;">行クリックでプレイヘッド移動</div>
+    </div>`
+  );
+}
+
+function showParamStats() {
+  const name = ST.ap;
+  if (!name) { document.getElementById('lbl-status').textContent = '先にパラメータを選択してください'; return; }
+  const frames = M.animation.tracks[name];
+  if (!frames?.length) { document.getElementById('lbl-status').textContent = `「${M.params[name]?.lbl||name}」にKFがありません`; return; }
+  const p = M.params[name];
+  const vals = frames.map(k=>k.v);
+  const mn = Math.min(...vals), mx = Math.max(...vals), avg = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const variance = vals.reduce((a,b)=>a+(b-avg)**2,0)/vals.length;
+  const std = Math.sqrt(variance);
+  // Range usage
+  const pRange = p.max - p.min || 1;
+  const usage = ((mx-mn)/pRange*100).toFixed(1);
+  // Find most common value
+  const rounded = vals.map(v=>Math.round(v*10)/10);
+  const freq = {};
+  for(const v of rounded) freq[v]=(freq[v]||0)+1;
+  const modeVal = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
+  // Duration coverage
+  const dur = M.animation.duration||3;
+  const sortedT = [...frames].sort((a,b)=>a.t-b.t);
+  const firstT = sortedT[0].t, lastT = sortedT[sortedT.length-1].t;
+  showModal(`統計: ${p?.lbl||name}`,
+    `<div style="font-family:monospace;font-size:11px;line-height:1.8;">
+      <table style="width:100%;border-collapse:collapse;">
+        ${[
+          ['KF数', `${frames.length}`],
+          ['最小値', mn.toFixed(4)],
+          ['最大値', mx.toFixed(4)],
+          ['平均値', avg.toFixed(4)],
+          ['標準偏差', std.toFixed(4)],
+          ['最頻値(丸め)', `${modeVal[0]} (${modeVal[1]}回)`],
+          ['値域カバー率', `${usage}% (パラメータ範囲 ${p.min}〜${p.max} に対し)`],
+          ['KF先頭', `${firstT.toFixed(3)}s`],
+          ['KF末尾', `${lastT.toFixed(3)}s`],
+          ['KF密度', `${(frames.length/dur).toFixed(2)} KF/s`],
+        ].map(([k,v])=>`<tr><td style="color:var(--dim);padding:2px 12px 2px 0;">${k}</td><td style="color:#80d0ff;">${v}</td></tr>`).join('')}
+      </table>
+    </div>`
+  );
+}
+
 function insertPoseKF() {
   // Insert KF for every param at current playhead using current param values
   if (!ST.animMode) { document.getElementById('lbl-status').textContent = 'アニメモードで使用してください'; return; }
@@ -9387,6 +9514,111 @@ function decimateAnimKFs(eps) {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `デシメーション: ${removed}/${total} KFを削除 (閾値 ${threshold.toFixed(4)})`;
+}
+
+function smartDecimateAnim() {
+  const dlg = document.createElement('div');
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">🗜 スマートデシメーション</div>
+    <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">各トラックの値域に対する相対閾値でKFを削減します。線形補間で再現できるKFを除去します。</div>
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+      <label style="font-size:10px;color:var(--dim);white-space:nowrap;">閾値 (%):</label>
+      <input id="sd-thresh" type="range" min="0.1" max="10" step="0.1" value="1.0" style="flex:1;accent-color:var(--accent);">
+      <span id="sd-thresh-val" style="color:#80d0ff;font-size:11px;width:36px;">1.0%</span>
+    </div>
+    <div style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="sd-selected-only" style="accent-color:var(--accent);">
+      <label style="font-size:10px;cursor:pointer;">選択KFのみ（チェックなし＝全トラック）</label>
+    </div>
+    <div id="sd-preview" style="font-size:10px;color:var(--dim);margin-bottom:10px;min-height:16px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#2e3656;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button id="sd-ok" style="background:#2a4080;border:1px solid rgba(78,124,255,.5);color:#80c0ff;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">実行</button>
+    </div>`;
+  document.body.appendChild(dlg);
+  const slider = dlg.querySelector('#sd-thresh');
+  const valEl = dlg.querySelector('#sd-thresh-val');
+  const preview = dlg.querySelector('#sd-preview');
+  const updatePreview = () => {
+    const pct = parseFloat(slider.value);
+    valEl.textContent = pct.toFixed(1) + '%';
+    let totalBefore = 0, totalAfter = 0;
+    for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+      if (!frames?.length) continue;
+      const p = M.params[name]; if (!p) continue;
+      const range = p.max - p.min || 1;
+      const eps = range * pct / 100;
+      totalBefore += frames.length;
+      if (frames.length <= 2) { totalAfter += frames.length; continue; }
+      const simp = _rdpSimplify(frames.map(k=>({t:k.t,v:k.v,_ref:k})), eps);
+      totalAfter += simp.length;
+    }
+    const reduction = totalBefore > 0 ? ((totalBefore-totalAfter)/totalBefore*100).toFixed(1) : 0;
+    preview.textContent = `予測: ${totalBefore}→${totalAfter} KF (${reduction}%削減)`;
+    preview.style.color = totalBefore-totalAfter > totalBefore*0.3 ? '#ff8060' : '#60d890';
+  };
+  slider.oninput = updatePreview;
+  updatePreview();
+  dlg.querySelector('#sd-ok').onclick = () => {
+    const pct = parseFloat(slider.value);
+    const selectedOnly = dlg.querySelector('#sd-selected-only').checked;
+    pushAnimUndo();
+    let removed = 0, total = 0;
+    for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+      if (!frames?.length) continue;
+      const p = M.params[name]; if (!p) continue;
+      const range = p.max - p.min || 1;
+      const eps = range * pct / 100;
+      const targets = selectedOnly && tlSelectedKFs.size ? frames.filter(kf=>tlSelectedKFs.has(kf)) : frames;
+      if (targets.length <= 2) continue;
+      total += frames.length;
+      const simp = _rdpSimplify(targets.map(k=>({t:k.t,v:k.v,_ref:k})), eps);
+      const keep = new Set(simp.map(p=>p._ref));
+      M.animation.tracks[name] = frames.filter(kf=>keep.has(kf)||!targets.includes(kf));
+      removed += total - M.animation.tracks[name].length;
+    }
+    drawMultiTimeline();
+    dlg.remove();
+    document.getElementById('lbl-status').textContent = `スマートデシメーション: ${removed} KFを削除 (${pct.toFixed(1)}%閾値)`;
+  };
+}
+
+function reverseAnimTimeRange() {
+  const dur = M.animation.duration || 3;
+  const fromS = prompt('反転開始時刻 (s):', '0');
+  if (fromS === null) return;
+  const toS = prompt('反転終了時刻 (s):', dur.toFixed(2));
+  if (toS === null) return;
+  const from = parseFloat(fromS), to = parseFloat(toS);
+  if (isNaN(from)||isNaN(to)||from>=to) { alert('無効な範囲です'); return; }
+  pushAnimUndo();
+  const center = (from + to) / 2;
+  let count = 0;
+  for (const frames of Object.values(M.animation.tracks||{})) {
+    for (const kf of frames) {
+      if (kf.t >= from && kf.t <= to) {
+        kf.t = from + to - kf.t; // mirror around center
+        kf.t = Math.round(kf.t * 100000) / 100000;
+        count++;
+      }
+    }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `時間反転: ${from.toFixed(2)}s〜${to.toFixed(2)}s (${count} KF)`;
+}
+
+function setSelectedKFsInterp(interp) {
+  if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
+  pushAnimUndo();
+  let count = 0;
+  for (const frames of Object.values(M.animation.tracks||{})) {
+    for (const kf of frames) {
+      if (tlSelectedKFs.has(kf)) { kf.interp = interp; count++; }
+    }
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `補間タイプ変更: ${count} KF → ${interp}`;
 }
 
 function jitterAnimKFs(amount) {
