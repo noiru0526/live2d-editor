@@ -703,6 +703,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+←→ (KF選択時)</td><td>KFを5フレーム前後にナッジ</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+ドラッグ (タイムライン)</td><td>ラバーバンド選択</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Alt+D (KF選択時)</td><td>選択KFを1フレーム後に複製</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">[ / ]</td><td>前/次のマーカーにジャンプ</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">📸 ポーズKF ボタン</td><td>全パラメータを現在時刻にKF挿入</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">✂ トリム ボタン</td><td>継続時間を最後のKFに合わせる</td></tr>
     </table>
@@ -3654,6 +3655,18 @@ document.addEventListener('keydown',e=>{
       if (e.key==='j'||e.key==='J') { animMultiStop(); ST.animPlayhead=Math.max(0,ST.animPlayhead-fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
       if (e.key==='k'||e.key==='K') { animMultiStop(); e.preventDefault(); }
       if (e.key==='l'||e.key==='L') { animMultiStop(); ST.animPlayhead=Math.min(M.animation.duration,ST.animPlayhead+fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
+      // [ and ] : jump between markers
+      if (e.key==='['||e.key===']') {
+        const markers=(M.animation.markers||[]).map(m=>m.t).sort((a,b)=>a-b);
+        if (markers.length) {
+          const ph=ST.animPlayhead;
+          let target;
+          if (e.key==='[') target=markers.filter(t=>t<ph-0.001).pop()??markers[markers.length-1];
+          else target=markers.find(t=>t>ph+0.001)??markers[0];
+          if (target!=null) { animMultiStop(); ST.animPlayhead=target; applyPlayheadToParams(); drawMultiTimeline(); }
+        }
+        e.preventDefault();
+      }
     }
     if (e.key===' ') {
       if (ST.animMode) { animMultiPlay(); }  // In anim mode: space = play/pause
@@ -7182,12 +7195,24 @@ function animMultiPlay() {
     ST.animPlayhead = t;
     // Apply track values with proper interpolation (hidden tracks are muted)
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
-      const p=M.params[name]; if(!p||!frames.length) continue;
-      if (tlHiddenTracks.has(name)) continue;
-      p.val=evalAnimTrack(frames, p, t);
-      const s=document.getElementById(`ps-${name}`);
-      if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
-      const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
+      if (!frames.length || tlHiddenTracks.has(name)) continue;
+      const p=M.params[name];
+      if (p) {
+        p.val=evalAnimTrack(frames, p, t);
+        const s=document.getElementById(`ps-${name}`);
+        if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+        const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
+      } else if (name.startsWith('__opacity:')) {
+        const part=M.parts.find(p=>p.id===name.slice(10)); if(part)part.opacity=evalAnimTrack(frames,{min:0,max:1,val:1},t);
+      } else if (name.startsWith('__brightness:')) {
+        const part=M.parts.find(p=>p.id===name.slice(13)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.b=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+      } else if (name.startsWith('__contrast:')) {
+        const part=M.parts.find(p=>p.id===name.slice(11)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.c=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+      } else if (name.startsWith('__saturation:')) {
+        const part=M.parts.find(p=>p.id===name.slice(13)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.s=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+      } else if (name.startsWith('__hue:')) {
+        const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
+      }
     }
     ST.cachedVerts=null; redraw(); drawMultiTimeline();
     if (!loop && (sp>=0 ? t>=loopOut : t<=loopIn)) { animMultiStop(); return; }
@@ -7205,12 +7230,28 @@ function animMultiStop() {
 function applyPlayheadToParams() {
   const t = ST.animPlayhead;
   for (const [name,frames] of Object.entries(M.animation.tracks)) {
-    const p=M.params[name]; if(!p||!frames.length) continue;
-    if (tlHiddenTracks.has(name)) continue;
-    p.val=evalAnimTrack(frames, p, t);
-    const s=document.getElementById(`ps-${name}`);
-    if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
-    const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
+    if (!frames.length || tlHiddenTracks.has(name)) continue;
+    // Normal parameter tracks
+    const p=M.params[name];
+    if (p) {
+      p.val=evalAnimTrack(frames, p, t);
+      const s=document.getElementById(`ps-${name}`);
+      if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+      const pv=document.getElementById(`pv-${name}`); if(pv)pv.textContent=p.val.toFixed(2);
+      continue;
+    }
+    // Special tracks (__opacity:, __brightness:, etc.)
+    if (name.startsWith('__opacity:')) {
+      const part=M.parts.find(p=>p.id===name.slice(10)); if(part)part.opacity=evalAnimTrack(frames,{min:0,max:1,val:1},t);
+    } else if (name.startsWith('__brightness:')) {
+      const part=M.parts.find(p=>p.id===name.slice(13)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.b=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+    } else if (name.startsWith('__contrast:')) {
+      const part=M.parts.find(p=>p.id===name.slice(11)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.c=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+    } else if (name.startsWith('__saturation:')) {
+      const part=M.parts.find(p=>p.id===name.slice(13)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.s=evalAnimTrack(frames,{min:0,max:200,val:100},t);}
+    } else if (name.startsWith('__hue:')) {
+      const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
+    }
   }
   ST.cachedVerts=null; redraw();
 }
