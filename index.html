@@ -2318,6 +2318,16 @@ function buildParamUI() {
         drawMultiTimeline();
       }
     });
+    // Double-click slider to reset to 0 (neutral position)
+    sl.addEventListener('dblclick', e => {
+      if (p.locked) return;
+      const defVal = Math.max(p.min, Math.min(p.max, 0));
+      p.val = defVal;
+      e.target.value = defVal;
+      updateSliderFill(e.target, defVal, p.min, p.max);
+      document.getElementById(`pv-${name}`).textContent = defVal.toFixed(2);
+      ST.cachedVerts = null; redraw();
+    });
     cont.appendChild(row);
     updateKFDots(name);
   }
@@ -3400,6 +3410,20 @@ document.addEventListener('keydown',ev=>{
     const st=document.getElementById('st');
     if(st) st.style.display=st.style.display==='none'?'':'none';
   }
+  // Space: play/pause animation
+  if (ev.key===' ' && typeof toggleExportAnim==='function' && MD.animation) {
+    toggleExportAnim(); ev.preventDefault();
+  }
+  // Arrow Left/Right: seek 1 frame (when animation loaded)
+  if (MD.animation && (ev.key==='ArrowLeft'||ev.key==='ArrowRight') && !ev.ctrlKey) {
+    const frameStep = 1/30 * (ev.shiftKey ? 10 : 1) * (ev.key==='ArrowLeft' ? -1 : 1);
+    animT = Math.max(MD.animation.loopIn??0, Math.min(MD.animation.loopOut??MD.animation.duration, animT + frameStep));
+    animLastNow = null;
+    ev.preventDefault();
+  }
+  // Home/End: jump to start/end
+  if (MD.animation && ev.key==='Home') { animT=MD.animation.loopIn??0; animLastNow=null; ev.preventDefault(); }
+  if (MD.animation && ev.key==='End') { animT=MD.animation.loopOut??MD.animation.duration; animLastNow=null; ev.preventDefault(); }
   // Q: current animation / W,E,R,T...: switch to clip 0,1,2,3...
   if (!ev.ctrlKey && !ev.altKey && !ev.shiftKey) {
     const CLIP_KEYS = {'q':-1,'w':0,'e':1,'r':2,'t':3,'y':4,'u':5,'i':6,'o':7,'p':8};
