@@ -274,6 +274,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
   <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
+  <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="resetToNeutral()" title="全パラメータをゼロに戻す">ニュートラル</button>
   <div class="tsep"></div>
@@ -988,6 +989,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
     <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
+    <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2e3656;border:1px solid var(--border);color:#a0b0d0;border-radius:3px;padding:1px 3px;font-size:9px;cursor:pointer;">
+      <option value="default">↕ デフォルト</option>
+      <option value="alpha">🔤 アルファベット順</option>
+      <option value="kf-count">📊 KF数順</option>
+      <option value="active">🕐 アクティブ順</option>
+    </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
   </div>
   <!-- Track search bar -->
@@ -1190,6 +1197,7 @@ const ST = {
   weightBrushR:50,          // weight paint brush radius
   weightBrushStr:1.0,       // brush strength (0-1)
   weightBrushAdd:true,      // true=add, false=subtract
+  paramHUD:false,           // show param values as canvas overlay
 };
 
 // ==================== CANVAS ====================
@@ -1385,6 +1393,26 @@ function redraw() {
     ctx.restore();
   }
   ctx.restore();
+  // Param HUD overlay
+  if (ST.paramHUD && M.img) {
+    ctx.save();
+    const hudParams = Object.entries(M.params).filter(([,p])=>Math.abs(p.val)>0.001);
+    const lineH = 14, padX = 8, padY = 6;
+    const maxW = 160;
+    ctx.fillStyle = 'rgba(10,14,28,.7)';
+    ctx.fillRect(2, 2, maxW+padX*2, hudParams.length*lineH+padY*2);
+    ctx.fillStyle = 'rgba(78,124,255,.4)';
+    ctx.fillRect(2, 2, 2, hudParams.length*lineH+padY*2);
+    hudParams.forEach(([name, p], i) => {
+      const lbl = (p.lbl||name).slice(0,14);
+      const v = p.val.toFixed(2);
+      const frac = (p.val-p.min)/(p.max-p.min||1);
+      ctx.fillStyle = `hsl(${200+Math.round(frac*60)},70%,60%)`;
+      ctx.font = '9px monospace';
+      ctx.fillText(`${lbl}: ${v}`, padX+4, padY+4+i*lineH+10);
+    });
+    ctx.restore();
+  }
 }
 
 function paramDeltaForPart(name, v, part) {
@@ -7418,6 +7446,7 @@ let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
 let tlShowValues = true;  // show current value in track labels
 let tlWaveform = false;   // fill under curve (waveform-style display)
+let tlSortMode = 'default'; // 'default'|'alpha'|'kf-count'|'active'
 let _tlHoverT = null; // current hover time on timeline canvas (null = not hovering)
 
 // Shared interp helper — used by playback, seek, and curve display
@@ -7604,10 +7633,21 @@ function drawMultiTimeline() {
     // Camera tracks (only if they exist in animation.tracks)
     ...Object.keys(_CAM_TRACKS).filter(k=>M.animation.tracks?.[k]?.length).map(k=>[k,_CAM_TRACKS[k]]),
   ];
-  // Pinned tracks first, then rest
+  // Pinned tracks first, then rest (with optional sort within each group)
   const allBase = [...params, ...specialTracks];
-  const pinned = allBase.filter(([n]) => tlPinnedTracks.has(n));
-  const unpinned = allBase.filter(([n]) => !tlPinnedTracks.has(n));
+  const _sortRows = rows => {
+    if (tlSortMode === 'alpha') return [...rows].sort((a,b)=>(a[1]?.lbl||a[0]).localeCompare(b[1]?.lbl||b[0]));
+    if (tlSortMode === 'kf-count') return [...rows].sort((a,b)=>(M.animation.tracks[b[0]]?.length||0)-(M.animation.tracks[a[0]]?.length||0));
+    if (tlSortMode === 'active') return [...rows].sort((a,b)=>{
+      const aT=M.animation.tracks[a[0]]; const bT=M.animation.tracks[b[0]];
+      const aMax=aT?.length?Math.max(...aT.map(k=>k.t)):0;
+      const bMax=bT?.length?Math.max(...bT.map(k=>k.t)):0;
+      return bMax-aMax;
+    });
+    return rows;
+  };
+  const pinned = _sortRows(allBase.filter(([n]) => tlPinnedTracks.has(n)));
+  const unpinned = _sortRows(allBase.filter(([n]) => !tlPinnedTracks.has(n)));
   const allTrackRows = [...pinned, ...unpinned];
 
   // Clamp scroll
