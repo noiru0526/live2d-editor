@@ -2864,7 +2864,13 @@ canvas{display:block;image-rendering:auto;}
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
 ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).length>0) ? `<div id="anim-controls" style="position:fixed;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:99;">
-  <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
+  <div style="display:flex;gap:4px;align-items:center;">
+    <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
+    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=parseFloat(this.value)" style="background:rgba(14,17,32,.9);border:1px solid #3a4470;color:#a0d0ff;border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
+      <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option>
+      <option value="1.5">1.5x</option><option value="2">2x</option>
+    </select>
+  </div>
   ${(M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).length > 0 ? `<div id="clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;">${['現在'].concat((M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).map(c=>c.name)).map((n,i)=>`<button onclick="switchClip(${i-1})" id="clip-tab-${i}" style="background:${i===0?'rgba(20,50,30,.9)':'rgba(20,24,44,.85)'};border:1px solid ${i===0?'#2a7050':'#3a4470'};border-radius:4px;padding:2px 8px;color:${i===0?'#60d890':'#aaa'};font-size:9px;font-family:monospace;cursor:pointer;">${n}</button>`).join('')}</div>` : ''}
 </div>` : ''}
 ${includeCtrlPanel ? `
@@ -2941,7 +2947,7 @@ const ema=(c,t,a)=>c+(t-c)*a;
 const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0};
 
 // Timeline animation playback
-let animT=0, animLastNow=null, animPlaying=false;
+let animT=0, animLastNow=null, animPlaying=false, animSpeedMult=1;
 function evalAnimTrackExport(frames,p,t){
   const sorted=[...frames].sort((a,b)=>a.t-b.t);
   let i=sorted.findIndex(f=>f.t>t);
@@ -2958,7 +2964,7 @@ function applyAnimTracks(now){
   const loopIn=MD.animation.loopIn??0;
   const loopOut=MD.animation.loopOut??dur;
   const loopLen=Math.max(loopOut-loopIn,.01);
-  if(animLastNow!=null){const dt=(now-animLastNow)/1000;animT+=dt;}
+  if(animLastNow!=null){const dt=(now-animLastNow)/1000*(animSpeedMult||1);animT+=dt;}
   animLastNow=now;
   let t=MD.animation.loop?loopIn+((animT-loopIn)%loopLen):Math.min(animT,loopOut);
   if(t<0)t=loopIn+((t-loopIn)%loopLen+loopLen)%loopLen;
