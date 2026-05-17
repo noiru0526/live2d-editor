@@ -936,6 +936,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
+    <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
@@ -7079,6 +7080,15 @@ const tlLabelCanvas = document.getElementById('tl-label-canvas');
 let tlMultiCtx = null, tlLabelCtx = null;
 let animMultiRAF = null;
 let TL_ROW_H = 24; // timeline row height (compact=18, normal=24, wide=36)
+const tlTrackHeights = new Map(); // per-track height overrides
+const trackH = name => tlTrackHeights.get(name) || TL_ROW_H;
+// Compute cumulative Y offsets for a rows array
+function _rowOffsets(rows) {
+  const offs=[], rhs=[];
+  let y=0;
+  for (const [name] of rows) { offs.push(y); const h=trackH(name); rhs.push(h); y+=h; }
+  return {offs, rhs, total:y};
+}
 const TL_LABEL_W = 90;
 let tlScrollY = 0;
 let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
@@ -7284,7 +7294,7 @@ function drawMultiTimeline() {
   const allTrackRows = [...pinned, ...unpinned];
 
   // Clamp scroll
-  const totalH = allTrackRows.length * TL_ROW_H;
+  const totalH = allTrackRows.reduce((s,[n])=>s+trackH(n),0);
   tlScrollY = Math.max(0, Math.min(tlScrollY, Math.max(0, totalH - H)));
 
   // Filter rows by track search and/or hide-empty
@@ -7300,35 +7310,37 @@ function drawMultiTimeline() {
   }
 
   // Draw each param track
+  const {offs: _rowOffs, rhs: _rowRhs} = _rowOffsets(filteredRows);
   filteredRows.forEach(([name,p],ri) => {
-    const ry = ri*TL_ROW_H - tlScrollY;
-    if (ry+TL_ROW_H < 0 || ry > H) return; // skip off-screen rows
+    const rh = _rowRhs[ri];
+    const ry = _rowOffs[ri] - tlScrollY;
+    if (ry+rh < 0 || ry > H) return; // skip off-screen rows
     // Row background
     const tc = _trackColor(name);
     const isSpecial = !!tc.bg;
     const isPinned = tlPinnedTracks.has(name);
     tlMultiCtx.fillStyle = isPinned ? 'rgba(255,200,60,.06)' : (tc.bg || (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent'));
-    tlMultiCtx.fillRect(0, ry, W, TL_ROW_H);
+    tlMultiCtx.fillRect(0, ry, W, rh);
     // Separator
     tlMultiCtx.fillStyle='rgba(46,54,86,.5)';
-    tlMultiCtx.fillRect(0, ry+TL_ROW_H-1, W, 1);
+    tlMultiCtx.fillRect(0, ry+rh-1, W, 1);
 
     // Label
     const isHidden = tlHiddenTracks.has(name);
     if (tlLabelCtx) {
-      const lry = ri*TL_ROW_H - tlScrollY;
+      const lry = ry;
       tlLabelCtx.fillStyle = tc.bg || (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent');
-      tlLabelCtx.fillRect(0, lry, LW, TL_ROW_H);
+      tlLabelCtx.fillRect(0, lry, LW, rh);
       // Color dot for track color-coding
       const dotColor = tc.color;
       tlLabelCtx.fillStyle = dotColor;
-      tlLabelCtx.beginPath(); tlLabelCtx.arc(LW-6, lry+TL_ROW_H/2, 3, 0, Math.PI*2); tlLabelCtx.fill();
+      tlLabelCtx.beginPath(); tlLabelCtx.arc(LW-6, lry+rh/2, 3, 0, Math.PI*2); tlLabelCtx.fill();
       const isLocked = tlLockedTracks.has(name);
       tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
       const shortLbl = (isHidden?'○ ':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
-      tlLabelCtx.fillText(shortLbl, 3, lry+TL_ROW_H/2+4);
+      tlLabelCtx.fillText(shortLbl, 3, lry+rh/2+4);
       // Current value at playhead
       const phFrames = M.animation.tracks[name];
       if (phFrames?.length && !isHidden) {
@@ -7336,7 +7348,7 @@ function drawMultiTimeline() {
         const phStr = phVal.toFixed(phVal < 10 && phVal !== Math.round(phVal) ? 2 : 0);
         tlLabelCtx.font = '8px monospace';
         tlLabelCtx.fillStyle = tc.color.replace('hsl(','hsla(').replace(')',',.9)');
-        tlLabelCtx.fillText(phStr, LW-18, lry+TL_ROW_H-3);
+        tlLabelCtx.fillText(phStr, LW-18, lry+rh-3);
       }
     }
     if (isHidden) return; // skip drawing KF data for hidden tracks
@@ -7346,7 +7358,7 @@ function drawMultiTimeline() {
     const isActiveTrack = (name === ST.ap);
     if (frames && frames.length > 0) {
       const range = p.max-p.min||1;
-      const toKY = v => ry+TL_ROW_H - 2 - ((v-p.min)/range)*(TL_ROW_H-6);
+      const toKY = v => ry+rh - 2 - ((v-p.min)/range)*(rh-6);
       // Draw smooth interpolated value curve
       tlMultiCtx.beginPath();
       const sorted=[...frames].sort((a,b)=>a.t-b.t);
@@ -7367,7 +7379,7 @@ function drawMultiTimeline() {
       // KF diamonds (Animate-style)
       for (const kf of sorted) {
         const kx=toKX(kf.t);
-        const ky=ry+TL_ROW_H/2;
+        const ky=ry+rh/2;
         const sz=isActiveTrack?5:4;
         // Color by interp type or user color tag
         const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#c060ff','ease-in-cubic':'#e0c040','ease-out-cubic':'#d07020','ease-in-out-cubic':'#a0c860',elastic:'#ff60a0','elastic-in':'#ff4060',back:'#a060ff','back-out':'#8040ff',circ:'#40d0c0','circ-out':'#20b0a0',sine:'#60a0ff','sine-out':'#4080e0'};
@@ -7527,13 +7539,20 @@ function drawMultiTimeline() {
   document.addEventListener('mouseup',()=>_mmDown=false);
 })();
 
+// Helper: find row index by Y position using cumulative offsets
+function _labelHitRow(py, rows) {
+  const {offs, rhs} = _rowOffsets(rows);
+  for (let i=0; i<rows.length; i++) if (py >= offs[i] && py < offs[i]+rhs[i]) return i;
+  return -1;
+}
+
 // Label canvas click → toggle track visibility
 tlLabelCanvas.addEventListener('click', e=>{
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
   const params = Object.entries(M.params);
-  const ri = Math.floor(py / TL_ROW_H);
-  if (ri >= 0 && ri < params.length) {
+  const ri = _labelHitRow(py, params);
+  if (ri >= 0) {
     const name = params[ri][0];
     if (tlHiddenTracks.has(name)) tlHiddenTracks.delete(name);
     else tlHiddenTracks.add(name);
@@ -7546,7 +7565,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
   const paramEntries = Object.entries(M.params);
-  const ri = Math.floor(py / TL_ROW_H);
+  const ri = _labelHitRow(py, paramEntries);
   if (ri < 0 || ri >= paramEntries.length) return;
   const [srcName, srcParam] = paramEntries[ri];
   const srcFrames = M.animation.tracks[srcName];
@@ -7582,6 +7601,11 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       delete M.animation.tracks[srcName];
       drawMultiTimeline();
     }},
+    null,
+    { icon:'↕', label:'トラック高さ: コンパクト (18px)', action:()=>{ tlTrackHeights.set(srcName,18); drawMultiTimeline(); }},
+    { icon:'↕', label:'トラック高さ: 標準 (24px)', action:()=>{ tlTrackHeights.delete(srcName); drawMultiTimeline(); }},
+    { icon:'↕', label:'トラック高さ: 広い (48px)', action:()=>{ tlTrackHeights.set(srcName,48); drawMultiTimeline(); }},
+    { icon:'↕', label:'このトラック高さをリセット', action:()=>{ tlTrackHeights.delete(srcName); drawMultiTimeline(); }},
   ]);
 });
 
@@ -8663,6 +8687,89 @@ function exportAnimJSON() {
   document.getElementById('lbl-status').textContent = 'アニメーションデータをエクスポートしました';
 }
 
+function importMotionCSV() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.csv,.tsv,.txt';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target.result;
+      const lines = text.trim().split(/\r?\n/);
+      if (lines.length < 2) { alert('データが少なすぎます（ヘッダー + 1行以上必要）'); return; }
+      const sep = lines[0].includes('\t') ? '\t' : ',';
+      const headers = lines[0].split(sep).map(h => h.trim().replace(/^["']|["']$/g,''));
+      if (headers[0].toLowerCase() !== 'time' && headers[0].toLowerCase() !== 't') {
+        alert('1列目は "time" または "t" である必要があります。\n現在: ' + headers[0]); return;
+      }
+      // Show mapping dialog
+      const paramNames = Object.keys(M.params);
+      let rows = '';
+      for (let ci = 1; ci < headers.length; ci++) {
+        const bestMatch = paramNames.find(n => n.toLowerCase() === headers[ci].toLowerCase() || (M.params[n].lbl||'').toLowerCase() === headers[ci].toLowerCase()) || '';
+        rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="min-width:100px;font-size:10px;color:var(--dim);">${headers[ci]}</span>
+          <span style="color:var(--dim)">→</span>
+          <select data-col="${ci}" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">
+            <option value="">（スキップ）</option>
+            ${paramNames.map(n=>`<option value="${n}" ${n===bestMatch?'selected':''}>${M.params[n].lbl||n}</option>`).join('')}
+          </select></div>`;
+      }
+      showModal('CSVモーションインポート マッピング', `
+        <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">${lines.length-1}フレーム / ${headers.length-1}列 — 各列をパラメータに割り当てて</div>
+        <div>${rows}</div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;cursor:pointer;">
+          <input type="checkbox" id="csv-merge" checked> 既存KFとマージ（チェックなし=上書き）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;">
+          FPS (0=timeをそのまま使用): <input type="number" id="csv-fps" value="0" min="0" max="120" step="1" style="width:60px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
+        </label>
+      `, () => {
+        const merge = document.getElementById('csv-merge').checked;
+        const fps = parseFloat(document.getElementById('csv-fps').value) || 0;
+        const colMap = []; // [{col, paramName}]
+        document.querySelectorAll('select[data-col]').forEach(sel => {
+          if (sel.value) colMap.push({col: parseInt(sel.getAttribute('data-col')), paramName: sel.value});
+        });
+        if (!colMap.length) return;
+        pushAnimUndo();
+        const newTracks = {};
+        colMap.forEach(({col, paramName}) => { newTracks[paramName] = []; });
+        for (let li = 1; li < lines.length; li++) {
+          const cells = lines[li].split(sep).map(c => c.trim().replace(/^["']|["']$/g,''));
+          let t = parseFloat(cells[0]);
+          if (isNaN(t)) continue;
+          if (fps > 0) t = (li - 1) / fps; // use frame index / fps
+          for (const {col, paramName} of colMap) {
+            const v = parseFloat(cells[col]);
+            if (!isNaN(v)) {
+              const p = M.params[paramName];
+              newTracks[paramName].push({t, v: p ? Math.max(p.min, Math.min(p.max, v)) : v, interp:'linear'});
+            }
+          }
+        }
+        for (const [name, kfs] of Object.entries(newTracks)) {
+          kfs.sort((a,b)=>a.t-b.t);
+          if (merge && M.animation.tracks[name]?.length) {
+            const times = new Set(kfs.map(k=>k.t));
+            const existing = M.animation.tracks[name].filter(k=>!times.has(k.t));
+            M.animation.tracks[name] = [...existing, ...kfs].sort((a,b)=>a.t-b.t);
+          } else {
+            M.animation.tracks[name] = kfs;
+          }
+        }
+        // Update duration
+        const maxT = Math.max(...Object.values(newTracks).flat().map(k=>k.t), M.animation.duration||0);
+        if (maxT > 0) { M.animation.duration = maxT; const el=document.getElementById('tl-duration'); if(el)el.value=maxT.toFixed(2); }
+        drawMultiTimeline();
+        document.getElementById('lbl-status').textContent = `CSV インポート完了: ${colMap.length}トラック`;
+      });
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 function importAnimJSON() {
   const input = document.createElement('input');
   input.type = 'file'; input.accept = '.json';
@@ -8943,12 +9050,13 @@ function applyPlayheadToParams() {
     const specialRows=Object.keys(M.animation.tracks||{}).filter(k=>/^__\w+:/.test(k)).map(k=>[k,null]);
     const allRowsBase=[...paramRows,...specialRows];
     const allRows=tlTrackFilter?allRowsBase.filter(([n,p])=>{const l=p?.lbl||n;return n.toLowerCase().includes(tlTrackFilter)||l.toLowerCase().includes(tlTrackFilter);}):allRowsBase;
+    const {offs:htOffs, rhs:htRhs} = _rowOffsets(allRows);
     for (let ri=0;ri<allRows.length;ri++) {
       const [name]=allRows[ri];
       const frames=M.animation.tracks[name];
       if (!frames||!frames.length) continue;
-      const ry=ri*TL_ROW_H;
-      if (py<ry||py>ry+TL_ROW_H) continue;
+      const ry=htOffs[ri]; const rh=htRhs[ri];
+      if (py<ry||py>ry+rh) continue;
       if (tlLockedTracks.has(name)) continue; // skip locked tracks in hit test
       for (const kf of frames) {
         const kxPx=((kf.t-tlZoomOff)/visibleDur)*W;
@@ -9146,11 +9254,12 @@ function applyPlayheadToParams() {
       const specRows2=Object.keys(M.animation.tracks||{}).filter(k=>/^__\w+:/.test(k)).map(k=>[k,null]);
       const allRows2Base=[...paramRows2,...specRows2];
       const allRows2=tlTrackFilter?allRows2Base.filter(([n,p])=>{const l=p?.lbl||n;return n.toLowerCase().includes(tlTrackFilter)||l.toLowerCase().includes(tlTrackFilter);}):allRows2Base;
+      const {offs:rb2Offs, rhs:rb2Rhs} = _rowOffsets(allRows2);
       for (let ri=0;ri<allRows2.length;ri++) {
         const [nm]=allRows2[ri];
         const frms=M.animation.tracks[nm]; if(!frms?.length) continue;
-        const ry=ri*TL_ROW_H;
-        if (ry+TL_ROW_H<ryMin||ry>ryMax) continue;
+        const ry=rb2Offs[ri]; const rh2=rb2Rhs[ri];
+        if (ry+rh2<ryMin||ry>ryMax) continue;
         for (const kf of frms) {
           const kxPx=((kf.t-tlZoomOff)/visibleDur2)*W2;
           if (kxPx>=rxMin-6&&kxPx<=rxMax+6) tlSelectedKFs.add(kf);
@@ -10145,11 +10254,12 @@ function buildTrackOverlay() {
   const params = Object.entries(M.params);
   overlay.innerHTML = '';
   overlay.style.pointerEvents = 'auto';
+  const {offs:ovOffs, rhs:ovRhs} = _rowOffsets(params);
   params.forEach(([name, p], ri) => {
     const row = document.createElement('div');
     row.className = 'tl-track-label-row';
-    row.style.top = (ri * TL_ROW_H) + 'px';
-    row.style.height = TL_ROW_H + 'px';
+    row.style.top = (ovOffs[ri]) + 'px';
+    row.style.height = ovRhs[ri] + 'px';
     const isMuted = window._tlTrackVisible[name] === false;
     const nameEl = document.createElement('span');
     nameEl.className = 'tl-track-name' + (name === ST.ap ? ' active' : '');
