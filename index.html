@@ -331,9 +331,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;padding:0 6px;line-height:1;" title="パラメータを追加 (+)">+</button>
       <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
     </div>
-    <div style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <div style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
-        style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
+        style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
+      <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -2310,6 +2311,19 @@ function updateSliderFill(el, val, min, max) {
   const neutralVal = Math.max(min, Math.min(max, 0));
   const isNeutral = Math.abs(val - neutralVal) < 0.001;
   el.style.setProperty('--fill-color', isNeutral ? 'rgba(78,124,255,.4)' : 'rgba(255,170,60,.7)');
+}
+
+function resetAllParams() {
+  for (const [name, p] of Object.entries(M.params)) {
+    if (p.locked) continue;
+    p.val = Math.max(p.min, Math.min(p.max, 0));
+    const s = document.getElementById(`ps-${name}`);
+    if (s) { s.value = p.val; updateSliderFill(s, p.val, p.min, p.max); }
+    const pv = document.getElementById(`pv-${name}`);
+    if (pv) pv.textContent = p.val.toFixed(2);
+  }
+  ST.cachedVerts = null; redraw();
+  document.getElementById('lbl-status').textContent = '全パラメータをリセットしました';
 }
 
 function editParamVal(name, spanEl) {
