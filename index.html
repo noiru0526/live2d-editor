@@ -3221,6 +3221,8 @@ function genAvatarHTML() {
   }
   const [EW,EH]=sizeStr.split('x').map(Number);
   const sens=parseFloat(document.getElementById('export-sens').value);
+  const exportFadeIn = _loopFadeIn || 0;
+  const exportFadeOut = _loopFadeOut || 0;
   const chromaKey=document.getElementById('export-chromakey')?.checked;
   const bgColor=chromaKey?'#00ff00':(document.getElementById('export-bg')?.value||'#1a1a2e');
   const smoothMode=document.getElementById('export-smooth')?.value||'soft';
@@ -3348,6 +3350,8 @@ const W=canvas.width,H=canvas.height; // logical size
 canvas.width=W*DPR; canvas.height=H*DPR;
 canvas.style.width=W+'px'; canvas.style.height=H+'px';
 const SENS=${sens};
+const LOOP_FADE_IN=${exportFadeIn};
+const LOOP_FADE_OUT=${exportFadeOut};
 const stEl=document.getElementById('st');
 const loadEl=document.getElementById('loading');
 const loadMsg=document.getElementById('load-msg');
@@ -3419,6 +3423,14 @@ function applyAnimTracks(now){
   for(const[k,frames]of Object.entries(MD.animation.tracks)){
     if(!params[k]||!frames.length)continue;
     params[k].val=evalAnimTrackExport(frames,params[k],t);
+  }
+  // Loop fade in/out
+  if(LOOP_FADE_IN>0||LOOP_FADE_OUT>0){
+    const relT=t-loopIn; let lf=1;
+    if(LOOP_FADE_IN>0&&relT<LOOP_FADE_IN) lf=Math.min(lf,relT/LOOP_FADE_IN);
+    if(LOOP_FADE_OUT>0&&relT>loopLen-LOOP_FADE_OUT) lf=Math.min(lf,(loopLen-relT)/LOOP_FADE_OUT);
+    lf=Math.max(0,lf);
+    if(lf<1){for(const k of Object.keys(params)){const p=params[k];if(p){const n=Math.max(p.min,Math.min(p.max,0));p.val=n+(p.val-n)*lf;}}}
   }
   // Crossfade blend when switching clips
   if(_clipFadeActive){
@@ -7408,6 +7420,13 @@ function drawMultiTimeline() {
           tlMultiCtx.lineTo(kx,ky+sz+2);tlMultiCtx.lineTo(kx-sz-2,ky);
           tlMultiCtx.closePath();tlMultiCtx.stroke();
         }
+        // Note indicator: small orange dot above diamond
+        if (kf.note) {
+          tlMultiCtx.fillStyle='#ffc080';
+          tlMultiCtx.beginPath();
+          tlMultiCtx.arc(kx, ky-sz-4, 2, 0, Math.PI*2);
+          tlMultiCtx.fill();
+        }
       }
     }
   });
@@ -9129,6 +9148,12 @@ function applyPlayheadToParams() {
         inp.click();
       }},
       { icon:'✕', label:'カラータグをクリア', action:()=>{ delete hit.kf.color; if(tlSelectedKFs.size>1) for(const k of tlSelectedKFs) delete k.color; drawMultiTimeline(); }},
+      { icon:'📝', label: hit.kf.note ? `ノート: "${hit.kf.note}"` : 'ノートを追加...', action:()=>{
+        const note = prompt('KFに付けるメモ（空欄=削除）:', hit.kf.note||'');
+        if (note === null) return;
+        if (note.trim()) hit.kf.note = note.trim(); else delete hit.kf.note;
+        drawMultiTimeline();
+      }},
       ...(tlSelectedKFs.size > 1 ? [
         null,
         { icon:'🔀', label:`選択${tlSelectedKFs.size}個のKFに一括適用→Linear`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='linear'; drawMultiTimeline(); }},
@@ -9310,7 +9335,7 @@ function applyPlayheadToParams() {
     const p=M.params[hit.name];
     const lbl=p?.lbl||hit.name;
     const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
-    _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>`;
+    _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}` ;
     _kfTip.style.display='block';
     _kfTip.style.left=(e.clientX+14)+'px';
     _kfTip.style.top=(e.clientY-10)+'px';
