@@ -594,6 +594,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">カスタムCSS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
+        <label style="font-size:10px;color:var(--dim);margin-top:4px">カスタムJS（エクスポートHTMLに追加）</label>
+        <textarea id="export-custom-js" rows="3" placeholder="// 例: document.getElementById('canvas').onclick = () => alert('clicked!');" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--dim)">パーティクル演出:</label>
@@ -3064,6 +3066,7 @@ function _getExportSettings() {
     bgmLoop: g('export-bgm-loop')?.checked,
     bgmVol: g('export-bgm-vol')?.value,
     customCss: g('export-custom-css')?.value,
+    customJs: g('export-custom-js')?.value,
     particle: g('export-particle')?.value,
     particleDensity: g('export-particle-density')?.value,
     credit: g('export-credit')?.value,
@@ -3088,6 +3091,7 @@ function _applyExportSettings(s) {
   set('export-bgm-loop', s.bgmLoop, 'checked');
   set('export-bgm-vol', s.bgmVol);
   set('export-custom-css', s.customCss);
+  set('export-custom-js', s.customJs);
   set('export-particle', s.particle);
   set('export-particle-density', s.particleDensity);
   set('export-credit', s.credit);
@@ -3314,6 +3318,7 @@ function genAvatarHTML() {
   const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
+  const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
   const bgmLoop=document.getElementById('export-bgm-loop')?.checked!==false;
   const bgmVol=parseInt(document.getElementById('export-bgm-vol')?.value||'40')/100;
@@ -4316,6 +4321,7 @@ ${particleType ? `
   }
   requestAnimationFrame(animP);
 })();` : ''}
+${customJS ? `<script>\n// Custom JS\n${customJS}\n<\/script>` : ''}
 <\/script>
 </body>
 </html>`;
@@ -9714,6 +9720,7 @@ function applyPlayheadToParams() {
   let tlmKFDrag = null; // {startX, entries:[{kf,name,origT}]}
   let tlmRubber = null; // {startX, startY, curX, curY} rubber-band selection state
   let tlmLoopDrag = null; // 'in' | 'out' — dragging a loop handle
+  let tlmMarkerDrag = null; // dragging marker: {marker, origT}
   const getTracks = ()=>document.getElementById('tl-multi-tracks');
 
   function hitTestKF(e) {
@@ -9878,6 +9885,11 @@ function applyPlayheadToParams() {
       const mx=e.clientX-r.left;
       if (Math.abs(mx-toKX2(loopIn))<12) { tlmLoopDrag='in'; e.stopPropagation(); return; }
       if (Math.abs(mx-toKX2(loopOut))<12) { tlmLoopDrag='out'; e.stopPropagation(); return; }
+      // Marker drag: check if near a marker triangle (top 14px)
+      if ((e.clientY-r.top)<14) {
+        const hitM=(M.animation.markers||[]).find(m=>Math.abs(mx-toKX2(m.t))<8);
+        if (hitM) { tlmMarkerDrag={marker:hitM, origT:hitM.t}; e.stopPropagation(); return; }
+      }
     }
     const hit=hitTestKF(e);
     if (hit && e.button===0) {
@@ -9913,6 +9925,15 @@ function applyPlayheadToParams() {
   });
 
   document.addEventListener('mousemove',e=>{
+    if (tlmMarkerDrag) {
+      const trk=getTracks(); if(!trk) return;
+      const r=trk.getBoundingClientRect();
+      const dur=M.animation.duration||3;
+      const visibleDur=dur/tlZoom;
+      const t=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
+      tlmMarkerDrag.marker.t=Math.round(t*1000)/1000;
+      drawMultiTimeline(); return;
+    }
     if (tlmLoopDrag) {
       const trk=getTracks(); if(!trk) return;
       const r=trk.getBoundingClientRect();
@@ -9996,6 +10017,10 @@ function applyPlayheadToParams() {
   });
 
   document.addEventListener('mouseup',()=>{
+    if (tlmMarkerDrag) {
+      if (M.animation.markers) M.animation.markers.sort((a,b)=>a.t-b.t);
+      tlmMarkerDrag=null; drawMultiTimeline(); return;
+    }
     if (tlmLoopDrag) { tlmLoopDrag=null; drawMultiTimeline(); return; }
     if (tlmKFDrag) {
       const insp=document.getElementById('kf-inspector'); if(insp) insp.style.display='none';
