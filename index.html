@@ -597,6 +597,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         <label style="font-size:10px;color:var(--dim);margin-top:4px">カスタムJS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-js" rows="3" placeholder="// 例: document.getElementById('canvas').onclick = () => alert('clicked!');" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
+      <div class="mcfg-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;">
+          <input type="checkbox" id="export-obs-mode" style="accent-color:#4e7cff;">
+          <span style="color:#80b0ff;font-weight:600;">🎬 OBSブラウザソース最適化</span>
+        </label>
+        <span style="font-size:9px;color:var(--dim)">カーソル非表示・背景透明強制・スクロール無効</span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;margin-left:8px;">
+          <input type="checkbox" id="export-responsive" style="accent-color:#4e7cff;">
+          <span style="color:#a0c0ff;">📐 レスポンシブ（ウィンドウに追従）</span>
+        </label>
+      </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--dim)">パーティクル演出:</label>
         <select id="export-particle" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
@@ -3067,6 +3078,8 @@ function _getExportSettings() {
     bgmVol: g('export-bgm-vol')?.value,
     customCss: g('export-custom-css')?.value,
     customJs: g('export-custom-js')?.value,
+    obsMode: g('export-obs-mode')?.checked,
+    responsive: g('export-responsive')?.checked,
     particle: g('export-particle')?.value,
     particleDensity: g('export-particle-density')?.value,
     credit: g('export-credit')?.value,
@@ -3092,6 +3105,8 @@ function _applyExportSettings(s) {
   set('export-bgm-vol', s.bgmVol);
   set('export-custom-css', s.customCss);
   set('export-custom-js', s.customJs);
+  set('export-obs-mode', s.obsMode, 'checked');
+  set('export-responsive', s.responsive, 'checked');
   set('export-particle', s.particle);
   set('export-particle-density', s.particleDensity);
   set('export-credit', s.credit);
@@ -3319,6 +3334,8 @@ function genAvatarHTML() {
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
   const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
+  const obsMode=document.getElementById('export-obs-mode')?.checked||false;
+  const responsiveCanvas=document.getElementById('export-responsive')?.checked||false;
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
   const bgmLoop=document.getElementById('export-bgm-loop')?.checked!==false;
   const bgmVol=parseInt(document.getElementById('export-bgm-vol')?.value||'40')/100;
@@ -3376,6 +3393,13 @@ canvas{display:block;image-rendering:auto;}
 .cp-row input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:#2a3060;border-radius:2px;accent-color:#4e7cff;}
 .cp-row span{font-size:10px;color:#ffd060;width:32px;text-align:right;}
 ${customCSS ? `/* Custom CSS */\n${customCSS}` : ''}
+${obsMode ? `/* OBS Browser Source optimizations */
+* { cursor: none !important; }
+html, body { overflow: hidden !important; margin: 0 !important; padding: 0 !important; scrollbar-width: none !important; }
+body { background: transparent !important; }
+::-webkit-scrollbar { display: none !important; }` : ''}
+${responsiveCanvas ? `#wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+#wrap canvas { max-width: 100vw; max-height: 100vh; object-fit: contain; }` : ''}
 </style>
 </head>
 <body>
@@ -4321,6 +4345,20 @@ ${particleType ? `
   }
   requestAnimationFrame(animP);
 })();` : ''}
+${responsiveCanvas ? `<script>
+(function(){
+  const c=document.getElementById('c');
+  function resizeCanvas(){
+    const ar=c.width/c.height;
+    const ww=window.innerWidth, wh=window.innerHeight;
+    const s=Math.min(ww/c.width, wh/c.height);
+    c.style.width=Math.round(c.width*s)+'px';
+    c.style.height=Math.round(c.height*s)+'px';
+  }
+  window.addEventListener('resize',resizeCanvas);
+  resizeCanvas();
+})();
+<\/script>` : ''}
 ${customJS ? `<script>\n// Custom JS\n${customJS}\n<\/script>` : ''}
 <\/script>
 </body>
