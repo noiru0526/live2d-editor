@@ -572,6 +572,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
         <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <label style="font-size:10px;color:var(--dim);margin-top:4px">背景動画URL（MP4/WebM・空欄でなし）</label>
+        <input id="export-bgvideo" type="text" placeholder="https://example.com/bg.mp4" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row">
         <label>背景グラデーション:</label>
@@ -958,6 +960,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
     <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2e3656;border:1px solid var(--border);color:#a0d0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
+    <button onclick="smoothAnimKFValues()" title="KF値をスムージング（録音後の値のブレを滑らかにする）" style="background:#2e3656;border:1px solid var(--border);color:#a0c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 スムージング</button>
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
@@ -3105,6 +3108,7 @@ function _getExportSettings() {
     size: g('export-size')?.value,
     bg: g('export-bg')?.value,
     bgimg: g('export-bgimg')?.value,
+    bgvideo: g('export-bgvideo')?.value,
     bgGrad: g('export-bg-gradient')?.value,
     bgmUrl: g('export-bgm')?.value,
     bgmLoop: g('export-bgm-loop')?.checked,
@@ -3133,6 +3137,7 @@ function _applyExportSettings(s) {
   set('export-size', s.size);
   set('export-bg', s.bg);
   set('export-bgimg', s.bgimg);
+  set('export-bgvideo', s.bgvideo);
   set('export-bg-gradient', s.bgGrad);
   set('export-bgm', s.bgmUrl);
   set('export-bgm-loop', s.bgmLoop, 'checked');
@@ -3367,6 +3372,7 @@ function genAvatarHTML() {
   const exportAutoPlay=document.getElementById('export-autoplay')?.checked!==false;
   const exportLoopCount=parseInt(document.getElementById('export-loop-count')?.value||'-1');
   const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
+  const bgVideoUrl=(document.getElementById('export-bgvideo')?.value||'').trim();
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
   const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
@@ -3439,6 +3445,7 @@ ${responsiveCanvas ? `#wrap { position: fixed; inset: 0; display: flex; align-it
 </style>
 </head>
 <body>
+${bgVideoUrl ? `<video autoplay loop muted playsinline style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;" src="${bgVideoUrl.replace(/"/g,'&quot;')}"></video>` : ''}
 <div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div></div>
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
 ${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes('b')?'bottom:8px':'top:8px'};${creditPos.includes('r')?'right:12px':'left:12px'};color:${creditColor};font-size:10px;font-family:monospace;pointer-events:none;z-index:50;opacity:.7;white-space:nowrap;">${creditText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
@@ -9698,6 +9705,41 @@ function timeStretchAnim() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `タイムストレッチ: ×${factor.toFixed(3)} (${useRange?'選択範囲':'全体'})`;
+}
+
+function smoothAnimKFValues() {
+  // Apply gaussian-like smoothing to KF values in selected tracks (or all tracks)
+  const input = prompt('スムージング強度 (0.1=弱い, 0.5=中程度, 0.9=強い):', '0.3');
+  if (!input) return;
+  const alpha = Math.max(0, Math.min(1, parseFloat(input)||0.3));
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  // Which tracks to smooth: those containing selected KFs, or all if none selected
+  const tracksToSmooth = tlSelectedKFs.size > 0
+    ? new Set([...tlSelectedKFs].map(kf=>kfToName.get(kf)).filter(Boolean))
+    : new Set(Object.keys(M.animation.tracks));
+  pushAnimUndo();
+  let totalSmoothed = 0;
+  for (const name of tracksToSmooth) {
+    const frames = M.animation.tracks[name];
+    if (!frames || frames.length < 3) continue;
+    const sorted = [...frames].sort((a,b)=>a.t-b.t);
+    // Gaussian blur: 3-pass weighted average
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 1; i < sorted.length-1; i++) {
+        const prev = sorted[i-1].v, cur = sorted[i].v, next = sorted[i+1].v;
+        sorted[i].v = prev * (alpha*0.25) + cur * (1 - alpha*0.5) + next * (alpha*0.25);
+      }
+    }
+    // Update original frames
+    for (const kf of frames) {
+      const s = sorted.find(sf => Math.abs(sf.t - kf.t) < 0.001);
+      if (s) kf.v = s.v;
+    }
+    totalSmoothed++;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `KFスムージング (α=${alpha}): ${totalSmoothed}トラックに適用`;
 }
 
 function normalizeToLoopRegion() {
