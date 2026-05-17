@@ -881,6 +881,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
+    <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2e3656;border:1px solid var(--border);color:#a0d0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
@@ -909,6 +910,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span style="font-size:10px;color:var(--dim);white-space:nowrap;">クリップ:</span>
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
+    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#1e1828;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:#0e1120;border-bottom:1px solid rgba(60,70,110,.3);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -7535,6 +7537,45 @@ function renderClipTabs() {
   });
 }
 
+function splitAnimAtPlayhead() {
+  const splitT = ST.animPlayhead;
+  const dur = M.animation.duration || 3;
+  if (splitT <= 0 || splitT >= dur) { document.getElementById('lbl-status').textContent = '分割点がアニメーション範囲外です'; return; }
+  const n1 = prompt('前半クリップ名:', 'クリップA'); if (n1 === null) return;
+  const n2 = prompt('後半クリップ名:', 'クリップB'); if (n2 === null) return;
+  pushAnimUndo();
+  function trimAnim(anim, from, to) {
+    const a = JSON.parse(JSON.stringify(anim));
+    a.duration = to - from;
+    for (const [name, frames] of Object.entries(a.tracks||{})) {
+      // Interpolate values at boundary if needed
+      const evalAt = t => {
+        if (!frames.length) return 0;
+        const before = frames.filter(k=>k.t<=t).pop();
+        const after = frames.find(k=>k.t>t);
+        if (!before) return frames[0].v;
+        if (!after) return before.v;
+        const frac = (t-before.t)/(after.t-before.t);
+        return before.v*(1-frac)+after.v*frac;
+      };
+      const vFrom = evalAt(from), vTo = evalAt(to);
+      const kept = frames.filter(k => k.t >= from && k.t <= to).map(k => ({...k, t: Math.round((k.t-from)*10000)/10000}));
+      if (!kept.find(k=>k.t<0.001)) kept.unshift({t:0, v:vFrom, interp:kept[0]?.interp||'smooth'});
+      if (!kept.find(k=>k.t>to-from-0.001)) kept.push({t:Math.round((to-from)*1000)/1000, v:vTo, interp:'smooth'});
+      a.tracks[name] = kept.sort((a,b)=>a.t-b.t);
+    }
+    if (a.loopIn !== undefined) a.loopIn = Math.max(0, (a.loopIn||0)-from);
+    if (a.loopOut !== undefined) a.loopOut = Math.min(to-from, (a.loopOut||dur)-from);
+    if (a.markers) a.markers = a.markers.filter(m=>m.t>=from&&m.t<=to).map(m=>({...m,t:m.t-from}));
+    return a;
+  }
+  if (!M.animClips) M.animClips = [];
+  M.animClips.push({ name: n1, animation: trimAnim(M.animation, 0, splitT) });
+  M.animClips.push({ name: n2, animation: trimAnim(M.animation, splitT, dur) });
+  renderClipTabs();
+  document.getElementById('lbl-status').textContent = `分割完了: 「${n1}」(0〜${splitT.toFixed(2)}s) + 「${n2}」(${splitT.toFixed(2)}〜${dur.toFixed(2)}s)`;
+}
+
 function saveNewClip() {
   const name = prompt('クリップ名:', `クリップ${(M.animClips?.length||0)+1}`) ;
   if (!name) return;
@@ -7609,6 +7650,44 @@ function quantizeAnimKFs(grid) {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `量子化完了: ${count} KF を ${q.toFixed(4)}s グリッドにスナップ`;
+}
+
+// Ramer-Douglas-Peucker simplification for 1D value arrays
+function _rdpSimplify(pts, eps) {
+  if (pts.length <= 2) return pts;
+  // pts = [{t,v}]
+  const first = pts[0], last = pts[pts.length-1];
+  const dx = last.t - first.t, dy = last.v - first.v;
+  const len = Math.hypot(dx, dy);
+  let maxDist = 0, maxIdx = 0;
+  for (let i = 1; i < pts.length-1; i++) {
+    const d = len > 0 ? Math.abs(dy*(pts[i].t-first.t) - dx*(pts[i].v-first.v)) / len : Math.abs(pts[i].v-first.v);
+    if (d > maxDist) { maxDist = d; maxIdx = i; }
+  }
+  if (maxDist > eps) {
+    return [..._rdpSimplify(pts.slice(0,maxIdx+1), eps).slice(0,-1),
+            ..._rdpSimplify(pts.slice(maxIdx), eps)];
+  }
+  return [first, last];
+}
+
+function decimateAnimKFs(eps) {
+  const threshold = eps ?? 0.01;
+  pushAnimUndo();
+  let removed = 0, total = 0;
+  for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!frames || frames.length <= 2) continue;
+    const targets = tlSelectedKFs.size ? frames.filter(kf => tlSelectedKFs.has(kf)) : frames;
+    if (targets.length <= 2) continue;
+    const simplified = _rdpSimplify(targets.map(k=>({t:k.t,v:k.v,_ref:k})), threshold);
+    const keep = new Set(simplified.map(p=>p._ref));
+    const before = frames.length;
+    M.animation.tracks[name] = frames.filter(kf => keep.has(kf) || !targets.includes(kf));
+    removed += before - M.animation.tracks[name].length;
+    total += before;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `デシメーション: ${removed}/${total} KFを削除 (閾値 ${threshold.toFixed(4)})`;
 }
 
 function jitterAnimKFs(amount) {
