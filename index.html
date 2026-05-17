@@ -857,6 +857,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
+    <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -3458,6 +3459,45 @@ window.addEventListener('message',e=>{
     if(d.type==='anim'){if(d.action==='play'&&!animPlaying)toggleExportAnim();else if(d.action==='stop'&&animPlaying)toggleExportAnim();}
   }catch(_){}
 });
+// Gamepad support: left stick → headX/headY, right stick → eyeX/eyeY, buttons → poses
+(()=>{
+  let _gpActive = false;
+  let _gpRaf = null;
+  function _gpTick() {
+    if (!_gpActive) return;
+    const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const gp of gps) {
+      if (!gp) continue;
+      const ax = gp.axes[0]||0, ay = gp.axes[1]||0;
+      const rx = gp.axes[2]||0, ry = gp.axes[3]||0;
+      if (params.headX) params.headX.val = Math.max(params.headX.min, Math.min(params.headX.max, ax));
+      if (params.headY) params.headY.val = Math.max(params.headY.min, Math.min(params.headY.max, -ay * 0.6));
+      if (params.eyeX) params.eyeX.val = Math.max(params.eyeX.min, Math.min(params.eyeX.max, rx * 0.8));
+      if (params.eyeY) params.eyeY.val = Math.max(params.eyeY.min, Math.min(params.eyeY.max, -ry * 0.4));
+      // Buttons 0-7: trigger poses 1-8
+      gp.buttons.forEach((btn, i) => {
+        if (btn.pressed && i < 8 && MD.poses?.[i]) {
+          for (const [k,v] of Object.entries(MD.poses[i].values)) if (params[k]) params[k].val = v;
+        }
+      });
+    }
+    _gpRaf = requestAnimationFrame(_gpTick);
+  }
+  const _gpBtn = document.createElement('button');
+  _gpBtn.id = 'gp-btn';
+  _gpBtn.textContent = '🎮 Pad';
+  _gpBtn.title = 'ゲームパッド: 左スティック=頭、右スティック=目線、ボタン=表情';
+  _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _gpBtn.onclick = () => {
+    _gpActive = !_gpActive;
+    _gpBtn.style.color = _gpActive ? '#60d890' : '#a0d0ff';
+    _gpBtn.style.borderColor = _gpActive ? 'rgba(96,216,144,.5)' : '#3a4470';
+    _gpBtn.textContent = _gpActive ? '🎮 ON' : '🎮 Pad';
+    if (_gpActive) { _gpRaf = requestAnimationFrame(_gpTick); } else if (_gpRaf) { cancelAnimationFrame(_gpRaf); _gpRaf = null; }
+  };
+  document.body.appendChild(_gpBtn);
+  window.addEventListener('gamepadconnected', () => { _gpBtn.title += ' (接続済み)'; });
+})();
 // Random idle animation: auto-cycle clips
 let _idleRandActive = false;
 let _idleRandTimer = null;
@@ -7070,6 +7110,23 @@ function insertPoseKF() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `ポーズKF挿入: ${count}パラメータ @ ${t.toFixed(3)}s`;
+}
+
+function quantizeAnimKFs(grid) {
+  // Snap all KF times to the nearest multiple of grid (default = snap grid or 1/30)
+  const q = grid || tlSnapGrid || (1/30);
+  pushAnimUndo();
+  let count = 0;
+  for (const frames of Object.values(M.animation.tracks||{})) {
+    for (const kf of frames) {
+      kf.t = Math.round(kf.t / q) * q;
+      kf.t = Math.round(kf.t * 100000) / 100000;
+      count++;
+    }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `量子化完了: ${count} KF を ${q.toFixed(4)}s グリッドにスナップ`;
 }
 
 function exportAnimJSON() {
