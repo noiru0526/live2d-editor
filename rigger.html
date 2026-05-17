@@ -54,6 +54,14 @@ body{background:#12151f;color:#cdd6f4;font-family:'Segoe UI',system-ui,sans-seri
 .pitem.spa .plbl span{color:#cba6f7}
 .pv2{font-size:9px;color:#cba6f7;font-family:monospace;min-width:36px;text-align:right}
 input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;display:block}
+#part-props{border-top:1px solid #1e2638;padding:6px 8px;flex-shrink:0;display:none}
+#part-props h3{color:#6e7fa3;font-size:9px;letter-spacing:1.5px;font-weight:700;margin-bottom:5px}
+.prop-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;font-size:9px;color:#6e7fa3}
+.prop-lbl{min-width:24px;color:#5a6a8a}
+.prop-in{background:#1e293b;border:1px solid #2a3a5a;color:#cdd6f4;font-size:9px;padding:2px 4px;border-radius:3px;width:52px;outline:none}
+.prop-in:focus{border-color:#7c3aed}
+.prop-in.wide{width:100%}
+.prop-row .tbtn{font-size:8px;padding:2px 7px}
 #rb{border-top:1px solid #1e2638;padding:8px 7px}
 .ab{display:block;width:100%;margin-bottom:5px;background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:10px;padding:5px 8px;border-radius:4px;cursor:pointer;text-align:left}
 .ab:hover{background:#263347;color:#cdd6f4}
@@ -89,7 +97,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <button class="tbtn" id="btn-preview" onclick="setMode('preview')">プレビュー</button>
   <div class="sep"></div>
   <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
+  <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
   <button class="tbtn" onclick="fitView()">⊡ フィット</button>
+  <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
   <div class="sep"></div>
   <button class="tbtn ok" onclick="saveModelOnly()">💾 モデル保存</button>
   <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 アバター出力</button>
@@ -128,6 +138,22 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div id="rp">
     <div class="ph"><h3>PARAMETERS</h3><span id="spn" style="font-size:9px;color:#7c3aed"></span></div>
     <div id="params-list"></div>
+    <div id="part-props">
+      <h3>PART PROPS</h3>
+      <div class="prop-row">
+        <span class="prop-lbl">X</span><input class="prop-in" id="pp-x" type="number" oninput="applyPartXY()">
+        <span class="prop-lbl">Y</span><input class="prop-in" id="pp-y" type="number" oninput="applyPartXY()">
+      </div>
+      <div class="prop-row">
+        <span class="prop-lbl">不透明</span>
+        <input type="range" id="pp-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value)" style="flex:1">
+        <span id="pp-op-v" style="font-size:9px;color:#cba6f7;min-width:28px;text-align:right">100%</span>
+      </div>
+      <div class="prop-row" style="gap:3px">
+        <button class="tbtn" onclick="centerPart()" style="flex:1">中央に配置</button>
+        <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1">🔓 ロック</button>
+      </div>
+    </div>
     <div id="rb">
       <button class="ab" onclick="resetKF()">現KFをリセット</button>
       <button class="ab" onclick="resetAll()">パーツ全リセット</button>
@@ -179,6 +205,7 @@ let mode = 'parts';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
+let showGrid = false, gridSize = 50;
 
 // View transform
 let VS = 1, VOX = 0, VOY = 0;
@@ -221,6 +248,8 @@ class Part {
     this.imgDataURL = null;
     this.x = 0;
     this.y = 0;
+    this.opacity = 1;
+    this.locked = false;
     this.visible = true;
     this.zIndex = parts.length;
     this.mesh = null;
@@ -297,6 +326,7 @@ class Part {
     return {
       id: this.id, name: this.name,
       x: this.x, y: this.y,
+      opacity: this.opacity, locked: this.locked,
       visible: this.visible, zIndex: this.zIndex,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
@@ -307,6 +337,8 @@ class Part {
   static fromJSON(o) {
     const p = new Part(o.name);
     p.id = o.id||p.id; p.x = o.x||0; p.y = o.y||0;
+    p.opacity = o.opacity !== undefined ? o.opacity : 1;
+    p.locked = o.locked || false;
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
@@ -323,7 +355,10 @@ class Part {
 // ===== CANVAS =====
 function setupCanvas() {
   const cw = document.getElementById('cw');
-  canvas.width = cw.clientWidth; canvas.height = cw.clientHeight;
+  const w = cw.clientWidth, h = cw.clientHeight;
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w; canvas.height = h;
+  }
 }
 window.addEventListener('resize', () => { setupCanvas(); render(); });
 
@@ -374,6 +409,21 @@ function render() {
   ctx.strokeStyle = '#1e2638'; ctx.lineWidth = 1;
   ctx.strokeRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
 
+  // Grid overlay
+  if (showGrid) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(60,80,120,.35)'; ctx.lineWidth = .5;
+    for (let gx = 0; gx <= canvasW; gx += gridSize) {
+      const s = m2s(gx, 0), e = m2s(gx, canvasH);
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+    }
+    for (let gy = 0; gy <= canvasH; gy += gridSize) {
+      const s = m2s(0, gy), e = m2s(canvasW, gy);
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   if (parts.length === 0) {
     ctx.fillStyle = '#2a3a5a'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
     const cx = (tl.x+br.x)/2, cy = (tl.y+br.y)/2;
@@ -391,12 +441,15 @@ function render() {
     const wv = pt.getWorldVerts(vals);
 
     // Textured triangles
+    ctx.save();
+    ctx.globalAlpha = pt.opacity !== undefined ? pt.opacity : 1;
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
       const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
       const s0=m2s(p0.x,p0.y), s1=m2s(p1.x,p1.y), s2=m2s(p2.x,p2.y);
       drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.img);
     }
+    ctx.restore();
 
     // Mesh overlay
     if (mode !== 'preview') {
@@ -560,7 +613,7 @@ function mvDn() {
   selPart++; parts.forEach((p,i) => p.zIndex = i); updatePartsUI(); render();
 }
 
-function selPartClick(i) { selPart = i; updatePartsUI(); buildKFUI(); render(); }
+function selPartClick(i) { selPart = i; updatePartsUI(); buildKFUI(); updatePartPropsUI(); render(); }
 function togVis(i, e) {
   e.stopPropagation(); parts[i].visible = !parts[i].visible; updatePartsUI(); render();
 }
@@ -609,13 +662,82 @@ function updatePartsUI() {
 
     const zs = document.createElement('span');
     zs.style.cssText = 'font-size:8px;color:#3a4a5a';
-    zs.textContent = 'z:' + pt.zIndex;
+    zs.textContent = (pt.locked ? '🔒' : '') + 'z:' + pt.zIndex;
     d.appendChild(zs);
     list.appendChild(d);
   });
   document.getElementById('sb').textContent = parts.length > 0
-    ? `${parts.length}パーツ — モード: ${mode} — Ctrl+Z: 元に戻す`
+    ? `${parts.length}パーツ — モード: ${mode} — Ctrl+Z: 元に戻す  / 矢印キー: 1px移動 / Shift+矢印: 10px移動`
     : 'Ready — 「＋ パーツ追加」でPNG画像を読み込んでください';
+  updatePartPropsUI();
+}
+
+function updatePartPropsUI() {
+  const pp = document.getElementById('part-props');
+  if (mode === 'parts' && selPart >= 0 && selPart < parts.length) {
+    const pt = parts[selPart];
+    pp.style.display = 'block';
+    document.getElementById('pp-x').value = Math.round(pt.x);
+    document.getElementById('pp-y').value = Math.round(pt.y);
+    const op = Math.round((pt.opacity || 1) * 100);
+    document.getElementById('pp-op').value = op;
+    document.getElementById('pp-op-v').textContent = op + '%';
+    document.getElementById('btn-lock').textContent = pt.locked ? '🔒 ロック解除' : '🔓 ロック';
+  } else {
+    pp.style.display = 'none';
+  }
+}
+
+function applyPartXY() {
+  if (selPart < 0 || selPart >= parts.length) return;
+  const pt = parts[selPart];
+  const nx = parseFloat(document.getElementById('pp-x').value);
+  const ny = parseFloat(document.getElementById('pp-y').value);
+  if (!isNaN(nx)) pt.x = nx;
+  if (!isNaN(ny)) pt.y = ny;
+  render();
+}
+
+function applyPartOpacity(v) {
+  if (selPart < 0 || selPart >= parts.length) return;
+  parts[selPart].opacity = parseInt(v) / 100;
+  document.getElementById('pp-op-v').textContent = v + '%';
+  render();
+}
+
+function centerPart() {
+  if (selPart < 0 || selPart >= parts.length) return;
+  saveState();
+  const pt = parts[selPart];
+  pt.x = Math.round((canvasW - pt.w) / 2);
+  pt.y = Math.round((canvasH - pt.h) / 2);
+  updatePartsUI(); render(); setStatus(`「${pt.name}」を中央に配置`);
+}
+
+function toggleLock() {
+  if (selPart < 0 || selPart >= parts.length) return;
+  parts[selPart].locked = !parts[selPart].locked;
+  updatePartsUI(); render();
+}
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  document.getElementById('btn-grid').classList.toggle('active', showGrid);
+  render();
+}
+
+function dupPart() {
+  if (selPart < 0 || selPart >= parts.length) { setStatus('パーツを選択してください'); return; }
+  saveState();
+  const src = parts[selPart];
+  const json = src.toJSON(true);
+  json.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  json.name = src.name + '_コピー';
+  json.x = src.x + 20; json.y = src.y + 20;
+  json.zIndex = parts.length;
+  const np = Part.fromJSON(json);
+  parts.push(np); selPart = parts.length - 1;
+  updatePartsUI(); render(); setStatus(`「${np.name}」を複製`);
 }
 
 function rebuildMesh() {
@@ -678,12 +800,12 @@ function setMode(m) {
     if (el) el.classList.toggle('active', id===m);
   });
   const hints = {
-    parts:'パーツ設定 — ドラッグで位置調整 / ダブルクリックで名前変更',
-    mesh:'メッシュ編集 — 頂点を直接移動',
-    deform:'変形リグ — KF×パラメータで変形設定',
+    parts:'パーツ設定 — ドラッグで位置調整 / 矢印キーで1px移動 / 右クリックでパン',
+    mesh:'メッシュ編集 — 頂点を直接移動 / 右クリックでパン',
+    deform:'変形リグ — KF×パラメータで変形設定 / 右クリックでパン',
     preview:'プレビュー — スライダーで動きを確認'
   };
-  setHint(hints[m]||''); render();
+  updatePartPropsUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
 
@@ -740,10 +862,11 @@ canvas.addEventListener('wheel', e => {
   VOX = mx-(mx-VOX)*f; VOY = my-(my-VOY)*f; VS *= f; render();
 }, {passive:false});
 
+canvas.addEventListener('contextmenu', e => { e.preventDefault(); });
 canvas.addEventListener('mousedown', e => {
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
   const mp = s2m(sx, sy);
-  if (e.button===1||(e.button===0&&e.altKey)) {
+  if (e.button===1||e.button===2||(e.button===0&&e.altKey)) {
     dragging=true; dragMode='pan'; dragSX=sx; dragSY=sy; panOX=VOX; panOY=VOY;
     canvas.style.cursor='grabbing'; return;
   }
@@ -755,10 +878,12 @@ canvas.addEventListener('mousedown', e => {
     }
     if (clicked>=0) {
       selPartClick(clicked);
-      saveState();
-      dragging=true; dragMode='movepart';
-      dragSX=mp.x; dragSY=mp.y;
-      dragPartOX=parts[clicked].x; dragPartOY=parts[clicked].y;
+      if (!parts[clicked].locked) {
+        saveState();
+        dragging=true; dragMode='movepart';
+        dragSX=mp.x; dragSY=mp.y;
+        dragPartOX=parts[clicked].x; dragPartOY=parts[clicked].y;
+      }
     }
     return;
   }
@@ -807,8 +932,19 @@ canvas.addEventListener('mouseup', () => {
 
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') { pendingImg=null; pendingDataURL=null; render(); setHint(''); }
-  if (e.key==='Delete' && document.activeElement===document.body) delPart();
-  if ((e.ctrlKey||e.metaKey) && e.key==='z' && document.activeElement===document.body) { e.preventDefault(); undo(); }
+  const onBody = document.activeElement===document.body || document.activeElement===canvas;
+  if (e.key==='Delete' && onBody) delPart();
+  if ((e.ctrlKey||e.metaKey) && e.key==='z' && onBody) { e.preventDefault(); undo(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='d' && onBody) { e.preventDefault(); dupPart(); }
+  if (mode==='parts' && selPart>=0 && selPart<parts.length && !parts[selPart].locked && onBody) {
+    const step = e.shiftKey ? 10 : 1;
+    let moved = false;
+    if (e.key==='ArrowLeft')  { parts[selPart].x -= step; moved=true; }
+    if (e.key==='ArrowRight') { parts[selPart].x += step; moved=true; }
+    if (e.key==='ArrowUp')    { parts[selPart].y -= step; moved=true; }
+    if (e.key==='ArrowDown')  { parts[selPart].y += step; moved=true; }
+    if (moved) { e.preventDefault(); updatePartPropsUI(); render(); }
+  }
 });
 document.getElementById('ni').addEventListener('keydown', e => {
   if (e.key==='Enter') confirmAdd();
@@ -968,7 +1104,7 @@ function initCam(){
 
 // ===== STATUS / INIT =====
 function setStatus(msg) { document.getElementById('sb').textContent = msg; }
-setupCanvas(); buildParamsUI(); buildKFUI(); setMode('parts'); fitView();
+setupCanvas(); buildParamsUI(); buildKFUI(); setMode('parts'); fitView(); updatePartPropsUI();
 </script>
 </body>
 </html>
