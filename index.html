@@ -2350,7 +2350,7 @@ function buildParamUI() {
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
       </div>
       <div class="slider-wrap">
-        <input class="pslider" type="range" id="ps-${name}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}"${p.locked?' disabled':''}>
+        <input class="pslider" type="range" id="ps-${name}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}"${p.locked?' disabled':''} title="値: ${p.val.toFixed(2)} | 範囲: ${p.min}〜${p.max} | ステップ: ${p.step}">
         <div class="kf-ticks" id="kticks-${name}"></div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
@@ -2367,6 +2367,7 @@ function buildParamUI() {
       if (p.locked) { e.target.value=p.val; return; }
       p.val=parseFloat(e.target.value);
       updateSliderFill(e.target, p.val, p.min, p.max);
+      e.target.title=`値: ${p.val.toFixed(2)} | 範囲: ${p.min}〜${p.max} | ステップ: ${p.step}`;
       document.getElementById(`pv-${name}`).textContent=p.val.toFixed(2);
       setAP(name);
       updateParamHUD();
