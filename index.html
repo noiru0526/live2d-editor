@@ -852,6 +852,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
+    <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -3428,6 +3429,35 @@ window.addEventListener('message',e=>{
     if(d.type==='anim'){if(d.action==='play'&&!animPlaying)toggleExportAnim();else if(d.action==='stop'&&animPlaying)toggleExportAnim();}
   }catch(_){}
 });
+// Random idle animation: auto-cycle clips
+let _idleRandActive = false;
+let _idleRandTimer = null;
+function toggleIdleRandom() {
+  _idleRandActive = !_idleRandActive;
+  const btn = document.getElementById('idle-rand-btn');
+  if (btn) { btn.textContent = _idleRandActive ? '🎲 ON' : '🎲 Auto'; btn.style.color = _idleRandActive ? '#ffd060' : '#a0d0ff'; }
+  if (_idleRandActive) scheduleIdleRand(); else if (_idleRandTimer) { clearTimeout(_idleRandTimer); _idleRandTimer = null; }
+}
+function scheduleIdleRand() {
+  if (!_idleRandActive) return;
+  const clips = (MD.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0);
+  if (clips.length > 0) {
+    const idx = Math.floor(Math.random() * (clips.length + 1)) - 1; // -1=base, 0..n-1=clips
+    if (typeof switchClip === 'function') switchClip(idx);
+    if (!animPlaying) toggleExportAnim();
+  }
+  const delay = 8000 + Math.random() * 12000; // 8-20 sec
+  _idleRandTimer = setTimeout(scheduleIdleRand, delay);
+}
+if ((MD.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).length > 0) {
+  const _idleBtn = document.createElement('button');
+  _idleBtn.id = 'idle-rand-btn';
+  _idleBtn.textContent = '🎲 Auto';
+  _idleBtn.title = 'アイドルランダム: クリップをランダムに自動再生';
+  _idleBtn.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _idleBtn.onclick = toggleIdleRandom;
+  document.body.appendChild(_idleBtn);
+}
 // Mouse tracking mode
 let _mouseTracking = false;
 const _mtBtn = document.createElement('button');
@@ -6158,6 +6188,7 @@ let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
 let tlTrackFilter = ''; // Track search filter string
 let tlSnapGrid = 1/30; // snap grid size in seconds (30fps default)
+let tlHideEmpty = false; // hide tracks with no KFs
 let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 
 // Shared interp helper — used by playback, seek, and curve display
@@ -6324,13 +6355,17 @@ function drawMultiTimeline() {
   const totalH = allTrackRows.length * TL_ROW_H;
   tlScrollY = Math.max(0, Math.min(tlScrollY, Math.max(0, totalH - H)));
 
-  // Filter rows by track search
-  const filteredRows = tlTrackFilter
-    ? allTrackRows.filter(([name,p]) => {
-        const lbl = p?.lbl || name;
-        return name.toLowerCase().includes(tlTrackFilter) || lbl.toLowerCase().includes(tlTrackFilter);
-      })
-    : allTrackRows;
+  // Filter rows by track search and/or hide-empty
+  let filteredRows = allTrackRows;
+  if (tlTrackFilter) {
+    filteredRows = filteredRows.filter(([name,p]) => {
+      const lbl = p?.lbl || name;
+      return name.toLowerCase().includes(tlTrackFilter) || lbl.toLowerCase().includes(tlTrackFilter);
+    });
+  }
+  if (tlHideEmpty) {
+    filteredRows = filteredRows.filter(([name]) => M.animation.tracks[name]?.length > 0);
+  }
 
   // Draw each param track
   filteredRows.forEach(([name,p],ri) => {
