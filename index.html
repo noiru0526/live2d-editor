@@ -262,6 +262,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-onion" onclick="toggleOnion()" title="ニュートラル表示 (O)">オニオン<span class="sk">O</span></button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="fitView()" title="表示リセット (F)">表示リセット<span class="sk">F</span></button>
+  <button class="tbtn" id="btn-flip-h" onclick="toggleCanvasFlip()" title="水平反転プレビュー（配信時の見え方を確認）">↔ 反転</button>
   <button class="tbtn" id="btn-snap" onclick="toggleSnap()" title="グリッドスナップ (G)">スナップ<span class="sk">G</span></button>
   <button class="tbtn" id="btn-arrows" onclick="toggleArrows()" title="変形矢印 (V)">矢印<span class="sk">V</span></button>
   <button class="tbtn" id="btn-ruler" onclick="toggleRulers()" title="ルーラー">ルーラー</button>
@@ -2316,6 +2317,16 @@ function updateSliderFill(el, val, min, max) {
   const neutralVal = Math.max(min, Math.min(max, 0));
   const isNeutral = Math.abs(val - neutralVal) < 0.001;
   el.style.setProperty('--fill-color', isNeutral ? 'rgba(78,124,255,.4)' : 'rgba(255,170,60,.7)');
+}
+
+let _canvasFlipH = false;
+function toggleCanvasFlip() {
+  _canvasFlipH = !_canvasFlipH;
+  const c = document.getElementById('c');
+  if (c) c.style.transform = _canvasFlipH ? 'scaleX(-1)' : '';
+  const btn = document.getElementById('btn-flip-h');
+  if (btn) { btn.style.color = _canvasFlipH ? '#60d890' : ''; btn.style.borderColor = _canvasFlipH ? 'rgba(96,216,144,.5)' : ''; }
+  document.getElementById('lbl-status').textContent = _canvasFlipH ? '↔ 水平反転中（配信視点）' : '反転解除';
 }
 
 function resetAllParams() {
