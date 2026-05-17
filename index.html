@@ -489,6 +489,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
       <button class="kfb-loop" onclick="toggleLoopPreview()" id="btn-loop-prev">⟳ このパラメータをループ再生</button>
     </div>
+    <!-- Undo History Panel -->
+    <div id="undo-history-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
+      <div style="display:flex;align-items:center;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.15);" onclick="toggleSection('undo-history-list',this)">
+        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;">操作履歴</span>
+        <span id="undo-count" style="margin-left:6px;font-size:9px;color:var(--accent2);font-family:monospace;"></span>
+        <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
+      </div>
+      <div id="undo-history-list" style="max-height:160px;overflow-y:auto;display:none;">
+        <div style="padding:8px;font-size:9px;color:#3a4870;text-align:center;">履歴なし</div>
+      </div>
+    </div>
     <div id="mesh-cfg">
       <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="mesh-cfg-body">
@@ -2209,22 +2220,30 @@ function snapshotState() {
     animDur: M.animation?.duration,
   };
 }
-function pushUndo() {
-  ST.undo.push(snapshotState());
+function pushUndo(name='操作') {
+  const snap = snapshotState();
+  snap._name = name;
+  snap._time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  ST.undo.push(snap);
   ST.redo=[];
   if (ST.undo.length>60) ST.undo.shift();
+  updateUndoHistoryPanel();
 }
 // Push undo specifically for animation changes (lighter - doesn't snapshot verts)
-function pushAnimUndo() {
-  ST.undo.push({
+function pushAnimUndo(name='アニメ操作') {
+  const snap = {
     ap:M.activePart,
     verts:null, // marker that verts didn't change
     def:null,
     animTracks:JSON.parse(JSON.stringify(M.animation?.tracks||{})),
     animDur:M.animation?.duration,
-  });
+  };
+  snap._name = name;
+  snap._time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  ST.undo.push(snap);
   ST.redo=[];
   if (ST.undo.length>60) ST.undo.shift();
+  updateUndoHistoryPanel();
 }
 function _applySnapshot(s) {
   if (s.ap!==undefined && s.ap<M.parts.length) { M.activePart=s.ap; renderPartsList(); updatePartCtrl(); }
@@ -2236,8 +2255,30 @@ function _applySnapshot(s) {
   }
   ST.cachedVerts=null; redraw(); updateAllKFDots();
 }
-function undo() { const s=ST.undo.pop(); if(!s) return; ST.redo.push(snapshotState()); _applySnapshot(s); }
-function redo() { const s=ST.redo.pop(); if(!s) return; ST.undo.push(snapshotState()); _applySnapshot(s); }
+function undo() { const s=ST.undo.pop(); if(!s) return; ST.redo.push(snapshotState()); _applySnapshot(s); updateUndoHistoryPanel(); }
+function redo() { const s=ST.redo.pop(); if(!s) return; ST.undo.push(snapshotState()); _applySnapshot(s); updateUndoHistoryPanel(); }
+function updateUndoHistoryPanel() {
+  const el = document.getElementById('undo-history-list');
+  if (!el) return;
+  el.innerHTML = '';
+  const items = [...ST.undo].reverse().slice(0, 20);
+  if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:#3a4870;text-align:center;">履歴なし</div>'; return; }
+  items.forEach((s,i) => {
+    const d = document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid rgba(46,54,86,.3);';
+    d.innerHTML=`<span style="color:#3a4870;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#c8d4f0':'#6878a0'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
+    d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
+    d.onmouseover = () => d.style.background='rgba(78,124,255,.07)';
+    d.onmouseout = () => d.style.background='';
+    el.appendChild(d);
+  });
+  if (ST.redo.length) {
+    const sep=document.createElement('div');
+    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a4870;border-top:1px solid rgba(46,54,86,.5);background:rgba(0,0,0,.2)';
+    sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
+    el.appendChild(sep);
+  }
+}
 
 // ==================== TRANSFORM TOOLS ====================
 function transformSelection(fn) {
@@ -12946,6 +12987,7 @@ buildParamUI();
 setAP('headX');
 updateParamHUD();
 updateZoomHUD();
+updateUndoHistoryPanel();
 resize();
 setTimeout(()=>{ resizeTimeline(); }, 50);
 startAutoSave();
