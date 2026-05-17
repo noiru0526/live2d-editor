@@ -4543,6 +4543,11 @@ document.addEventListener('keydown',e=>{
     }
     tlSelectedKFs.clear(); drawMultiTimeline(); e.preventDefault(); return;
   }
+  // Backquote/tilde: reset active parameter to 0 (quick zero shortcut)
+  if ((e.key==='`'||e.key==='~') && ST.ap && M.params[ST.ap] && !M.params[ST.ap].locked && document.activeElement===document.body) {
+    setParamVal(ST.ap, 0);
+    e.preventDefault(); return;
+  }
   // Delete/Backspace: reset deform for selected vertices
   if ((e.key==='Delete'||e.key==='Backspace') && ST.selVerts.size>0 && document.activeElement===document.body) {
     if (ST.rec) {
@@ -8015,6 +8020,21 @@ tlLabelCanvas.addEventListener('click', e=>{
     else tlHiddenTracks.add(name);
   }
   drawMultiTimeline();
+});
+
+tlLabelCanvas.addEventListener('dblclick', e=>{
+  const r = tlLabelCanvas.getBoundingClientRect();
+  const py = (e.clientY - r.top) + tlScrollY;
+  const paramEntries = Object.entries(M.params);
+  const ri = _labelHitRow(py, paramEntries);
+  if (ri < 0 || ri >= paramEntries.length) return;
+  const [name, p] = paramEntries[ri];
+  const newLbl = prompt(`「${p.lbl||name}」の表示名を変更:`, p.lbl||name);
+  if (newLbl !== null && newLbl.trim()) {
+    p.lbl = newLbl.trim();
+    buildParamUI(); drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `ラベル変更: ${name} → "${p.lbl}"`;
+  }
 });
 
 tlLabelCanvas.addEventListener('contextmenu', e=>{
