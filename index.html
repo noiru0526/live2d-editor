@@ -877,6 +877,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
+    <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
@@ -6696,6 +6697,13 @@ function drawMultiTimeline() {
     tlMultiCtx.lineWidth = 1;
     tlMultiCtx.beginPath(); tlMultiCtx.moveTo(toKX(loopIn), 0); tlMultiCtx.lineTo(toKX(loopIn), H); tlMultiCtx.stroke();
     tlMultiCtx.beginPath(); tlMultiCtx.moveTo(toKX(loopOut), 0); tlMultiCtx.lineTo(toKX(loopOut), H); tlMultiCtx.stroke();
+    // Loop handle triangles (drag targets)
+    const lx=toKX(loopIn), rx=toKX(loopOut);
+    tlMultiCtx.fillStyle='rgba(78,200,120,.85)';
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(lx,0); tlMultiCtx.lineTo(lx+8,0); tlMultiCtx.lineTo(lx,10); tlMultiCtx.closePath(); tlMultiCtx.fill();
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(rx,0); tlMultiCtx.lineTo(rx-8,0); tlMultiCtx.lineTo(rx,10); tlMultiCtx.closePath(); tlMultiCtx.fill();
+    tlMultiCtx.fillStyle='#fff'; tlMultiCtx.font='7px monospace';
+    tlMultiCtx.fillText('IN',lx+2,9); tlMultiCtx.fillText('OUT',rx-20,9);
   }
 
   // Snap grid lines (shown when snap enabled)
@@ -6840,9 +6848,9 @@ function drawMultiTimeline() {
         const kx=toKX(kf.t);
         const ky=ry+TL_ROW_H/2;
         const sz=isActiveTrack?5:4;
-        // Color by interp type
+        // Color by interp type or user color tag
         const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#c060ff','ease-in-cubic':'#e0c040','ease-out-cubic':'#d07020','ease-in-out-cubic':'#a0c860',elastic:'#ff60a0','elastic-in':'#ff4060',back:'#a060ff','back-out':'#8040ff',circ:'#40d0c0','circ-out':'#20b0a0',sine:'#60a0ff','sine-out':'#4080e0'};
-        const interpCol = kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)');
+        const interpCol = kf.color || (kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)'));
         const col = isActiveTrack ? interpCol : interpCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,(_,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+'.6)';
         // Shadow
         tlMultiCtx.fillStyle='rgba(0,0,0,.3)';
@@ -7557,6 +7565,25 @@ function quantizeAnimKFs(grid) {
   document.getElementById('lbl-status').textContent = `量子化完了: ${count} KF を ${q.toFixed(4)}s グリッドにスナップ`;
 }
 
+function jitterAnimKFs(amount) {
+  const amt = amount ?? 1/60;
+  const dur = M.animation.duration || 3;
+  pushAnimUndo();
+  let count = 0;
+  const targets = tlSelectedKFs.size ? tlSelectedKFs : null;
+  for (const frames of Object.values(M.animation.tracks||{})) {
+    for (const kf of frames) {
+      if (targets && !targets.has(kf)) continue;
+      kf.t = Math.max(0, Math.min(dur, kf.t + (Math.random()-0.5)*2*amt));
+      kf.t = Math.round(kf.t * 100000) / 100000;
+      count++;
+    }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ジッター: ${count} KF に ±${(amt*1000).toFixed(1)}ms の揺らぎを追加`;
+}
+
 function exportAnimJSON() {
   const clips = M.animClips?.length ? M.animClips : [];
   const data = {
@@ -7746,6 +7773,7 @@ function applyPlayheadToParams() {
   let tlmDragging = false;
   let tlmKFDrag = null; // {startX, entries:[{kf,name,origT}]}
   let tlmRubber = null; // {startX, startY, curX, curY} rubber-band selection state
+  let tlmLoopDrag = null; // 'in' | 'out' — dragging a loop handle
   const getTracks = ()=>document.getElementById('tl-multi-tracks');
 
   function hitTestKF(e) {
@@ -7822,6 +7850,13 @@ function applyPlayheadToParams() {
       { icon:'○', label:'イージング: Circ (円弧)', action:()=>{ hit.kf.interp='circ-out'; drawMultiTimeline(); }},
       { icon:'♪', label:'イージング: Sine (正弦波)', action:()=>{ hit.kf.interp='sine-out'; drawMultiTimeline(); }},
       { icon:'⟂', label:'イージング: Step（値をホールド）', action:()=>{ hit.kf.interp='step'; drawMultiTimeline(); }},
+      null,
+      { icon:'🎨', label:'カラータグを設定', action:()=>{
+        const inp=document.createElement('input'); inp.type='color'; inp.value=hit.kf.color||'#ffd060';
+        inp.oninput=()=>{ hit.kf.color=inp.value; if(tlSelectedKFs.size>1) for(const k of tlSelectedKFs) k.color=inp.value; drawMultiTimeline(); };
+        inp.click();
+      }},
+      { icon:'✕', label:'カラータグをクリア', action:()=>{ delete hit.kf.color; if(tlSelectedKFs.size>1) for(const k of tlSelectedKFs) delete k.color; drawMultiTimeline(); }},
       ...(tlSelectedKFs.size > 1 ? [
         null,
         { icon:'🔀', label:`選択${tlSelectedKFs.size}個のKFに一括適用→Linear`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='linear'; drawMultiTimeline(); }},
@@ -7847,6 +7882,17 @@ function applyPlayheadToParams() {
     const trk=getTracks(); if(!trk) return;
     const r=trk.getBoundingClientRect();
     if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return;
+    // Loop handle drag (top 10px zone)
+    if (e.button===0 && (e.clientY-r.top)<12) {
+      const dur=M.animation.duration||3;
+      const visibleDur=dur/tlZoom;
+      const W=r.width;
+      const toKX2=t=>((t-tlZoomOff)/visibleDur)*(W-2)+1;
+      const loopIn=M.animation.loopIn??0, loopOut=M.animation.loopOut??dur;
+      const mx=e.clientX-r.left;
+      if (Math.abs(mx-toKX2(loopIn))<12) { tlmLoopDrag='in'; e.stopPropagation(); return; }
+      if (Math.abs(mx-toKX2(loopOut))<12) { tlmLoopDrag='out'; e.stopPropagation(); return; }
+    }
     const hit=hitTestKF(e);
     if (hit && e.button===0) {
       if (e.ctrlKey||e.metaKey) {
@@ -7881,6 +7927,18 @@ function applyPlayheadToParams() {
   });
 
   document.addEventListener('mousemove',e=>{
+    if (tlmLoopDrag) {
+      const trk=getTracks(); if(!trk) return;
+      const r=trk.getBoundingClientRect();
+      const dur=M.animation.duration||3;
+      const visibleDur=dur/tlZoom;
+      const t=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
+      if (tlmLoopDrag==='in') M.animation.loopIn=Math.min(t,(M.animation.loopOut??dur)-0.001);
+      else M.animation.loopOut=Math.max(t,(M.animation.loopIn??0)+0.001);
+      const liEl=document.getElementById('tl-loop-in'); if(liEl) liEl.value=(M.animation.loopIn??0).toFixed(2);
+      const loEl=document.getElementById('tl-loop-out'); if(loEl) loEl.value=(M.animation.loopOut??dur).toFixed(2);
+      drawMultiTimeline(); return;
+    }
     if (tlmKFDrag) {
       const trk=getTracks(); if(!trk) return;
       const r=trk.getBoundingClientRect();
@@ -7938,6 +7996,7 @@ function applyPlayheadToParams() {
   });
 
   document.addEventListener('mouseup',()=>{
+    if (tlmLoopDrag) { tlmLoopDrag=null; drawMultiTimeline(); return; }
     if (tlmKFDrag) { tlmKFDrag=null; drawMultiTimeline(); }
     if (tlmRubber) { tlmRubber=null; drawMultiTimeline(); }
     tlmDragging=false;
@@ -8051,7 +8110,13 @@ function applyPlayheadToParams() {
     const r=trk.getBoundingClientRect();
     if (e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom) {
       const hit=hitTestKF(e);
-      tlMultiCanvas.style.cursor=hit?'ew-resize':'col-resize';
+      const nearTop=(e.clientY-r.top)<14;
+      const dur_c=M?.animation?.duration||3;
+      const vis_c=dur_c/tlZoom;
+      const toKXc=t=>((t-tlZoomOff)/vis_c)*(r.width-2)+1;
+      const li_c=M?.animation?.loopIn??0,lo_c=M?.animation?.loopOut??dur_c;
+      const nearLoop=nearTop&&(Math.abs((e.clientX-r.left)-toKXc(li_c))<14||Math.abs((e.clientX-r.left)-toKXc(lo_c))<14);
+      tlMultiCanvas.style.cursor=(hit||nearLoop)?'ew-resize':'col-resize';
       // Tooltip
       if (hit) {
         if (!_kfTip) {
