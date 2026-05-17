@@ -895,7 +895,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
-    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
+    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
@@ -7443,6 +7443,24 @@ let _paramRecRAF = null;
 let _paramRecStart = 0;  // performance.now() at record start
 let _paramRecBuf = {};   // {paramName: [{t, v}]}
 const _PARAM_REC_INTERVAL = 1000 / 30; // 30fps sample
+let _paramRecMode = 'all'; // 'all' | 'filter' | 'params'
+
+function showRecModeMenu(e) {
+  const modes = [
+    { label:'全て録音（デフォルト）', mode:'all' },
+    { label:'パラメータのみ録音', mode:'params' },
+    { label:'フィルター/透明度のみ録音', mode:'filter' },
+  ];
+  showCtxMenu(e.clientX, e.clientY, modes.map(m => ({
+    icon: _paramRecMode===m.mode ? '✓' : '  ',
+    label: m.label,
+    action: () => {
+      _paramRecMode = m.mode;
+      document.getElementById('btn-param-rec').title = `録音モード: ${m.label}`;
+      document.getElementById('lbl-status').textContent = `録音モード: ${m.label}`;
+    }
+  })));
+}
 
 function toggleParamRecord() {
   if (_paramRecActive) {
@@ -7486,14 +7504,16 @@ function toggleParamRecord() {
       const elapsed = (performance.now() - _paramRecStart) / 1000;
       if (elapsed - lastSampleT >= _PARAM_REC_INTERVAL / 1000 - 0.001) {
         lastSampleT = elapsed;
-        for (const [name, p] of Object.entries(M.params)) {
-          if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
-          const buf = _paramRecBuf[name];
-          const v = Math.round(p.val * 10000) / 10000;
-          if (!buf.length || Math.abs(v - buf[buf.length-1].v) > 0.001) buf.push({t: elapsed, v});
+        if (_paramRecMode !== 'filter') {
+          for (const [name, p] of Object.entries(M.params)) {
+            if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
+            const buf = _paramRecBuf[name];
+            const v = Math.round(p.val * 10000) / 10000;
+            if (!buf.length || Math.abs(v - buf[buf.length-1].v) > 0.001) buf.push({t: elapsed, v});
+          }
         }
         // Also record filter/opacity for each visible part
-        for (const part of M.parts) {
+        if (_paramRecMode !== 'params') for (const part of M.parts) {
           if (!part.img) continue;
           const pid = part.id;
           const f = part.filter || {b:100,c:100,s:100,h:0};
