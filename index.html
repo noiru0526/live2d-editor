@@ -342,6 +342,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
       <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
       <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
+      <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
+      <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -988,6 +990,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
     <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#80a0d0';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
+    <button id="btn-tl-fgrid" onclick="tlFrameGrid=!tlFrameGrid;this.style.color=tlFrameGrid?'#60d890':'#80a0d0';this.style.borderColor=tlFrameGrid?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="フレームグリッド表示（スナップグリッドに合わせた縦線）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊞</button>
     <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#80a0d0';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
     <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
@@ -6684,15 +6687,32 @@ function toggleSection(id, titleEl) {
 }
 
 // ==================== POSE PRESETS ====================
+function _capturePoseThumbnail() {
+  if (!M.img) return null;
+  try {
+    const c = document.getElementById('c');
+    if (!c) return null;
+    const thumb = document.createElement('canvas');
+    const sz = 40;
+    thumb.width = sz; thumb.height = sz;
+    const tc = thumb.getContext('2d');
+    const s = Math.min(sz/c.width, sz/c.height);
+    const dw = c.width*s, dh = c.height*s;
+    tc.drawImage(c, (sz-dw)/2, (sz-dh)/2, dw, dh);
+    return thumb.toDataURL('image/jpeg', 0.6);
+  } catch(e) { return null; }
+}
+
 function savePose() {
   if (!M.img) return;
   const values=Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+  const thumbnail = _capturePoseThumbnail();
   showModal('ポーズを保存', `
     <input id="pose-nm" type="text" placeholder="ポーズ名" value="ポーズ${M.poses.length+1}"
       style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
   `, ()=>{
     const nm=document.getElementById('pose-nm').value.trim()||`ポーズ${M.poses.length+1}`;
-    M.poses.push({name:nm, values});
+    M.poses.push({name:nm, values, thumbnail});
     renderPoseList();
     document.getElementById('lbl-status').textContent=`ポーズ保存: ${nm}`;
   });
@@ -6778,7 +6798,7 @@ function renderPoseList() {
     row.style.cssText='display:flex;align-items:center;gap:3px;';
     const btn=document.createElement('button');
     btn.style.cssText='flex:1;text-align:left;background:#1e2540;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
-    btn.innerHTML=`<span style="background:rgba(78,124,255,.2);color:#8aabff;border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>${pose.name}`;
+    btn.innerHTML=`${pose.thumbnail ? `<img src="${pose.thumbnail}" style="width:24px;height:24px;object-fit:cover;border-radius:2px;flex-shrink:0;opacity:.9;">` : `<span style="background:rgba(78,124,255,.2);color:#8aabff;border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>`}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pose.name}</span>`;
     btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
     btn.addEventListener('contextmenu',e=>{
       e.preventDefault();
@@ -7513,6 +7533,7 @@ let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
 let tlShowValues = true;  // show current value in track labels
 let tlWaveform = false;   // fill under curve (waveform-style display)
 let tlSortMode = 'default'; // 'default'|'alpha'|'kf-count'|'active'
+let tlFrameGrid = false;  // show per-frame grid lines at tlSnapGrid FPS
 let _tlHoverT = null; // current hover time on timeline canvas (null = not hovering)
 
 // Shared interp helper — used by playback, seek, and curve display
@@ -7661,6 +7682,41 @@ function drawMultiTimeline() {
     const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=Math.floor(t%60), f=Math.floor((t%1)*_smpteF);
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}:${String(f).padStart(2,'0')}`;
   };
+  // Per-frame grid lines (optional)
+  if (tlFrameGrid) {
+    const frameInterval = tlSnapGrid || (1/30);
+    const pxPerFrame = (W / visibleDur) * frameInterval;
+    if (pxPerFrame >= 3) { // Only if frames are at least 3px wide
+      tlMultiCtx.fillStyle = 'rgba(255,255,255,.03)';
+      for (let f=Math.floor(tlZoomOff/frameInterval)*frameInterval; f<=tlZoomOff+visibleDur; f=Math.round((f+frameInterval)*10000)/10000) {
+        const fx = toKX(f);
+        if (fx>=0&&fx<=W) tlMultiCtx.fillRect(fx,0,1,H);
+      }
+    }
+  }
+  // KF density heatmap in ruler (bottom 3px of ruler area)
+  {
+    const bins = 80;
+    const counts = new Array(bins).fill(0);
+    const binDur = visibleDur / bins;
+    for (const frames of Object.values(M.animation.tracks||{})) {
+      for (const kf of (frames||[])) {
+        const bin = Math.floor((kf.t - tlZoomOff) / binDur);
+        if (bin >= 0 && bin < bins) counts[bin]++;
+      }
+    }
+    const maxCount = Math.max(1, ...counts);
+    const binW = W / bins;
+    for (let i = 0; i < bins; i++) {
+      if (!counts[i]) continue;
+      const intensity = counts[i] / maxCount;
+      const r = Math.round(78 + intensity * 177);
+      const g = Math.round(124 + intensity * 131);
+      const b = Math.round(255 * (1 - intensity * 0.5));
+      tlMultiCtx.fillStyle = `rgba(${r},${g},${b},${0.15 + intensity*0.35})`;
+      tlMultiCtx.fillRect(i*binW, 11, binW+1, 3);
+    }
+  }
   for (let s=Math.floor(tlZoomOff/secStep)*secStep; s<=tlZoomOff+visibleDur+secStep; s=Math.round((s+secStep)*1000)/1000) {
     const x=toKX(s);
     if (x<0||x>W) continue;
@@ -8493,6 +8549,46 @@ function scatterSelectedKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値をスキャッタ (±${amtStr}%)`;
+}
+
+let _paramSnapshot = null;
+function takeParamSnapshot() {
+  _paramSnapshot = {};
+  for (const [k,p] of Object.entries(M.params)) _paramSnapshot[k] = p.val;
+  const count = Object.keys(_paramSnapshot).length;
+  document.getElementById('lbl-status').textContent = `スナップショット: ${count}個のパラメータ値を記録`;
+}
+
+function compareParamSnapshot() {
+  if (!_paramSnapshot) { document.getElementById('lbl-status').textContent = '先にスナップショットを撮ってください（📷 スナップ）'; return; }
+  const diffs = [];
+  for (const [k,p] of Object.entries(M.params)) {
+    const snap = _paramSnapshot[k] ?? 0;
+    const cur = p.val;
+    const delta = cur - snap;
+    if (Math.abs(delta) > 0.001) diffs.push({ name:k, lbl:p.lbl||k, snap, cur, delta, range:p.max-p.min||1 });
+  }
+  if (!diffs.length) { document.getElementById('lbl-status').textContent = 'スナップショットと現在値に差分なし'; return; }
+  diffs.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+  const rows = diffs.map(d => {
+    const pct = (d.delta/d.range*100).toFixed(1);
+    const col = d.delta>0?'#80d0ff':'#ff8060';
+    const bar = d.delta>0 ? `<span style="color:#80d0ff;">▲</span>` : `<span style="color:#ff8060;">▼</span>`;
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+      <td style="padding:3px 8px;color:var(--text);font-size:10px;">${d.lbl}</td>
+      <td style="padding:3px 8px;color:var(--dim);font-family:monospace;">${d.snap.toFixed(3)}</td>
+      <td style="padding:3px 8px;color:#ffd060;font-family:monospace;">${d.cur.toFixed(3)}</td>
+      <td style="padding:3px 8px;color:${col};font-family:monospace;">${bar} ${d.delta>0?'+':''}${d.delta.toFixed(3)} (${pct}%)</td>
+    </tr>`;
+  }).join('');
+  showModal(`スナップショット比較 (${diffs.length}個に差分)`,
+    `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#1a1e3a;"><th style="padding:3px 8px;">パラメータ</th><th style="padding:3px 8px;">スナップ</th><th style="padding:3px 8px;">現在値</th><th style="padding:3px 8px;">差分</th></tr>
+        ${rows}
+      </table>
+    </div>`
+  );
 }
 
 function copyAllParamValues() {
