@@ -100,6 +100,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
   <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
+  <button class="tbtn" id="btn-snap-grid" onclick="toggleSnapGrid()">🧲 スナップ</button>
   <div class="sep"></div>
   <button class="tbtn ok" onclick="saveModelOnly()">💾 モデル保存</button>
   <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 アバター出力</button>
@@ -134,7 +135,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <button class="tbtn" style="width:100%;font-size:9px" onclick="applyCanvasSize()">サイズ適用</button>
     </div>
   </div>
-  <div id="cw"><canvas id="c"></canvas><div id="hint"></div></div>
+  <div id="cw"><canvas id="c"></canvas><div id="hint"></div><div id="zoom-hud" style="position:absolute;top:8px;left:8px;background:rgba(13,17,23,.7);border-radius:4px;padding:2px 7px;font-size:9px;color:#3a4a5a;pointer-events:none;">100%</div></div>
   <div id="rp">
     <div class="ph"><h3>PARAMETERS</h3><span id="spn" style="font-size:9px;color:#7c3aed"></span></div>
     <div id="params-list"></div>
@@ -205,7 +206,7 @@ let mode = 'parts';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50;
+let showGrid = false, gridSize = 50, snapToGrid = false;
 
 // View transform
 let VS = 1, VOX = 0, VOY = 0;
@@ -366,7 +367,7 @@ function fitView() {
   const cw = canvas.clientWidth||canvas.width, ch = canvas.clientHeight||canvas.height;
   VS = Math.min(cw/canvasW, ch/canvasH) * 0.88;
   VOX = (cw - canvasW*VS) / 2; VOY = (ch - canvasH*VS) / 2;
-  render();
+  updateZoomHUD(); render();
 }
 
 function applyCanvasSize() {
@@ -726,6 +727,14 @@ function toggleGrid() {
   render();
 }
 
+function toggleSnapGrid() {
+  snapToGrid = !snapToGrid;
+  document.getElementById('btn-snap-grid').classList.toggle('active', snapToGrid);
+  setStatus(snapToGrid ? `スナップ ON (${gridSize}px グリッド)` : 'スナップ OFF');
+}
+
+function snapVal(v) { return snapToGrid ? Math.round(v / gridSize) * gridSize : v; }
+
 function dupPart() {
   if (selPart < 0 || selPart >= parts.length) { setStatus('パーツを選択してください'); return; }
   saveState();
@@ -855,11 +864,16 @@ function buildKFUI() {
 }
 
 // ===== CANVAS INTERACTION =====
+function updateZoomHUD() {
+  const el = document.getElementById('zoom-hud');
+  if (el) el.textContent = Math.round(VS * 100) + '%';
+}
+
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
   const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
   const f = e.deltaY>0 ? .88 : 1.12;
-  VOX = mx-(mx-VOX)*f; VOY = my-(my-VOY)*f; VS *= f; render();
+  VOX = mx-(mx-VOX)*f; VOY = my-(my-VOY)*f; VS *= f; updateZoomHUD(); render();
 }, {passive:false});
 
 canvas.addEventListener('contextmenu', e => { e.preventDefault(); });
@@ -908,9 +922,11 @@ canvas.addEventListener('mousemove', e => {
   const mp = s2m(sx, sy);
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); render(); return; }
   if (dragMode==='movepart' && selPart>=0) {
-    parts[selPart].x = dragPartOX + (mp.x-dragSX);
-    parts[selPart].y = dragPartOY + (mp.y-dragSY);
-    render(); return;
+    const nx = dragPartOX + (mp.x-dragSX);
+    const ny = dragPartOY + (mp.y-dragSY);
+    parts[selPart].x = snapVal(nx);
+    parts[selPart].y = snapVal(ny);
+    updatePartPropsUI(); render(); return;
   }
   if (dragMode==='vert' && dragVI>=0 && selPart>=0) {
     const ddx=mp.x-dragSX, ddy=mp.y-dragSY;
@@ -937,7 +953,7 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='z' && onBody) { e.preventDefault(); undo(); }
   if ((e.ctrlKey||e.metaKey) && e.key==='d' && onBody) { e.preventDefault(); dupPart(); }
   if (mode==='parts' && selPart>=0 && selPart<parts.length && !parts[selPart].locked && onBody) {
-    const step = e.shiftKey ? 10 : 1;
+    const step = snapToGrid ? gridSize : (e.shiftKey ? 10 : 1);
     let moved = false;
     if (e.key==='ArrowLeft')  { parts[selPart].x -= step; moved=true; }
     if (e.key==='ArrowRight') { parts[selPart].x += step; moved=true; }
