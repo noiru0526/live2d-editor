@@ -708,6 +708,21 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <input type="range" id="wc-smooth" min="0" max="0.95" step="0.05" value="0.5" style="flex:1;accent-color:var(--accent);">
     <span id="wc-smooth-val" style="font-size:9px;color:var(--accent);width:28px;">0.50</span>
   </div>
+  <!-- Expression presets panel -->
+  <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <span style="font-size:9px;color:var(--dim);">表情プリセット</span>
+      <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;margin-left:auto;">
+        <input type="checkbox" id="wc-expr-auto" style="accent-color:#ff80c0;width:10px;height:10px;">自動検出
+      </label>
+    </div>
+    <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
+    <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
+    <div style="display:flex;gap:2px;margin-top:4px;">
+      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:#1e2838;border:1px solid #3a4470;color:#a0c0ff;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
+    </div>
+  </div>
 </div>
 
 <!-- Canvas right-click context menu -->
@@ -4452,6 +4467,7 @@ function toggleWebcamTest() {
   document.getElementById('btn-webcam').classList.add('on');
   _wcActive=true;
   document.getElementById('webcam-status').textContent='読込中...';
+  if (typeof renderWcExprBtns === 'function') setTimeout(renderWcExprBtns, 50);
 
   function startWC() {
     const video=document.getElementById('webcam-video');
@@ -4535,6 +4551,8 @@ function toggleWebcamTest() {
       if (M.params.mouthOpen) M.params.mouthOpen.val=_sm.mo;
       if (M.params.eyeX) M.params.eyeX.val=_sm.ex;
       ST.cachedVerts=null; redraw();
+      // Expression auto-detect
+      if (typeof wcAutoDetectExpr === 'function') wcAutoDetectExpr(_sm);
     });
     if (window.Camera) {
       _wcCam=new Camera(video,{onFrame:async()=>{if(video.readyState>=2)await _wcFM.send({image:video});},width:320,height:240});
@@ -4557,6 +4575,109 @@ function toggleWebcamTest() {
     }
   }
   loadAndStart();
+}
+
+// ==================== EXPRESSION PRESETS (FACE TRACKING) ====================
+let _wcExprPresets = []; // [{name, vals:{headX,headY,blinkL,...}}]
+// Built-in auto-detect presets
+const _WC_AUTO_EXPRS = [
+  { name:'😊 笑顔', detect: sm => sm.mo > 0.45 && sm.hy < 0, score: sm => sm.mo * 0.7 + (sm.hy < 0 ? 0.3 : 0) },
+  { name:'😲 驚き', detect: sm => sm.mo > 0.6 && sm.bl < 0.2, score: sm => sm.mo * 0.5 + (1 - sm.bl) * 0.5 },
+  { name:'😌 目を閉じ', detect: sm => sm.bl > 0.7, score: sm => sm.bl },
+  { name:'😉 ウィンク', detect: sm => (sm.bl > 0.7 && sm.blR !== undefined && sm.blR < 0.4) || (sm.blL !== undefined && sm.blL > 0.7), score: sm => sm.bl },
+  { name:'😐 無表情', detect: sm => sm.mo < 0.15 && sm.bl < 0.3, score: sm => (1-sm.mo) * 0.5 + (1-sm.bl) * 0.5 },
+];
+
+function renderWcExprBtns() {
+  const container = document.getElementById('wc-expr-btns');
+  if (!container) return;
+  container.innerHTML = '';
+  // Auto-detect built-ins
+  _WC_AUTO_EXPRS.forEach((ex, i) => {
+    const btn = document.createElement('button');
+    btn.id = `wc-expr-auto-${i}`;
+    btn.textContent = ex.name;
+    btn.title = '顔追跡値を一時オーバーライドしてこの表情を適用';
+    btn.style.cssText = 'background:#1e2030;border:1px solid #3a4470;color:#c0d0ff;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.onclick = () => applyWcExprPreset(i, 'auto');
+    container.appendChild(btn);
+  });
+  // User-saved presets
+  _wcExprPresets.forEach((pr, i) => {
+    const btn = document.createElement('button');
+    btn.textContent = pr.name;
+    btn.title = `保存プリセット「${pr.name}」を適用`;
+    btn.style.cssText = 'background:#1e2030;border:1px solid rgba(160,120,255,.4);color:#c0a0ff;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.oncontextmenu = (e) => {
+      e.preventDefault();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon:'✏', label:'名前を変更', action:()=>{ const n=prompt('名前:',pr.name); if(n){pr.name=n;renderWcExprBtns();}}},
+        { icon:'🗑', label:'削除', action:()=>{ _wcExprPresets.splice(i,1); renderWcExprBtns(); }},
+      ]);
+    };
+    btn.onclick = () => {
+      // Apply saved param values
+      for (const [k, v] of Object.entries(pr.vals)) {
+        if (M.params[k]) { M.params[k].val=v; const s=document.getElementById(`ps-${k}`);if(s)s.value=v; }
+      }
+      ST.cachedVerts=null; redraw();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function applyWcExprPreset(idx, type) {
+  if (type === 'auto') {
+    const ex = _WC_AUTO_EXPRS[idx];
+    // Apply typical parameter values for this expression
+    const exVals = {
+      '😊 笑顔':   {mouthOpen:0.6, blinkL:0.1, blinkR:0.1},
+      '😲 驚き':   {mouthOpen:0.9, blinkL:0.0, blinkR:0.0},
+      '😌 目を閉じ':{mouthOpen:0.0, blinkL:1.0, blinkR:1.0},
+      '😉 ウィンク':{mouthOpen:0.1, blinkL:1.0, blinkR:0.1},
+      '😐 無表情': {mouthOpen:0.0, blinkL:0.0, blinkR:0.0},
+    }[ex.name] || {};
+    for (const [k, v] of Object.entries(exVals)) {
+      if (M.params[k]) {
+        M.params[k].val=v;
+        const s=document.getElementById(`ps-${k}`);if(s){s.value=v;updateSliderFill(s,v,M.params[k].min,M.params[k].max);}
+        const pv=document.getElementById(`pv-${k}`);if(pv)pv.textContent=v.toFixed(2);
+      }
+    }
+    ST.cachedVerts=null; redraw();
+  }
+}
+
+function wcSaveExprPreset() {
+  const name = prompt('表情プリセット名:', `表情${_wcExprPresets.length+1}`);
+  if (!name) return;
+  // Save current param values
+  const vals = {};
+  for (const [k, p] of Object.entries(M.params)) vals[k] = p.val;
+  _wcExprPresets.push({name, vals});
+  renderWcExprBtns();
+  document.getElementById('lbl-status').textContent = `表情プリセット「${name}」を保存しました`;
+}
+
+function wcClearExprPresets() {
+  if (!confirm('保存済みの表情プリセットをすべて削除しますか？')) return;
+  _wcExprPresets = [];
+  renderWcExprBtns();
+}
+
+// Auto-detect expression from smoothed face values and highlight matching button
+function wcAutoDetectExpr(sm) {
+  const auto = document.getElementById('wc-expr-auto')?.checked;
+  const detectedEl = document.getElementById('wc-expr-detected');
+  if (!auto || !detectedEl) return;
+  let bestScore = -1, bestName = '';
+  _WC_AUTO_EXPRS.forEach((ex, i) => {
+    if (ex.detect(sm)) {
+      const score = ex.score(sm);
+      if (score > bestScore) { bestScore = score; bestName = ex.name; }
+    }
+  });
+  detectedEl.textContent = bestScore > 0 ? `検出: ${bestName} (${(bestScore*100).toFixed(0)}%)` : '';
 }
 
 // ==================== MIC TEST (LIPSYNC PREVIEW) ====================
@@ -5975,6 +6096,21 @@ function drawMultiTimeline() {
     tlMultiCtx.beginPath(); tlMultiCtx.moveTo(toKX(loopOut), 0); tlMultiCtx.lineTo(toKX(loopOut), H); tlMultiCtx.stroke();
   }
 
+  // Snap grid lines (shown when snap enabled)
+  if (tlSnapEnabled && tlSnapGrid > 0) {
+    tlMultiCtx.strokeStyle = 'rgba(78,124,255,.12)';
+    tlMultiCtx.lineWidth = 1;
+    tlMultiCtx.setLineDash([2, 4]);
+    const snapStart = Math.ceil(tlZoomOff / tlSnapGrid) * tlSnapGrid;
+    const snapEnd = tlZoomOff + visibleDur;
+    for (let sg = snapStart; sg <= snapEnd; sg = Math.round((sg + tlSnapGrid) * 10000) / 10000) {
+      const sgx = toKX(sg);
+      if (sgx < 0 || sgx > W) continue;
+      tlMultiCtx.beginPath(); tlMultiCtx.moveTo(sgx, 0); tlMultiCtx.lineTo(sgx, H); tlMultiCtx.stroke();
+    }
+    tlMultiCtx.setLineDash([]);
+  }
+
   // Time axis labels (top)
   tlMultiCtx.fillStyle='rgba(104,120,160,.6)'; tlMultiCtx.font='8px monospace';
   const secStep = visibleDur>10?2:visibleDur>5?1:visibleDur>2?0.5:visibleDur>1?0.25:0.1;
@@ -6856,6 +6992,54 @@ function applyPlayheadToParams() {
     if (tlmKFDrag) { tlmKFDrag=null; drawMultiTimeline(); }
     if (tlmRubber) { tlmRubber=null; drawMultiTimeline(); }
     tlmDragging=false;
+  });
+
+  // Double-click on KF: show inline value editor
+  document.addEventListener('dblclick', e=>{
+    const trk=getTracks(); if(!trk) return;
+    const r=trk.getBoundingClientRect();
+    if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return;
+    const hit=hitTestKF(e);
+    if (!hit) return;
+    e.preventDefault(); e.stopPropagation();
+    // Create inline editor bubble
+    const existing=document.getElementById('kf-inline-edit');
+    if (existing) existing.remove();
+    const p=M.params[hit.name];
+    const wrap=document.createElement('div');
+    wrap.id='kf-inline-edit';
+    wrap.style.cssText=`position:fixed;left:${e.clientX-60}px;top:${e.clientY-52}px;background:#1a1e3a;border:1px solid rgba(78,124,255,.6);border-radius:6px;padding:6px 8px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:10px;font-family:monospace;min-width:130px;`;
+    const pname=p?.lbl||hit.name;
+    wrap.innerHTML=`<div style="color:#8898c0;margin-bottom:4px;">${pname}</div>
+<div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
+  <span style="color:var(--dim);width:12px">v</span>
+  <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+</div>
+<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
+  <span style="color:var(--dim);width:12px">t</span>
+  <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:#101422;border:1px solid #3a4470;color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+  <span style="color:var(--dim)">s</span>
+</div>
+<div style="display:flex;gap:3px;justify-content:flex-end;">
+  <button id="kfie-ok" style="background:#1e3050;border:1px solid rgba(78,124,255,.5);color:#80b0ff;border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">✓</button>
+  <button id="kfie-cancel" style="background:#2e3656;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;">×</button>
+</div>`;
+    document.body.appendChild(wrap);
+    const vInput=document.getElementById('kfie-v');
+    const tInput=document.getElementById('kfie-t');
+    vInput.focus(); vInput.select();
+    const apply=()=>{
+      const nv=parseFloat(vInput.value);
+      const nt=parseFloat(tInput.value);
+      if (!isNaN(nv)) hit.kf.v = p ? Math.max(p.min,Math.min(p.max,nv)) : nv;
+      if (!isNaN(nt)&&nt>=0) { hit.kf.t=Math.round(nt*1000)/1000; M.animation.tracks[hit.name]?.sort((a,b)=>a.t-b.t); }
+      wrap.remove(); drawMultiTimeline();
+    };
+    document.getElementById('kfie-ok').onclick=apply;
+    document.getElementById('kfie-cancel').onclick=()=>wrap.remove();
+    vInput.onkeydown=tInput.onkeydown=ev=>{if(ev.key==='Enter')apply();if(ev.key==='Escape')wrap.remove();};
+    // Close on outside click
+    setTimeout(()=>document.addEventListener('mousedown',function _close(ev){if(!wrap.contains(ev.target)){wrap.remove();document.removeEventListener('mousedown',_close);}},true),0);
   });
 
   // Mouse wheel scroll/zoom for timeline tracks
