@@ -550,6 +550,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         </label>
       </div>
       <div class="mcfg-row">
+        <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
+        <select id="export-loop-count" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+          <option value="-1" selected>∞ 無限ループ</option>
+          <option value="1">1回のみ</option>
+          <option value="2">2回</option>
+          <option value="3">3回</option>
+          <option value="5">5回</option>
+          <option value="10">10回</option>
+        </select>
+      </div>
+      <div class="mcfg-row">
         <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:#1e2838;border:1px solid rgba(100,160,255,.4);color:#80c0ff;border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
@@ -3295,6 +3306,7 @@ function genAvatarHTML() {
   const smoothMode=document.getElementById('export-smooth')?.value||'soft';
   const idleMode=document.getElementById('export-idle')?.value||'full';
   const includeCtrlPanel=document.getElementById('export-ctrlpanel')?.checked||false;
+  const exportLoopCount=parseInt(document.getElementById('export-loop-count')?.value||'-1');
   const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
@@ -3419,6 +3431,8 @@ canvas.style.width=W+'px'; canvas.style.height=H+'px';
 const SENS=${sens};
 const LOOP_FADE_IN=${exportFadeIn};
 const LOOP_FADE_OUT=${exportFadeOut};
+const ANIM_LOOP_COUNT=${exportLoopCount}; // -1=infinite, 1+=loop count
+let _animLoopsPlayed=0;
 const stEl=document.getElementById('st');
 const loadEl=document.getElementById('loading');
 const loadMsg=document.getElementById('load-msg');
@@ -3484,8 +3498,25 @@ function applyAnimTracks(now){
     animT+=dt;
   }
   animLastNow=now;
-  let t=MD.animation.loop?loopIn+((animT-loopIn)%loopLen):Math.min(animT,loopOut);
-  if(t<0)t=loopIn+((t-loopIn)%loopLen+loopLen)%loopLen;
+  let t;
+  if(MD.animation.loop){
+    const rawOff=animT-loopIn;
+    if(rawOff>=0){
+      const loopsDone=Math.floor(rawOff/loopLen);
+      if(ANIM_LOOP_COUNT>0&&loopsDone>=ANIM_LOOP_COUNT){
+        animPlaying=false;
+        const btn=document.getElementById('anim-btn');
+        if(btn)btn.textContent='▶ Anim';
+        t=loopOut;
+      } else {
+        t=loopIn+(rawOff%loopLen);
+      }
+    } else {
+      t=loopIn+((rawOff%loopLen+loopLen)%loopLen);
+    }
+  } else {
+    t=Math.min(animT,loopOut);
+  }
   animT=t;
   for(const[k,frames]of Object.entries(MD.animation.tracks)){
     if(!params[k]||!frames.length)continue;
