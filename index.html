@@ -314,6 +314,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <div class="tsep"></div>
   <button class="tbtn" onclick="showShortcutHelp()" title="? キーでも開けます" style="padding:3px 8px;">?</button>
   <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="エディタカラーテーマ切替" style="padding:3px 8px;">🎨</button>
+  <button class="tbtn" id="btn-checker" onclick="toggleChecker()" title="透明背景チェッカーボード表示" style="padding:3px 8px;font-size:10px;">⬛</button>
   <span id="lbl-status" style="margin-left:8px;">画像を開いてください</span>
 </div>
 
@@ -1391,6 +1392,21 @@ function redraw() {
   }
   const t    = getTx();
   const verts= getCachedVerts();
+  // Checkerboard transparency background
+  if (_showChecker && M.img) {
+    const csize = Math.max(8, Math.round(12 * t.s));
+    const x0=Math.round(t.ox), y0=Math.round(t.oy), x1=Math.round(t.ox+M.iw*t.s), y1=Math.round(t.oy+M.ih*t.s);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, x1-x0, y1-y0); ctx.clip();
+    for (let cy2=y0; cy2<y1; cy2+=csize) {
+      for (let cx2=x0; cx2<x1; cx2+=csize) {
+        const even = (Math.floor((cx2-x0)/csize)+Math.floor((cy2-y0)/csize))%2===0;
+        ctx.fillStyle = even ? '#606060' : '#404040';
+        ctx.fillRect(cx2, cy2, Math.min(csize, x1-cx2), Math.min(csize, y1-cy2));
+      }
+    }
+    ctx.restore();
+  }
   drawImg(t, verts);
   if (ST.mesh && ST.mode==='edit') drawWire(t, verts);
   drawMarkers(t);
@@ -2929,7 +2945,8 @@ function loadDataURL(dataURL, keepDef=false) {
     M.img=img; M.iw=img.width; M.ih=img.height;
     if (!keepDef) { M.def={}; buildMesh(); }
     buildParamUI(); setAP(ST.ap);
-    ST.cachedVerts=null; redraw();
+    ST.cachedVerts=null; ST.zoom=1; ST.panX=0; ST.panY=0;
+    fitView();
     document.getElementById('lbl-status').textContent=`${img.width}×${img.height}px`;
     updateAllKFDots(); updateMeshStats(); renderPartsList();
   };
@@ -2947,7 +2964,12 @@ vp.addEventListener('dragleave',()=>ovl.classList.remove('show'));
 vp.addEventListener('drop',e=>{
   e.preventDefault(); ovl.classList.remove('show');
   const f=e.dataTransfer.files[0];
-  if (f&&f.type.startsWith('image/')) { const fr=new FileReader(); fr.onload=ev=>loadDataURL(ev.target.result); fr.readAsDataURL(f); }
+  if (!f) return;
+  if (f.type.startsWith('image/')) {
+    const fr=new FileReader(); fr.onload=ev=>loadDataURL(ev.target.result); fr.readAsDataURL(f);
+  } else if (f.name.endsWith('.json')) {
+    const fr=new FileReader(); fr.onload=ev=>loadJSON(ev.target.result, f.name); fr.readAsText(f);
+  }
 });
 
 // ==================== PREVIEW ====================
@@ -5004,6 +5026,13 @@ const _EDITOR_THEMES = [
   { name:'サイバーパンク', vars:{ '--bg':'#0a0018','--panel':'#0e0020','--surface':'#0c001a','--surface2':'#160028','--border':'#2a0060','--accent':'#ff00cc','--accent2':'#00ffcc','--accent3':'#8800ff','--text':'#ff80f0','--dim':'#8040a0','--kf':'#00ffcc' } },
   { name:'フォレストグリーン', vars:{ '--bg':'#0c1810','--panel':'#122010','--surface':'#0e1c10','--surface2':'#182816','--border':'#2a4020','--accent':'#40d080','--accent2':'#80d060','--accent3':'#a0e870','--text':'#c0e8c0','--dim':'#507860','--kf':'#f0e040' } },
 ];
+let _showChecker = false;
+function toggleChecker() {
+  _showChecker = !_showChecker;
+  document.getElementById('btn-checker').classList.toggle('on', _showChecker);
+  redraw();
+}
+
 let _editorThemeIdx = 0;
 function cycleEditorTheme() {
   _editorThemeIdx = (_editorThemeIdx + 1) % _EDITOR_THEMES.length;
