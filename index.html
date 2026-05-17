@@ -3467,6 +3467,25 @@ img.onload=img.onerror=()=>{
     if(params[k]){const n=parseFloat(v);if(!isNaN(n))params[k].val=Math.max(params[k].min??-1,Math.min(params[k].max??1,n));}
   }
   if(usp.get('autoplay')==='1'&&MD.animation){toggleExportAnim();}
+  // Extended URL params: ?clip=name, ?pose=name, ?speed=2, ?mute=1, ?noui=1
+  const clipName=usp.get('clip');
+  if(clipName&&typeof switchClip==='function'){
+    const ci=(MD.animClips||[]).findIndex(c=>c.name===clipName);
+    if(ci>=0)switchClip(ci);
+  }
+  const poseName=usp.get('pose');
+  if(poseName){const pose=MD.poses?.find(p=>p.name===poseName);if(pose){activePose=pose;poseBlend=0;}}
+  const speedParam=parseFloat(usp.get('speed'));
+  if(!isNaN(speedParam)&&typeof animSpeedMult!=='undefined'){
+    animSpeedMult=speedParam;
+    const sp=document.getElementById('anim-speed');if(sp)sp.value=speedParam;
+  }
+  if(usp.get('mute')==='1'){const bgm=document.getElementById('bgm-audio');if(bgm)bgm.muted=true;}
+  if(usp.get('noui')==='1'){
+    ['anim-controls','mt-btn','gp-btn','idle-rand-btn','cp-btn'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.style.display='none';
+    });
+  }
 };
 // postMessage API: {type:'set',param:'headX',value:0.5} or {type:'pose',name:'smile'}
 window.addEventListener('message',e=>{
