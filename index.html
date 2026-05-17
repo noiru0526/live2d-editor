@@ -545,10 +545,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <option value="none">なし</option>
         </select>
       </div>
-      <div class="mcfg-row">
+      <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
           <input type="checkbox" id="export-ctrlpanel" style="accent-color:var(--accent);">
           コントロールパネル埋め込み（🎛ボタンでスライダー表示）
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="export-autoplay" style="accent-color:var(--accent);" checked>
+          アニメーション自動再生
         </label>
       </div>
       <div class="mcfg-row">
@@ -961,6 +965,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
+    <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
@@ -3108,6 +3113,7 @@ function _getExportSettings() {
     customJs: g('export-custom-js')?.value,
     obsMode: g('export-obs-mode')?.checked,
     responsive: g('export-responsive')?.checked,
+    autoplay: g('export-autoplay')?.checked,
     particle: g('export-particle')?.value,
     particleDensity: g('export-particle-density')?.value,
     credit: g('export-credit')?.value,
@@ -3135,6 +3141,7 @@ function _applyExportSettings(s) {
   set('export-custom-js', s.customJs);
   set('export-obs-mode', s.obsMode, 'checked');
   set('export-responsive', s.responsive, 'checked');
+  set('export-autoplay', s.autoplay, 'checked');
   set('export-particle', s.particle);
   set('export-particle-density', s.particleDensity);
   set('export-credit', s.credit);
@@ -3357,6 +3364,7 @@ function genAvatarHTML() {
   const smoothMode=document.getElementById('export-smooth')?.value||'soft';
   const idleMode=document.getElementById('export-idle')?.value||'full';
   const includeCtrlPanel=document.getElementById('export-ctrlpanel')?.checked||false;
+  const exportAutoPlay=document.getElementById('export-autoplay')?.checked!==false;
   const exportLoopCount=parseInt(document.getElementById('export-loop-count')?.value||'-1');
   const bgImgUrl=(document.getElementById('export-bgimg')?.value||'').trim();
   const bgGradient=(document.getElementById('export-bg-gradient')?.value||'').trim();
@@ -4082,7 +4090,7 @@ img.onload=img.onerror=()=>{
   for(const[k,v]of usp.entries()){
     if(params[k]){const n=parseFloat(v);if(!isNaN(n))params[k].val=Math.max(params[k].min??-1,Math.min(params[k].max??1,n));}
   }
-  if(usp.get('autoplay')==='1'&&MD.animation){toggleExportAnim();}
+  if((${exportAutoPlay}||usp.get('autoplay')==='1')&&MD.animation){toggleExportAnim();}
   // Extended URL params: ?clip=name, ?pose=name, ?speed=2, ?mute=1, ?noui=1
   const clipName=usp.get('clip');
   if(clipName&&typeof switchClip==='function'){
@@ -9670,6 +9678,32 @@ function timeStretchAnim() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `タイムストレッチ: ×${factor.toFixed(3)} (${useRange?'選択範囲':'全体'})`;
+}
+
+function normalizeToLoopRegion() {
+  const dur = M.animation.duration || 3;
+  const loopIn = M.animation.loopIn ?? 0;
+  const loopOut = M.animation.loopOut ?? dur;
+  const loopLen = loopOut - loopIn;
+  if (loopLen <= 0) { document.getElementById('lbl-status').textContent = 'ループ区間が設定されていません'; return; }
+  pushAnimUndo();
+  for (const [, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!frames) continue;
+    // Keep only KFs within loop region (with small margin)
+    const kept = frames.filter(kf => kf.t >= loopIn - 0.001 && kf.t <= loopOut + 0.001);
+    // Shift times so loopIn = 0
+    for (const kf of kept) kf.t = Math.round((kf.t - loopIn) * 10000) / 10000;
+    frames.length = 0; frames.push(...kept); frames.sort((a,b)=>a.t-b.t);
+  }
+  M.animation.duration = Math.round(loopLen * 1000) / 1000;
+  M.animation.loopIn = 0;
+  M.animation.loopOut = M.animation.duration;
+  ST.animPlayhead = Math.max(0, Math.min(M.animation.duration, ST.animPlayhead - loopIn));
+  const el = document.getElementById('tl-duration'); if (el) el.value = M.animation.duration.toFixed(1);
+  const liEl = document.getElementById('tl-loop-in'); if (liEl) liEl.value = '0.00';
+  const loEl = document.getElementById('tl-loop-out'); if (loEl) loEl.value = M.animation.duration.toFixed(2);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ループ正規化: ${loopIn.toFixed(3)}s→0, 長さ ${loopLen.toFixed(3)}s`;
 }
 
 function cleanAnimTracks() {
