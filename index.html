@@ -3041,7 +3041,7 @@ const IDLE=${JSON.stringify(idleMode)};
 const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
 const ema=(c,t,a)=>c+(t-c)*a;
 
-const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0};
+const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0,'ease-in-cubic':t=>t*t*t,'ease-out-cubic':t=>1-(1-t)*(1-t)*(1-t),'ease-in-out-cubic':t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,elastic:t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1,'elastic-in':t=>t===0?0:t===1?1:-Math.pow(2,10*t-10)*Math.sin((t*10-10.75)*(2*Math.PI/3)),back:t=>{const c1=1.70158;return (c1+1)*t*t*t-c1*t*t;},'back-out':t=>{const c1=1.70158;return 1+(c1+1)*Math.pow(t-1,3)+c1*Math.pow(t-1,2);},circ:t=>1-Math.sqrt(1-t*t),'circ-out':t=>Math.sqrt(1-(t-1)*(t-1)),sine:t=>1-Math.cos(t*Math.PI/2),'sine-out':t=>Math.sin(t*Math.PI/2)};
 
 // Timeline animation playback
 let animT=0, animLastNow=null, animPlaying=false, animSpeedMult=1;
@@ -6543,7 +6543,19 @@ const _ANIM_INTERP_FNS = {
   'ease-in': t=>t*t,
   'ease-out': t=>1-(1-t)*(1-t),
   bounce: t=>{ const k=t<.5?2*t:2-2*t; return t<.5?k*k/2:1-k*k/2; },
-  step: ()=>0, // hold current KF value until next KF
+  step: ()=>0,
+  // Additional ease presets
+  'ease-in-cubic': t=>t*t*t,
+  'ease-out-cubic': t=>1-(1-t)*(1-t)*(1-t),
+  'ease-in-out-cubic': t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+  elastic: t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1,
+  'elastic-in': t=>t===0?0:t===1?1:-Math.pow(2,10*t-10)*Math.sin((t*10-10.75)*(2*Math.PI/3)),
+  back: t=>{ const c1=1.70158; return (c1+1)*t*t*t-c1*t*t; },
+  'back-out': t=>{ const c1=1.70158; return 1+(c1+1)*Math.pow(t-1,3)+c1*Math.pow(t-1,2); },
+  circ: t=>1-Math.sqrt(1-t*t),
+  'circ-out': t=>Math.sqrt(1-(t-1)*(t-1)),
+  sine: t=>1-Math.cos(t*Math.PI/2),
+  'sine-out': t=>Math.sin(t*Math.PI/2),
 };
 function applyAnimInterp(frac, mode) {
   const fn = _ANIM_INTERP_FNS[mode] || _ANIM_INTERP_FNS.linear;
@@ -6782,7 +6794,7 @@ function drawMultiTimeline() {
         const ky=ry+TL_ROW_H/2;
         const sz=isActiveTrack?5:4;
         // Color by interp type
-        const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#c060ff'};
+        const KFCOL={linear:'#60d890',smooth:'#4e7cff','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#c060ff','ease-in-cubic':'#e0c040','ease-out-cubic':'#d07020','ease-in-out-cubic':'#a0c860',elastic:'#ff60a0','elastic-in':'#ff4060',back:'#a060ff','back-out':'#8040ff',circ:'#40d0c0','circ-out':'#20b0a0',sine:'#60a0ff','sine-out':'#4080e0'};
         const interpCol = kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)');
         const col = isActiveTrack ? interpCol : interpCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,(_,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+'.6)';
         // Shadow
@@ -7708,10 +7720,17 @@ function applyPlayheadToParams() {
         const newT=parseFloat(prompt('時刻を入力(秒):', hit.kf.t.toFixed(3)));
         if (!isNaN(newT)&&newT>=0) { hit.kf.t=Math.round(newT*1000)/1000; M.animation.tracks[hit.name].sort((a,b)=>a.t-b.t); drawMultiTimeline(); }
       }},
-      { icon:'〜', label:'イージング: Linear', action:()=>{ hit.kf.interp='linear'; drawMultiTimeline(); }},
-      { icon:'〜', label:'イージング: Smooth', action:()=>{ hit.kf.interp='smooth'; drawMultiTimeline(); }},
-      { icon:'〜', label:'イージング: Ease-In', action:()=>{ hit.kf.interp='ease-in'; drawMultiTimeline(); }},
-      { icon:'〜', label:'イージング: Ease-Out', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
+      { icon:'—', label:'イージング: Linear', action:()=>{ hit.kf.interp='linear'; drawMultiTimeline(); }},
+      { icon:'〜', label:'イージング: Smooth (smoothstep)', action:()=>{ hit.kf.interp='smooth'; drawMultiTimeline(); }},
+      { icon:'◁', label:'イージング: Ease-In (二乗)', action:()=>{ hit.kf.interp='ease-in'; drawMultiTimeline(); }},
+      { icon:'▷', label:'イージング: Ease-Out (二乗)', action:()=>{ hit.kf.interp='ease-out'; drawMultiTimeline(); }},
+      { icon:'◁', label:'イージング: Ease-In Cubic (三乗)', action:()=>{ hit.kf.interp='ease-in-cubic'; drawMultiTimeline(); }},
+      { icon:'▷', label:'イージング: Ease-Out Cubic (三乗)', action:()=>{ hit.kf.interp='ease-out-cubic'; drawMultiTimeline(); }},
+      { icon:'〈〉', label:'イージング: Ease-In-Out Cubic', action:()=>{ hit.kf.interp='ease-in-out-cubic'; drawMultiTimeline(); }},
+      { icon:'🌀', label:'イージング: Elastic (バネ)', action:()=>{ hit.kf.interp='elastic'; drawMultiTimeline(); }},
+      { icon:'🔙', label:'イージング: Back (オーバーシュート)', action:()=>{ hit.kf.interp='back-out'; drawMultiTimeline(); }},
+      { icon:'○', label:'イージング: Circ (円弧)', action:()=>{ hit.kf.interp='circ-out'; drawMultiTimeline(); }},
+      { icon:'♪', label:'イージング: Sine (正弦波)', action:()=>{ hit.kf.interp='sine-out'; drawMultiTimeline(); }},
       { icon:'⟂', label:'イージング: Step（値をホールド）', action:()=>{ hit.kf.interp='step'; drawMultiTimeline(); }},
       ...(tlSelectedKFs.size > 1 ? [
         null,
@@ -7849,7 +7868,7 @@ function applyPlayheadToParams() {
     if (!hit) { _kfTip.style.display='none'; return; }
     const p=M.params[hit.name];
     const lbl=p?.lbl||hit.name;
-    const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—'}[hit.kf.interp||'linear']||'—';
+    const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
     _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>`;
     _kfTip.style.display='block';
     _kfTip.style.left=(e.clientX+14)+'px';
