@@ -702,6 +702,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">←→ (KF選択時)</td><td>KFを1フレーム前後にナッジ</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+←→ (KF選択時)</td><td>KFを5フレーム前後にナッジ</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+ドラッグ (タイムライン)</td><td>ラバーバンド選択</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Alt+D (KF選択時)</td><td>選択KFを1フレーム後に複製</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">📸 ポーズKF ボタン</td><td>全パラメータを現在時刻にKF挿入</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">✂ トリム ボタン</td><td>継続時間を最後のKFに合わせる</td></tr>
     </table>
@@ -3559,6 +3560,25 @@ document.addEventListener('keydown',e=>{
     if (ST.animMode) { tlSelectedKFs.clear(); drawMultiTimeline(); e.preventDefault(); }
     else { ST.selVerts.clear(); ST.selV=-1; redraw(); e.preventDefault(); }
   }
+  // Alt+D: duplicate selected KFs (insert copies 1 frame ahead)
+  if (e.altKey&&e.key==='d'&&ST.animMode&&tlSelectedKFs.size>0) {
+    pushAnimUndo();
+    const kfToName=new Map();
+    for(const[nm,frms]of Object.entries(M.animation.tracks))for(const kf of frms)kfToName.set(kf,nm);
+    const newKFs=[];
+    const offset=1/30;
+    for(const kf of tlSelectedKFs){
+      const nm=kfToName.get(kf); if(!nm)continue;
+      const copy={t:Math.round((kf.t+offset)*1000)/1000,v:kf.v,interp:kf.interp};
+      if(!M.animation.tracks[nm])M.animation.tracks[nm]=[];
+      M.animation.tracks[nm].push(copy);
+      newKFs.push(copy);
+    }
+    for(const[nm]of Object.entries(M.animation.tracks))M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+    tlSelectedKFs.clear();
+    for(const kf of newKFs)tlSelectedKFs.add(kf);
+    drawMultiTimeline(); e.preventDefault();
+  }
 
   // Arrow key: nudge selected KFs in anim mode (Left/Right = ±1 frame)
   if (ST.animMode && tlSelectedKFs.size>0 && (e.key==='ArrowLeft'||e.key==='ArrowRight') && document.activeElement===document.body) {
@@ -6213,6 +6233,7 @@ let tlScrollY = 0;
 let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
 let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
+const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
@@ -6420,10 +6441,11 @@ function drawMultiTimeline() {
       const dotColor = tc.color;
       tlLabelCtx.fillStyle = dotColor;
       tlLabelCtx.beginPath(); tlLabelCtx.arc(LW-6, lry+TL_ROW_H/2, 3, 0, Math.PI*2); tlLabelCtx.fill();
+      const isLocked = tlLockedTracks.has(name);
       tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
-      const shortLbl = (isHidden?'○ ':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
+      const shortLbl = (isHidden?'○ ':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
       tlLabelCtx.fillText(shortLbl, 3, lry+TL_ROW_H/2+4);
       // Current value at playhead
       const phFrames = M.animation.tracks[name];
@@ -6573,8 +6595,11 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
   if (ri < 0 || ri >= paramEntries.length) return;
   const [srcName, srcParam] = paramEntries[ri];
   const srcFrames = M.animation.tracks[srcName];
+  const isLocked = tlLockedTracks.has(srcName);
   showCtxMenu(e.clientX, e.clientY, [
     { icon:'🎯', label:`${srcParam.lbl} をアクティブに`, action:()=>setAP(srcName) },
+    { icon: isLocked?'🔓':'🔒', label: isLocked?'トラックのロックを解除':'トラックをロック（KF移動禁止）', action:()=>{ isLocked?tlLockedTracks.delete(srcName):tlLockedTracks.add(srcName); drawMultiTimeline(); }},
+    null,
     { icon:'📋', label:`このトラックのKFをコピー...`, action:()=>{
       if (!srcFrames?.length) { document.getElementById('lbl-status').textContent='コピーするKFがありません'; return; }
       const opts = paramEntries.filter(([k])=>k!==srcName).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('');
@@ -7219,6 +7244,7 @@ function applyPlayheadToParams() {
       if (!frames||!frames.length) continue;
       const ry=ri*TL_ROW_H;
       if (py<ry||py>ry+TL_ROW_H) continue;
+      if (tlLockedTracks.has(name)) continue; // skip locked tracks in hit test
       for (const kf of frames) {
         const kxPx=((kf.t-tlZoomOff)/visibleDur)*W;
         const mxPx=(e.clientX-r.left);
