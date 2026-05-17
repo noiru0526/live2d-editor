@@ -403,7 +403,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       </div>
     </div>
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="ptitle" style="padding:5px 4px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0 4px;" title="現在の値をポーズ保存">+</button></div>
+      <div class="ptitle" style="padding:5px 4px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:#c0a0ff;cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button></div>
       <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 4px;font-size:9px;color:var(--dim);">
         <span>遷移</span>
         <input type="range" id="pose-tween-dur" min="0" max="1" step="0.05" value="0.3"
@@ -5220,6 +5220,57 @@ function renderPosePresets() {
     btn.oncontextmenu = e => { e.preventDefault(); if (confirm(`プリセット「${preset.name}」を削除しますか？`)) { M.posePresets.splice(i,1); renderPosePresets(); } };
     list.appendChild(btn);
   });
+}
+
+function showPoseMorphPanel() {
+  const existing = document.getElementById('pose-morph-panel');
+  if (existing) { existing.remove(); return; }
+  if (M.poses.length < 2) { alert('モーフには2つ以上のポーズが必要です'); return; }
+  const panel = document.createElement('div');
+  panel.id = 'pose-morph-panel';
+  panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#1a1e30;border:1px solid rgba(160,100,255,.5);border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  const opts = M.poses.map((p,i) => `<option value="${i}">${p.name}</option>`).join('');
+  panel.innerHTML = `<div style="font-size:12px;color:#c0a0ff;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">⚗ ポーズモーフ<button onclick="document.getElementById('pose-morph-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button></div>
+<div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
+<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--dim);">ポーズ B</label><br><select id="pm-b" style="width:100%;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
+<div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;"><label style="font-size:10px;color:var(--dim);white-space:nowrap;">A ←→ B</label><input type="range" id="pm-blend" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:#c0a0ff;"><span id="pm-blend-val" style="font-size:10px;color:#c0a0ff;width:28px;text-align:right;">50%</span></div>
+<div style="display:flex;gap:6px;margin-top:8px;"><button id="pm-apply" style="flex:1;background:#1e1828;border:1px solid rgba(160,100,255,.4);color:#c0a0ff;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;">現在値をポーズ保存</button></div>`;
+  document.body.appendChild(panel);
+  // Set B to pose 1 by default
+  if (M.poses.length > 1) document.getElementById('pm-b').value = '1';
+  const applyMorph = () => {
+    const ai = parseInt(document.getElementById('pm-a').value);
+    const bi = parseInt(document.getElementById('pm-b').value);
+    const blend = parseFloat(document.getElementById('pm-blend').value);
+    document.getElementById('pm-blend-val').textContent = Math.round(blend*100)+'%';
+    const pA = M.poses[ai], pB = M.poses[bi];
+    if (!pA || !pB) return;
+    for (const [k, p] of Object.entries(M.params)) {
+      const vA = pA.values[k] ?? p.val;
+      const vB = pB.values[k] ?? p.val;
+      const newV = vA + (vB - vA) * blend;
+      p.val = Math.max(p.min, Math.min(p.max, newV));
+      const s = document.getElementById(`ps-${k}`); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+      const pv = document.getElementById(`pv-${k}`); if(pv) pv.textContent=p.val.toFixed(2);
+    }
+    ST.cachedVerts=null; redraw();
+  };
+  panel.querySelector('#pm-blend').addEventListener('input', applyMorph);
+  panel.querySelector('#pm-a').addEventListener('change', applyMorph);
+  panel.querySelector('#pm-b').addEventListener('change', applyMorph);
+  panel.querySelector('#pm-apply').onclick = () => {
+    const values = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+    const nm = prompt('モーフポーズ名:', `モーフ-${Math.round(parseFloat(document.getElementById('pm-blend').value)*100)}%`);
+    if (!nm) return;
+    M.poses.push({name:nm, values}); renderPoseList();
+    document.getElementById('lbl-status').textContent = `モーフポーズ保存: ${nm}`;
+  };
+  // Draggable
+  let pdx=0, pdy=0, pdDown=false;
+  panel.addEventListener('mousedown', e=>{ if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT'||e.target.tagName==='BUTTON') return; pdDown=true;pdx=e.clientX-panel.offsetLeft;pdy=e.clientY-panel.offsetTop; });
+  document.addEventListener('mousemove', e=>{ if(!pdDown)return; panel.style.left=(e.clientX-pdx)+'px'; panel.style.top=(e.clientY-pdy)+'px'; panel.style.right='auto'; });
+  document.addEventListener('mouseup', ()=>{ pdDown=false; });
+  applyMorph();
 }
 
 function showDriverManager() {
