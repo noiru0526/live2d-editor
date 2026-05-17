@@ -3786,6 +3786,23 @@ _mtBtn.onclick = () => {
   _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
 };
 document.body.appendChild(_mtBtn);
+// Tracking settings panel (⚙ button)
+(()=>{
+  const panel=document.createElement('div');
+  panel.id='track-settings-panel';
+  panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(14,17,32,.95);border:1px solid #3a4470;border-radius:6px;padding:10px 14px;color:#c8d4f0;font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
+  panel.innerHTML=`<div style="font-size:11px;font-weight:bold;margin-bottom:8px;color:#a0d0ff;">📡 顔追跡設定</div>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:80px;accent-color:#4e7cff;" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:80px;accent-color:#4e7cff;" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:80px;accent-color:#4e7cff;" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>`;
+  document.body.appendChild(panel);
+  const settBtn=document.createElement('button');
+  settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
+  settBtn.title='顔追跡の感度・デッドゾーン・スムース設定';
+  settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  settBtn.onclick=()=>{ const v=panel.style.display==='none'; panel.style.display=v?'block':'none'; settBtn.style.color=v?'#60d890':'#a0d0ff'; };
+  document.body.appendChild(settBtn);
+})();
 window.addEventListener('mousemove', e => {
   if (!_mouseTracking) return;
   const nx = (e.clientX / window.innerWidth) * 2 - 1;  // -1..1
