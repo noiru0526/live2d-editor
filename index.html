@@ -3332,7 +3332,7 @@ function draw(ts){
   const useTransX=!(ref0def['headX:-1']||ref0def['headX:1']);
   const useTransY=!(ref0def['headY:-1']||ref0def['headY:1']);
   const useRotZ=!(ref0def['headZ:-1']||ref0def['headZ:1']);
-  // Camera animation tracks: __camZoom / __camX / __camY
+  // Camera animation tracks: __camZoom / __camX / __camY / __camShake
   let _camZoom = 1, _camX = 0, _camY = 0;
   // Use MD (exported HTML) or M (editor), and appropriate evalFn
   const _trks = (typeof MD!=='undefined'?MD:M).animation?.tracks||{};
@@ -3341,6 +3341,12 @@ function draw(ts){
   if (_trks['__camZoom']?.length) _camZoom = _evalFn(_trks['__camZoom'], {min:0.1,max:4,val:1}, _animCamT);
   if (_trks['__camX']?.length) _camX = _evalFn(_trks['__camX'], {min:-200,max:200,val:0}, _animCamT);
   if (_trks['__camY']?.length) _camY = _evalFn(_trks['__camY'], {min:-200,max:200,val:0}, _animCamT);
+  // Camera shake track: __camShake = shake intensity (0=none, 1=strong)
+  if (_trks['__camShake']?.length) {
+    const shakeAmt = _evalFn(_trks['__camShake'], {min:0,max:1,val:0}, _animCamT) * 8;
+    _camX += (Math.random()-0.5)*2*shakeAmt;
+    _camY += (Math.random()-0.5)*2*shakeAmt;
+  }
   // Apply camera transform (zoom around center, then pan)
   ctx.translate(W/2+ix+(useTransX?params.headX.val*20:0)+_camX, H/2+by+(useTransY?params.headY.val*15:0)+_camY);
   ctx.scale(_camZoom, _camZoom);
@@ -6855,9 +6861,10 @@ function drawMultiTimeline() {
   };
   // Named singleton camera tracks
   const _CAM_TRACKS = {
-    '__camZoom': {lbl:'📷 ズーム', min:0.1, max:4},
-    '__camX':    {lbl:'📷 X移動', min:-200, max:200},
-    '__camY':    {lbl:'📷 Y移動', min:-200, max:200},
+    '__camZoom':  {lbl:'📷 ズーム', min:0.1, max:4},
+    '__camX':     {lbl:'📷 X移動', min:-200, max:200},
+    '__camY':     {lbl:'📷 Y移動', min:-200, max:200},
+    '__camShake': {lbl:'📷 シェイク', min:0, max:1},
   };
   const specialTracks = [
     // Part-indexed special tracks
@@ -7226,8 +7233,9 @@ function showCameraTrackMenu() {
     {icon:'🔍', label:'ズームトラック追加 (0.1〜4x)', action:()=>mkCam('__camZoom',1)},
     {icon:'⬌', label:'X移動トラック追加 (±200px)', action:()=>mkCam('__camX',0)},
     {icon:'⬍', label:'Y移動トラック追加 (±200px)', action:()=>mkCam('__camY',0)},
+    {icon:'💥', label:'シェイクトラック追加 (揺れ強度0〜1)', action:()=>mkCam('__camShake',0)},
     null,
-    {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ ['__camZoom','__camX','__camY'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
+    {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ ['__camZoom','__camX','__camY','__camShake'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
   ]);
 }
 
