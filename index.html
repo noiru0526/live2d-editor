@@ -6988,6 +6988,27 @@ function drawMultiTimeline() {
     const mctx=mm.getContext('2d');
     mctx.clearRect(0,0,mw,mh);
     mctx.fillStyle='#0e1120'; mctx.fillRect(0,0,mw,mh);
+    // KF density heatmap background
+    const BINS=Math.min(mw,200);
+    const density=new Float32Array(BINS);
+    let maxD=0;
+    for (const frames of Object.values(M.animation.tracks)) {
+      if (!frames?.length) continue;
+      for (const kf of frames) {
+        const bi=Math.floor((kf.t/dur)*BINS);
+        if(bi>=0&&bi<BINS){density[bi]++;if(density[bi]>maxD)maxD=density[bi];}
+      }
+    }
+    if (maxD>0) {
+      for (let bi=0;bi<BINS;bi++) {
+        if (!density[bi]) continue;
+        const alpha=Math.min(1,density[bi]/maxD)*0.35;
+        const bx=Math.round(bi/BINS*mw);
+        const bw=Math.max(1,Math.round(mw/BINS));
+        mctx.fillStyle=`rgba(78,180,255,${alpha.toFixed(2)})`;
+        mctx.fillRect(bx,0,bw,mh);
+      }
+    }
     // Draw all KF positions as tiny lines
     for (const [nm, frames] of Object.entries(M.animation.tracks)) {
       if (!frames?.length) continue;
