@@ -902,6 +902,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
+    <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -7625,6 +7626,56 @@ function renderClipTabs() {
     };
     tabs.appendChild(btn);
   });
+}
+
+function showAnimStats() {
+  const tracks = M.animation.tracks || {};
+  const trackNames = Object.keys(tracks);
+  const tracksWithKF = trackNames.filter(k => tracks[k]?.length > 0);
+  const totalKF = tracksWithKF.reduce((s, k) => s + tracks[k].length, 0);
+  const dur = M.animation.duration || 3;
+  const kfPerSec = dur > 0 ? (totalKF / dur).toFixed(1) : 0;
+  // Find densest track
+  let maxTrack = '', maxKFs = 0;
+  for (const k of tracksWithKF) { if (tracks[k].length > maxKFs) { maxKFs = tracks[k].length; maxTrack = k; } }
+  const maxLbl = M.params[maxTrack]?.lbl || maxTrack;
+  // Time range analysis
+  let allT = []; for (const k of tracksWithKF) allT.push(...tracks[k].map(f=>f.t));
+  const tMin = allT.length ? Math.min(...allT).toFixed(3) : '—';
+  const tMax = allT.length ? Math.max(...allT).toFixed(3) : '—';
+  const clips = (M.animClips||[]).length;
+  const markers = (M.animation.markers||[]).length;
+  showModal('アニメーション統計', `
+    <div style="font-size:12px;display:grid;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="background:#1a1e2e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:bold;color:#4e7cff;">${totalKF}</div>
+          <div style="font-size:10px;color:var(--dim);">合計 KF</div>
+        </div>
+        <div style="background:#1a1e2e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:bold;color:#60d890;">${tracksWithKF.length}</div>
+          <div style="font-size:10px;color:var(--dim);">アクティブトラック</div>
+        </div>
+        <div style="background:#1a1e2e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:bold;color:#ffd060;">${dur.toFixed(2)}s</div>
+          <div style="font-size:10px;color:var(--dim);">デュレーション</div>
+        </div>
+        <div style="background:#1a1e2e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+          <div style="font-size:24px;font-weight:bold;color:#ff80c0;">${kfPerSec}</div>
+          <div style="font-size:10px;color:var(--dim);">KF/秒</div>
+        </div>
+      </div>
+      <div style="background:#1a1e2e;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;">
+        <div style="color:var(--dim);margin-bottom:4px;">最もKFが多いトラック</div>
+        <div style="color:var(--text);">${maxLbl} <span style="color:#ffd060;">(${maxKFs} KF)</span></div>
+      </div>
+      <div style="display:flex;gap:8px;font-size:11px;color:var(--dim);">
+        <span>クリップ: <strong style="color:var(--text);">${clips}</strong></span>
+        <span>マーカー: <strong style="color:var(--text);">${markers}</strong></span>
+        <span>KF範囲: <strong style="color:var(--text);">${tMin}s〜${tMax}s</strong></span>
+      </div>
+    </div>
+  `, ()=>{});
 }
 
 function splitAnimAtPlayhead() {
