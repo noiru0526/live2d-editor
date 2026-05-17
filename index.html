@@ -309,6 +309,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFromFileInput(this)">
   <div class="tsep"></div>
   <button class="tbtn" onclick="showShortcutHelp()" title="? キーでも開けます" style="padding:3px 8px;">?</button>
+  <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="エディタカラーテーマ切替" style="padding:3px 8px;">🎨</button>
   <span id="lbl-status" style="margin-left:8px;">画像を開いてください</span>
 </div>
 
@@ -4585,6 +4586,22 @@ function applyMouthFromMarkers() {
   if (!M.params.mouthOpen.kfs.includes(0.5)) M.params.mouthOpen.kfs.push(0.5);
   ST.cachedVerts=null; updateAllKFDots(); updateKFList();
   document.getElementById('lbl-status').textContent='口プリセット適用完了';
+}
+
+const _EDITOR_THEMES = [
+  { name:'デフォルト（ブルー）', vars:{ '--bg':'#1a1e2e','--panel':'#222840','--surface':'#1e2438','--surface2':'#2a3050','--border':'#2e3656','--accent':'#4e7cff','--accent2':'#a06cff','--accent3':'#60d0ff','--text':'#c8d4f0','--dim':'#6878a0','--kf':'#ffd060' } },
+  { name:'ディープブラック', vars:{ '--bg':'#0a0b10','--panel':'#111318','--surface':'#0d0f18','--surface2':'#161a26','--border':'#1e2230','--accent':'#4e9cff','--accent2':'#9060ff','--accent3':'#40e0d0','--text':'#b0c0e0','--dim':'#50607a','--kf':'#ffcc40' } },
+  { name:'ウォームダーク', vars:{ '--bg':'#1e1810','--panel':'#26200e','--surface':'#201a0c','--surface2':'#2e2618','--border':'#3c3020','--accent':'#f0a040','--accent2':'#d06020','--accent3':'#e0c070','--text':'#e8d8b0','--dim':'#908060','--kf':'#f0c830' } },
+  { name:'サイバーパンク', vars:{ '--bg':'#0a0018','--panel':'#0e0020','--surface':'#0c001a','--surface2':'#160028','--border':'#2a0060','--accent':'#ff00cc','--accent2':'#00ffcc','--accent3':'#8800ff','--text':'#ff80f0','--dim':'#8040a0','--kf':'#00ffcc' } },
+  { name:'フォレストグリーン', vars:{ '--bg':'#0c1810','--panel':'#122010','--surface':'#0e1c10','--surface2':'#182816','--border':'#2a4020','--accent':'#40d080','--accent2':'#80d060','--accent3':'#a0e870','--text':'#c0e8c0','--dim':'#507860','--kf':'#f0e040' } },
+];
+let _editorThemeIdx = 0;
+function cycleEditorTheme() {
+  _editorThemeIdx = (_editorThemeIdx + 1) % _EDITOR_THEMES.length;
+  const theme = _EDITOR_THEMES[_editorThemeIdx];
+  const root = document.documentElement;
+  for (const [k, v] of Object.entries(theme.vars)) root.style.setProperty(k, v);
+  document.getElementById('lbl-status').textContent = `テーマ: ${theme.name}`;
 }
 
 function showShortcutHelp() {
