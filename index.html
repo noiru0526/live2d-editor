@@ -297,6 +297,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
   <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
   <button class="tbtn" onclick="exportPNGSequence()" title="タイムラインアニメをPNG連番+ZIPで出力（JSZip使用）" style="color:#a0e8ff;">🖼 PNG列</button>
+  <button class="tbtn" onclick="exportSpriteSheet()" title="タイムラインアニメをスプライトシートPNGで出力" style="color:#80c8ff;">🀱 スプライト</button>
   <button class="tbtn" id="btn-hq" onclick="toggleHQRender()" title="高品質レンダリング ON/OFF（三角形サブディビジョン・重い）" style="color:#ffe090;">✨ HQ</button>
   <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
@@ -9856,6 +9857,53 @@ async function loadGifLib() {
     s.onload = res; s.onerror = rej;
     document.head.appendChild(s);
   });
+}
+
+async function exportSpriteSheet() {
+  if (!M.parts.some(p=>p.img)) { document.getElementById('lbl-status').textContent = '画像を開いてください'; return; }
+  const tracks = M.animation.tracks;
+  const hasTracks = Object.values(tracks).some(f=>f&&f.length>0);
+  if (!hasTracks) { document.getElementById('lbl-status').textContent = 'タイムラインにKFがありません'; return; }
+  const dur = M.animation.duration || 3;
+  const fps = parseInt(prompt('フレームレート (fps):', '12') || '12');
+  if (isNaN(fps)||fps<=0) return;
+  const cols = parseInt(prompt('グリッド列数:', '8') || '8');
+  if (isNaN(cols)||cols<=0) return;
+  const totalFrames = Math.round(dur * fps);
+  const rows = Math.ceil((totalFrames+1) / cols);
+  const FW = canvas.width / (window.devicePixelRatio||1);
+  const FH = canvas.height / (window.devicePixelRatio||1);
+  const sheetW = cols * FW, sheetH = rows * FH;
+  const sheetCanvas = document.createElement('canvas');
+  sheetCanvas.width = sheetW; sheetCanvas.height = sheetH;
+  const sheetCtx = sheetCanvas.getContext('2d');
+  sheetCtx.fillStyle = 'transparent'; sheetCtx.clearRect(0,0,sheetW,sheetH);
+  document.getElementById('lbl-status').textContent = 'スプライトシート生成中...';
+  const savedVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+  for (let fi = 0; fi <= totalFrames; fi++) {
+    const t = (fi / fps) % dur;
+    for (const [name, frames] of Object.entries(tracks)) {
+      const p = M.params[name]; if (!p||!frames.length) continue;
+      p.val = evalAnimTrack(frames, p, t);
+    }
+    ST.cachedVerts = null;
+    redraw();
+    const col = fi % cols, row = Math.floor(fi / cols);
+    sheetCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, col*FW, row*FH, FW, FH);
+    if (fi % 10 === 0) {
+      document.getElementById('lbl-status').textContent = `スプライトシート: ${fi}/${totalFrames} フレーム...`;
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }
+  // Restore
+  for (const [k,v] of Object.entries(savedVals)) { if (M.params[k]) M.params[k].val = v; }
+  ST.cachedVerts=null; redraw();
+  // Export
+  const a = document.createElement('a');
+  a.href = sheetCanvas.toDataURL('image/png');
+  a.download = `noiru-sprite-${totalFrames+1}f-${cols}col.png`;
+  a.click();
+  document.getElementById('lbl-status').textContent = `スプライトシート完了: ${totalFrames+1}フレーム / ${cols}列${rows}行 (${Math.round(sheetW)}×${Math.round(sheetH)}px)`;
 }
 
 async function exportGIF() {
