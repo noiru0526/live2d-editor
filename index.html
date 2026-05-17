@@ -2892,6 +2892,10 @@ canvas{display:block;image-rendering:auto;}
 #expr-hud{display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#ffd060;font-size:11px;font-family:monospace;pointer-events:none;z-index:99;}
 #expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(10,12,22,.75);border:1px solid rgba(60,70,110,.5);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
 #expr-list .el{color:#8898c0;} #expr-list .el.active{color:#ffd060;font-weight:bold;}
+#pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
+#pose-bar button{background:rgba(20,24,44,.9);border:1px solid #3a4470;border-radius:5px;padding:4px 10px;color:#a0b0d0;font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
+#pose-bar button:hover{border-color:#4e7cff;color:#fff;}
+#pose-bar button.active{background:rgba(20,50,80,.9);border-color:#4e7cff;color:#60d890;font-weight:bold;}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
@@ -2941,6 +2945,8 @@ ${includeCtrlPanel ? `
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
+${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
+
 <div id="obs-tip">
 <strong style="color:#4e7cff">OBS 設定手順</strong><br>
 1. OBS → ソース追加 → ブラウザ<br>
@@ -3021,7 +3027,12 @@ function applyAnimTracks(now){
   const loopIn=MD.animation.loopIn??0;
   const loopOut=MD.animation.loopOut??dur;
   const loopLen=Math.max(loopOut-loopIn,.01);
-  if(animLastNow!=null){const dt=(now-animLastNow)/1000*(animSpeedMult||1);animT+=dt;}
+  if(animLastNow!=null){
+    _speedVaryT+=( now-animLastNow)/1000;
+    const varyMult=_speedVary?(1+Math.sin(_speedVaryT*0.37)*0.08*(1+Math.sin(_speedVaryT*0.13)*0.5)):1;
+    const dt=(now-animLastNow)/1000*(animSpeedMult||1)*varyMult;
+    animT+=dt;
+  }
   animLastNow=now;
   let t=MD.animation.loop?loopIn+((animT-loopIn)%loopLen):Math.min(animT,loopOut);
   if(t<0)t=loopIn+((t-loopIn)%loopLen+loopLen)%loopLen;
@@ -3400,7 +3411,26 @@ function updateExprList(activeIdx) {
   exprList.querySelectorAll('.el').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('el'+activeIdx);
   if (el) el.classList.add('active');
+  // Update pose bar buttons
+  document.querySelectorAll('#pose-bar button').forEach((btn,i)=>{
+    btn.classList.toggle('active', i===activeIdx);
+  });
 }
+function _setPose(idx){
+  if(idx<0){activePose=null;poseBlend=0;updateExprList(0);}
+  else{activePose=EXPR_POSES[idx];poseBlend=0;updateExprList(idx+1);}
+  if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+(activePose?activePose.name:'デフォルト');setTimeout(()=>exprHUD.style.display='none',1500);}
+}
+// Natural speed variation (subtle ±8% sine wave)
+let _speedVary=false, _speedVaryT=0;
+(()=>{
+  const btn=document.createElement('button');
+  btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
+  btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
+  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#a0d0ff';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'#3a4470';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
+  if(typeof animPlaying!=='undefined') btn.style.display='';
+  document.body.appendChild(btn);
+})();
 document.addEventListener('keydown',ev=>{
   const n=parseInt(ev.key);
   if (n>=1&&n<=9&&n<=EXPR_POSES.length) {
