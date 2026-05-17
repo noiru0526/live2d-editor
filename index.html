@@ -7845,6 +7845,18 @@ function applyAnimTemplate(id) {
   document.getElementById('lbl-status').textContent = `テンプレート「${id}」を適用しました`;
 }
 
+function addTimelineMarkerAt(t) {
+  const label = prompt('マーカー名:', 'M' + ((M.animation.markers||[]).length + 1)) ?? '';
+  if (label === null) return;
+  if (!M.animation.markers) M.animation.markers = [];
+  M.animation.markers = M.animation.markers.filter(m => Math.abs(m.t - t) > 0.01);
+  const colors = ['#ffd060','#60d890','#ff80c0','#80c0ff','#ffa060'];
+  const color = colors[M.animation.markers.length % colors.length];
+  M.animation.markers.push({ t: Math.round(t*1000)/1000, label: label||'●', color });
+  M.animation.markers.sort((a,b)=>a.t-b.t);
+  drawMultiTimeline();
+}
+
 function addAnimMarker() {
   const t = ST.animPlayhead;
   const label = prompt('マーカー名:', 'マーカー');
@@ -8736,7 +8748,20 @@ function applyPlayheadToParams() {
       ]); return;
     }
     const hit=hitTestKF(e);
-    if (!hit) return;
+    if (!hit) {
+      // Right-click on empty area: timeline context menu
+      const dur=M.animation.duration||3;
+      const visD=dur/tlZoom;
+      const clickT=Math.max(0,Math.min(dur,tlZoomOff+(e.clientX-r.left)/r.width*visD));
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon:'▶', label:`プレイヘッドをここへ (${clickT.toFixed(3)}s)`, action:()=>{ ST.animPlayhead=snapT(clickT); applyPlayheadToParams(); drawMultiTimeline(); }},
+        { icon:'📍', label:'ここにマーカーを追加', action:()=>addTimelineMarkerAt(clickT) },
+        'sep',
+        { icon:'⊕', label:'全パラメータにKFを追加', action:()=>{ pushAnimUndo(); const t=snapT(clickT); for(const[name,p]of Object.entries(M.params)){if(!M.animation.tracks[name])M.animation.tracks[name]=[];const ex=M.animation.tracks[name].findIndex(k=>Math.abs(k.t-t)<0.005);if(ex>=0)M.animation.tracks[name][ex].v=p.val;else M.animation.tracks[name].push({t,v:p.val});M.animation.tracks[name].sort((a,b)=>a.t-b.t);}drawMultiTimeline(); }},
+        { icon:'🗑', label:'この時刻付近のKFを削除（全トラック）', action:()=>{ pushAnimUndo(); const t=snapT(clickT); for(const frms of Object.values(M.animation.tracks)){const i=frms.findIndex(k=>Math.abs(k.t-t)<0.05);if(i>=0)frms.splice(i,1);}drawMultiTimeline(); }},
+      ]);
+      return;
+    }
     const p=M.params[hit.name];
     // Show context menu with KF options
     showCtxMenu(e.clientX, e.clientY, [
