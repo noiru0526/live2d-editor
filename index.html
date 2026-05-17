@@ -273,6 +273,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="showMiniPreview()" title="ミニプレビュー">▣ プレビュー</button>
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
+  <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="resetToNeutral()" title="全パラメータをゼロに戻す">ニュートラル</button>
   <div class="tsep"></div>
@@ -957,10 +958,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
     <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#80a0d0';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
+    <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#80a0d0';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
     <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
     <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
+    <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
@@ -5951,6 +5954,55 @@ function _runMicSync() {
   _micRaf = requestAnimationFrame(_runMicSync);
 }
 
+// ==================== PARAM AUTO-SCAN ====================
+let _scanRAF = null, _scanActive = false;
+function toggleParamScan() {
+  if (_scanActive) {
+    _scanActive = false;
+    if (_scanRAF) { cancelAnimationFrame(_scanRAF); _scanRAF = null; }
+    document.getElementById('btn-param-scan')?.classList.remove('on');
+    document.getElementById('lbl-status').textContent = 'パラメータスキャン停止';
+    return;
+  }
+  const paramNames = Object.keys(M.params);
+  if (!paramNames.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
+  const scanDur = 2.0; // seconds per parameter (min→max→min)
+  _scanActive = true;
+  document.getElementById('btn-param-scan')?.classList.add('on');
+  let paramIdx = 0, t0 = performance.now();
+  // Save original values
+  const origVals = {};
+  for (const n of paramNames) origVals[n] = M.params[n].val;
+  function _scanTick(now) {
+    if (!_scanActive) return;
+    const elapsed = (now - t0) / 1000;
+    const phase = (elapsed % scanDur) / scanDur; // 0→1
+    // Triangle wave: 0→1→0
+    const tri = phase < 0.5 ? phase*2 : 2 - phase*2;
+    if (elapsed >= scanDur) {
+      // Move to next param
+      const prev = paramNames[paramIdx];
+      if (M.params[prev]) M.params[prev].val = origVals[prev]; // restore
+      paramIdx = (paramIdx + 1) % paramNames.length;
+      t0 = now;
+      setAP(paramNames[paramIdx]);
+    }
+    const p = M.params[paramNames[paramIdx]];
+    if (p && !p.locked) {
+      const v = p.min + (p.max - p.min) * tri;
+      p.val = v;
+      const sl = document.getElementById(`ps-${paramNames[paramIdx]}`);
+      const vl = document.getElementById(`pv-${paramNames[paramIdx]}`);
+      if (sl) { sl.value = v; updateSliderFill(sl, v, p.min, p.max); }
+      if (vl) vl.textContent = v.toFixed(2);
+    }
+    document.getElementById('lbl-status').textContent = `スキャン中: ${p?.lbl||paramNames[paramIdx]} (${paramIdx+1}/${paramNames.length})`;
+    ST.cachedVerts = null; redraw();
+    _scanRAF = requestAnimationFrame(_scanTick);
+  }
+  _scanRAF = requestAnimationFrame(_scanTick);
+}
+
 // ==================== EYEBROW PRESET ====================
 function showBrowSetup() {
   if (!M.img) { alert('先に画像を開いてください'); return; }
@@ -7320,6 +7372,7 @@ let tlHideEmpty = false; // hide tracks with no KFs
 let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
 let tlShowValues = true;  // show current value in track labels
+let tlWaveform = false;   // fill under curve (waveform-style display)
 let _tlHoverT = null; // current hover time on timeline canvas (null = not hovering)
 
 // Shared interp helper — used by playback, seek, and curve display
@@ -7578,19 +7631,46 @@ function drawMultiTimeline() {
     if (frames && frames.length > 0) {
       const range = p.max-p.min||1;
       const toKY = v => ry+rh - 2 - ((v-p.min)/range)*(rh-6);
-      // Draw smooth interpolated value curve
-      tlMultiCtx.beginPath();
       const sorted=[...frames].sort((a,b)=>a.t-b.t);
-      // Sample curve at many points for smooth display
-      const steps=Math.min(Math.ceil(W/2),120);
-      for (let si=0;si<=steps;si++) {
-        const t=si/steps*dur;
+      // Track color from color-coding helper
+      const trackColor = tc.color;
+
+      // Waveform fill: gradient under the curve
+      if (tlWaveform) {
+        tlMultiCtx.save();
+        // Reuse the same path to close the fill
+        tlMultiCtx.beginPath();
+        const wSteps=Math.min(Math.ceil(W/2),120);
+        const zeroY = toKY(Math.max(p.min, Math.min(p.max, 0)));
+        for (let si=0;si<=wSteps;si++) {
+          const t=si/wSteps*dur;
+          const v=evalAnimTrack(sorted, p, t);
+          const kx=toKX(t), ky=toKY(v);
+          if(si===0){ tlMultiCtx.moveTo(kx,ky); } else { tlMultiCtx.lineTo(kx,ky); }
+        }
+        // Close path back along zero line
+        const x0=toKX(0), xEnd=toKX(dur);
+        tlMultiCtx.lineTo(xEnd, zeroY);
+        tlMultiCtx.lineTo(x0, zeroY);
+        tlMultiCtx.closePath();
+        const grad = tlMultiCtx.createLinearGradient(0, ry, 0, ry+rh);
+        const baseColor = trackColor.replace('hsl(','hsla(').replace(')',',.25)');
+        grad.addColorStop(0, baseColor);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        tlMultiCtx.fillStyle = grad;
+        tlMultiCtx.fill();
+        tlMultiCtx.restore();
+      }
+
+      // Draw line on top of fill
+      tlMultiCtx.beginPath();
+      const lineSteps=Math.min(Math.ceil(W/2),120);
+      for (let si=0;si<=lineSteps;si++) {
+        const t=si/lineSteps*dur;
         const v=evalAnimTrack(sorted, p, t);
         const kx=toKX(t),ky=toKY(v);
         if(si===0)tlMultiCtx.moveTo(kx,ky);else tlMultiCtx.lineTo(kx,ky);
       }
-      // Track color from color-coding helper
-      const trackColor = tc.color;
       tlMultiCtx.strokeStyle=isActiveTrack?trackColor:trackColor.replace('60%)','60%,.4)').replace('65%)','65%,.4)').replace('55%)','55%,.4)').replace('hsl(','hsla(');
       tlMultiCtx.lineWidth=isActiveTrack?1.5:1;
       tlMultiCtx.stroke();
@@ -9377,6 +9457,32 @@ function trimAnimDuration() {
   if (el) el.value = newDur.toFixed(1);
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `継続時間をトリム: ${newDur.toFixed(1)}秒`;
+}
+
+function timeStretchAnim() {
+  const input = prompt('タイムストレッチ倍率を入力 (例: 0.5=2倍速, 2.0=半速, 1.0=変更なし):', '0.5');
+  if (!input) return;
+  const factor = parseFloat(input);
+  if (isNaN(factor) || factor <= 0) { alert('有効な倍率を入力してください（例: 0.5, 2.0）'); return; }
+  const useRange = confirm('選択した時間範囲のみストレッチ?\nOK=選択範囲のみ, キャンセル=全体');
+  const rangeFrom = useRange ? (M.animation.loopIn??0) : 0;
+  const rangeTo = useRange ? (M.animation.loopOut??M.animation.duration??3) : (M.animation.duration??3);
+  pushAnimUndo();
+  for (const frames of Object.values(M.animation.tracks||{})) {
+    if (!frames) continue;
+    for (const kf of frames) {
+      if (kf.t < rangeFrom || kf.t > rangeTo) continue;
+      kf.t = rangeFrom + (kf.t - rangeFrom) * factor;
+    }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  if (!useRange) {
+    M.animation.duration = (M.animation.duration||3) * factor;
+    const el = document.getElementById('tl-duration');
+    if (el) el.value = M.animation.duration.toFixed(1);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `タイムストレッチ: ×${factor.toFixed(3)} (${useRange?'選択範囲':'全体'})`;
 }
 
 function cleanAnimTracks() {
