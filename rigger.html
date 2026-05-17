@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live2D Rigger — noiru</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#12151f;color:#cdd6f4;font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
+#toolbar{background:#0d1117;border-bottom:1px solid #1e2638;padding:5px 10px;display:flex;align-items:center;gap:5px;flex-shrink:0;height:38px}
+#toolbar h1{color:#cba6f7;font-size:11px;letter-spacing:2px;margin-right:6px;flex-shrink:0}
+.tbtn{background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:10px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .12s}
+.tbtn:hover{background:#263347;color:#cdd6f4}
+.tbtn.active{background:#7c3aed;border-color:#8b5cf6;color:#fff}
+.tbtn.ok{background:#065f46;border-color:#059669;color:#6ee7b7}
+.sep{width:1px;height:20px;background:#1e2638;margin:0 3px;flex-shrink:0}
+#main{display:flex;flex:1;overflow:hidden}
+/* Left panel */
+#lp{width:185px;background:#0d1117;border-right:1px solid #1e2638;display:flex;flex-direction:column;flex-shrink:0}
+.ph{padding:6px 8px 4px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e2638}
+.ph h3{color:#6e7fa3;font-size:9px;letter-spacing:1.5px;font-weight:700}
+.ih{background:none;border:none;color:#6e7fa3;cursor:pointer;font-size:13px;padding:1px 4px;border-radius:3px}
+.ih:hover{color:#cdd6f4;background:#1e293b}
+#parts-list{flex:1;overflow-y:auto;padding:3px}
+.pi{display:flex;align-items:center;padding:4px 7px;border-radius:4px;cursor:pointer;margin-bottom:2px;border:1px solid transparent;gap:5px}
+.pi:hover{background:#1e293b}
+.pi.sel{background:#1e293b;border-color:#7c3aed}
+.pv{font-size:11px;cursor:pointer;color:#3a4a5a}
+.pv.on{color:#94a3b8}
+.pn{flex:1;font-size:10px;color:#8090b0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi.sel .pn{color:#cdd6f4}
+#kfs{border-top:1px solid #1e2638;padding:6px 8px}
+#kfs h3{color:#6e7fa3;font-size:9px;letter-spacing:1.5px;font-weight:700;margin-bottom:5px}
+#kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px}
+.kb{background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer}
+.kb:hover{background:#263347}
+.kb.on{background:#6d28d9;border-color:#8b5cf6;color:#fff}
+#mesh-sec{border-top:1px solid #1e2638;padding:6px 8px}
+#mesh-sec h3{color:#6e7fa3;font-size:9px;letter-spacing:1.5px;font-weight:700;margin-bottom:5px}
+.mrow{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:9px;color:#6e7fa3}
+.mi{background:#1e293b;border:1px solid #2a3a5a;color:#cdd6f4;font-size:9px;padding:2px 5px;border-radius:3px;width:38px}
+/* Canvas */
+#cw{flex:1;background:#080b10;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#c{image-rendering:pixelated;cursor:crosshair}
+#hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,.88);border:1px solid #2a3a5a;color:#6e7fa3;font-size:9px;padding:3px 10px;border-radius:10px;pointer-events:none;display:none}
+/* Right panel */
+#rp{width:200px;background:#0d1117;border-left:1px solid #1e2638;display:flex;flex-direction:column;flex-shrink:0}
+#params-list{flex:1;overflow-y:auto;padding:5px 7px}
+.pg{font-size:8px;color:#2a3a5a;letter-spacing:1px;padding:5px 0 2px;font-weight:700}
+.pitem{margin-bottom:7px}
+.plbl{display:flex;align-items:center;margin-bottom:2px;cursor:pointer}
+.plbl span{font-size:9px;color:#7080a0;flex:1}
+.plbl span:hover{color:#cdd6f4}
+.pitem.spa .plbl span{color:#cba6f7}
+.pv2{font-size:9px;color:#cba6f7;font-family:monospace;min-width:36px;text-align:right}
+input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;display:block}
+#rb{border-top:1px solid #1e2638;padding:8px 7px}
+.ab{display:block;width:100%;margin-bottom:5px;background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:10px;padding:5px 8px;border-radius:4px;cursor:pointer;text-align:left}
+.ab:hover{background:#263347;color:#cdd6f4}
+.ab.pr{background:linear-gradient(135deg,#6d28d9,#be185d);border:none;color:#fff}
+.ab.pr:hover{opacity:.85}
+/* Status */
+#sb{background:#0d1117;border-top:1px solid #1e2638;padding:3px 10px;font-size:9px;color:#3a4a5a;flex-shrink:0;height:20px}
+/* Modal */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999}
+.mb{background:#1e293b;border:1px solid #3a4a6a;border-radius:8px;padding:18px;min-width:260px}
+.mb h3{color:#cba6f7;font-size:12px;margin-bottom:10px}
+.mb input[type=text]{background:#0d1117;border:1px solid #3a4a6a;color:#cdd6f4;font-size:11px;padding:5px 8px;border-radius:4px;width:100%;margin-bottom:8px;outline:none}
+.mb input:focus{border-color:#7c3aed}
+.mb p{font-size:9px;color:#3a4a5a;margin-bottom:10px;line-height:1.5}
+.ma{display:flex;gap:6px;justify-content:flex-end}
+.mbn{background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:10px;padding:4px 12px;border-radius:4px;cursor:pointer}
+.mbn.ok{background:#7c3aed;border-color:#8b5cf6;color:#fff}
+.mbn:hover{background:#263347}
+.mbn.ok:hover{background:#6d28d9}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#0d1117}
+::-webkit-scrollbar-thumb{background:#2a3a5a;border-radius:2px}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <h1>LIVE2D RIGGER</h1>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="loadImg()">📂 画像読込</button>
+  <button class="tbtn" onclick="loadModelJSON()">📥 モデル読込</button>
+  <div class="sep"></div>
+  <button class="tbtn active" id="btn-parts" onclick="setMode('parts')">パーツ設定</button>
+  <button class="tbtn" id="btn-mesh" onclick="setMode('mesh')">メッシュ編集</button>
+  <button class="tbtn" id="btn-deform" onclick="setMode('deform')">変形リグ</button>
+  <button class="tbtn" id="btn-preview" onclick="setMode('preview')">プレビュー</button>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
+  <button class="tbtn" onclick="fitView()">⊡ フィット</button>
+  <div class="sep"></div>
+  <button class="tbtn ok" onclick="saveModelOnly()">💾 モデル保存</button>
+  <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 アバター出力</button>
+  <input type="file" id="fi" accept="image/*" style="display:none" onchange="onImgLoad(event)">
+  <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
+</div>
+<div id="main">
+  <div id="lp">
+    <div class="ph">
+      <h3>PARTS</h3>
+      <div style="display:flex;gap:3px">
+        <button class="ih" onclick="addPartStart()" title="追加">＋</button>
+        <button class="ih" onclick="delPart()" title="削除">✕</button>
+        <button class="ih" onclick="mvUp()" title="上へ">↑</button>
+        <button class="ih" onclick="mvDn()" title="下へ">↓</button>
+      </div>
+    </div>
+    <div id="parts-list"></div>
+    <div id="kfs">
+      <h3>KEYFRAME</h3>
+      <div id="kf-list"></div>
+      <div style="font-size:9px;color:#3a4a5a;margin-top:2px" id="kf-cur">—</div>
+    </div>
+    <div id="mesh-sec">
+      <h3>MESH</h3>
+      <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="24">行: <input class="mi" id="mr" type="number" value="8" min="2" max="24"></div>
+      <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成</button>
+    </div>
+  </div>
+  <div id="cw"><canvas id="c"></canvas><div id="hint"></div></div>
+  <div id="rp">
+    <div class="ph"><h3>PARAMETERS</h3><span id="spn" style="font-size:9px;color:#7c3aed"></span></div>
+    <div id="params-list"></div>
+    <div id="rb">
+      <button class="ab" onclick="resetKF()">現KFをリセット</button>
+      <button class="ab" onclick="resetAll()">パーツ全リセット</button>
+      <button class="ab pr" onclick="saveModelOnly()">💾 モデル保存</button>
+      <button class="ab pr" onclick="exportAvatarHTMLDirect()">🎭 アバター出力</button>
+    </div>
+  </div>
+</div>
+<div id="sb">Ready — 「📂 画像読込」でアバター画像を読み込んでください</div>
+
+<div id="nmod" class="mo" style="display:none">
+  <div class="mb">
+    <h3>パーツ名を入力</h3>
+    <input type="text" id="ni" placeholder="例: 顔, 目_左, 口, 前髪">
+    <p>推奨名: 顔 / 目_左 / 目_右 / 眉_左 / 眉_右 / 口 / 前髪 / 後髪 / 体</p>
+    <div class="ma">
+      <button class="mbn" onclick="cancelAdd()">キャンセル</button>
+      <button class="mbn ok" onclick="confirmAdd()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ===== PARAMS =====
+const P = {
+  headX:    {l:'頭 X (左右)',  r:[-1,1], k:[-1,0,1],  g:'頭'},
+  headY:    {l:'頭 Y (上下)',  r:[-1,1], k:[-1,0,1],  g:'頭'},
+  headZ:    {l:'頭 Z (傾き)', r:[-1,1], k:[-1,0,1],  g:'頭'},
+  eyeOpenL: {l:'目開閉 L',    r:[0,1],  k:[0,1],     g:'目'},
+  eyeOpenR: {l:'目開閉 R',    r:[0,1],  k:[0,1],     g:'目'},
+  eyeBallX: {l:'眼球 X',      r:[-1,1], k:[-1,0,1],  g:'目'},
+  eyeBallY: {l:'眼球 Y',      r:[-1,1], k:[-1,0,1],  g:'目'},
+  browL:    {l:'眉毛 L',      r:[-1,1], k:[-1,0,1],  g:'眉'},
+  browR:    {l:'眉毛 R',      r:[-1,1], k:[-1,0,1],  g:'眉'},
+  mouthOpen:{l:'口 開き',     r:[0,1],  k:[0,0.5,1], g:'口'},
+  mouthForm:{l:'口 形状',     r:[-1,1], k:[-1,0,1],  g:'口'},
+  cheek:    {l:'頬 赤み',     r:[0,1],  k:[0,1],     g:'体'},
+  bodyX:    {l:'体 X',        r:[-1,1], k:[-1,0,1],  g:'体'},
+  bodyY:    {l:'体 Y',        r:[-1,1], k:[-1,0,1],  g:'体'},
+  breath:   {l:'呼吸',        r:[0,1],  k:[0,1],     g:'体'},
+};
+
+// ===== STATE =====
+let img=null, imgW=0, imgH=0, imgDataURL=null;
+let parts=[];
+let selPart=-1, selParam='headX', curKF=0;
+let mode='parts';
+let pv={}; // preview values
+for(const k of Object.keys(P)) pv[k]=0;
+
+// ===== UNDO =====
+let undoStack=[];
+function saveState(){
+  undoStack.push(JSON.stringify({parts:parts.map(p=>p.toJSON()),selPart}));
+  if(undoStack.length>40) undoStack.shift();
+}
+function undo(){
+  if(!undoStack.length){setStatus('元に戻す履歴がありません');return;}
+  const s=JSON.parse(undoStack.pop());
+  parts=s.parts.map(o=>Part.fromJSON(o));
+  selPart=Math.min(s.selPart,parts.length-1);
+  updatePartsUI();buildKFUI();render();setStatus('元に戻しました');
+}
+
+// View transform
+let VS=1, VOX=0, VOY=0;
+
+// Interaction
+let dragging=false, dragMode='', dragVI=-1;
+let dragSX=0, dragSY=0;
+let panOX=0, panOY=0;
+let rectDraw=null;
+let pendingName='';
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+
+// ===== PART CLASS =====
+class Part {
+  constructor(name, region) {
+    this.id = Date.now().toString(36)+Math.random().toString(36).slice(2);
+    this.name=name;
+    this.region={...region};
+    this.zIndex=parts.length;
+    this.visible=true;
+    this.mesh=null;
+    this.deforms={};
+    this.buildMesh(8,8);
+  }
+  buildMesh(cols,rows) {
+    const {x,y,w,h}=this.region;
+    const verts=[], tris=[];
+    for(let r=0;r<=rows;r++) for(let c=0;c<=cols;c++) verts.push({x:x+c/cols*w, y:y+r/rows*h});
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const tl=r*(cols+1)+c, tr=tl+1, bl=tl+cols+1, br=bl+1;
+      tris.push([tl,tr,bl]); tris.push([tr,br,bl]);
+    }
+    this.mesh={verts,tris,cols,rows};
+    this.initDeforms();
+  }
+  initDeforms() {
+    const n=this.mesh.verts.length;
+    this.deforms={};
+    for(const [pn,pc] of Object.entries(P)){
+      this.deforms[pn]={};
+      for(const k of pc.k) this.deforms[pn][k]=Array.from({length:n},()=>({dx:0,dy:0}));
+    }
+  }
+  resizeDeforms() {
+    const n=this.mesh.verts.length;
+    for(const [pn,pc] of Object.entries(P)){
+      if(!this.deforms[pn]) this.deforms[pn]={};
+      for(const k of pc.k){
+        const old=this.deforms[pn][k]||[];
+        this.deforms[pn][k]=Array.from({length:n},(_,i)=>old[i]||{dx:0,dy:0});
+      }
+    }
+  }
+  getDeformed(vals) {
+    const v=this.mesh.verts, n=v.length;
+    const r=v.map(q=>({x:q.x,y:q.y}));
+    for(const [pn,pval] of Object.entries(vals)){
+      const pc=P[pn]; if(!pc||!this.deforms[pn]) continue;
+      const ks=pc.k; let k0=ks[0],k1=ks[ks.length-1];
+      for(let i=0;i<ks.length-1;i++) if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break}
+      const t=k0===k1?0:(pval-k0)/(k1-k0);
+      const d0=this.deforms[pn][k0]||[], d1=this.deforms[pn][k1]||[];
+      for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t; r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
+    }
+    return r;
+  }
+  toJSON() {
+    return {id:this.id,name:this.name,region:this.region,zIndex:this.zIndex,visible:this.visible,
+      mesh:{verts:this.mesh.verts,tris:this.mesh.tris,cols:this.mesh.cols,rows:this.mesh.rows},deforms:this.deforms};
+  }
+  static fromJSON(o) {
+    const p=new Part(o.name, o.region);
+    p.id=o.id; p.zIndex=o.zIndex; p.visible=o.visible;
+    p.mesh={verts:o.mesh.verts,tris:o.mesh.tris,cols:o.mesh.cols,rows:o.mesh.rows};
+    p.deforms=o.deforms;
+    return p;
+  }
+}
+
+// ===== CANVAS =====
+function setupCanvas(){
+  const w=document.getElementById('cw');
+  canvas.width=w.clientWidth; canvas.height=w.clientHeight;
+}
+window.addEventListener('resize',()=>{setupCanvas();render();});
+
+function fitView(){
+  if(!img) return;
+  const cw=canvas.clientWidth||canvas.width, ch=canvas.clientHeight||canvas.height;
+  VS=Math.min(cw/imgW,ch/imgH)*.9;
+  VOX=(cw-imgW*VS)/2; VOY=(ch-imgH*VS)/2;
+  render();
+}
+
+function m2s(mx,my){return{x:mx*VS+VOX,y:my*VS+VOY};}
+function s2m(sx,sy){return{x:(sx-VOX)/VS,y:(sy-VOY)/VS};}
+
+// ===== RENDER =====
+function getParamVals(){
+  const v={};
+  for(const k of Object.keys(P)) v[k]=0;
+  if(mode==='preview') Object.assign(v,pv);
+  else if(mode==='deform'){Object.assign(v,pv);v[selParam]=curKF;}
+  return v;
+}
+
+function drawTriTex(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
+  const d=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0); if(Math.abs(d)<.001) return;
+  ctx.save();
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.closePath();ctx.clip();
+  const a=((x1-x0)*(v2-v0)-(x2-x0)*(v1-v0))/d, b=((x2-x0)*(u1-u0)-(x1-x0)*(u2-u0))/d, c=x0-a*u0-b*v0;
+  const e=((y1-y0)*(v2-v0)-(y2-y0)*(v1-v0))/d, f=((y2-y0)*(u1-u0)-(y1-y0)*(u2-u0))/d, g=y0-e*u0-f*v0;
+  ctx.transform(a,e,b,f,c,g); ctx.drawImage(img,0,0); ctx.restore();
+}
+
+function render(){
+  setupCanvas();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!img){
+    ctx.fillStyle='#1a2030';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#2a3a5a';ctx.font='13px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('📂 画像を読み込んでください',canvas.width/2,canvas.height/2);
+    ctx.textAlign='left'; return;
+  }
+  const vals=getParamVals();
+  // BG image (dimmed when parts exist)
+  const bgA=parts.length>0?0.25:1;
+  ctx.globalAlpha=bgA;
+  const s0=m2s(0,0),s1=m2s(imgW,imgH);
+  ctx.drawImage(img,s0.x,s0.y,s1.x-s0.x,s1.y-s0.y);
+  ctx.globalAlpha=1;
+  // Draw parts sorted by zIndex
+  const sp=[...parts].sort((a,b)=>a.zIndex-b.zIndex);
+  for(const pt of sp){
+    if(!pt.visible) continue;
+    const dv=pt.getDeformed(vals);
+    for(const [i0,i1,i2] of pt.mesh.tris){
+      const p0=dv[i0],p1=dv[i1],p2=dv[i2];
+      const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
+      const s0=m2s(p0.x,p0.y),s1=m2s(p1.x,p1.y),s2=m2s(p2.x,p2.y);
+      drawTriTex(s0.x,s0.y,s1.x,s1.y,s2.x,s2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y);
+    }
+    // Mesh overlay
+    if(mode!=='preview'){
+      const isSel=parts.indexOf(pt)===selPart;
+      ctx.strokeStyle=isSel?'rgba(139,92,246,.55)':'rgba(80,110,180,.18)';
+      ctx.lineWidth=isSel?.7:.4;
+      for(const [i0,i1,i2] of pt.mesh.tris){
+        const p0=dv[i0],p1=dv[i1],p2=dv[i2];
+        const s0=m2s(p0.x,p0.y),s1=m2s(p1.x,p1.y),s2=m2s(p2.x,p2.y);
+        ctx.beginPath();ctx.moveTo(s0.x,s0.y);ctx.lineTo(s1.x,s1.y);ctx.lineTo(s2.x,s2.y);ctx.closePath();ctx.stroke();
+      }
+      // Vertices for selected part
+      if(isSel&&(mode==='mesh'||mode==='deform')){
+        const kd=(mode==='deform')?(pt.deforms[selParam]?.[curKF]||[]):[];
+        for(let i=0;i<dv.length;i++){
+          const s=m2s(dv[i].x,dv[i].y);
+          const hd=kd[i]&&(Math.abs(kd[i].dx)>.5||Math.abs(kd[i].dy)>.5);
+          ctx.beginPath();ctx.arc(s.x,s.y,hd?4:2.5,0,Math.PI*2);
+          ctx.fillStyle=i===dragVI?'#fff':hd?'#cba6f7':(mode==='mesh'?'#60a5fa':'rgba(139,92,246,.75)');
+          ctx.fill();
+        }
+      }
+    }
+  }
+  // Part bounds in parts mode
+  if(mode==='parts'){
+    for(let i=0;i<parts.length;i++){
+      const pt=parts[i];
+      const tl=m2s(pt.region.x,pt.region.y),br=m2s(pt.region.x+pt.region.w,pt.region.y+pt.region.h);
+      ctx.strokeStyle=i===selPart?'#8b5cf6':'rgba(100,150,255,.4)';
+      ctx.lineWidth=i===selPart?2:1;
+      ctx.strokeRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+      ctx.fillStyle=i===selPart?'#8b5cf6':'rgba(100,150,255,.6)';
+      ctx.font='10px Segoe UI';
+      ctx.fillText(pt.name,tl.x+3,tl.y+13);
+    }
+  }
+  // Live rect draw
+  if(rectDraw){
+    const x1=Math.min(rectDraw.x1,rectDraw.x2),y1=Math.min(rectDraw.y1,rectDraw.y2);
+    const x2=Math.max(rectDraw.x1,rectDraw.x2),y2=Math.max(rectDraw.y1,rectDraw.y2);
+    const a=m2s(x1,y1),b=m2s(x2,y2);
+    ctx.strokeStyle='#cba6f7';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    ctx.strokeRect(a.x,a.y,b.x-a.x,b.y-a.y);ctx.setLineDash([]);
+    ctx.fillStyle='rgba(124,58,237,.1)';ctx.fillRect(a.x,a.y,b.x-a.x,b.y-a.y);
+  }
+}
+
+// ===== IMAGE =====
+const isElectron = !!window.rigger;
+
+async function loadImg(){
+  if(isElectron){
+    const dataURL = await window.rigger.openImage();
+    if(!dataURL) return;
+    applyImageDataURL(dataURL);
+  } else {
+    document.getElementById('fi').click();
+  }
+}
+async function loadModelJSON(){
+  if(isElectron){
+    const json = await window.rigger.openModel();
+    if(!json) return;
+    loadModelFromJSON(json);
+  } else {
+    document.getElementById('fj').click();
+  }
+}
+
+function applyImageDataURL(dataURL){
+  imgDataURL=dataURL;
+  const image=new Image();
+  image.onload=()=>{img=image;imgW=image.width;imgH=image.height;fitView();buildParamsUI();buildKFUI();setStatus(`画像読込完了: ${imgW}×${imgH}px — パーツ設定モードで領域をドラッグして追加`);};
+  image.src=dataURL;
+}
+
+function loadModelFromJSON(json){
+  try{
+    const data=JSON.parse(json);
+    if(data.parts) parts=data.parts.map(o=>Part.fromJSON(o));
+    updatePartsUI();render();setStatus('モデルJSON読込完了');
+  }catch(err){setStatus('JSONの読込に失敗: '+err.message);}
+}
+
+function onImgLoad(e){
+  const file=e.target.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=ev=>applyImageDataURL(ev.target.result);
+  rd.readAsDataURL(file);
+}
+
+function onJSONLoad(e){
+  const file=e.target.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=ev=>loadModelFromJSON(ev.target.result);
+  rd.readAsText(file);
+}
+
+// Electron: receive image via IPC (menu File > Open)
+if(isElectron){
+  window.rigger.on('rigger-drop-image', dataURL => applyImageDataURL(dataURL));
+}
+
+// ===== PARTS MANAGEMENT =====
+function addPartStart(){
+  if(!img){setStatus('先に画像を読み込んでください');return;}
+  document.getElementById('ni').value='';
+  document.getElementById('nmod').style.display='flex';
+  document.getElementById('ni').focus();
+}
+function confirmAdd(){
+  const nm=document.getElementById('ni').value.trim()||`パーツ${parts.length+1}`;
+  pendingName=nm;
+  document.getElementById('nmod').style.display='none';
+  dragMode='rect';
+  setHint(`「${nm}」の範囲をドラッグで描画 / Escでキャンセル`);
+  setStatus(`「${nm}」の領域をキャンバス上でドラッグしてください`);
+}
+function cancelAdd(){document.getElementById('nmod').style.display='none';pendingName='';dragMode='';}
+
+function finishAddPart(region){
+  saveState();
+  const pt=new Part(pendingName,region);
+  parts.push(pt);selPart=parts.length-1;
+  pendingName='';dragMode='';rectDraw=null;
+  updatePartsUI();render();
+  setStatus(`パーツ「${pt.name}」を追加しました (${parts.length}パーツ)`);setHint('');
+}
+
+function delPart(){
+  if(selPart<0||selPart>=parts.length) return;
+  saveState();
+  const nm=parts[selPart].name;
+  parts.splice(selPart,1);
+  selPart=Math.min(selPart,parts.length-1);
+  updatePartsUI();render();setStatus(`パーツ「${nm}」を削除`);
+}
+function mvUp(){if(selPart<=0)return;saveState();[parts[selPart],parts[selPart-1]]=[parts[selPart-1],parts[selPart]];selPart--;parts.forEach((p,i)=>p.zIndex=i);updatePartsUI();render();}
+function mvDn(){if(selPart>=parts.length-1)return;saveState();[parts[selPart],parts[selPart+1]]=[parts[selPart+1],parts[selPart]];selPart++;parts.forEach((p,i)=>p.zIndex=i);updatePartsUI();render();}
+
+function selPartClick(i){selPart=i;updatePartsUI();buildKFUI();render();}
+function togVis(i,e){e.stopPropagation();parts[i].visible=!parts[i].visible;updatePartsUI();render();}
+
+function updatePartsUI(){
+  const list=document.getElementById('parts-list');list.innerHTML='';
+  parts.forEach((pt,i)=>{
+    const d=document.createElement('div');
+    d.className='pi'+(i===selPart?' sel':'');
+    d.onclick=()=>selPartClick(i);
+    const nameSpan=document.createElement('span');
+    nameSpan.className='pn';nameSpan.textContent=pt.name;
+    nameSpan.title='ダブルクリックで名前変更';
+    nameSpan.ondblclick=(e)=>{
+      e.stopPropagation();
+      const inp=document.createElement('input');
+      inp.value=pt.name;inp.style.cssText='background:#0d1117;border:1px solid #7c3aed;color:#cdd6f4;font-size:10px;padding:1px 4px;border-radius:3px;width:100%;outline:none;';
+      nameSpan.replaceWith(inp);inp.focus();inp.select();
+      const commit=()=>{const v=inp.value.trim();if(v){saveState();pt.name=v;}updatePartsUI();};
+      inp.onblur=commit;inp.onkeydown=(ev)=>{if(ev.key==='Enter')commit();if(ev.key==='Escape')updatePartsUI();ev.stopPropagation();};
+    };
+    d.innerHTML=`<span class="pv ${pt.visible?'on':''}" onclick="togVis(${i},event)">${pt.visible?'👁':'·'}</span>`;
+    d.appendChild(nameSpan);
+    const zs=document.createElement('span');zs.style.cssText='font-size:8px;color:#3a4a5a';zs.textContent='z:'+pt.zIndex;
+    d.appendChild(zs);
+    list.appendChild(d);
+  });
+  document.getElementById('sb').textContent=parts.length>0?`${parts.length}パーツ — モード: ${mode}`:'Ready — 「📂 画像読込」でアバター画像を読み込んでください';
+}
+
+function rebuildMesh(){
+  if(selPart<0){setStatus('パーツを選択してください');return;}
+  const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
+  parts[selPart].buildMesh(c,r);render();setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r} 再生成`);
+}
+
+// ===== SMART DEFORM =====
+function smartDeform(){
+  if(selPart<0){setStatus('パーツを選択してください');return;}
+  saveState();
+  const pt=parts[selPart];
+  const {x,y,w,h}=pt.region;
+  const cx=x+w/2, cy=y+h/2;
+  const verts=pt.mesh.verts, n=verts.length;
+  for(const kv of P[selParam].k){
+    const d=pt.deforms[selParam]?.[kv]||Array.from({length:n},()=>({dx:0,dy:0}));
+    for(let i=0;i<n;i++){
+      const vx=verts[i].x, vy=verts[i].y;
+      const nx=(vx-cx)/(w/2), ny=(vy-cy)/(h/2);
+      if(selParam==='headX'){d[i].dx=kv*nx*w*.18;d[i].dy=kv*ny*h*.03;}
+      else if(selParam==='headY'){d[i].dx=kv*nx*w*.03;d[i].dy=kv*(ny*h*.1+h*.1);}
+      else if(selParam==='headZ'){const a=kv*.18;d[i].dx=(Math.cos(a)-1)*(vx-cx)-Math.sin(a)*(vy-cy);d[i].dy=Math.sin(a)*(vx-cx)+(Math.cos(a)-1)*(vy-cy);}
+      else if(selParam==='eyeOpenL'||selParam==='eyeOpenR'){d[i].dx=0;d[i].dy=kv===1?ny*h*-.45:0;}
+      else if(selParam==='mouthOpen'){d[i].dx=0;d[i].dy=kv*ny*h*.35;}
+      else if(selParam==='mouthForm'){d[i].dx=0;d[i].dy=kv*nx*nx*h*-.18;}
+      else if(selParam==='browL'||selParam==='browR'){d[i].dx=0;d[i].dy=kv*h*-.35;}
+      else if(selParam==='eyeBallX'){d[i].dx=kv*w*.18;d[i].dy=0;}
+      else if(selParam==='eyeBallY'){d[i].dx=0;d[i].dy=kv*h*.12;}
+      else if(selParam==='breath'){d[i].dy=kv*(ny+1)*h*.04;d[i].dx=0;}
+      else{d[i].dx=0;d[i].dy=0;}
+    }
+    pt.deforms[selParam][kv]=d;
+  }
+  render();setStatus(`「${pt.name}」に${P[selParam].l}のスマート変形を適用`);
+}
+
+function resetKF(){
+  if(selPart<0) return;
+  const pt=parts[selPart], n=pt.mesh.verts.length;
+  if(pt.deforms[selParam]?.[curKF]) pt.deforms[selParam][curKF]=Array.from({length:n},()=>({dx:0,dy:0}));
+  render();setStatus(`${P[selParam]?.l} @ ${curKF} をリセット`);
+}
+function resetAll(){
+  if(selPart<0) return;
+  saveState();
+  parts[selPart].initDeforms();render();setStatus(`「${parts[selPart].name}」全変形リセット`);
+}
+
+// ===== MODE =====
+function setMode(m){
+  mode=m;
+  ['parts','mesh','deform','preview'].forEach(id=>{
+    const el=document.getElementById('btn-'+id);
+    if(el) el.classList.toggle('active',id===m);
+  });
+  const hints={parts:'パーツ設定 — 境界を確認・編集',mesh:'メッシュ編集 — 頂点を直接移動',deform:'変形リグ — KF×パラメータで変形設定',preview:'プレビュー — スライダーで動きを確認'};
+  setHint(hints[m]||'');render();
+}
+function setHint(msg){const el=document.getElementById('hint');el.textContent=msg;el.style.display=msg?'block':'none';}
+
+// ===== PARAMS UI =====
+function buildParamsUI(){
+  const list=document.getElementById('params-list');list.innerHTML='';
+  let cg='';
+  for(const [pn,pc] of Object.entries(P)){
+    if(pc.g!==cg){cg=pc.g;const gh=document.createElement('div');gh.className='pg';gh.textContent='── '+cg+' ──';list.appendChild(gh);}
+    const item=document.createElement('div');
+    item.className='pitem'+(pn===selParam?' spa':'');
+    item.id='pi-'+pn;
+    const [rmin,rmax]=pc.r, val=pv[pn]||0;
+    const sv=((val-rmin)/(rmax-rmin)*100).toFixed(0);
+    item.innerHTML=`<div class="plbl" onclick="selPrm('${pn}')"><span>${pc.l}</span><span class="pv2" id="pv-${pn}">${val.toFixed(2)}</span></div><input type="range" min="0" max="100" value="${sv}" oninput="updPrm('${pn}',this.value)">`;
+    list.appendChild(item);
+  }
+}
+function selPrm(pn){
+  selParam=pn;
+  document.querySelectorAll('.pitem').forEach(el=>el.classList.remove('spa'));
+  const el=document.getElementById('pi-'+pn); if(el) el.classList.add('spa');
+  document.getElementById('spn').textContent=P[pn]?.l||pn;
+  buildKFUI();render();
+}
+function updPrm(pn,raw){
+  const pc=P[pn],[rmin,rmax]=pc.r;
+  const val=rmin+(raw/100)*(rmax-rmin);
+  pv[pn]=val;
+  const el=document.getElementById('pv-'+pn); if(el) el.textContent=val.toFixed(2);
+  render();
+}
+
+// ===== KF UI =====
+function buildKFUI(){
+  const c=document.getElementById('kf-list');c.innerHTML='';
+  const pc=P[selParam]; if(!pc) return;
+  pc.k.forEach(k=>{
+    const b=document.createElement('button');
+    b.className='kb'+(k===curKF?' on':'');
+    b.textContent=typeof k==='number'?k.toFixed(1):k;
+    b.onclick=()=>{curKF=k;buildKFUI();render();setStatus(`KF: ${P[selParam].l} = ${k}`);};
+    c.appendChild(b);
+  });
+  if(!pc.k.includes(curKF)) curKF=pc.k[0];
+  document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
+}
+
+// ===== CANVAS INTERACTION =====
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const f=e.deltaY>0?.88:1.12;
+  VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; VS*=f; render();
+},{passive:false});
+
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
+  const mp=s2m(sx,sy);
+  if(e.button===1||(e.button===0&&e.altKey)){
+    dragging=true;dragMode='pan';dragSX=sx;dragSY=sy;panOX=VOX;panOY=VOY;
+    canvas.style.cursor='grabbing';return;
+  }
+  if(dragMode==='rect'){
+    dragging=true;rectDraw={x1:mp.x,y1:mp.y,x2:mp.x,y2:mp.y};return;
+  }
+  if(mode==='parts'){
+    let clicked=-1;
+    for(let i=parts.length-1;i>=0;i--){
+      const {x,y,w,h}=parts[i].region;
+      if(mp.x>=x&&mp.x<=x+w&&mp.y>=y&&mp.y<=y+h){clicked=i;break;}
+    }
+    if(clicked>=0) selPartClick(clicked);
+    return;
+  }
+  if((mode==='mesh'||mode==='deform')&&selPart>=0){
+    const pt=parts[selPart];
+    const vals={}; for(const k of Object.keys(P)) vals[k]=0;
+    if(mode==='deform') vals[selParam]=curKF;
+    const dv=pt.getDeformed(vals);
+    const thresh=(15/VS)*(15/VS);
+    let bi=-1,bd=thresh;
+    for(let i=0;i<dv.length;i++){const dx=dv[i].x-mp.x,dy=dv[i].y-mp.y;const d2=dx*dx+dy*dy;if(d2<bd){bd=d2;bi=i;}}
+    if(bi>=0){saveState();dragging=true;dragMode='vert';dragVI=bi;dragSX=mp.x;dragSY=mp.y;render();}
+  }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging) return;
+  const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
+  const mp=s2m(sx,sy);
+  if(dragMode==='pan'){VOX=panOX+(sx-dragSX);VOY=panOY+(sy-dragSY);render();return;}
+  if(dragMode==='rect'&&rectDraw){rectDraw.x2=mp.x;rectDraw.y2=mp.y;render();return;}
+  if(dragMode==='vert'&&dragVI>=0&&selPart>=0){
+    const ddx=mp.x-dragSX, ddy=mp.y-dragSY;
+    dragSX=mp.x;dragSY=mp.y;
+    const pt=parts[selPart];
+    if(mode==='mesh'){pt.mesh.verts[dragVI].x+=ddx;pt.mesh.verts[dragVI].y+=ddy;pt.resizeDeforms();}
+    else if(mode==='deform'&&pt.deforms[selParam]?.[curKF]){
+      pt.deforms[selParam][curKF][dragVI].dx+=ddx;
+      pt.deforms[selParam][curKF][dragVI].dy+=ddy;
+    }
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup',e=>{
+  if(dragMode==='rect'&&rectDraw){
+    const x1=Math.min(rectDraw.x1,rectDraw.x2),y1=Math.min(rectDraw.y1,rectDraw.y2);
+    const x2=Math.max(rectDraw.x1,rectDraw.x2),y2=Math.max(rectDraw.y1,rectDraw.y2);
+    const w=x2-x1,h=y2-y1;
+    if(w>8&&h>8) finishAddPart({x:x1,y:y1,w,h});
+    else{rectDraw=null;render();setStatus('領域が小さすぎます');}
+  }
+  if(dragMode!=='rect'){dragMode='';dragVI=-1;}
+  dragging=false;canvas.style.cursor='crosshair';
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){pendingName='';dragMode='';rectDraw=null;render();setHint('');}
+  if(e.key==='Delete'&&document.activeElement===document.body) delPart();
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'&&document.activeElement===document.body){e.preventDefault();undo();}
+});
+document.getElementById('ni').addEventListener('keydown',e=>{
+  if(e.key==='Enter') confirmAdd();
+  if(e.key==='Escape') cancelAdd();
+});
+
+// ===== EXPORT =====
+async function saveModelOnly(){
+  if(!imgDataURL){setStatus('先に画像を読み込んでください');return;}
+  const model={version:2,imgW,imgH,parts:parts.map(p=>p.toJSON())};
+  const json=JSON.stringify(model,null,2);
+  if(isElectron){
+    const ok=await window.rigger.saveModel(json);
+    if(ok) setStatus(`モデルを保存しました (${parts.length}パーツ)`);
+  } else {
+    const b=new Blob([json],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='live2d-model.json';a.click();
+    setStatus('live2d-model.json をエクスポート');
+  }
+}
+async function exportAll(){
+  await saveModelOnly();
+}
+
+async function exportAvatarHTMLDirect(){
+  if(!imgDataURL){setStatus('先に画像を読み込んでください');return;}
+  const model={version:2,imgW,imgH,parts:parts.map(p=>p.toJSON())};
+  const html=buildAvatarHTML(model);
+  if(isElectron){
+    const ok=await window.rigger.exportAvatar(html);
+    if(ok) setStatus('アバターHTMLを保存しました');
+  } else {
+    exportAvatarHTMLBrowser(model);
+  }
+}
+
+function exportAvatarHTMLBrowser(model){
+  const html=buildAvatarHTML(model);
+  const b2=new Blob([html],{type:'text/html'});
+  const a2=document.createElement('a');a2.href=URL.createObjectURL(b2);a2.download='avatar-live2d.html';a2.click();
+}
+
+function buildAvatarHTML(model){
+  const PJ=JSON.stringify(P);
+  const MJ=JSON.stringify(model);
+  const html=`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Live2D Avatar</title>
+<style>*{margin:0;padding:0}body{background:transparent;overflow:hidden}
+canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+#st{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.6);color:#aaa;font-size:10px;font-family:monospace;padding:3px 8px;border-radius:4px}</style>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
+<script>
+const MODEL=${MJ};
+const PD=${PJ};
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const img=new Image();
+canvas.width=MODEL.imgW;canvas.height=MODEL.imgH;
+const S={headX:0,headY:0,headZ:0,eyeOpenL:0,eyeOpenR:0,eyeBallX:0,eyeBallY:0,browL:0,browR:0,mouthOpen:0,mouthForm:0,cheek:0,bodyX:0,bodyY:0,breath:0};
+const T={...S};
+let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
+function ema(a,b,s){return a+(b-a)*s}
+function getDef(pt,vals){
+  const v=pt.mesh.verts,n=v.length,r=v.map(q=>({x:q.x,y:q.y}));
+  for(const[pn,pval] of Object.entries(vals)){
+    const pc=PD[pn];if(!pc||!pt.deforms[pn])continue;
+    const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
+    for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break}
+    const t=k0===k1?0:(pval-k0)/(k1-k0);
+    const d0=pt.deforms[pn][k0]||[],d1=pt.deforms[pn][k1]||[];
+    for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
+  }
+  return r;
+}
+function drawTri(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2){
+  const d=(u1-u0)*(v2-v0)-(u2-u0)*(v1-v0);if(Math.abs(d)<.001)return;
+  ctx.save();ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.closePath();ctx.clip();
+  const a=((x1-x0)*(v2-v0)-(x2-x0)*(v1-v0))/d,b=((x2-x0)*(u1-u0)-(x1-x0)*(u2-u0))/d,c=x0-a*u0-b*v0;
+  const e=((y1-y0)*(v2-v0)-(y2-y0)*(v1-v0))/d,f=((y2-y0)*(u1-u0)-(y1-y0)*(u2-u0))/d,g=y0-e*u0-f*v0;
+  ctx.transform(a,e,b,f,c,g);ctx.drawImage(img,0,0);ctx.restore();
+}
+function frame(ts){
+  const dt=Math.min((ts-last)/1000,.05);last=ts;
+  const sm=.12;
+  S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,.1);
+  S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,.35);S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,.35);
+  S.eyeBallX=ema(S.eyeBallX,T.eyeBallX,.2);S.eyeBallY=ema(S.eyeBallY,T.eyeBallY,.2);
+  S.browL=ema(S.browL,T.browL,.18);S.browR=ema(S.browR,T.browR,.18);
+  S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,.3);S.mouthForm=ema(S.mouthForm,T.mouthForm,.12);
+  S.cheek=ema(S.cheek,T.cheek,.08);S.bodyX=ema(S.bodyX,T.bodyX,.07);S.bodyY=ema(S.bodyY,T.bodyY,.07);
+  if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2.5+Math.random()*4;}}
+  else{ablinkP+=dt/.1;if(ablinkP>=1){ablink=false;ablinkP=0;}}
+  const ab=ablink?Math.sin(ablinkP*Math.PI):0;
+  breathT+=dt*.5;S.breath=Math.sin(breathT)*.5+.5;
+  const vals={...S,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  const sorted=[...MODEL.parts].sort((a,b)=>a.zIndex-b.zIndex);
+  ctx.save();
+  ctx.translate(cx+S.headX*20+S.bodyX*8+Math.sin(breathT*.7)*.8,cy+S.headY*15+S.bodyY*6+Math.sin(breathT)*2.5);
+  ctx.rotate(S.headZ*.18);ctx.translate(-cx,-cy);
+  for(const pt of sorted){
+    if(!pt.visible)continue;
+    const dv=getDef(pt,vals);
+    for(const[i0,i1,i2] of pt.mesh.tris){
+      const p0=dv[i0],p1=dv[i1],p2=dv[i2],q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
+      drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y);
+    }
+  }
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+img.onload=()=>{requestAnimationFrame(frame);setTimeout(initCam,500);};
+img.src='${imgDataURL}';
+function initCam(){
+  const v=document.createElement('video');v.style.display='none';document.body.appendChild(v);
+  const fm=new FaceMesh({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'+f});
+  fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+  fm.onResults(r=>{
+    if(!r.multiFaceLandmarks?.length)return;
+    const lm=r.multiFaceLandmarks[0];tracking=true;
+    T.headX=(lm[1].x-.5)*-2;T.headY=(lm[1].y-.5)*-2;
+    const le=lm[234],re=lm[454];T.headZ=Math.atan2(re.y-le.y,re.x-le.x);
+    const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
+    const eL=ear(362,385,387,263,373,380),eR=ear(33,160,158,133,153,144);
+    T.eyeOpenL=eL<.18?1:eL>.28?0:1-(eL-.18)/.1;
+    T.eyeOpenR=eR<.18?1:eR>.28?0:1-(eR-.18)/.1;
+    T.mouthOpen=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*35));
+    if(lm[473]&&lm[468]){
+      T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*4));
+      T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.35)*4));
+    }
+  });
+  const cam=new Camera(v,{onFrame:async()=>{if(v.readyState>=2)await fm.send({image:v})},width:320,height:240});
+  cam.start().then(()=>{document.getElementById('st').textContent='Camera: ✓';document.getElementById('st').style.color='#70d870';})
+    .catch(()=>{document.getElementById('st').textContent='No camera (auto-anim)';});
+}
+<\/script></body></html>`;
+  return html;
+}
+
+// ===== STATUS / INIT =====
+function setStatus(msg){document.getElementById('sb').textContent=msg;}
+setupCanvas();buildParamsUI();buildKFUI();setMode('parts');
+</script>
+</body>
+</html>
