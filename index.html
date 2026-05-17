@@ -855,6 +855,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="clearAnimTracks()" style="background:#2e3656;border:1px solid var(--border);color:#f08080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
     <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2e3656;border:1px solid var(--border);color:#c0a080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
+    <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -7022,6 +7023,39 @@ function addAnimMarker() {
   M.animation.markers.sort((a,b)=>a.t-b.t);
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `マーカー「${label}」@ ${t.toFixed(3)}s`;
+}
+
+function addBPMMarkers() {
+  const bpmStr = prompt('BPM を入力:', '120');
+  if (bpmStr === null) return;
+  const bpm = parseFloat(bpmStr);
+  if (isNaN(bpm) || bpm <= 0) { alert('無効なBPM値です'); return; }
+  const beatsPerMeasure = parseInt(prompt('拍子（1小節の拍数）:', '4') || '4');
+  const startT = parseFloat(prompt('開始時刻 (秒):', '0') || '0');
+  const beatSec = 60 / bpm;
+  const dur = M.animation.duration || 3;
+  if (!M.animation.markers) M.animation.markers = [];
+  // Remove old BPM markers
+  M.animation.markers = M.animation.markers.filter(m => !m.isBPM);
+  let beat = 0;
+  const barColors = ['#ffd060','#ff8040'];
+  const beatColors = ['rgba(255,208,96,.5)','rgba(255,128,64,.5)'];
+  for (let t = startT; t <= dur + 0.001; t = Math.round((t + beatSec) * 10000) / 10000, beat++) {
+    if (t < 0 || t > dur + 0.001) continue;
+    const isBar = beat % beatsPerMeasure === 0;
+    const barNum = Math.floor(beat / beatsPerMeasure) + 1;
+    const beatNum = beat % beatsPerMeasure + 1;
+    M.animation.markers.push({
+      t: Math.round(t * 1000) / 1000,
+      label: isBar ? `${barNum}小節` : `${barNum}-${beatNum}`,
+      color: isBar ? barColors[(barNum-1)%2] : beatColors[(barNum-1)%2],
+      isBPM: true,
+    });
+  }
+  M.animation.markers.sort((a,b)=>a.t-b.t);
+  drawMultiTimeline();
+  const count = M.animation.markers.filter(m=>m.isBPM).length;
+  document.getElementById('lbl-status').textContent = `BPM ${bpm} でマーカー${count}個生成`;
 }
 
 function toggleTLSnap() {
