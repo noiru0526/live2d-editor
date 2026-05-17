@@ -6642,6 +6642,7 @@ let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
 let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
+const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
@@ -6827,7 +6828,11 @@ function drawMultiTimeline() {
     // Camera tracks (only if they exist in animation.tracks)
     ...Object.keys(_CAM_TRACKS).filter(k=>M.animation.tracks?.[k]?.length).map(k=>[k,_CAM_TRACKS[k]]),
   ];
-  const allTrackRows = [...params, ...specialTracks];
+  // Pinned tracks first, then rest
+  const allBase = [...params, ...specialTracks];
+  const pinned = allBase.filter(([n]) => tlPinnedTracks.has(n));
+  const unpinned = allBase.filter(([n]) => !tlPinnedTracks.has(n));
+  const allTrackRows = [...pinned, ...unpinned];
 
   // Clamp scroll
   const totalH = allTrackRows.length * TL_ROW_H;
@@ -6852,7 +6857,8 @@ function drawMultiTimeline() {
     // Row background
     const tc = _trackColor(name);
     const isSpecial = !!tc.bg;
-    tlMultiCtx.fillStyle = tc.bg || (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent');
+    const isPinned = tlPinnedTracks.has(name);
+    tlMultiCtx.fillStyle = isPinned ? 'rgba(255,200,60,.06)' : (tc.bg || (ri%2===0 ? 'rgba(255,255,255,.02)' : 'transparent'));
     tlMultiCtx.fillRect(0, ry, W, TL_ROW_H);
     // Separator
     tlMultiCtx.fillStyle='rgba(46,54,86,.5)';
@@ -7099,6 +7105,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
   showCtxMenu(e.clientX, e.clientY, [
     { icon:'🎯', label:`${srcParam.lbl} をアクティブに`, action:()=>setAP(srcName) },
     { icon: isLocked?'🔓':'🔒', label: isLocked?'トラックのロックを解除':'トラックをロック（KF移動禁止）', action:()=>{ isLocked?tlLockedTracks.delete(srcName):tlLockedTracks.add(srcName); drawMultiTimeline(); }},
+    { icon: tlPinnedTracks.has(srcName)?'📌':'📌', label: tlPinnedTracks.has(srcName)?'ピン留めを解除（常時表示OFF）':'トラックをピン留め（常時上部に固定）', action:()=>{ tlPinnedTracks.has(srcName)?tlPinnedTracks.delete(srcName):tlPinnedTracks.add(srcName); drawMultiTimeline(); }},
     null,
     { icon:'📋', label:`このトラックのKFをコピー...`, action:()=>{
       if (!srcFrames?.length) { document.getElementById('lbl-status').textContent='コピーするKFがありません'; return; }
