@@ -917,6 +917,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
+    <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -7669,6 +7670,53 @@ function renderClipTabs() {
     };
     tabs.appendChild(btn);
   });
+}
+
+function checkLoopConsistency() {
+  const tracks = M.animation.tracks || {};
+  const dur = M.animation.duration || 3;
+  const eps = 0.005;
+  const mismatch = [];
+  for (const [name, frames] of Object.entries(tracks)) {
+    if (!frames?.length) continue;
+    const sorted = [...frames].sort((a,b)=>a.t-b.t);
+    const first = sorted[0], last = sorted[sorted.length-1];
+    if (Math.abs(first.v - last.v) > eps) {
+      const lbl = M.params[name]?.lbl || name;
+      mismatch.push({name, lbl, vFirst:first.v, vLast:last.v, diff:Math.abs(first.v-last.v)});
+    }
+  }
+  if (!mismatch.length) {
+    document.getElementById('lbl-status').textContent = '✓ 全トラックのループが整合しています';
+    return;
+  }
+  const rows = mismatch.map(m=>`<tr style="border-bottom:1px solid rgba(255,255,255,.05);">
+    <td style="padding:4px 8px;color:var(--text);font-size:10px;">${m.lbl}</td>
+    <td style="padding:4px 8px;color:#ffd060;font-size:10px;font-family:monospace;">${m.vFirst.toFixed(3)}</td>
+    <td style="padding:4px 8px;color:#ff8060;font-size:10px;font-family:monospace;">${m.vLast.toFixed(3)}</td>
+    <td style="padding:4px 8px;color:#ff6060;font-size:10px;font-family:monospace;">${m.diff.toFixed(3)}</td>
+  </tr>`).join('');
+  showModal('ループ整合性チェック', `
+    <div style="font-size:12px;">
+      <div style="color:var(--dim);margin-bottom:8px;">${mismatch.length}個のトラックで先頭・末尾のKF値が一致しません</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr style="color:var(--dim);font-size:10px;"><th style="text-align:left;padding:4px 8px;">トラック</th><th style="padding:4px 8px;">先頭値</th><th style="padding:4px 8px;">末尾値</th><th style="padding:4px 8px;">差</th></tr>
+        ${rows}
+      </table>
+    </div>
+  `, () => {
+    pushAnimUndo();
+    for (const {name, vFirst} of mismatch) {
+      const frames = tracks[name]; if (!frames?.length) continue;
+      const sorted = [...frames].sort((a,b)=>a.t-b.t);
+      const last = sorted[sorted.length-1];
+      if (Math.abs(last.t - dur) < 0.1) last.v = vFirst;
+      else frames.push({t:dur, v:vFirst, interp:'linear'});
+      tracks[name].sort((a,b)=>a.t-b.t);
+    }
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `ループ修正: ${mismatch.length}トラックの末尾KFを先頭値に揃えました`;
+  }, '自動修正');
 }
 
 function showAnimStats() {
