@@ -547,6 +547,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           コントロールパネル埋め込み（🎛ボタンでスライダー表示）
         </label>
       </div>
+      <div class="mcfg-row">
+        <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:#1e2838;border:1px solid rgba(100,160,255,.4);color:#80c0ff;border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
+      </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
         <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
@@ -813,6 +816,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 </div>
 
 <!-- Canvas right-click context menu -->
+<div id="kf-inspector" style="display:none;position:fixed;z-index:190;background:#1a1e30;border:1px solid rgba(100,140,255,.4);border-radius:6px;padding:8px 10px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.6);font-size:11px;color:#c8d4f0;pointer-events:none;"></div>
 <div id="ctx-menu" style="display:none;position:fixed;z-index:200;background:#1e2440;border:1px solid #3a4568;border-radius:6px;padding:4px 0;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:12px;color:#c8d4f0;">
 </div>
 
@@ -928,6 +932,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
+    <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
+    <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -3016,6 +3022,42 @@ function _applyExportSettings(s) {
   if (sensVal && s.sens) sensVal.textContent = parseFloat(s.sens).toFixed(1);
 }
 
+function showExportHotkeyDialog() {
+  if (!M.poses.length) { alert('ポーズが登録されていません。先にポーズを作成してください。'); return; }
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#1a1e2e;border:1px solid var(--border);border-radius:8px;padding:16px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
+  let rows = '';
+  rows += `<div style="margin-bottom:8px;padding:4px 8px;background:#0e1120;border-radius:4px;font-size:10px;color:var(--dim);">デフォルト: ポーズ1〜9が数字キー1〜9、デフォルト(無表情)が0</div>`;
+  rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid var(--border);">`;
+  rows += `<span style="flex:1;font-size:11px;color:var(--text);">😐 デフォルト</span>`;
+  rows += `<input data-pose="__default__" value="${_exportHotkeys['__default__']||'0'}" maxlength="1" style="width:36px;text-align:center;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
+  rows += `</div>`;
+  M.poses.slice(0, 12).forEach((p, i) => {
+    const defKey = i < 9 ? String(i + 1) : '';
+    const curKey = _exportHotkeys[p.name] ?? defKey;
+    rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">`;
+    rows += `<span style="flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</span>`;
+    rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
+    rows += `</div>`;
+  });
+  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2e3656;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:#1e3050;border:1px solid rgba(78,124,255,.5);color:#80b0ff;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  box.querySelector('#hk-ok').onclick = () => {
+    for (const inp of box.querySelectorAll('input[data-pose]')) {
+      const pose = inp.getAttribute('data-pose');
+      const key = inp.value.trim();
+      if (key) _exportHotkeys[pose] = key; else delete _exportHotkeys[pose];
+    }
+    document.body.removeChild(overlay);
+  };
+  box.querySelector('#hk-cancel').onclick = () => document.body.removeChild(overlay);
+  box.querySelector('#hk-reset').onclick = () => { _exportHotkeys = {}; document.body.removeChild(overlay); };
+  overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
+}
+
 function saveExportPreset() {
   const name = prompt('プリセット名を入力:', 'プリセット1');
   if (!name) return;
@@ -3194,6 +3236,14 @@ function genAvatarHTML() {
   const creditColor=document.getElementById('export-credit-color')?.value||'#ffffff40';
   const particleType=document.getElementById('export-particle')?.value||'';
   const particleDensity=parseInt(document.getElementById('export-particle-density')?.value||'20');
+  // Build pose hotkey map: key → pose index (-1 = default)
+  const poseHotkeyMap = {};
+  const defKey = _exportHotkeys['__default__'] ?? '0';
+  poseHotkeyMap[defKey] = -1;
+  M.poses.slice(0, 12).forEach((p, i) => {
+    const k = _exportHotkeys[p.name] ?? (i < 9 ? String(i + 1) : null);
+    if (k) poseHotkeyMap[k] = i;
+  });
   // EMA alphas per smoothness mode: soft=slow, medium=medium, fast=fast
   const emaAlphas={soft:{hx:.10,hy:.10,hz:.08,bl:.25,br:.25,mo:.22,bw:.15,ex:.15,ey:.15},
     medium:{hx:.15,hy:.15,hz:.12,bl:.30,br:.30,mo:.28,bw:.20,ex:.20,ey:.20},
@@ -3743,6 +3793,7 @@ function getAudioLevel(){
 
 // ---- Expression board ----
 const EXPR_POSES=MD.poses??[];
+const POSE_HOTKEYS=${JSON.stringify(poseHotkeyMap)};
 let activePose=null, poseBlend=0;
 let curSens=SENS;
 let curDeadZone=0; // 0..0.4 dead zone for face tracking
@@ -3776,15 +3827,15 @@ let _speedVary=false, _speedVaryT=0;
   document.body.appendChild(btn);
 })();
 document.addEventListener('keydown',ev=>{
-  const n=parseInt(ev.key);
-  if (n>=1&&n<=9&&n<=EXPR_POSES.length) {
-    activePose=EXPR_POSES[n-1]; poseBlend=0;
-    updateExprList(n);
-    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+activePose.name;setTimeout(()=>exprHUD.style.display='none',2000);}
-  } else if (ev.key==='0') {
-    activePose=null; poseBlend=0;
-    updateExprList(0);
-    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: デフォルト';setTimeout(()=>exprHUD.style.display='none',1500);}
+  if (ev.key in POSE_HOTKEYS) {
+    const idx = POSE_HOTKEYS[ev.key];
+    if (idx === -1) {
+      activePose=null; poseBlend=0; updateExprList(0);
+      if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: デフォルト';setTimeout(()=>exprHUD.style.display='none',1500);}
+    } else if (idx < EXPR_POSES.length) {
+      activePose=EXPR_POSES[idx]; poseBlend=0; updateExprList(idx+1);
+      if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+activePose.name;setTimeout(()=>exprHUD.style.display='none',2000);}
+    }
   }
   // Sensitivity control: +/- keys
   if (ev.key==='+' || ev.key==='=') {
@@ -5929,6 +5980,8 @@ function addSpringBone() {
 // ==================== PARTS MANAGEMENT ====================
 let _partIdCounter = 1;
 
+let _partDragSrcIdx = null; // index in M.parts (actual, not UI-reversed) being dragged
+
 function renderPartsList() {
   const cont = document.getElementById('parts-list'); if (!cont) return;
   cont.innerHTML = '';
@@ -5941,6 +5994,30 @@ function renderPartsList() {
     const row = document.createElement('div');
     row.className = 'part-row' + (isActive ? ' active-part' : '');
     row.title = part.name;
+    row.draggable = true;
+    row.dataset.partIdx = pi;
+    row.addEventListener('dragstart', e => { _partDragSrcIdx = pi; e.dataTransfer.effectAllowed='move'; row.style.opacity='0.5'; });
+    row.addEventListener('dragend', () => { row.style.opacity=''; _partDragSrcIdx=null; cont.querySelectorAll('.part-row').forEach(r=>r.style.outline=''); });
+    row.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='move'; row.style.outline='1px solid var(--accent)'; });
+    row.addEventListener('dragleave', () => { row.style.outline=''; });
+    row.addEventListener('drop', e => {
+      e.preventDefault(); row.style.outline='';
+      const dstIdx = parseInt(row.dataset.partIdx);
+      if (_partDragSrcIdx===null||_partDragSrcIdx===dstIdx) return;
+      const moved = M.parts.splice(_partDragSrcIdx,1)[0];
+      const newDst = dstIdx > _partDragSrcIdx ? dstIdx - 1 : dstIdx;
+      M.parts.splice(newDst, 0, moved);
+      // Fix activePart index
+      if (M.activePart===_partDragSrcIdx) M.activePart=newDst;
+      else if (_partDragSrcIdx<newDst && M.activePart>_partDragSrcIdx && M.activePart<=newDst) M.activePart--;
+      else if (_partDragSrcIdx>newDst && M.activePart>=newDst && M.activePart<_partDragSrcIdx) M.activePart++;
+      _partDragSrcIdx=null; ST.cachedVerts=null; renderPartsList(); redraw();
+    });
+    // Drag handle
+    const dh = document.createElement('span');
+    dh.textContent = '⠿'; dh.style.cssText='color:var(--dim);font-size:12px;cursor:grab;flex-shrink:0;';
+    dh.title = 'ドラッグしてZ順を変更';
+    row.appendChild(dh);
     // Thumbnail
     if (part.img) {
       const th = document.createElement('canvas');
@@ -7011,6 +7088,9 @@ const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
+let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
+let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
+let _exportHotkeys = {}; // {poseName: key} custom key per pose in exported HTML
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
@@ -7783,6 +7863,50 @@ function flattenSelectedKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値を ${target.toFixed(4)} にフラット化`;
+}
+
+function _calcLoopFadeFactor(t) {
+  if (!_loopFadeIn && !_loopFadeOut) return 1;
+  const loopIn = M.animation.loopIn ?? 0;
+  const loopOut = M.animation.loopOut ?? (M.animation.duration || 3);
+  const loopLen = Math.max(loopOut - loopIn, 0.01);
+  const relT = t - loopIn;
+  let f = 1;
+  if (_loopFadeIn > 0 && relT < _loopFadeIn) f = Math.min(f, relT / _loopFadeIn);
+  if (_loopFadeOut > 0 && relT > loopLen - _loopFadeOut) f = Math.min(f, (loopLen - relT) / _loopFadeOut);
+  return Math.max(0, f);
+}
+
+function _applyLoopFade(t) {
+  const f = _calcLoopFadeFactor(t);
+  if (f >= 1) return;
+  for (const [name, p] of Object.entries(M.params)) {
+    const neutral = Math.max(p.min, Math.min(p.max, 0));
+    p.val = neutral + (p.val - neutral) * f;
+    const s = document.getElementById(`ps-${name}`);
+    if (s) { s.value = p.val; updateSliderFill(s, p.val, p.min, p.max); }
+    const pv = document.getElementById(`pv-${name}`); if (pv) pv.textContent = p.val.toFixed(2);
+  }
+}
+
+function scatterSelectedKFValues() {
+  if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
+  const amtStr = prompt('スキャッタ量（パラメータ範囲の %）:', '10');
+  if (amtStr === null) return;
+  const pct = parseFloat(amtStr) / 100;
+  if (isNaN(pct) || pct <= 0) return;
+  pushAnimUndo();
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  const kfArr = [...tlSelectedKFs];
+  for (const kf of kfArr) {
+    const nm = kfToName.get(kf);
+    const p = M.params[nm]; if (!p) continue;
+    const range = p.max - p.min;
+    kf.v = Math.max(p.min, Math.min(p.max, kf.v + (Math.random() * 2 - 1) * range * pct));
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値をスキャッタ (±${amtStr}%)`;
 }
 
 function retimeAnimation() {
@@ -8710,6 +8834,7 @@ function animMultiPlay() {
         const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
       }
     }
+    _applyLoopFade(t);
     ST.cachedVerts=null; redraw();
     // Auto-scroll: keep playhead visible when zoomed
     const _followPH = document.getElementById('tl-follow-ph')?.checked !== false;
@@ -8789,6 +8914,7 @@ function applyPlayheadToParams() {
       const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
     }
   }
+  _applyLoopFade(t);
   ST.cachedVerts=null; redraw();
   if (ST.animMode) updateKFNavDisplay();
 }
@@ -8908,6 +9034,7 @@ function applyPlayheadToParams() {
       { icon:'×', label:'選択KFの値をスケール', action:()=>scaleSelectedKFValues() },
       { icon:'⊡', label:'選択KFの値を正規化', action:()=>normalizeSelectedKFValues() },
       { icon:'⟶', label:'選択KFの値をフラット化', action:()=>flattenSelectedKFValues() },
+      { icon:'🎲', label:'選択KFの値をスキャッタ（ランダム分散）', action:()=>scatterSelectedKFValues() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
         pushAnimUndo();
@@ -8990,6 +9117,19 @@ function applyPlayheadToParams() {
         affectedNames.add(name);
       }
       for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
+      // KF drag inspector: show details of dragged KF
+      if (tlmKFDrag.entries.length===1) {
+        const {kf,name}=tlmKFDrag.entries[0];
+        const p=M.params[name];
+        const insp=document.getElementById('kf-inspector');
+        if (insp) {
+          insp.style.display='block';
+          insp.style.left=(e.clientX+16)+'px';
+          insp.style.top=(e.clientY-50)+'px';
+          insp.innerHTML=`<div style="color:#8898c0;font-size:10px;margin-bottom:3px;">${p?.lbl||name}</div><div>t: <span style="color:#ffd060">${kf.t.toFixed(4)}s</span></div><div>v: <span style="color:#60d890">${kf.v.toFixed(4)}</span></div><div style="color:#a080d0;font-size:9px;">${kf.interp||'linear'}</div>`;
+          if (e.clientX+200>window.innerWidth) insp.style.left=(e.clientX-180)+'px';
+        }
+      }
       drawMultiTimeline(); return;
     }
     if (tlmRubber) {
@@ -9036,7 +9176,10 @@ function applyPlayheadToParams() {
 
   document.addEventListener('mouseup',()=>{
     if (tlmLoopDrag) { tlmLoopDrag=null; drawMultiTimeline(); return; }
-    if (tlmKFDrag) { tlmKFDrag=null; drawMultiTimeline(); }
+    if (tlmKFDrag) {
+      const insp=document.getElementById('kf-inspector'); if(insp) insp.style.display='none';
+      tlmKFDrag=null; drawMultiTimeline();
+    }
     if (tlmRubber) { tlmRubber=null; drawMultiTimeline(); }
     tlmDragging=false;
   });
