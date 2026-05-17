@@ -3118,9 +3118,59 @@ function modelJSON() {
   },null,2);
 }
 
+function loadRiggerV3(data) {
+  // Convert rigger v3 → editor v2 multi-part format
+  M.parts = data.parts.map((pd, i) => {
+    const def = {};
+    for (const [pname, kfMap] of Object.entries(pd.deforms || {})) {
+      for (const [kfVal, deltas] of Object.entries(kfMap)) {
+        def[`${pname}:${kfVal}`] = deltas;
+        const kv = parseFloat(kfVal);
+        if (!isNaN(kv) && M.params[pname] && !M.params[pname].kfs.includes(kv)) {
+          M.params[pname].kfs.push(kv);
+          M.params[pname].kfs.sort((a,b)=>a-b);
+        }
+      }
+    }
+    return {
+      id: pd.id || ('p'+i), name: pd.name || ('パーツ'+(i+1)),
+      img: null, iw: 0, ih: 0,
+      mesh: pd.mesh || {cols:8, rows:8, verts:[], tris:[]},
+      def,
+      visible: pd.visible !== false, opacity: pd.opacity ?? 1.0,
+      blendMode: pd.blendMode || 'source-over',
+      filter: {b:100, c:100, s:100, h:0}, clipTo: null,
+    };
+  });
+  M.activePart = 0;
+  let pending = 0;
+  const tryFinish = () => {
+    if (pending > 0) return;
+    if (!M.img && M.parts[0]?.img) { M.img=M.parts[0].img; M.iw=M.parts[0].iw; M.ih=M.parts[0].ih; }
+    buildParamUI(); setAP(ST.ap); ST.cachedVerts=null;
+    ST.zoom=1; ST.panX=0; ST.panY=0; fitView();
+    renderPartsList(); updateMeshStats();
+    document.getElementById('lbl-status').textContent = `リガーv3インポート完了 — ${M.parts.length}パーツ`;
+  };
+  data.parts.forEach((pd, i) => {
+    if (!pd.imageData) return;
+    pending++;
+    const img = new Image();
+    img.onload = () => {
+      M.parts[i].img = img; M.parts[i].iw = img.width; M.parts[i].ih = img.height;
+      pending--; tryFinish();
+    };
+    img.src = pd.imageData;
+  });
+  tryFinish();
+}
+
 function loadJSON(json, filePath) {
   try {
     const d=JSON.parse(json);
+    // Detect rigger v3 format
+    if (d.version === 3 && Array.isArray(d.parts)) { loadRiggerV3(d); return; }
+
     for (const [k,v] of Object.entries(d.params??{})) {
       if (M.params[k]) Object.assign(M.params[k],v);
       else if (v.custom) M.params[k]={...v, val:0};
