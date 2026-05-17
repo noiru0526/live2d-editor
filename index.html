@@ -2462,6 +2462,16 @@ function buildParamUI() {
         {label: p.locked ? 'ロック解除' : 'ロック', icon: p.locked?'🔓':'🔒', action: ()=>toggleParamLock(name, {stopPropagation:()=>{}})},
         {label:'値をコピー', icon:'📋', action:()=>{ navigator.clipboard?.writeText(p.val.toFixed(4)); }},
         {label:'値をリセット（0）', icon:'🎯', action:()=>{ if(!p.locked){p.val=Math.max(p.min,Math.min(p.max,0));buildParamUI();ST.cachedVerts=null;redraw();}}},
+        ...(ST.animMode ? [{label:`現在時刻にKF追加 (t=${ST.animPlayhead.toFixed(3)}s)`, icon:'⊕', action:()=>{
+          pushAnimUndo();
+          const t=snapT(ST.animPlayhead);
+          if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
+          M.animation.tracks[name]=M.animation.tracks[name].filter(k=>Math.abs(k.t-t)>0.005);
+          M.animation.tracks[name].push({t, v:p.val});
+          M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+          drawMultiTimeline();
+          document.getElementById('lbl-status').textContent=`KF追加: ${p.lbl||name} @ ${t.toFixed(3)}s = ${p.val.toFixed(3)}`;
+        }}] : []),
         'sep',
         {label:'範囲を変更...', icon:'↔', action:()=>{
           const newMin = prompt('最小値 (min):', p.min);
@@ -2550,6 +2560,14 @@ function buildParamUI() {
       document.getElementById(`pv-${name}`).textContent = defVal.toFixed(2);
       ST.cachedVerts = null; redraw();
     });
+    // Mouse wheel on slider for fine adjustment
+    sl.addEventListener('wheel', e => {
+      if (p.locked) return;
+      e.preventDefault();
+      const step = p.step || ((p.max - p.min) / 100);
+      const delta = e.deltaY < 0 ? step : -step;
+      setParamVal(name, p.val + delta);
+    }, {passive: false});
     cont.appendChild(row);
     updateKFDots(name);
   }
@@ -8609,6 +8627,53 @@ function renderClipTabs() {
     };
     tabs.appendChild(btn);
   });
+  // Add "Play All" button if there are clips
+  if (M.animClips?.length > 0) {
+    const playAllBtn = document.createElement('button');
+    playAllBtn.textContent = '▶▶ 全順再';
+    playAllBtn.title = '全クリップを順番に連続再生';
+    playAllBtn.style.cssText = 'background:#1e2030;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    playAllBtn.onclick = () => playAllClipsSequential();
+    document.getElementById('tl-clips-bar').appendChild(playAllBtn);
+  }
+}
+
+let _seqPlayRAF = null;
+function playAllClipsSequential() {
+  if (_seqPlayRAF) { cancelAnimationFrame(_seqPlayRAF); _seqPlayRAF=null; document.getElementById('lbl-status').textContent='連続再生を停止しました'; return; }
+  const clips = [{name:'メイン', animation: M.animation}, ...(M.animClips||[])];
+  const valid = clips.filter(c=>Object.keys(c.animation?.tracks||{}).length>0);
+  if (valid.length < 2) { document.getElementById('lbl-status').textContent='クリップが2つ以上必要です'; return; }
+  let clipIdx = 0;
+  let clipT = 0;
+  let lastTick = performance.now();
+  animMultiStop(); // Stop current playback
+  function _seqTick(now) {
+    const dt = (now - lastTick) / 1000; lastTick = now;
+    const sp = parseFloat(document.getElementById('tl-speed')?.value||1);
+    clipT += dt * sp;
+    const anim = valid[clipIdx].animation;
+    const dur = anim.duration || 3;
+    if (clipT >= dur) {
+      clipIdx = (clipIdx + 1) % valid.length;
+      clipT = 0;
+      document.getElementById('lbl-status').textContent = `連続再生: ${valid[clipIdx].name}`;
+    }
+    // Apply this clip's tracks
+    const tracks = anim.tracks || {};
+    for (const [name, frames] of Object.entries(tracks)) {
+      if (!frames.length) continue;
+      const p = M.params[name]; if (!p) continue;
+      p.val = evalAnimTrack(frames, p, clipT);
+      const s = document.getElementById(`ps-${name}`); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+      const pv = document.getElementById(`pv-${name}`); if(pv) pv.textContent=p.val.toFixed(2);
+    }
+    ST.animPlayhead = clipT;
+    ST.cachedVerts=null; redraw(); drawMultiTimeline();
+    _seqPlayRAF = requestAnimationFrame(_seqTick);
+  }
+  document.getElementById('lbl-status').textContent = `連続再生開始: ${valid[0].name} (${valid.length}クリップ) — 再クリックで停止`;
+  _seqPlayRAF = requestAnimationFrame(_seqTick);
 }
 
 function checkLoopConsistency() {
