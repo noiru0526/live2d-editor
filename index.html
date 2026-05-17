@@ -930,6 +930,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
+    <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -6763,7 +6764,7 @@ const tlMultiCanvas = document.getElementById('tl-multi-canvas');
 const tlLabelCanvas = document.getElementById('tl-label-canvas');
 let tlMultiCtx = null, tlLabelCtx = null;
 let animMultiRAF = null;
-const TL_ROW_H = 24;
+let TL_ROW_H = 24; // timeline row height (compact=18, normal=24, wide=36)
 const TL_LABEL_W = 90;
 let tlScrollY = 0;
 let tlZoom = 1.0;   // horizontal zoom (1 = fit duration)
@@ -7571,6 +7572,16 @@ function addBPMMarkers() {
   drawMultiTimeline();
   const count = M.animation.markers.filter(m=>m.isBPM).length;
   document.getElementById('lbl-status').textContent = `BPM ${bpm} でマーカー${count}個生成`;
+}
+
+function cycleTLRowHeight() {
+  const modes = [18, 24, 36]; // compact, normal, wide
+  const labels = {18:'コンパクト', 24:'標準', 36:'広い'};
+  const cur = modes.indexOf(TL_ROW_H);
+  TL_ROW_H = modes[(cur + 1) % modes.length];
+  const btn = document.getElementById('btn-tl-row-h');
+  if (btn) { btn.title = `トラック高さ: ${labels[TL_ROW_H]} (${TL_ROW_H}px)`; btn.textContent = TL_ROW_H===18?'↕₋': TL_ROW_H===36?'↕₊':'↕'; }
+  drawMultiTimeline();
 }
 
 function toggleTLSnap() {
