@@ -310,6 +310,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
   <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFromFileInput(this)">
   <div class="tsep"></div>
+  <button class="tbtn" onclick="openRigger()" title="リギングエディタを開く (Ctrl+R)" style="color:#cba6f7;">🔧 リガー</button>
+  <div class="tsep"></div>
   <button class="tbtn" onclick="showShortcutHelp()" title="? キーでも開けます" style="padding:3px 8px;">?</button>
   <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="エディタカラーテーマ切替" style="padding:3px 8px;">🎨</button>
   <span id="lbl-status" style="margin-left:8px;">画像を開いてください</span>
@@ -4768,6 +4770,11 @@ canvas.addEventListener('contextmenu', e=>{
   ];
   showCtxMenu(e.clientX, e.clientY, items);
 });
+
+function openRigger() {
+  if (window.api?.openRigger) { window.api.openRigger(); }
+  else { document.getElementById('lbl-status').textContent = 'Ctrl+R でリガーを開けます'; }
+}
 
 // ==================== ELECTRON IPC ====================
 if (window.api) {

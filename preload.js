@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   writeFile: (path, data) => ipcRenderer.invoke('write-file', path, data),
   readFileAsDataURL: (path) => ipcRenderer.invoke('read-file-as-dataurl', path),
   getSavePath: (name) => ipcRenderer.invoke('get-save-path', name),
+  openRigger: () => ipcRenderer.invoke('open-rigger'),
   on(channel, callback) {
     const valid = [
       'open-image','load-model','save-model','save-model-as',

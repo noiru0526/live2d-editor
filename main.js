@@ -2,22 +2,20 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-let win;
+let win, riggerWin;
 
-// GPU初期化失敗対策
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
 
-// クラッシュ時にダイアログでエラーを表示
 process.on('uncaughtException', (err) => {
   dialog.showErrorBox('エラーが発生しました', err.stack || err.message);
 });
-
 app.on('render-process-gone', (event, webContents, details) => {
   dialog.showErrorBox('レンダラープロセスがクラッシュしました', JSON.stringify(details));
 });
 
+// ===== ANIMATION EDITOR WINDOW =====
 function createWindow() {
   win = new BrowserWindow({
     width: 1400, height: 860,
@@ -67,11 +65,7 @@ function createWindow() {
           }
         },
         { type: 'separator' },
-        {
-          label: 'モデルを保存',
-          accelerator: 'CmdOrCtrl+S',
-          click: () => win.webContents.send('save-model')
-        },
+        { label: 'モデルを保存', accelerator: 'CmdOrCtrl+S', click: () => win.webContents.send('save-model') },
         {
           label: 'モデルを別名保存...',
           accelerator: 'CmdOrCtrl+Shift+S',
@@ -118,30 +112,201 @@ function createWindow() {
         { type: 'separator' },
         { label: '開発者ツール', accelerator: 'F12', click: () => win.webContents.toggleDevTools() }
       ]
+    },
+    {
+      label: 'ツール',
+      submenu: [
+        {
+          label: 'リギングエディタを開く',
+          accelerator: 'CmdOrCtrl+R',
+          click: () => createRiggerWindow()
+        }
+      ]
     }
   ]);
   Menu.setApplicationMenu(menu);
 }
 
-// IPC: save file
+// ===== RIGGING EDITOR WINDOW =====
+function createRiggerWindow() {
+  if (riggerWin && !riggerWin.isDestroyed()) {
+    riggerWin.focus();
+    return;
+  }
+
+  riggerWin = new BrowserWindow({
+    width: 1600, height: 960,
+    minWidth: 1100, minHeight: 650,
+    title: 'Live2D Rigger — noiru',
+    backgroundColor: '#12151f',
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload-rigger.js')
+    }
+  });
+
+  riggerWin.loadFile(path.join(__dirname, 'rigger.html'));
+
+  const riggerMenu = Menu.buildFromTemplate([
+    {
+      label: 'ファイル',
+      submenu: [
+        {
+          label: '画像を開く...',
+          accelerator: 'CmdOrCtrl+O',
+          click: async () => {
+            if (!riggerWin) return;
+            const result = await dialog.showOpenDialog(riggerWin, {
+              title: 'アバター画像を選択',
+              filters: [{ name: '画像', extensions: ['png','jpg','jpeg','webp'] }],
+              properties: ['openFile']
+            });
+            if (!result.canceled && result.filePaths[0]) {
+              const buf = fs.readFileSync(result.filePaths[0]);
+              const ext = path.extname(result.filePaths[0]).slice(1).toLowerCase();
+              const mime = (ext==='jpg'||ext==='jpeg') ? 'image/jpeg' : 'image/png';
+              const dataURL = `data:${mime};base64,${buf.toString('base64')}`;
+              riggerWin.webContents.send('rigger-drop-image', dataURL);
+            }
+          }
+        },
+        {
+          label: 'モデルを開く...',
+          accelerator: 'CmdOrCtrl+Shift+O',
+          click: async () => {
+            if (!riggerWin) return;
+            const result = await dialog.showOpenDialog(riggerWin, {
+              title: 'モデルJSONを選択',
+              filters: [{ name: 'JSON', extensions: ['json'] }],
+              properties: ['openFile']
+            });
+            if (!result.canceled && result.filePaths[0]) {
+              const json = fs.readFileSync(result.filePaths[0], 'utf8');
+              riggerWin.webContents.executeJavaScript(`loadModelFromJSON(${JSON.stringify(json)})`);
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'モデルを保存...',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('exportAll()'); }
+        },
+        {
+          label: 'アバターHTMLを出力...',
+          accelerator: 'CmdOrCtrl+E',
+          click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('exportAvatarHTMLDirect()'); }
+        },
+        { type: 'separator' },
+        { label: '閉じる', accelerator: 'CmdOrCtrl+W', click: () => { if (riggerWin) riggerWin.close(); } }
+      ]
+    },
+    {
+      label: 'パーツ',
+      submenu: [
+        { label: 'パーツを追加', accelerator: 'CmdOrCtrl+N', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('addPartStart()'); } },
+        { label: '選択パーツを削除', accelerator: 'Delete', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('delPart()'); } },
+        { type: 'separator' },
+        { label: 'スマート変形を適用', accelerator: 'CmdOrCtrl+G', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('smartDeform()'); } },
+        { label: '現KFをリセット', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('resetKF()'); } }
+      ]
+    },
+    {
+      label: 'モード',
+      submenu: [
+        { label: 'パーツ設定', accelerator: '1', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript("setMode('parts')"); } },
+        { label: 'メッシュ編集', accelerator: '2', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript("setMode('mesh')"); } },
+        { label: '変形リグ', accelerator: '3', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript("setMode('deform')"); } },
+        { label: 'プレビュー', accelerator: '4', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript("setMode('preview')"); } }
+      ]
+    },
+    {
+      label: '表示',
+      submenu: [
+        { label: '画面にフィット', accelerator: 'F', click: () => { if (riggerWin) riggerWin.webContents.executeJavaScript('fitView()'); } },
+        { type: 'separator' },
+        { label: '開発者ツール', accelerator: 'F12', click: () => { if (riggerWin) riggerWin.webContents.toggleDevTools(); } }
+      ]
+    }
+  ]);
+  riggerWin.setMenu(riggerMenu);
+
+  riggerWin.on('closed', () => { riggerWin = null; });
+}
+
+// ===== IPC: ANIMATION EDITOR =====
 ipcMain.handle('write-file', async (e, filePath, data) => {
   fs.writeFileSync(filePath, data, 'utf8');
   return true;
 });
-
 ipcMain.handle('read-file-as-dataurl', async (e, filePath) => {
   const buf = fs.readFileSync(filePath);
   const ext = path.extname(filePath).slice(1).toLowerCase();
-  const mime = ext==='jpg'||ext==='jpeg'?'image/jpeg':'image/png';
+  const mime = ext==='jpg'||ext==='jpeg' ? 'image/jpeg' : 'image/png';
   return `data:${mime};base64,${buf.toString('base64')}`;
 });
-
 ipcMain.handle('get-save-path', async (e, defaultName) => {
   const result = await dialog.showSaveDialog(win, {
     defaultPath: defaultName,
     filters: [{ name: 'JSON', extensions: ['json'] }]
   });
   return result.canceled ? null : result.filePath;
+});
+
+// ===== IPC: RIGGING EDITOR =====
+ipcMain.handle('open-rigger', async () => {
+  createRiggerWindow();
+  return true;
+});
+
+ipcMain.handle('rigger-open-image', async () => {
+  if (!riggerWin) return null;
+  const result = await dialog.showOpenDialog(riggerWin, {
+    title: 'アバター画像を選択',
+    filters: [{ name: '画像', extensions: ['png','jpg','jpeg','webp'] }],
+    properties: ['openFile']
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  const buf = fs.readFileSync(result.filePaths[0]);
+  const ext = path.extname(result.filePaths[0]).slice(1).toLowerCase();
+  const mime = (ext==='jpg'||ext==='jpeg') ? 'image/jpeg' : 'image/png';
+  return `data:${mime};base64,${buf.toString('base64')}`;
+});
+
+ipcMain.handle('rigger-open-model', async () => {
+  if (!riggerWin) return null;
+  const result = await dialog.showOpenDialog(riggerWin, {
+    title: 'モデルJSONを選択',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  return fs.readFileSync(result.filePaths[0], 'utf8');
+});
+
+ipcMain.handle('rigger-save-model', async (e, json) => {
+  if (!riggerWin) return false;
+  const result = await dialog.showSaveDialog(riggerWin, {
+    title: 'モデルを保存',
+    defaultPath: 'noiru-rig.json',
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (result.canceled) return false;
+  fs.writeFileSync(result.filePath, json, 'utf8');
+  return true;
+});
+
+ipcMain.handle('rigger-export-avatar', async (e, html) => {
+  if (!riggerWin) return false;
+  const result = await dialog.showSaveDialog(riggerWin, {
+    title: 'アバターHTMLを保存',
+    defaultPath: 'noiru-avatar.html',
+    filters: [{ name: 'HTML', extensions: ['html'] }]
+  });
+  if (result.canceled) return false;
+  fs.writeFileSync(result.filePath, html, 'utf8');
+  return true;
 });
 
 app.whenReady().then(createWindow);
