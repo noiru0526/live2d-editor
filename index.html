@@ -9839,6 +9839,16 @@ function animMultiPlay() {
       }
     }
     _applyLoopFade(t);
+    // Check if playhead crossed a marker (show brief label)
+    if (M.animation.markers?.length) {
+      const prevT = ST.animPlayhead - dt*sp;
+      for (const m of M.animation.markers) {
+        if (m.label && m.label!=='●' && ((prevT <= m.t && t >= m.t) || (prevT >= m.t && t <= m.t))) {
+          const el = document.getElementById('lbl-status');
+          if (el) { el.textContent = `📍 ${m.label}`; el.style.color = m.color||'#ffd060'; setTimeout(()=>{ el.style.color=''; el.textContent=''; }, 1500); }
+        }
+      }
+    }
     ST.cachedVerts=null; redraw();
     // Auto-scroll: keep playhead visible when zoomed
     const _followPH = document.getElementById('tl-follow-ph')?.checked !== false;
