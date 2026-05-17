@@ -4397,6 +4397,27 @@ document.addEventListener('keydown',e=>{
     ST.cachedVerts=null; redraw(); drawTimeline(); e.preventDefault();
   }
 
+  // Up/Down arrow: adjust active parameter value (when no verts selected, no KF selection in anim mode)
+  if ((e.key==='ArrowUp'||e.key==='ArrowDown') && ST.ap && M.params[ST.ap] && !M.params[ST.ap].locked &&
+      ST.selVerts.size===0 && !(ST.animMode && tlSelectedKFs.size>0) && document.activeElement===document.body) {
+    const p = M.params[ST.ap];
+    const step = (p.step || (p.max - p.min) / 100) * (e.shiftKey ? 10 : 1);
+    setParamVal(ST.ap, p.val + (e.key==='ArrowUp' ? step : -step));
+    e.preventDefault(); return;
+  }
+  // Tab / Shift+Tab: navigate to next/prev parameter
+  if (e.key==='Tab' && !e.ctrlKey && !e.altKey && document.activeElement===document.body) {
+    const params = Object.keys(M.params);
+    if (params.length > 0) {
+      const cur = params.indexOf(ST.ap);
+      const next = e.shiftKey ? (cur <= 0 ? params.length-1 : cur-1) : (cur >= params.length-1 ? 0 : cur+1);
+      setAP(params[next]);
+      // Scroll param into view
+      document.getElementById(`pr-${params[next]}`)?.scrollIntoView({block:'nearest', behavior:'smooth'});
+      e.preventDefault();
+    }
+  }
+
   // Delete/Backspace: in anim mode, delete selected KFs; otherwise reset deform
   if ((e.key==='Delete'||e.key==='Backspace') && ST.animMode && tlSelectedKFs.size>0 && document.activeElement===document.body) {
     pushAnimUndo();
