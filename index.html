@@ -2436,7 +2436,21 @@ function buildParamUI() {
         {label:'ラベル名を変更...', icon:'✏', action:()=>{
           const newLbl = prompt('パラメータ名:', p.lbl||name);
           if (newLbl !== null && newLbl.trim()) { p.lbl = newLbl.trim(); buildParamUI(); }
-        }}
+        }},
+        'sep',
+        {label:'このパラメータにドライバーを追加...', icon:'🔗', action:()=>{
+          const targets = Object.keys(M.params).filter(k=>k!==name);
+          if (!targets.length) return;
+          const targetName = prompt('ドライブするパラメータ名を入力:\n' + targets.slice(0,10).join('\n'), targets[0]);
+          if (!targetName || !M.params[targetName]) { alert('パラメータが見つかりません'); return; }
+          const ratio = parseFloat(prompt('倍率 (例: 1 = そのまま, -1 = 反転):', '1'));
+          if (isNaN(ratio)) return;
+          const offset = parseFloat(prompt('オフセット (例: 0 = なし):', '0'));
+          if (isNaN(offset)) return;
+          _paramDrivers.push({source:name, target:targetName, ratio, offset});
+          document.getElementById('lbl-status').textContent = `ドライバー追加: ${p.lbl||name} → ${M.params[targetName].lbl||targetName} (x${ratio}+${offset})`;
+        }},
+        {label:'全ドライバーを管理...', icon:'🔗', action: showDriverManager}
       ]);
     });
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
@@ -2449,6 +2463,15 @@ function buildParamUI() {
       e.target.title=`値: ${p.val.toFixed(2)} | 範囲: ${p.min}〜${p.max} | ステップ: ${p.step}`;
       document.getElementById(`pv-${name}`).textContent=p.val.toFixed(2);
       setAP(name);
+      // Apply parameter drivers
+      for (const drv of _paramDrivers) {
+        if (drv.source !== name) continue;
+        const tp = M.params[drv.target]; if (!tp || tp.locked) continue;
+        tp.val = Math.max(tp.min, Math.min(tp.max, p.val * drv.ratio + drv.offset));
+        const ts = document.getElementById(`ps-${drv.target}`);
+        if (ts) { ts.value = tp.val; updateSliderFill(ts, tp.val, tp.min, tp.max); }
+        const tv = document.getElementById(`pv-${drv.target}`); if (tv) tv.textContent = tp.val.toFixed(2);
+      }
       updateParamHUD();
       ST.cachedVerts=null;
       redraw();
@@ -5132,6 +5155,37 @@ function renderPosePresets() {
   });
 }
 
+function showDriverManager() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
+  const refresh = () => {
+    box.innerHTML = `<div style="font-size:12px;color:#8898c0;font-weight:bold;margin-bottom:4px;">🔗 パラメータドライバー管理</div>`;
+    if (!_paramDrivers.length) { box.innerHTML += '<div style="color:var(--dim);">ドライバーはありません</div>'; }
+    _paramDrivers.forEach((drv, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 6px;background:#131828;border-radius:4px;';
+      const sLbl = M.params[drv.source]?.lbl || drv.source;
+      const tLbl = M.params[drv.target]?.lbl || drv.target;
+      row.innerHTML = `<span style="flex:1;color:var(--text);">${sLbl} → ${tLbl} (x${drv.ratio}+${drv.offset})</span>`;
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑'; delBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#ff6060;';
+      delBtn.onclick = () => { _paramDrivers.splice(i,1); refresh(); };
+      row.appendChild(delBtn);
+      box.appendChild(row);
+    });
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '閉じる'; closeBtn.style.cssText = 'margin-top:6px;background:#1e3050;border:1px solid rgba(78,124,255,.4);color:#4e9cff;border-radius:4px;padding:3px 10px;cursor:pointer;';
+    closeBtn.onclick = () => overlay.remove();
+    box.appendChild(closeBtn);
+  };
+  refresh();
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 function generatePoseVariation() {
   const strengthStr = prompt('バリエーション強度 (0.0〜1.0):', '0.1');
   if (strengthStr === null) return;
@@ -6956,6 +7010,7 @@ const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
+let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
