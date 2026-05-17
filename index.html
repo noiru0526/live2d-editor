@@ -338,6 +338,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
         style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
       <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
+      <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
+      <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -941,6 +943,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
     <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#60b090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
+    <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#80a0d0';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
+    <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
+    <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
+    <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
@@ -2332,6 +2338,31 @@ function updateSliderFill(el, val, min, max) {
   el.style.setProperty('--fill-color', isNeutral ? 'rgba(78,124,255,.4)' : 'rgba(255,170,60,.7)');
 }
 
+function setParamVal(name, val) {
+  const p = M.params[name]; if (!p || p.locked) return;
+  p.val = Math.max(p.min, Math.min(p.max, val));
+  const sl = document.getElementById(`ps-${name}`);
+  if (sl) { sl.value = p.val; updateSliderFill(sl, p.val, p.min, p.max); }
+  const pv = document.getElementById(`pv-${name}`); if (pv) pv.textContent = p.val.toFixed(2);
+  for (const drv of _paramDrivers) {
+    if (drv.source !== name) continue;
+    const tp = M.params[drv.target]; if (!tp || tp.locked) continue;
+    tp.val = Math.max(tp.min, Math.min(tp.max, p.val * drv.ratio + drv.offset));
+    const ts = document.getElementById(`ps-${drv.target}`);
+    if (ts) { ts.value = tp.val; updateSliderFill(ts, tp.val, tp.min, tp.max); }
+    const tv = document.getElementById(`pv-${drv.target}`); if (tv) tv.textContent = tp.val.toFixed(2);
+  }
+  if (ST.animMode && tlAutoKF) {
+    const t = snapT(ST.animPlayhead);
+    if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
+    M.animation.tracks[name]=M.animation.tracks[name].filter(k=>Math.abs(k.t-t)>0.005);
+    M.animation.tracks[name].push({t, v:p.val});
+    M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+    drawMultiTimeline();
+  }
+  ST.cachedVerts=null; redraw();
+}
+
 let _canvasFlipH = false;
 function toggleCanvasFlip() {
   _canvasFlipH = !_canvasFlipH;
@@ -2446,6 +2477,18 @@ function buildParamUI() {
         {label:'ラベル名を変更...', icon:'✏', action:()=>{
           const newLbl = prompt('パラメータ名:', p.lbl||name);
           if (newLbl !== null && newLbl.trim()) { p.lbl = newLbl.trim(); buildParamUI(); }
+        }},
+        'sep',
+        'sep',
+        {label:'⚡ クイック設定', icon:'', action:null},
+        ...[0, 0.25, 0.5, 0.75, 1.0].map(pct=>{
+          const v = p.min + (p.max - p.min) * pct;
+          const icon = pct===0?'▼':pct===1?'▲':'◇';
+          return {icon, label:`${Math.round(pct*100)}%  →  ${v.toFixed(2)}`, action:()=>setParamVal(name, v)};
+        }),
+        {label:'カスタム値を入力...', icon:'✎', action:()=>{
+          const v = parseFloat(prompt(`${p.lbl||name} の値:`, p.val.toFixed(3)));
+          if (!isNaN(v)) setParamVal(name, v);
         }},
         'sep',
         {label:'このパラメータにドライバーを追加...', icon:'🔗', action:()=>{
@@ -6467,6 +6510,28 @@ function renderPoseList() {
     btn.style.cssText='flex:1;text-align:left;background:#1e2540;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
     btn.innerHTML=`<span style="background:rgba(78,124,255,.2);color:#8aabff;border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>${pose.name}`;
     btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
+    btn.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      showCtxMenu(e.clientX, e.clientY, [
+        { icon:'🎯', label:'このポーズを適用', action:()=>{ recallPose(idx); slider.value=100; }},
+        { icon:'⊕', label:`現在時刻にKFとして挿入 (t=${ST.animPlayhead.toFixed(3)}s)`, action:()=>{
+          pushAnimUndo();
+          const t = ST.animPlayhead;
+          for (const [k,v] of Object.entries(pose.values)) {
+            if (!M.params[k]) continue;
+            if (!M.animation.tracks[k]) M.animation.tracks[k]=[];
+            const ex = M.animation.tracks[k].findIndex(f=>Math.abs(f.t-t)<0.005);
+            if (ex>=0) M.animation.tracks[k][ex].v=v; else M.animation.tracks[k].push({t,v,interp:'smooth'});
+            M.animation.tracks[k].sort((a,b)=>a.t-b.t);
+          }
+          drawMultiTimeline();
+          document.getElementById('lbl-status').textContent=`ポーズ「${pose.name}」をKF挿入 @ ${t.toFixed(3)}s`;
+        }},
+        null,
+        { icon:'✏', label:'名前を変更', action:()=>{ const nm=prompt('新しいポーズ名:',pose.name); if(nm){pose.name=nm;renderPoseList();} }},
+        { icon:'🗑', label:'削除', action:()=>deletePose(idx) },
+      ]);
+    });
     btn.addEventListener('mouseover',()=>{
       // Temp preview on hover
       if (!M.img) return;
@@ -7174,6 +7239,9 @@ let tlTrackFilter = ''; // Track search filter string
 let tlSnapGrid = 1/30; // snap grid size in seconds (30fps default)
 let tlHideEmpty = false; // hide tracks with no KFs
 let tlAutoKF = false; // auto-insert KF on slider change in anim mode
+let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
+let tlShowValues = true;  // show current value in track labels
+let _tlHoverT = null; // current hover time on timeline canvas (null = not hovering)
 
 // Shared interp helper — used by playback, seek, and curve display
 const _ANIM_INTERP_FNS = {
@@ -7315,13 +7383,19 @@ function drawMultiTimeline() {
   // Time axis labels (top)
   tlMultiCtx.fillStyle='rgba(104,120,160,.6)'; tlMultiCtx.font='8px monospace';
   const secStep = visibleDur>10?2:visibleDur>5?1:visibleDur>2?0.5:visibleDur>1?0.25:0.1;
+  const _smpteF = 30; // SMPTE frame rate
+  const _fmtTime = t => {
+    if (!tlSmpteMode) return t.toFixed(2)+'s';
+    const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=Math.floor(t%60), f=Math.floor((t%1)*_smpteF);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}:${String(f).padStart(2,'0')}`;
+  };
   for (let s=Math.floor(tlZoomOff/secStep)*secStep; s<=tlZoomOff+visibleDur+secStep; s=Math.round((s+secStep)*1000)/1000) {
     const x=toKX(s);
     if (x<0||x>W) continue;
     tlMultiCtx.fillStyle='rgba(255,255,255,.05)';
     tlMultiCtx.fillRect(x,0,1,H);
     tlMultiCtx.fillStyle='rgba(104,120,160,.7)';
-    tlMultiCtx.fillText(s.toFixed(2)+'s',x+2,10);
+    tlMultiCtx.fillText(_fmtTime(s),x+2,10);
   }
 
   // Append special __ tracks (not in M.params) to the display list
@@ -7501,6 +7575,19 @@ function drawMultiTimeline() {
       tlMultiCtx.fillText(marker.label, mx+2, 20);
       // Marker triangle at top
       tlMultiCtx.beginPath(); tlMultiCtx.moveTo(mx-4,0); tlMultiCtx.lineTo(mx+4,0); tlMultiCtx.lineTo(mx,7); tlMultiCtx.closePath(); tlMultiCtx.fill();
+    }
+  }
+
+  // Hover cursor line (shows time at mouse position without dragging)
+  if (_tlHoverT !== null && !tlmDragging && !tlmKFDrag) {
+    const hx = toKX(_tlHoverT);
+    if (hx >= 0 && hx <= W) {
+      tlMultiCtx.strokeStyle='rgba(200,200,255,.25)'; tlMultiCtx.lineWidth=1;
+      tlMultiCtx.setLineDash([3,3]);
+      tlMultiCtx.beginPath(); tlMultiCtx.moveTo(hx,0); tlMultiCtx.lineTo(hx,H); tlMultiCtx.stroke();
+      tlMultiCtx.setLineDash([]);
+      tlMultiCtx.fillStyle='rgba(180,180,230,.8)'; tlMultiCtx.font='8px monospace';
+      tlMultiCtx.fillText(_fmtTime(_tlHoverT), hx+2, 10);
     }
   }
 
@@ -8004,6 +8091,27 @@ function scatterSelectedKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値をスキャッタ (±${amtStr}%)`;
+}
+
+function copyAllParamValues() {
+  const vals = {};
+  for (const [k,p] of Object.entries(M.params)) vals[k] = p.val;
+  const json = JSON.stringify(vals, null, 2);
+  navigator.clipboard?.writeText(json).then(()=>{
+    document.getElementById('lbl-status').textContent = `全パラメータ値をコピー (${Object.keys(vals).length}個)`;
+  });
+}
+
+function pasteAllParamValues() {
+  navigator.clipboard?.readText().then(text=>{
+    try {
+      const vals = JSON.parse(text);
+      for (const [k,v] of Object.entries(vals)) {
+        if (M.params[k] && typeof v === 'number') setParamVal(k, v);
+      }
+      document.getElementById('lbl-status').textContent = 'パラメータ値を貼り付け完了';
+    } catch(e) { document.getElementById('lbl-status').textContent = 'クリップボードの内容が不正です'; }
+  });
 }
 
 function retimeAnimation() {
@@ -9501,9 +9609,17 @@ function applyPlayheadToParams() {
   })();
   document.addEventListener('mousemove', e => {
     if (tlmKFDrag || tlmRubber || tlmDragging) { _kfTip.style.display='none'; return; }
-    const trk=getTracks(); if(!trk) { _kfTip.style.display='none'; return; }
+    const trk=getTracks(); if(!trk) { _kfTip.style.display='none'; _tlHoverT=null; return; }
     const r=trk.getBoundingClientRect();
-    if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) { _kfTip.style.display='none'; return; }
+    if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) {
+      _kfTip.style.display='none';
+      if (_tlHoverT !== null) { _tlHoverT=null; drawMultiTimeline(); }
+      return;
+    }
+    // Update hover time and redraw cursor
+    const dur=M.animation.duration||3; const visibleDur=dur/tlZoom;
+    const newHoverT = Math.max(0, Math.min(dur, tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
+    if (Math.abs((newHoverT||0) - (_tlHoverT||0)) > 0.001) { _tlHoverT=newHoverT; drawMultiTimeline(); }
     const hit=hitTestKF(e);
     if (!hit) { _kfTip.style.display='none'; return; }
     const p=M.params[hit.name];
