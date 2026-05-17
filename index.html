@@ -3014,6 +3014,7 @@ function evalAnimTrackExport(frames,p,t){
   const ifn=IFN[f0.interp??p.interp??'linear']||IFN.linear;
   return f0.v+(f1.v-f0.v)*ifn(Math.max(0,Math.min(1,rawFrac)));
 }
+let _prevParamSnap={},_clipFadeStart=0,_clipFadeActive=false;
 function applyAnimTracks(now){
   if(!MD.animation)return;
   const dur=MD.animation.duration||3;
@@ -3028,6 +3029,17 @@ function applyAnimTracks(now){
   for(const[k,frames]of Object.entries(MD.animation.tracks)){
     if(!params[k]||!frames.length)continue;
     params[k].val=evalAnimTrackExport(frames,params[k],t);
+  }
+  // Crossfade blend when switching clips
+  if(_clipFadeActive){
+    const frac=Math.min(1,(performance.now()-_clipFadeStart)/500);
+    if(frac>=1){_clipFadeActive=false;}
+    else{
+      const ease=frac*frac*(3-2*frac); // smoothstep
+      for(const k of Object.keys(_prevParamSnap)){
+        if(params[k]!==undefined) params[k].val=_prevParamSnap[k]*(1-ease)+params[k].val*ease;
+      }
+    }
   }
   _updateAnimProgress();
 }
@@ -3062,6 +3074,10 @@ function switchClip(idx){
   // idx=-1: current (MD.animation), idx>=0: MD.animClips[idx]
   const anim = idx<0 ? MD.animation : MD.animClips?.[idx]?.animation;
   if(!anim) return;
+  // Snapshot current param values for crossfade
+  _prevParamSnap={};
+  for(const k of Object.keys(params)) _prevParamSnap[k]=params[k].val;
+  _clipFadeStart=performance.now(); _clipFadeActive=true;
   MD.animation=anim; animT=0; animLastNow=null;
   // Update tab styles
   const tabs=document.querySelectorAll('[id^="clip-tab-"]');
@@ -3592,6 +3608,53 @@ window.addEventListener('mousemove', e => {
   if (params.eyeX) params.eyeX.val = Math.max(params.eyeX.min, Math.min(params.eyeX.max, nx * 0.8));
   if (params.eyeY) params.eyeY.val = Math.max(params.eyeY.min, Math.min(params.eyeY.max, ny * 0.4));
 });
+// Touch support: drag=head tracking, swipe=clip switch, double-tap=default pose
+(()=>{
+  let _tx0=0,_ty0=0,_tTime=0,_tLast=0,_tMoving=false;
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    _tx0=t.clientX; _ty0=t.clientY; _tMoving=false;
+    const now=Date.now();
+    if(now-_tLast<300){ // double-tap: reset poses
+      if(typeof activePose!=='undefined')activePose=null;
+      for(const k of Object.keys(params))params[k].val=0;
+    }
+    _tLast=now;
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(!e.touches[0])return;
+    const t=e.touches[0];
+    const dx=t.clientX-_tx0, dy=t.clientY-_ty0;
+    if(Math.abs(dx)>8||Math.abs(dy)>8)_tMoving=true;
+    const nx=(t.clientX/window.innerWidth)*2-1;
+    const ny=-((t.clientY/window.innerHeight)*2-1);
+    if(params.headX)params.headX.val=Math.max(params.headX.min,Math.min(params.headX.max,nx));
+    if(params.headY)params.headY.val=Math.max(params.headY.min,Math.min(params.headY.max,ny*0.5));
+    if(params.eyeX)params.eyeX.val=Math.max(params.eyeX.min,Math.min(params.eyeX.max,nx*0.8));
+    if(params.eyeY)params.eyeY.val=Math.max(params.eyeY.min,Math.min(params.eyeY.max,ny*0.4));
+  },{passive:false});
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const t=e.changedTouches[0];
+    const dx=t.clientX-_tx0, dy=t.clientY-_ty0;
+    if(!_tMoving&&Math.abs(dx)<20&&Math.abs(dy)<20){
+      // Tap: toggle play/pause if animation loaded
+      if(typeof toggleExportAnim==='function'&&typeof animPlaying!=='undefined')toggleExportAnim();
+    } else if(Math.abs(dx)>60&&Math.abs(dy)<80){
+      // Horizontal swipe: switch clips
+      const clips=(MD.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0);
+      if(clips.length>0){
+        const tabs=document.querySelectorAll('[id^="clip-tab-"]');
+        let cur=-1;
+        tabs.forEach((tb,i)=>{if(tb.style.color==='rgb(96, 216, 144)')cur=i-1;});
+        const next=dx<0?Math.min(clips.length-1,cur+1):Math.max(-1,cur-1);
+        if(typeof switchClip==='function')switchClip(next);
+      }
+    }
+  },{passive:false});
+})();
 <\/script>
 </body>
 </html>`;
@@ -7548,6 +7611,32 @@ function applyPlayheadToParams() {
     if (tlmKFDrag) { tlmKFDrag=null; drawMultiTimeline(); }
     if (tlmRubber) { tlmRubber=null; drawMultiTimeline(); }
     tlmDragging=false;
+  });
+
+  // KF hover tooltip
+  const _kfTip = (() => {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;pointer-events:none;background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e0e8ff;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
+    document.body.appendChild(el);
+    return el;
+  })();
+  document.addEventListener('mousemove', e => {
+    if (tlmKFDrag || tlmRubber || tlmDragging) { _kfTip.style.display='none'; return; }
+    const trk=getTracks(); if(!trk) { _kfTip.style.display='none'; return; }
+    const r=trk.getBoundingClientRect();
+    if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) { _kfTip.style.display='none'; return; }
+    const hit=hitTestKF(e);
+    if (!hit) { _kfTip.style.display='none'; return; }
+    const p=M.params[hit.name];
+    const lbl=p?.lbl||hit.name;
+    const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—'}[hit.kf.interp||'linear']||'—';
+    _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>`;
+    _kfTip.style.display='block';
+    _kfTip.style.left=(e.clientX+14)+'px';
+    _kfTip.style.top=(e.clientY-10)+'px';
+    // Keep inside viewport
+    const tw=_kfTip.offsetWidth;
+    if (e.clientX+14+tw > window.innerWidth) _kfTip.style.left=(e.clientX-14-tw)+'px';
   });
 
   // Double-click on KF: show inline value editor
