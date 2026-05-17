@@ -1072,24 +1072,32 @@ function frame(ts){
   S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,.3);S.mouthForm=ema(S.mouthForm,T.mouthForm,.12);
   S.cheek=ema(S.cheek,T.cheek,.08);S.bodyX=ema(S.bodyX,T.bodyX,.07);S.bodyY=ema(S.bodyY,T.bodyY,.07);
   if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2.5+Math.random()*4;}}
-  else{ablinkP+=dt/.1;if(ablinkP>=1){ablink=false;ablinkP=0;}}
+  else{ablinkP+=dt/.12;if(ablinkP>=1){ablink=false;ablinkP=0;}}
   const ab=ablink?Math.sin(ablinkP*Math.PI):0;
-  breathT+=dt*.5;S.breath=Math.sin(breathT)*.5+.5;
+  breathT+=dt*.38;
+  const breathVal=Math.sin(breathT)*0.45+Math.sin(breathT*0.5)*0.08;
+  S.breath=breathVal*0.5+0.5;
   const vals={...S,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
   const cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
   const sorted=[...MODEL.parts].sort((a,b)=>a.zIndex-b.zIndex);
+  // Global head transform
+  const hx=S.headX*18+S.bodyX*6+Math.sin(breathT*0.6)*0.6;
+  const hy=S.headY*12+S.bodyY*5+Math.sin(breathT)*2;
   ctx.save();
-  ctx.translate(cx+S.headX*20+S.bodyX*8+Math.sin(breathT*.7)*.8,cy+S.headY*15+S.bodyY*6+Math.sin(breathT)*2.5);
-  ctx.rotate(S.headZ*.18);ctx.translate(-cx,-cy);
+  ctx.translate(cx+hx,cy+hy);
+  ctx.rotate(S.headZ*.15);ctx.translate(-cx,-cy);
   for(const pt of sorted){
     if(!pt.visible||!pt._img)continue;
     const wv=getWorldVerts(pt,vals);
+    ctx.save();
+    ctx.globalAlpha=pt.opacity!==undefined?pt.opacity:1;
     for(const[i0,i1,i2] of pt.mesh.tris){
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];
       const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
       drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,pt._img);
     }
+    ctx.restore();
   }
   ctx.restore();
   requestAnimationFrame(frame);
@@ -1099,17 +1107,29 @@ function initCam(){
   const v=document.createElement('video');v.style.display='none';document.body.appendChild(v);
   const fm=new FaceMesh({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'+f});
   fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+  const dz=0.04; // deadzone for head movement
+  function dzone(v){return Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz);}
   fm.onResults(r=>{
-    if(!r.multiFaceLandmarks?.length)return;
+    if(!r.multiFaceLandmarks?.length){tracking=false;return;}
     const lm=r.multiFaceLandmarks[0];tracking=true;
-    T.headX=(lm[1].x-.5)*-2;T.headY=(lm[1].y-.5)*-2;
-    const le=lm[234],re=lm[454];T.headZ=Math.atan2(re.y-le.y,re.x-le.x);
+    const rx=dzone((lm[1].x-.5)*-2.2), ry=dzone((lm[1].y-.45)*-2);
+    T.headX=Math.max(-1,Math.min(1,rx));
+    T.headY=Math.max(-1,Math.min(1,ry));
+    const le=lm[234],re=lm[454];
+    T.headZ=Math.atan2(re.y-le.y,re.x-le.x)*1.1;
     const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
     const eL=ear(362,385,387,263,373,380),eR=ear(33,160,158,133,153,144);
-    T.eyeOpenL=eL<.18?1:eL>.28?0:1-(eL-.18)/.1;
-    T.eyeOpenR=eR<.18?1:eR>.28?0:1-(eR-.18)/.1;
-    T.mouthOpen=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*35));
-    if(lm[473]&&lm[468]){T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*4));T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.35)*4));}
+    const eThL=.20, eThH=.30;
+    T.eyeOpenL=eL<eThL?1:eL>eThH?0:1-(eL-eThL)/(eThH-eThL);
+    T.eyeOpenR=eR<eThL?1:eR>eThH?0:1-(eR-eThL)/(eThH-eThL);
+    const mh=lm[14].y-lm[13].y, mw=lm[308].x-lm[78].x;
+    T.mouthOpen=Math.max(0,Math.min(1,mh/mw*6));
+    const mc=lm[308].x-lm[78].x, ml=lm[291].x-lm[61].x;
+    T.mouthForm=Math.max(-1,Math.min(1,(ml/mc-0.5)*4));
+    if(lm[473]&&lm[468]){
+      T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*5));
+      T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.38)*5));
+    }
   });
   const cam=new Camera(v,{onFrame:async()=>{if(v.readyState>=2)await fm.send({image:v})},width:320,height:240});
   cam.start().then(()=>{document.getElementById('st').textContent='Camera: ✓';document.getElementById('st').style.color='#70d870';})
