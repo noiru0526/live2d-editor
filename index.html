@@ -2362,7 +2362,12 @@ function buildParamUI() {
         <div class="kf-ticks" id="kticks-${name}"></div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-        <div class="kfdots" id="kd-${name}" style="margin:0;"></div>
+        <div style="display:flex;align-items:center;gap:2px;">
+          <div class="kfdots" id="kd-${name}" style="margin:0;"></div>
+          <button onclick="event.stopPropagation();navParamKF('${name}',-1)" title="前のKFへ" style="display:none;background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-prev-${name}">◀</button>
+          <span id="kfnav-cur-${name}" style="display:none;font-size:9px;color:var(--dim);font-family:monospace;min-width:28px;text-align:center;"></span>
+          <button onclick="event.stopPropagation();navParamKF('${name}',1)" title="次のKFへ" style="display:none;background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-next-${name}">▶</button>
+        </div>
         <select id="interp-${name}" style="background:#1a1e2e;border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;" onclick="event.stopPropagation()">
           ${interpModes.map(m=>`<option value="${m}"${(p.interp??'linear')===m?' selected':''}>${interpLabels[m]}</option>`).join('')}
         </select>
@@ -7277,11 +7282,14 @@ function toggleAnimMode() {
     tlm.style.height='180px'; tlm.style.borderTop='1px solid var(--border)';
     if (btn) { btn.classList.add('on'); btn.style.color=''; }
     resizeMultiTimeline();
+    setTimeout(updateKFNavDisplay, 0);
   } else {
     tl.style.height=''; tl.style.overflow=''; tl.style.border='';
     tlm.style.height='0'; tlm.style.borderTop='none';
     if (btn) { btn.classList.remove('on'); btn.style.color='#a0d0ff'; }
     resizeTimeline();
+    // Hide KF nav buttons
+    document.querySelectorAll('[id^="kfnav-"]').forEach(el => el.style.display = 'none');
   }
 }
 
@@ -8351,6 +8359,37 @@ function animMultiStop() {
   if (btn) btn.textContent='▶';
 }
 
+function navParamKF(name, dir) {
+  const frames = M.animation.tracks[name];
+  if (!frames || !frames.length) return;
+  const t = ST.animPlayhead;
+  let target = null;
+  if (dir < 0) {
+    for (let i = frames.length-1; i >= 0; i--) { if (frames[i].t < t - 0.001) { target = frames[i].t; break; } }
+  } else {
+    for (const kf of frames) { if (kf.t > t + 0.001) { target = kf.t; break; } }
+  }
+  if (target !== null) { ST.animPlayhead = target; applyPlayheadToParams(); drawMultiTimeline(); updateKFNavDisplay(); }
+}
+
+function updateKFNavDisplay() {
+  if (!ST.animMode) return;
+  const t = ST.animPlayhead;
+  for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+    const prev = document.getElementById(`kfnav-prev-${name}`);
+    const next = document.getElementById(`kfnav-next-${name}`);
+    const cur = document.getElementById(`kfnav-cur-${name}`);
+    if (!prev) continue;
+    prev.style.display = ''; next.style.display = ''; cur.style.display = '';
+    const hasPrev = frames.some(kf => kf.t < t - 0.001);
+    const hasNext = frames.some(kf => kf.t > t + 0.001);
+    const isOnKF = frames.some(kf => Math.abs(kf.t - t) < 0.002);
+    prev.style.color = hasPrev ? '#80b0ff' : 'rgba(100,120,160,.3)';
+    next.style.color = hasNext ? '#80b0ff' : 'rgba(100,120,160,.3)';
+    if (cur) cur.textContent = isOnKF ? `●${frames.findIndex(k=>Math.abs(k.t-t)<0.002)+1}` : `${frames.length}KF`;
+  }
+}
+
 function applyPlayheadToParams() {
   const t = ST.animPlayhead;
   for (const [name,frames] of Object.entries(M.animation.tracks)) {
@@ -8378,6 +8417,7 @@ function applyPlayheadToParams() {
     }
   }
   ST.cachedVerts=null; redraw();
+  if (ST.animMode) updateKFNavDisplay();
 }
 
 // Multi-track timeline interaction (playhead + KF drag + KF right-click delete)
