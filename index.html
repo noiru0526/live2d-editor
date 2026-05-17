@@ -569,6 +569,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         <label style="font-size:10px;color:var(--dim)">カスタムCSS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
+      <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
+        <label style="font-size:10px;color:var(--dim)">クレジット表示テキスト（空=非表示）</label>
+        <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:4px;margin-top:2px;">
+          位置:
+          <select id="export-credit-pos" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:9px;">
+            <option value="br">右下</option><option value="bl">左下</option><option value="tr">右上</option><option value="tl">左上</option>
+          </select>
+          <input id="export-credit-color" type="color" value="#ffffff40" style="width:22px;height:18px;border:none;border-radius:2px;cursor:pointer;" title="クレジットテキスト色">
+        </label>
+      </div>
       </div><!-- embed-cfg-body -->
     </div>
     <div id="auto-preset">
@@ -2971,6 +2982,9 @@ function genAvatarHTML() {
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
   const bgmLoop=document.getElementById('export-bgm-loop')?.checked!==false;
   const bgmVol=parseInt(document.getElementById('export-bgm-vol')?.value||'40')/100;
+  const creditText=(document.getElementById('export-credit')?.value||'').trim();
+  const creditPos=document.getElementById('export-credit-pos')?.value||'br';
+  const creditColor=document.getElementById('export-credit-color')?.value||'#ffffff40';
   // EMA alphas per smoothness mode: soft=slow, medium=medium, fast=fast
   const emaAlphas={soft:{hx:.10,hy:.10,hz:.08,bl:.25,br:.25,mo:.22,bw:.15,ex:.15,ey:.15},
     medium:{hx:.15,hy:.15,hz:.12,bl:.30,br:.30,mo:.28,bw:.20,ex:.20,ey:.20},
@@ -3017,6 +3031,7 @@ ${customCSS ? `/* Custom CSS */\n${customCSS}` : ''}
 <body>
 <div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div></div>
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
+${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes('b')?'bottom:8px':'top:8px'};${creditPos.includes('r')?'right:12px':'left:12px'};color:${creditColor};font-size:10px;font-family:monospace;pointer-events:none;z-index:50;opacity:.7;white-space:nowrap;">${creditText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
 ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).length>0) ? `<div id="anim-controls" style="position:fixed;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:99;min-width:160px;">
   <div style="display:flex;gap:4px;align-items:center;">
