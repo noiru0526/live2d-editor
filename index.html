@@ -996,6 +996,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
     <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2e3656;border:1px solid var(--border);color:#c0a0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
+    <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#1e2a38;border:1px solid rgba(80,200,200,.4);color:#60d0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
@@ -10009,6 +10010,78 @@ function trimAnimDuration() {
   document.getElementById('lbl-status').textContent = `継続時間をトリム: ${newDur.toFixed(1)}秒`;
 }
 
+function blendAnimations() {
+  if (!M.animClips?.length) { alert('ブレンドするには保存済みクリップが必要です'); return; }
+  const clips = [{name:'メイン（現在）'}, ...M.animClips];
+  const opts = clips.slice(1).map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
+  const dlg = document.createElement('div');
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">⚗ アニメーションブレンド</div>
+    <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">現在のアニメーションに別クリップのKFをブレンドします</div>
+    <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+      <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ブレンド元:</label>
+      <select id="blend-src" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">${opts}</select>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ブレンド率:</label>
+        <input id="blend-w" type="range" min="0" max="100" value="50" style="flex:1;accent-color:var(--accent);">
+        <span id="blend-w-val" style="color:#80d0ff;width:36px;">50%</span>
+      </div>
+      <div style="font-size:9px;color:var(--dim);">0% = 現在のみ, 100% = ブレンド元のみ, 50% = 等量ミックス</div>
+    </div>
+    <div style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="blend-new-clip" style="accent-color:var(--accent);" checked>
+      <label style="font-size:10px;cursor:pointer;">結果を新しいクリップとして保存（元を変更しない）</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:#2e3656;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button id="blend-ok" style="background:#2a4080;border:1px solid rgba(78,124,255,.5);color:#80c0ff;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">ブレンド実行</button>
+    </div>`;
+  document.body.appendChild(dlg);
+  const wSlider = dlg.querySelector('#blend-w');
+  const wVal = dlg.querySelector('#blend-w-val');
+  wSlider.oninput = () => { wVal.textContent = wSlider.value + '%'; };
+  dlg.querySelector('#blend-ok').onclick = () => {
+    const srcIdx = parseInt(dlg.querySelector('#blend-src').value);
+    const weight = parseFloat(wSlider.value) / 100;
+    const saveNew = dlg.querySelector('#blend-new-clip').checked;
+    const src = M.animClips[srcIdx];
+    if (!src) { dlg.remove(); return; }
+    const baseAnim = _cloneAnim(M.animation);
+    const srcAnim = src.animation || { tracks:{}, duration:3 };
+    const dur = baseAnim.duration || 3;
+    const merged = _cloneAnim(baseAnim);
+    const allNames = new Set([...Object.keys(baseAnim.tracks||{}), ...Object.keys(srcAnim.tracks||{})]);
+    for (const name of allNames) {
+      const baseTr = (baseAnim.tracks||{})[name] || [];
+      const srcTr = (srcAnim.tracks||{})[name] || [];
+      if (!srcTr.length) continue;
+      const p = M.params[name]; if (!p) continue;
+      if (!merged.tracks[name]) merged.tracks[name] = [];
+      const times = new Set([...baseTr.map(k=>k.t), ...srcTr.map(k=>k.t)]);
+      merged.tracks[name] = [...times].sort((a,b)=>a-b).map(t => {
+        const bv = baseTr.length ? evalAnimTrack(baseTr, p, t) : (p.val);
+        const sv = srcTr.length ? evalAnimTrack(srcTr, p, t) : (p.val);
+        return { t, v: bv*(1-weight)+sv*weight, interp:'linear' };
+      });
+    }
+    pushAnimUndo();
+    if (saveNew) {
+      const n = prompt('新クリップ名:', `ブレンド (${Math.round(weight*100)}%)`);
+      if (!n) { dlg.remove(); return; }
+      if (!M.animClips) M.animClips = [];
+      M.animClips.push({ name:n, animation:merged });
+      renderClipTabs();
+    } else {
+      M.animation = merged;
+      drawMultiTimeline();
+    }
+    dlg.remove();
+    document.getElementById('lbl-status').textContent = `ブレンド完了: ${Math.round(weight*100)}% 「${src.name}」`;
+  };
+}
+
 function timeStretchAnim() {
   const input = prompt('タイムストレッチ倍率を入力 (例: 0.5=2倍速, 2.0=半速, 1.0=変更なし):', '0.5');
   if (!input) return;
@@ -10688,6 +10761,38 @@ function applyPlayheadToParams() {
     // Close on outside click
     setTimeout(()=>document.addEventListener('mousedown',function _close(ev){if(!wrap.contains(ev.target)){wrap.remove();document.removeEventListener('mousedown',_close);}},true),0);
   });
+
+  // Touch pinch-to-zoom for timeline
+  {
+    let _tlTouches = null, _tlPinchDist = null, _tlTouchZoomStart = null;
+    const getTlRect = () => getTracks()?.getBoundingClientRect();
+    document.addEventListener('touchstart', e=>{
+      const r = getTlRect(); if(!r) return;
+      const inTl = [...e.touches].some(t=>t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom);
+      if (!inTl) return;
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        _tlTouches = [{x:e.touches[0].clientX,y:e.touches[0].clientY},{x:e.touches[1].clientX,y:e.touches[1].clientY}];
+        _tlPinchDist = Math.hypot(_tlTouches[1].x-_tlTouches[0].x, _tlTouches[1].y-_tlTouches[0].y);
+        _tlTouchZoomStart = tlZoom;
+      }
+    }, {passive:false});
+    document.addEventListener('touchmove', e=>{
+      if (e.touches.length === 2 && _tlPinchDist !== null) {
+        e.preventDefault();
+        const d = Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
+        const scale = d / _tlPinchDist;
+        const r = getTlRect(); if(!r) return;
+        const midX = ((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)/r.width;
+        const dur = M.animation.duration||3;
+        const tAtMid = tlZoomOff + midX*(dur/tlZoom);
+        tlZoom = Math.max(1, Math.min(20, _tlTouchZoomStart * scale));
+        tlZoomOff = Math.max(0, tAtMid - midX*(dur/tlZoom));
+        drawMultiTimeline();
+      }
+    }, {passive:false});
+    document.addEventListener('touchend', ()=>{ _tlTouches=null; _tlPinchDist=null; _tlTouchZoomStart=null; });
+  }
 
   // Mouse wheel scroll/zoom for timeline tracks
   document.addEventListener('wheel', e=>{
