@@ -485,7 +485,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       </div><!-- mesh-cfg-body -->
     </div>
     <div id="embed-cfg" style="padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 5px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 5px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
+        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
+        <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:#80b0ff;border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
+        <span style="color:var(--dim)">▾</span>
+      </span></div>
       <div id="embed-cfg-body">
       <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:5px;">
         <input type="checkbox" id="embed-img" style="accent-color:var(--accent);">
@@ -2921,6 +2925,85 @@ async function saveModel(filePath) {
 // ==================== EXPORT HTML ====================
 let _livePreviewWin = null;
 let _livePreviewURL = null;
+
+function _getExportSettings() {
+  const g = id => document.getElementById(id);
+  return {
+    size: g('export-size')?.value,
+    bg: g('export-bg')?.value,
+    bgimg: g('export-bgimg')?.value,
+    bgGrad: g('export-bg-gradient')?.value,
+    bgmUrl: g('export-bgm')?.value,
+    bgmLoop: g('export-bgm-loop')?.checked,
+    bgmVol: g('export-bgm-vol')?.value,
+    customCss: g('export-custom-css')?.value,
+    particle: g('export-particle')?.value,
+    particleDensity: g('export-particle-density')?.value,
+    credit: g('export-credit')?.value,
+    creditPos: g('export-credit-pos')?.value,
+    creditColor: g('export-credit-color')?.value,
+    idle: g('export-idle')?.value,
+    smooth: g('export-smooth')?.value,
+    sens: g('export-sens')?.value,
+    chromakey: g('export-chromakey')?.checked,
+    ctrlpanel: g('export-ctrlpanel')?.checked,
+    embedImg: g('embed-img')?.checked,
+  };
+}
+
+function _applyExportSettings(s) {
+  const set = (id, val, prop='value') => { const el=document.getElementById(id); if(el&&val!==undefined) el[prop]=val; };
+  set('export-size', s.size);
+  set('export-bg', s.bg);
+  set('export-bgimg', s.bgimg);
+  set('export-bg-gradient', s.bgGrad);
+  set('export-bgm', s.bgmUrl);
+  set('export-bgm-loop', s.bgmLoop, 'checked');
+  set('export-bgm-vol', s.bgmVol);
+  set('export-custom-css', s.customCss);
+  set('export-particle', s.particle);
+  set('export-particle-density', s.particleDensity);
+  set('export-credit', s.credit);
+  set('export-credit-pos', s.creditPos);
+  set('export-credit-color', s.creditColor);
+  set('export-idle', s.idle);
+  set('export-smooth', s.smooth);
+  set('export-sens', s.sens);
+  set('export-chromakey', s.chromakey, 'checked');
+  set('export-ctrlpanel', s.ctrlpanel, 'checked');
+  set('embed-img', s.embedImg, 'checked');
+  const volVal = document.getElementById('export-bgm-vol-val');
+  if (volVal && s.bgmVol) volVal.textContent = s.bgmVol;
+  const sensVal = document.getElementById('export-sens-val');
+  if (sensVal && s.sens) sensVal.textContent = parseFloat(s.sens).toFixed(1);
+}
+
+function saveExportPreset() {
+  const name = prompt('プリセット名を入力:', 'プリセット1');
+  if (!name) return;
+  const presets = JSON.parse(localStorage.getItem('noiru-export-presets') || '{}');
+  presets[name] = _getExportSettings();
+  localStorage.setItem('noiru-export-presets', JSON.stringify(presets));
+  document.getElementById('lbl-status').textContent = `出力設定「${name}」を保存しました`;
+}
+
+function loadExportPreset() {
+  const presets = JSON.parse(localStorage.getItem('noiru-export-presets') || '{}');
+  const names = Object.keys(presets);
+  if (!names.length) { alert('保存済みプリセットがありません'); return; }
+  const items = names.map(n => ({
+    label: n,
+    action: () => { _applyExportSettings(presets[n]); document.getElementById('lbl-status').textContent = `プリセット「${n}」を読み込みました`; }
+  }));
+  // Find button position to show context menu near it
+  const btnEl = document.querySelector('button[title="出力設定プリセットを読み込み"]');
+  const r = btnEl?.getBoundingClientRect();
+  showCtxMenu(r?.left||200, (r?.bottom||200)+4, [
+    ...items,
+    'sep',
+    { icon:'🗑', label:'全プリセットを削除', action:()=>{ localStorage.removeItem('noiru-export-presets'); document.getElementById('lbl-status').textContent='プリセット削除済み'; } }
+  ]);
+}
 
 function previewHTML() {
   if (!M.img) { alert('画像を開いてください'); return; }
