@@ -2493,6 +2493,17 @@ function editParamVal(name, spanEl) {
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { p.val=parseFloat(spanEl.textContent)||p.val; inp.blur(); } });
 }
 
+function _getParamGroup(name, lbl) {
+  // Detect group from label or name: first 2+ shared characters before digits or separator
+  const str = lbl || name;
+  // Japanese: group by first character if kanji/hiragana/katakana
+  if (/^[぀-鿿]/.test(str)) return str.charAt(0);
+  // English: strip "Param" prefix, then take the first CamelCase word
+  const stripped = str.replace(/^Param/i,'');
+  const match = stripped.match(/^([A-Z][a-z]+|[a-z]+|[A-Z]+(?=[A-Z]|$))/);
+  return match ? match[0] : stripped.slice(0,4);
+}
+
 function buildParamUI() {
   renderPosePresets();
   const cont=document.getElementById('params');
@@ -2503,9 +2514,56 @@ function buildParamUI() {
     ...allEntries.filter(([n])=>_favParams.has(n)),
     ...allEntries.filter(([n])=>!_favParams.has(n))
   ];
-  for (const [name,p] of sorted) {
-    const isFav = _favParams.has(name);
-    const row=document.createElement('div');
+  // Build groups (only for non-favorites)
+  const favEntries = sorted.filter(([n])=>_favParams.has(n));
+  const nonFavEntries = sorted.filter(([n])=>!_favParams.has(n));
+  // Group non-favorites by prefix
+  const groups = [];
+  for (const entry of nonFavEntries) {
+    const [name, p] = entry;
+    const grp = _getParamGroup(name, p.lbl);
+    const last = groups[groups.length-1];
+    if (last && last.key === grp) { last.entries.push(entry); }
+    else groups.push({ key: grp, entries: [entry] });
+  }
+  // Render favorites (no grouping)
+  for (const [name,p] of favEntries) { renderParamRow(name, p, cont, true); }
+  if (favEntries.length && groups.length) {
+    const sep = document.createElement('div');
+    sep.style.cssText = 'height:1px;background:var(--border);margin:4px 0;opacity:.5;';
+    cont.appendChild(sep);
+  }
+  // Render grouped non-favorites
+  for (const group of groups) {
+    if (group.entries.length >= 3) {
+      // Add group header
+      const hdr = document.createElement('div');
+      const isCollapsed = _collapsedParamGroups.has(group.key);
+      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:rgba(78,124,255,.06);border-radius:3px;margin-bottom:2px;';
+      hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(128,160,200,.5);margin-left:auto;">${group.entries.length}</span>`;
+      hdr.onclick = () => {
+        if (_collapsedParamGroups.has(group.key)) _collapsedParamGroups.delete(group.key);
+        else _collapsedParamGroups.add(group.key);
+        buildParamUI();
+      };
+      cont.appendChild(hdr);
+      if (!isCollapsed) {
+        for (const [name,p] of group.entries) renderParamRow(name, p, cont, false);
+      }
+    } else {
+      for (const [name,p] of group.entries) renderParamRow(name, p, cont, false);
+    }
+  }
+  // Re-apply filter
+  const filterEl=document.getElementById('param-filter');
+  if (filterEl?.value) filterParams(filterEl.value);
+  // Build group UI (if groups have members)
+  buildParamGroupsUI();
+}
+
+function renderParamRow(name, p, cont, _isFavArg) {
+  const isFav = _favParams.has(name);
+  const row=document.createElement('div');
     row.className='prow'+(name===ST.ap?' active':'');
     row.id=`pr-${name}`;
     const interpModes=['linear','smooth','ease-in','ease-out','bounce','step'];
@@ -2650,12 +2708,6 @@ function buildParamUI() {
     }, {passive: false});
     cont.appendChild(row);
     updateKFDots(name);
-  }
-  // Re-apply filter
-  const filterEl=document.getElementById('param-filter');
-  if (filterEl?.value) filterParams(filterEl.value);
-  // Build group UI (if groups have members)
-  buildParamGroupsUI();
 }
 
 function updateProfile(key, value) {
@@ -3419,6 +3471,9 @@ function genAvatarHTML() {
 <meta charset="UTF-8">
 <title>${htmlTitle.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta property="og:title" content="${htmlTitle.replace(/"/g,'&quot;')}">
+<meta property="og:type" content="website">
+${creditText ? `<meta name="author" content="${creditText.replace(/"/g,'&quot;')}">` : ''}
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;background:${bgGradient||bgColor};${bgImgUrl?`background-image:url('${bgImgUrl.replace(/'/g,"\\'")}');background-size:cover;background-position:center;background-repeat:no-repeat;`:''}overflow:hidden;}
@@ -7519,6 +7574,7 @@ const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
+let _collapsedParamGroups = new Set(); // collapsed parameter group names
 let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
 let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
 let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
