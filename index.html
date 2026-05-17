@@ -697,6 +697,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Delete</td><td>選択KFを削除</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+C / V</td><td>選択KFをコピー / ペースト</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+A</td><td>アクティブトラックのKFを全選択</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+Shift+A</td><td>全トラックのKFを全選択</td></tr>
+      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Home / End</td><td>プレイヘッドを先頭/末尾に移動（アニメモード）</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+D</td><td>KF選択解除</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+クリック</td><td>KFを追加選択（マルチ選択）</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+ホイール</td><td>タイムライン横ズーム</td></tr>
@@ -3855,10 +3857,15 @@ document.addEventListener('keydown',e=>{
   // Space: timeline play/pause handled below in combined handler
   if (e.ctrlKey&&e.key==='a') {
     if (ST.animMode) {
-      // In anim mode: select all KFs in active track
       tlSelectedKFs.clear();
-      const frames=M.animation.tracks[ST.ap];
-      if (frames) for (const kf of frames) tlSelectedKFs.add(kf);
+      if (e.shiftKey) {
+        // Ctrl+Shift+A: select all KFs across ALL tracks
+        for (const frames of Object.values(M.animation.tracks)) for (const kf of frames) tlSelectedKFs.add(kf);
+      } else {
+        // Ctrl+A: select all KFs in active track only
+        const frames=M.animation.tracks[ST.ap];
+        if (frames) for (const kf of frames) tlSelectedKFs.add(kf);
+      }
       drawMultiTimeline(); e.preventDefault();
     } else {
       ST.selVerts.clear();
@@ -3906,6 +3913,13 @@ document.addEventListener('keydown',e=>{
     }
     for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
     drawMultiTimeline(); e.preventDefault(); return;
+  }
+  // Home/End: jump playhead in anim mode
+  if (ST.animMode && e.key==='Home' && document.activeElement===document.body) {
+    ST.animPlayhead=M.animation.loopIn??0; applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault();
+  }
+  if (ST.animMode && e.key==='End' && document.activeElement===document.body) {
+    ST.animPlayhead=M.animation.loopOut??M.animation.duration??3; applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault();
   }
   // Arrow key nudge (vertices)
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key) && ST.selVerts.size>0 && document.activeElement===document.body) {
