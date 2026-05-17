@@ -762,6 +762,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;margin-left:auto;">
         <input type="checkbox" id="wc-expr-auto" style="accent-color:#ff80c0;width:10px;height:10px;">自動検出
       </label>
+      <label style="font-size:9px;color:#c0a0ff;display:flex;align-items:center;gap:2px;" title="検出した表情名と同名のポーズを自動適用">
+        <input type="checkbox" id="wc-expr-apply-pose" style="accent-color:#c0a0ff;width:10px;height:10px;">ポーズ連動
+      </label>
     </div>
     <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
@@ -876,6 +879,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
+    <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
@@ -5211,18 +5215,36 @@ function wcClearExprPresets() {
 }
 
 // Auto-detect expression from smoothed face values and highlight matching button
+let _wcLastDetectedPose = null;
+let _wcDetectCooldown = 0;
 function wcAutoDetectExpr(sm) {
   const auto = document.getElementById('wc-expr-auto')?.checked;
   const detectedEl = document.getElementById('wc-expr-detected');
   if (!auto || !detectedEl) return;
-  let bestScore = -1, bestName = '';
+  let bestScore = -1, bestName = '', bestIdx = -1;
   _WC_AUTO_EXPRS.forEach((ex, i) => {
     if (ex.detect(sm)) {
       const score = ex.score(sm);
-      if (score > bestScore) { bestScore = score; bestName = ex.name; }
+      if (score > bestScore) { bestScore = score; bestName = ex.name; bestIdx = i; }
     }
   });
   detectedEl.textContent = bestScore > 0 ? `検出: ${bestName} (${(bestScore*100).toFixed(0)}%)` : '';
+  // Auto-apply matching named pose (if cooldown elapsed)
+  const applyPose = document.getElementById('wc-expr-apply-pose')?.checked;
+  const now = Date.now();
+  if (applyPose && bestScore > 0.4 && bestName !== _wcLastDetectedPose && now > _wcDetectCooldown) {
+    _wcLastDetectedPose = bestName;
+    _wcDetectCooldown = now + 1500; // 1.5s cooldown
+    // Strip emoji prefix and try to find matching pose
+    const nameClean = bestName.replace(/^\p{Emoji_Presentation}\s*/u, '').trim();
+    const pose = M.poses?.find(p => p.name === nameClean || p.name.includes(nameClean) || nameClean.includes(p.name));
+    if (pose) {
+      applyPoseBlend(pose, 1);
+      detectedEl.textContent += ' → ポーズ適用！';
+    }
+  } else if (bestScore <= 0) {
+    _wcLastDetectedPose = null;
+  }
 }
 
 // ==================== MIC TEST (LIPSYNC PREVIEW) ====================
@@ -7223,6 +7245,10 @@ function showAnimTemplates() {
     { id:'nod', name:'頷き (1秒)', desc:'headY を一瞬下げて戻す' },
     { id:'shake', name:'首振り (1秒)', desc:'headZ を左右に振る' },
     { id:'idle', name:'アイドル複合 (4秒)', desc:'まばたき+呼吸の自然なコンボ' },
+    { id:'wink', name:'ウィンク', desc:'右目だけ閉じてパッと開く (0.5秒)' },
+    { id:'startle', name:'ビックリ (0.8秒)', desc:'急に顔を少し上げて口が開く' },
+    { id:'lookaway', name:'視線そらし (2秒)', desc:'eyeX が左右に移動してから戻る' },
+    { id:'camerazoom', name:'カメラズームイン (2秒)', desc:'__camZoom でゆっくり寄る' },
   ];
   showModal('アニメーションテンプレート', `
     <div style="font-size:12px;display:grid;gap:8px;">
@@ -7265,11 +7291,31 @@ function applyAnimTemplate(id) {
     M.animation.duration = Math.max(dur, t0+1);
   } else if (id === 'idle') {
     M.animation.duration = Math.max(dur, 4);
-    // Breath
     addKFs('headY', [{t:0,v:0},{t:2,v:-0.04},{t:4,v:0}]);
-    // Single blink at 1.5s
     addKFs('blinkL', [{t:0,v:0},{t:1.5,v:0},{t:1.55,v:1},{t:1.65,v:1},{t:1.7,v:0},{t:4,v:0}]);
     addKFs('blinkR', [{t:0,v:0},{t:1.5,v:0},{t:1.55,v:1},{t:1.65,v:1},{t:1.7,v:0},{t:4,v:0}]);
+  } else if (id === 'wink') {
+    const t0 = ST.animPlayhead;
+    addKFs('blinkR', [{t:t0,v:0},{t:t0+0.05,v:1},{t:t0+0.15,v:1},{t:t0+0.25,v:0}]);
+    M.animation.duration = Math.max(dur, t0+0.5);
+  } else if (id === 'startle') {
+    const t0 = ST.animPlayhead;
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.08,v:0.2},{t:t0+0.3,v:-0.05},{t:t0+0.8,v:0}]);
+    addKFs('mouthOpen', [{t:t0,v:0},{t:t0+0.1,v:0.5},{t:t0+0.5,v:0.2},{t:t0+0.8,v:0}]);
+    addKFs('blinkL', [{t:t0,v:0},{t:t0+0.08,v:0},{t:t0+0.25,v:0}]);
+    addKFs('blinkR', [{t:t0,v:0},{t:t0+0.08,v:0},{t:t0+0.25,v:0}]);
+    M.animation.duration = Math.max(dur, t0+0.8);
+  } else if (id === 'lookaway') {
+    const t0 = ST.animPlayhead;
+    addKFs('eyeX', [{t:t0,v:0},{t:t0+0.3,v:0.8},{t:t0+1.2,v:0.8},{t:t0+1.5,v:0},{t:t0+2,v:0}]);
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.3,v:0.15},{t:t0+1.2,v:0.15},{t:t0+1.5,v:0},{t:t0+2,v:0}]);
+    M.animation.duration = Math.max(dur, t0+2);
+  } else if (id === 'camerazoom') {
+    const t0 = ST.animPlayhead;
+    if (!M.animation.tracks['__camZoom']) M.animation.tracks['__camZoom'] = [];
+    M.animation.tracks['__camZoom'].push({t:t0,v:1},{t:t0+2,v:1.4});
+    M.animation.tracks['__camZoom'].sort((a,b)=>a.t-b.t);
+    M.animation.duration = Math.max(dur, t0+2);
   }
   const durEl = document.getElementById('tl-duration');
   if (durEl) durEl.value = M.animation.duration;
@@ -7640,6 +7686,49 @@ function reverseAnimation() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `アニメーションを逆転しました (${dur.toFixed(1)}s)`;
+}
+
+// Mirror L↔R parameter tracks (copy blinkL→blinkR, browL→browR, eyeL→eyeR etc.)
+const _MIRROR_PAIRS = [
+  ['blinkL','blinkR'],['browL','browR'],['eyeL','eyeR'],
+  ['cheekL','cheekR'],['eyeX_L','eyeX_R'],['eyeY_L','eyeY_R'],
+  ['mouthL','mouthR'],['tearL','tearR'],
+  // custom pairs: any param ending in L/R or Left/Right
+];
+function mirrorAnimTracks() {
+  const tracks = M.animation.tracks || {};
+  const paramKeys = Object.keys(tracks);
+  let count = 0;
+  pushAnimUndo();
+  // Build dynamic pairs from existing tracks
+  const autoPairs = [];
+  for (const k of paramKeys) {
+    let partner = null;
+    if (k.endsWith('L')) partner = k.slice(0,-1)+'R';
+    else if (k.endsWith('R')) partner = k.slice(0,-1)+'L';
+    else if (k.toLowerCase().endsWith('left')) partner = k.slice(0,-4)+'Right';
+    else if (k.toLowerCase().endsWith('right')) partner = k.slice(0,-5)+'Left';
+    if (partner && paramKeys.includes(partner)) {
+      const pair = [k, partner].sort();
+      if (!autoPairs.some(p => p[0]===pair[0]&&p[1]===pair[1])) autoPairs.push(pair);
+    }
+  }
+  const allPairs = [..._MIRROR_PAIRS, ...autoPairs];
+  const done = new Set();
+  for (const [a, b] of allPairs) {
+    if (!tracks[a] && !tracks[b]) continue;
+    const key = [a,b].sort().join('↔');
+    if (done.has(key)) continue; done.add(key);
+    if (tracks[a]) {
+      tracks[b] = JSON.parse(JSON.stringify(tracks[a]));
+      count++;
+    } else if (tracks[b]) {
+      tracks[a] = JSON.parse(JSON.stringify(tracks[b]));
+      count++;
+    }
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ミラー: ${count} トラックをコピー`;
 }
 
 function trimAnimDuration() {
