@@ -2805,11 +2805,38 @@ async function exportHTML(filePath) {
   if (p && window.api) {
     await window.api.writeFile(p,html);
     document.getElementById('lbl-status').textContent='出力完了: '+p.split(/[/\\]/).pop();
+    _showEmbedCode(p);
   } else {
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
     a.download='noiru-avatar.html'; a.click();
   }
+}
+
+function _showEmbedCode(filePath) {
+  const EW = parseInt(document.getElementById('export-w')?.value||480);
+  const EH = parseInt(document.getElementById('export-h')?.value||360);
+  const fileUrl = filePath ? ('file:///'+filePath.replace(/\\/g,'/')) : 'file:///C:/path/to/noiru-avatar.html';
+  const iframeCode = `<iframe src="${fileUrl}" width="${EW}" height="${EH}" frameborder="0" allow="camera; microphone" style="border:none;"></iframe>`;
+  const postMsgEx = `// iframe制御例\nconst iframe = document.querySelector('iframe');\niframe.contentWindow.postMessage({type:'noiru-cmd',cmd:'setPose',name:'happy'},'*');\niframe.contentWindow.postMessage({type:'noiru-cmd',cmd:'playAnim'},'*');`;
+  // Show in a floating dialog
+  const existing = document.getElementById('embed-code-dialog');
+  if (existing) existing.remove();
+  const dlg = document.createElement('div');
+  dlg.id = 'embed-code-dialog';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
+  dlg.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="color:#c8d4f0;font-size:12px;font-weight:bold;">📋 埋め込みコード</span>
+      <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="color:#8898c0;margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
+    <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
+    <div style="color:#8898c0;margin:8px 0 4px;font-size:9px;">postMessage API例</div>
+    <textarea readonly style="width:100%;height:64px;background:#0e1120;border:1px solid #3a4470;color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
+  `;
+  document.body.appendChild(dlg);
 }
 
 function genAvatarHTML() {
@@ -3696,6 +3723,39 @@ window.addEventListener('mousemove', e => {
     }
   },{passive:false});
 })();
+// postMessage API for external/iframe control
+// Commands: setPose, setParam, playClip, playAnim, stopAnim, reset, getState
+window.addEventListener('message',ev=>{
+  const d=ev.data; if(typeof d!=='object'||d.type!=='noiru-cmd') return;
+  const reply=r=>{try{ev.source?.postMessage({type:'noiru-reply',id:d.id,...r},ev.origin||'*');}catch(e){}};
+  switch(d.cmd){
+    case 'setPose':
+      if(d.name===null||d.name===undefined){activePose=null;poseBlend=0;updateExprList(0);}
+      else{const p=MD.poses?.find(x=>x.name===d.name);if(p){activePose=p;poseBlend=0;}}
+      reply({ok:true}); break;
+    case 'setParam':
+      if(params[d.name]!==undefined){params[d.name].val=Math.max(params[d.name].min,Math.min(params[d.name].max,+d.value||0));}
+      reply({ok:true}); break;
+    case 'playClip':
+      {const ci=(MD.animClips||[]).findIndex(c=>c.name===d.name);
+       if(typeof switchClip==='function')switchClip(ci>=0?ci:-1);
+       if(d.play!==false&&typeof toggleExportAnim==='function'&&!animPlaying)toggleExportAnim();}
+      reply({ok:true}); break;
+    case 'playAnim':
+      if(typeof toggleExportAnim==='function'&&!animPlaying)toggleExportAnim();
+      reply({ok:true}); break;
+    case 'stopAnim':
+      if(typeof toggleExportAnim==='function'&&animPlaying)toggleExportAnim();
+      reply({ok:true}); break;
+    case 'reset':
+      activePose=null;poseBlend=0;for(const k of Object.keys(params))params[k].val=0;
+      reply({ok:true}); break;
+    case 'getState':
+      reply({ok:true,pose:activePose?.name||null,playing:typeof animPlaying!=='undefined'?animPlaying:false,
+             params:Object.fromEntries(Object.entries(params).map(([k,p])=>[k,p.val]))}); break;
+    default: reply({ok:false,error:'unknown command'});
+  }
+});
 <\/script>
 </body>
 </html>`;
