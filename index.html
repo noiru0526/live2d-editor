@@ -7647,6 +7647,24 @@ function normalizeSelectedKFValues() {
   document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値を[${targetMin.toFixed(2)}..${targetMax.toFixed(2)}]に正規化`;
 }
 
+function flattenSelectedKFValues() {
+  if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
+  const kfArr = [...tlSelectedKFs];
+  const avg = kfArr.reduce((s,k)=>s+k.v,0)/kfArr.length;
+  const target = parseFloat(prompt('フラット化する値 (空欄=平均値):', avg.toFixed(4)));
+  if (isNaN(target)) return;
+  pushAnimUndo();
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  for (const kf of kfArr) {
+    const nm = kfToName.get(kf);
+    const p = M.params[nm];
+    kf.v = p ? Math.max(p.min, Math.min(p.max, target)) : target;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値を ${target.toFixed(4)} にフラット化`;
+}
+
 function retimeAnimation() {
   const oldDur = M.animation.duration || 3;
   const newDurStr = prompt(`新しいアニメーション継続時間（現在: ${oldDur.toFixed(2)}秒）:`, oldDur.toFixed(2));
@@ -8744,6 +8762,7 @@ function applyPlayheadToParams() {
       { icon:'±', label:'選択KFの値をオフセット', action:()=>offsetSelectedKFValues() },
       { icon:'×', label:'選択KFの値をスケール', action:()=>scaleSelectedKFValues() },
       { icon:'⊡', label:'選択KFの値を正規化', action:()=>normalizeSelectedKFValues() },
+      { icon:'⟶', label:'選択KFの値をフラット化', action:()=>flattenSelectedKFValues() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
         pushAnimUndo();
