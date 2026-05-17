@@ -62,6 +62,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 .prop-in:focus{border-color:#7c3aed}
 .prop-in.wide{width:100%}
 .prop-row .tbtn{font-size:8px;padding:2px 7px}
+.prop-sel{background:#1e293b;border:1px solid #2a3a5a;color:#cdd6f4;font-size:9px;padding:2px 4px;border-radius:3px;outline:none;flex:1}
+.prop-sel:focus{border-color:#7c3aed}
+.pi.multi-sel{border-color:#60a5fa;background:#1e2a3a}
 #rb{border-top:1px solid #1e2638;padding:8px 7px}
 .ab{display:block;width:100%;margin-bottom:5px;background:#1e293b;border:1px solid #2a3a5a;color:#94a3b8;font-size:10px;padding:5px 8px;border-radius:4px;cursor:pointer;text-align:left}
 .ab:hover{background:#263347;color:#cdd6f4}
@@ -150,6 +153,21 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <input type="range" id="pp-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value)" style="flex:1">
         <span id="pp-op-v" style="font-size:9px;color:#cba6f7;min-width:28px;text-align:right">100%</span>
       </div>
+      <div class="prop-row">
+        <span class="prop-lbl">合成</span>
+        <select class="prop-sel" id="pp-blend" onchange="applyPartBlend(this.value)">
+          <option value="source-over">通常</option>
+          <option value="multiply">乗算</option>
+          <option value="screen">スクリーン</option>
+          <option value="overlay">オーバーレイ</option>
+          <option value="lighter">加算</option>
+          <option value="color-dodge">覆い焼き</option>
+          <option value="color-burn">焼き込み</option>
+          <option value="hard-light">ハードライト</option>
+          <option value="soft-light">ソフトライト</option>
+          <option value="difference">差の絶対値</option>
+        </select>
+      </div>
       <div class="prop-row" style="gap:3px">
         <button class="tbtn" onclick="centerPart()" style="flex:1">中央に配置</button>
         <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1">🔓 ロック</button>
@@ -201,7 +219,7 @@ const P = {
 
 // ===== STATE =====
 let parts = [];
-let selPart = -1, selParam = 'headX', curKF = 0;
+let selPart = -1, selParts = new Set(), selParam = 'headX', curKF = 0;
 let mode = 'parts';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
@@ -216,6 +234,7 @@ let dragging = false, dragMode = '', dragVI = -1;
 let dragSX = 0, dragSY = 0;
 let panOX = 0, panOY = 0;
 let dragPartOX = 0, dragPartOY = 0;
+let dragMultiOrigins = new Map();
 
 // Pending part (while name dialog open)
 let pendingImg = null, pendingDataURL = null;
@@ -250,6 +269,7 @@ class Part {
     this.x = 0;
     this.y = 0;
     this.opacity = 1;
+    this.blendMode = 'source-over';
     this.locked = false;
     this.visible = true;
     this.zIndex = parts.length;
@@ -327,7 +347,7 @@ class Part {
     return {
       id: this.id, name: this.name,
       x: this.x, y: this.y,
-      opacity: this.opacity, locked: this.locked,
+      opacity: this.opacity, blendMode: this.blendMode, locked: this.locked,
       visible: this.visible, zIndex: this.zIndex,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
@@ -339,6 +359,7 @@ class Part {
     const p = new Part(o.name);
     p.id = o.id||p.id; p.x = o.x||0; p.y = o.y||0;
     p.opacity = o.opacity !== undefined ? o.opacity : 1;
+    p.blendMode = o.blendMode || 'source-over';
     p.locked = o.locked || false;
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
@@ -444,6 +465,7 @@ function render() {
     // Textured triangles
     ctx.save();
     ctx.globalAlpha = pt.opacity !== undefined ? pt.opacity : 1;
+    ctx.globalCompositeOperation = pt.blendMode || 'source-over';
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
       const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
@@ -476,12 +498,18 @@ function render() {
 
     // Part bounds (parts mode)
     if (mode === 'parts') {
-      const isSel = parts.indexOf(pt) === selPart;
+      const pidx = parts.indexOf(pt);
+      const isSel = pidx === selPart;
+      const isMulti = selParts.has(pidx);
       const tl2=m2s(pt.x,pt.y), br2=m2s(pt.x+pt.w,pt.y+pt.h);
-      ctx.strokeStyle = isSel ? '#8b5cf6' : 'rgba(100,150,255,.4)';
-      ctx.lineWidth = isSel ? 2 : 1;
+      ctx.strokeStyle = isSel ? '#8b5cf6' : isMulti ? '#60a5fa' : 'rgba(100,150,255,.4)';
+      ctx.lineWidth = (isSel || isMulti) ? 2 : 1;
       ctx.strokeRect(tl2.x, tl2.y, br2.x-tl2.x, br2.y-tl2.y);
-      ctx.fillStyle = isSel ? '#8b5cf6' : 'rgba(100,150,255,.7)';
+      if (isMulti && !isSel) {
+        ctx.fillStyle = 'rgba(96,165,250,.06)';
+        ctx.fillRect(tl2.x, tl2.y, br2.x-tl2.x, br2.y-tl2.y);
+      }
+      ctx.fillStyle = isSel ? '#8b5cf6' : isMulti ? '#60a5fa' : 'rgba(100,150,255,.7)';
       ctx.font = '10px Segoe UI';
       ctx.fillText(pt.name, tl2.x+3, tl2.y+13);
     }
@@ -565,6 +593,7 @@ function loadModelFromJSON(json) {
     document.getElementById('cvH').value = canvasH;
     if (data.parts) parts = data.parts.map(o => Part.fromJSON(o));
     selPart = parts.length > 0 ? 0 : -1;
+    selParts.clear(); if (selPart>=0) selParts.add(selPart);
     updatePartsUI(); buildParamsUI(); buildKFUI(); fitView();
     setStatus(`モデル読込完了 — ${parts.length}パーツ`);
   } catch(err) { setStatus('JSONの読込に失敗: ' + err.message); }
@@ -581,6 +610,7 @@ function confirmAdd() {
   pt.x = Math.max(0, Math.round((canvasW - pt.w) / 2));
   pt.y = Math.max(0, Math.round((canvasH - pt.h) / 2));
   parts.push(pt); selPart = parts.length - 1;
+  selParts.clear(); selParts.add(selPart);
   pendingImg = null; pendingDataURL = null;
   updatePartsUI(); buildParamsUI(); buildKFUI(); render();
   setStatus(`「${nm}」を追加 (${pt.w}×${pt.h}px) — ドラッグで位置調整`);
@@ -593,11 +623,21 @@ function cancelAdd() {
 }
 
 function delPart() {
+  if (selParts.size > 1) {
+    saveState();
+    const idxArr = [...selParts].sort((a,b)=>b-a);
+    idxArr.forEach(i => { if(i>=0&&i<parts.length) parts.splice(i,1); });
+    selParts.clear(); selPart = parts.length>0?0:-1;
+    if (selPart>=0) selParts.add(selPart);
+    updatePartsUI(); render(); setStatus(`${idxArr.length}パーツを削除`);
+    return;
+  }
   if (selPart<0||selPart>=parts.length) return;
   saveState();
   const nm = parts[selPart].name;
   parts.splice(selPart, 1);
   selPart = Math.min(selPart, parts.length-1);
+  selParts.clear(); if (selPart>=0) selParts.add(selPart);
   updatePartsUI(); render(); setStatus(`パーツ「${nm}」を削除`);
 }
 
@@ -614,7 +654,15 @@ function mvDn() {
   selPart++; parts.forEach((p,i) => p.zIndex = i); updatePartsUI(); render();
 }
 
-function selPartClick(i) { selPart = i; updatePartsUI(); buildKFUI(); updatePartPropsUI(); render(); }
+function selPartClick(i, shift=false) {
+  if (shift) {
+    if (selParts.has(i)) { selParts.delete(i); if (selPart===i) selPart = selParts.size>0?[...selParts][0]:-1; }
+    else { selParts.add(i); selParts.add(selPart); selPart = i; }
+  } else {
+    selPart = i; selParts.clear(); selParts.add(i);
+  }
+  updatePartsUI(); buildKFUI(); updatePartPropsUI(); render();
+}
 function togVis(i, e) {
   e.stopPropagation(); parts[i].visible = !parts[i].visible; updatePartsUI(); render();
 }
@@ -623,8 +671,8 @@ function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   parts.forEach((pt,i) => {
     const d = document.createElement('div');
-    d.className = 'pi' + (i===selPart?' sel':'');
-    d.onclick = () => selPartClick(i);
+    d.className = 'pi' + (i===selPart?' sel':'') + (selParts.has(i)&&i!==selPart?' multi-sel':'');
+    d.onclick = (e) => selPartClick(i, e.shiftKey);
 
     // Thumbnail
     if (pt.img) {
@@ -683,6 +731,7 @@ function updatePartPropsUI() {
     const op = Math.round((pt.opacity || 1) * 100);
     document.getElementById('pp-op').value = op;
     document.getElementById('pp-op-v').textContent = op + '%';
+    document.getElementById('pp-blend').value = pt.blendMode || 'source-over';
     document.getElementById('btn-lock').textContent = pt.locked ? '🔒 ロック解除' : '🔓 ロック';
   } else {
     pp.style.display = 'none';
@@ -703,6 +752,12 @@ function applyPartOpacity(v) {
   if (selPart < 0 || selPart >= parts.length) return;
   parts[selPart].opacity = parseInt(v) / 100;
   document.getElementById('pp-op-v').textContent = v + '%';
+  render();
+}
+
+function applyPartBlend(v) {
+  if (selPart < 0 || selPart >= parts.length) return;
+  parts[selPart].blendMode = v;
   render();
 }
 
@@ -891,12 +946,14 @@ canvas.addEventListener('mousedown', e => {
       if (mp.x>=pt.x && mp.x<=pt.x+pt.w && mp.y>=pt.y && mp.y<=pt.y+pt.h) { clicked=i; break; }
     }
     if (clicked>=0) {
-      selPartClick(clicked);
+      selPartClick(clicked, e.shiftKey);
       if (!parts[clicked].locked) {
         saveState();
         dragging=true; dragMode='movepart';
         dragSX=mp.x; dragSY=mp.y;
         dragPartOX=parts[clicked].x; dragPartOY=parts[clicked].y;
+        dragMultiOrigins.clear();
+        selParts.forEach(i => dragMultiOrigins.set(i, {x:parts[i].x, y:parts[i].y}));
       }
     }
     return;
@@ -922,10 +979,16 @@ canvas.addEventListener('mousemove', e => {
   const mp = s2m(sx, sy);
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); render(); return; }
   if (dragMode==='movepart' && selPart>=0) {
-    const nx = dragPartOX + (mp.x-dragSX);
-    const ny = dragPartOY + (mp.y-dragSY);
-    parts[selPart].x = snapVal(nx);
-    parts[selPart].y = snapVal(ny);
+    const rawDX = mp.x - dragSX, rawDY = mp.y - dragSY;
+    const snappedX = snapVal(dragPartOX + rawDX);
+    const snappedY = snapVal(dragPartOY + rawDY);
+    const dx = snappedX - dragPartOX, dy = snappedY - dragPartOY;
+    selParts.forEach(i => {
+      if (!parts[i] || parts[i].locked) return;
+      const orig = dragMultiOrigins.get(i) || {x: parts[i].x, y: parts[i].y};
+      parts[i].x = orig.x + dx;
+      parts[i].y = orig.y + dy;
+    });
     updatePartPropsUI(); render(); return;
   }
   if (dragMode==='vert' && dragVI>=0 && selPart>=0) {
@@ -952,14 +1015,21 @@ document.addEventListener('keydown', e => {
   if (e.key==='Delete' && onBody) delPart();
   if ((e.ctrlKey||e.metaKey) && e.key==='z' && onBody) { e.preventDefault(); undo(); }
   if ((e.ctrlKey||e.metaKey) && e.key==='d' && onBody) { e.preventDefault(); dupPart(); }
-  if (mode==='parts' && selPart>=0 && selPart<parts.length && !parts[selPart].locked && onBody) {
+  if (mode==='parts' && selPart>=0 && selPart<parts.length && onBody) {
     const step = snapToGrid ? gridSize : (e.shiftKey ? 10 : 1);
     let moved = false;
-    if (e.key==='ArrowLeft')  { parts[selPart].x -= step; moved=true; }
-    if (e.key==='ArrowRight') { parts[selPart].x += step; moved=true; }
-    if (e.key==='ArrowUp')    { parts[selPart].y -= step; moved=true; }
-    if (e.key==='ArrowDown')  { parts[selPart].y += step; moved=true; }
-    if (moved) { e.preventDefault(); updatePartPropsUI(); render(); }
+    let dx=0, dy=0;
+    if (e.key==='ArrowLeft')  { dx=-step; moved=true; }
+    if (e.key==='ArrowRight') { dx= step; moved=true; }
+    if (e.key==='ArrowUp')    { dy=-step; moved=true; }
+    if (e.key==='ArrowDown')  { dy= step; moved=true; }
+    if (moved) {
+      e.preventDefault();
+      (selParts.size>0 ? selParts : new Set([selPart])).forEach(i => {
+        if (parts[i] && !parts[i].locked) { parts[i].x+=dx; parts[i].y+=dy; }
+      });
+      updatePartPropsUI(); render();
+    }
   }
 });
 document.getElementById('ni').addEventListener('keydown', e => {
@@ -1092,6 +1162,7 @@ function frame(ts){
     const wv=getWorldVerts(pt,vals);
     ctx.save();
     ctx.globalAlpha=pt.opacity!==undefined?pt.opacity:1;
+    ctx.globalCompositeOperation=pt.blendMode||'source-over';
     for(const[i0,i1,i2] of pt.mesh.tris){
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];
       const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
