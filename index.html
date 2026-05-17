@@ -2919,13 +2919,22 @@ async function saveModel(filePath) {
 }
 
 // ==================== EXPORT HTML ====================
+let _livePreviewWin = null;
+let _livePreviewURL = null;
+
 function previewHTML() {
   if (!M.img) { alert('画像を開いてください'); return; }
   const html = genAvatarHTML();
-  const url = URL.createObjectURL(new Blob([html], {type:'text/html'}));
-  const w = window.open(url, '_blank', 'width=600,height=600');
-  if (!w) alert('ポップアップがブロックされました。ブラウザのポップアップ許可を確認してください。');
-  document.getElementById('lbl-status').textContent = 'プレビューを新しいウィンドウで開きました';
+  if (_livePreviewURL) URL.revokeObjectURL(_livePreviewURL);
+  _livePreviewURL = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+  if (_livePreviewWin && !_livePreviewWin.closed) {
+    _livePreviewWin.location.replace(_livePreviewURL);
+    _livePreviewWin.focus();
+  } else {
+    _livePreviewWin = window.open(_livePreviewURL, 'noiru-live-preview', 'width=600,height=650');
+    if (!_livePreviewWin) alert('ポップアップがブロックされました。ブラウザのポップアップ許可を確認してください。');
+  }
+  document.getElementById('lbl-status').textContent = 'プレビュー更新済み';
 }
 
 async function exportHTML(filePath) {
