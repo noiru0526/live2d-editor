@@ -2336,7 +2336,14 @@ function buildParamUI() {
   renderPosePresets();
   const cont=document.getElementById('params');
   cont.innerHTML='';
-  for (const [name,p] of Object.entries(M.params)) {
+  // Sort: favorites first, then others
+  const allEntries = Object.entries(M.params);
+  const sorted = [
+    ...allEntries.filter(([n])=>_favParams.has(n)),
+    ...allEntries.filter(([n])=>!_favParams.has(n))
+  ];
+  for (const [name,p] of sorted) {
+    const isFav = _favParams.has(name);
     const row=document.createElement('div');
     row.className='prow'+(name===ST.ap?' active':'');
     row.id=`pr-${name}`;
@@ -2344,7 +2351,7 @@ function buildParamUI() {
     const interpLabels={linear:'直線',smooth:'スムーズ','ease-in':'入り','ease-out':'出し',bounce:'バウンス',step:'ステップ（ホールド）'};
     row.innerHTML=`
       <div class="phead">
-        <span class="plabel">${p.lbl}</span>
+        <span class="plabel">${isFav?'⭐ ':''}${p.lbl}</span>
         <span class="pval" id="pv-${name}" title="クリックで値を直接入力" style="cursor:text;" ondblclick="editParamVal('${name}',this)">${p.val.toFixed(2)}</span>
         <button id="lock-${name}" onclick="toggleParamLock('${name}',event)" title="ロック"
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
@@ -2360,6 +2367,17 @@ function buildParamUI() {
         </select>
       </div>`;
     row.addEventListener('click',()=>setAP(name));
+    row.addEventListener('contextmenu',e=>{
+      e.preventDefault(); e.stopPropagation();
+      const iF = _favParams.has(name);
+      showCtxMenu(e.clientX, e.clientY, [
+        {label: iF ? 'お気に入りから削除' : 'お気に入りに追加', icon:'⭐', action: ()=>{ if(iF) _favParams.delete(name); else _favParams.add(name); buildParamUI(); }},
+        'sep',
+        {label: p.locked ? 'ロック解除' : 'ロック', icon: p.locked?'🔓':'🔒', action: ()=>toggleParamLock(name, {stopPropagation:()=>{}})},
+        {label:'値をコピー', icon:'📋', action:()=>{ navigator.clipboard?.writeText(p.val.toFixed(4)); }},
+        {label:'値をリセット（0）', icon:'🎯', action:()=>{ if(!p.locked){p.val=Math.max(p.min,Math.min(p.max,0));buildParamUI();ST.cachedVerts=null;redraw();}}}
+      ]);
+    });
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
     const sl = row.querySelector(`#ps-${name}`);
     updateSliderFill(sl, p.val, p.min, p.max);
@@ -6753,6 +6771,7 @@ let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
+let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
