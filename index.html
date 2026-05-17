@@ -290,6 +290,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="openImageDialog()">画像を開く</button>
   <button class="tbtn" onclick="saveModel()">保存<span class="sk">^S</span></button>
   <button class="tbtn" onclick="exportHTML()">HTML出力</button>
+  <button class="tbtn" onclick="exportAllClipsHTML()" title="全クリップを個別HTMLファイルとしてダウンロード" style="color:#c0e8ff;">📦 全クリップ</button>
   <button class="tbtn" onclick="exportMotion3JSON()" title=".motion3.json 出力" style="color:#a0d0ff;">motion3</button>
   <button class="tbtn" onclick="exportMoc3JSON()" title="Live2D Cubism互換 .moc3 JSON出力" style="color:#c0a0ff;">.moc3</button>
   <button class="tbtn" onclick="quickPreviewExport()" title="エクスポートをプレビュー" style="color:#ffd060;">▶ テスト</button>
@@ -859,6 +860,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
+    <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
+    <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -2815,6 +2818,33 @@ async function exportHTML(filePath) {
     a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
     a.download='noiru-avatar.html'; a.click();
   }
+}
+
+async function exportAllClipsHTML() {
+  if (!M.img) { alert('画像を開いてください'); return; }
+  const clips = (M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0);
+  if (clips.length === 0) {
+    // No clips: just export main animation
+    exportHTML(); return;
+  }
+  // Save current animation state
+  const savedAnim = M.animation;
+  const toExport = [{ name: 'main', anim: M.animation }, ...clips.map(c=>({name:c.name, anim:c.animation}))];
+  let exported = 0;
+  for (const item of toExport) {
+    M.animation = item.anim;
+    const html = genAvatarHTML();
+    M.animation = savedAnim; // restore immediately to avoid side effects
+    const safeName = item.name.replace(/[^a-zA-Z0-9぀-鿿]/g,'_');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
+    a.download = `noiru-${safeName}.html`;
+    a.click();
+    exported++;
+    await new Promise(r=>setTimeout(r, 300)); // avoid download flood
+  }
+  M.animation = savedAnim;
+  document.getElementById('lbl-status').textContent = `全クリップ出力完了: ${exported}ファイル`;
 }
 
 function _showEmbedCode(filePath) {
@@ -7111,6 +7141,49 @@ function scaleSelectedKFValues() {
   document.getElementById('lbl-status').textContent = `${tlSelectedKFs.size}個のKF値を×${scale}スケール`;
 }
 
+function normalizeSelectedKFValues() {
+  if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
+  const kfArr = [...tlSelectedKFs];
+  const minV = Math.min(...kfArr.map(k=>k.v));
+  const maxV = Math.max(...kfArr.map(k=>k.v));
+  if (maxV - minV < 0.0001) { document.getElementById('lbl-status').textContent = '値が同一です（正規化不要）'; return; }
+  const targetMin = parseFloat(prompt('正規化後の最小値:', minV.toFixed(3)));
+  if (isNaN(targetMin)) return;
+  const targetMax = parseFloat(prompt('正規化後の最大値:', maxV.toFixed(3)));
+  if (isNaN(targetMax) || targetMax === targetMin) return;
+  pushAnimUndo();
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  for (const kf of kfArr) {
+    const norm = (kf.v - minV) / (maxV - minV);
+    const newV = targetMin + norm * (targetMax - targetMin);
+    const nm = kfToName.get(kf);
+    const p = M.params[nm];
+    kf.v = p ? Math.max(p.min, Math.min(p.max, newV)) : newV;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値を[${targetMin.toFixed(2)}..${targetMax.toFixed(2)}]に正規化`;
+}
+
+function retimeAnimation() {
+  const oldDur = M.animation.duration || 3;
+  const newDurStr = prompt(`新しいアニメーション継続時間（現在: ${oldDur.toFixed(2)}秒）:`, oldDur.toFixed(2));
+  if (newDurStr === null) return;
+  const newDur = parseFloat(newDurStr);
+  if (isNaN(newDur) || newDur <= 0) return;
+  pushAnimUndo();
+  const ratio = newDur / oldDur;
+  for (const frames of Object.values(M.animation.tracks)) {
+    if (frames) for (const kf of frames) kf.t = Math.round(kf.t * ratio * 1000) / 1000;
+  }
+  if (M.animation.loopIn) M.animation.loopIn = Math.round(M.animation.loopIn * ratio * 1000) / 1000;
+  if (M.animation.loopOut) M.animation.loopOut = Math.round(M.animation.loopOut * ratio * 1000) / 1000;
+  M.animation.duration = newDur;
+  const el = document.getElementById('tl-duration'); if (el) el.value = newDur.toFixed(2);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `リタイム完了: ${oldDur.toFixed(2)}s → ${newDur.toFixed(2)}s (×${ratio.toFixed(2)})`;
+}
+
 function clearAnimTracks() {
   if (!confirm('アニメーションデータをすべてクリアしますか？')) return;
   M.animation.tracks={};
@@ -7743,6 +7816,7 @@ function applyPlayheadToParams() {
       { icon:'⟺', label:'選択KFをタイムスケール', action:()=>scaleSelectedKFTimes() },
       { icon:'±', label:'選択KFの値をオフセット', action:()=>offsetSelectedKFValues() },
       { icon:'×', label:'選択KFの値をスケール', action:()=>scaleSelectedKFValues() },
+      { icon:'⊡', label:'選択KFの値を正規化', action:()=>normalizeSelectedKFValues() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
         pushAnimUndo();
