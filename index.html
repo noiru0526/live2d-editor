@@ -7453,6 +7453,12 @@ function showAnimTemplates() {
     { id:'startle', name:'ビックリ (0.8秒)', desc:'急に顔を少し上げて口が開く' },
     { id:'lookaway', name:'視線そらし (2秒)', desc:'eyeX が左右に移動してから戻る' },
     { id:'camerazoom', name:'カメラズームイン (2秒)', desc:'__camZoom でゆっくり寄る' },
+    { id:'laugh', name:'笑い (1.5秒)', desc:'上下に揺れながら口が開く' },
+    { id:'sad', name:'悲しみ (2秒)', desc:'頭が下がり目が細くなる' },
+    { id:'think', name:'考える (2秒)', desc:'頭を傾けて視線が上に向く' },
+    { id:'greet', name:'あいさつ (1.5秒)', desc:'頭を素早くペコンと下げる' },
+    { id:'angry', name:'怒り (1秒)', desc:'頭が震えて眉を寄せる動き' },
+    { id:'shy', name:'はずかしい (1.5秒)', desc:'顔を下に向けてそっぽを向く' },
   ];
   showModal('アニメーションテンプレート', `
     <div style="font-size:12px;display:grid;gap:8px;">
@@ -7520,6 +7526,52 @@ function applyAnimTemplate(id) {
     M.animation.tracks['__camZoom'].push({t:t0,v:1},{t:t0+2,v:1.4});
     M.animation.tracks['__camZoom'].sort((a,b)=>a.t-b.t);
     M.animation.duration = Math.max(dur, t0+2);
+  } else if (id === 'laugh') {
+    const t0 = ST.animPlayhead;
+    // Bouncing up and down + mouth opening repeatedly
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.15,v:-0.1},{t:t0+0.3,v:0.05},{t:t0+0.45,v:-0.1},{t:t0+0.6,v:0.05},{t:t0+0.75,v:-0.08},{t:t0+0.9,v:0.02},{t:t0+1.2,v:0},{t:t0+1.5,v:0}]);
+    addKFs('mouthOpen', [{t:t0,v:0},{t:t0+0.1,v:0.6},{t:t0+0.25,v:0.3},{t:t0+0.4,v:0.7},{t:t0+0.55,v:0.25},{t:t0+0.7,v:0.5},{t:t0+0.85,v:0.1},{t:t0+1.1,v:0.3},{t:t0+1.5,v:0}]);
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.2,v:0.05},{t:t0+0.5,v:-0.05},{t:t0+0.8,v:0.03},{t:t0+1.5,v:0}]);
+    M.animation.duration = Math.max(dur, t0+1.5);
+  } else if (id === 'sad') {
+    const t0 = ST.animPlayhead;
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.8,v:0.2},{t:t0+2,v:0.18}]);
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.6,v:0.08},{t:t0+2,v:0.06}]);
+    addKFs('blinkL', [{t:t0,v:0},{t:t0+0.4,v:0.4},{t:t0+2,v:0.35}]);
+    addKFs('blinkR', [{t:t0,v:0},{t:t0+0.4,v:0.4},{t:t0+2,v:0.35}]);
+    addKFs('mouthOpen', [{t:t0,v:0},{t:t0+1,v:0.05},{t:t0+2,v:0.05}]);
+    M.animation.duration = Math.max(dur, t0+2);
+  } else if (id === 'think') {
+    const t0 = ST.animPlayhead;
+    // Tilt head, look up
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.4,v:0.2},{t:t0+1.5,v:0.18},{t:t0+1.9,v:0},{t:t0+2,v:0}]);
+    addKFs('eyeY', [{t:t0,v:0},{t:t0+0.5,v:-0.5},{t:t0+1.4,v:-0.4},{t:t0+1.8,v:0},{t:t0+2,v:0}]);
+    addKFs('blinkL', [{t:t0,v:0},{t:t0+0.5,v:0.2},{t:t0+1.5,v:0.2},{t:t0+2,v:0}]);
+    addKFs('blinkR', [{t:t0,v:0},{t:t0+0.5,v:0.2},{t:t0+1.5,v:0.2},{t:t0+2,v:0}]);
+    M.animation.duration = Math.max(dur, t0+2);
+  } else if (id === 'greet') {
+    const t0 = ST.animPlayhead;
+    // Quick bow
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.12,v:0.4},{t:t0+0.3,v:0.35},{t:t0+0.7,v:0.35},{t:t0+1,v:0},{t:t0+1.5,v:0}]);
+    addKFs('blinkL', [{t:t0+0.1,v:0},{t:t0+0.25,v:1},{t:t0+0.4,v:0}]);
+    addKFs('blinkR', [{t:t0+0.1,v:0},{t:t0+0.25,v:1},{t:t0+0.4,v:0}]);
+    M.animation.duration = Math.max(dur, t0+1.5);
+  } else if (id === 'angry') {
+    const t0 = ST.animPlayhead;
+    // Head shakes slightly, brows furrow (using headZ for tense motion)
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.08,v:0.12},{t:t0+0.18,v:-0.12},{t:t0+0.28,v:0.1},{t:t0+0.38,v:-0.1},{t:t0+0.5,v:0.06},{t:t0+0.65,v:-0.04},{t:t0+0.8,v:0},{t:t0+1,v:0}]);
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.1,v:-0.1},{t:t0+0.5,v:-0.08},{t:t0+1,v:0}]);
+    addKFs('mouthOpen', [{t:t0,v:0},{t:t0+0.15,v:0.2},{t:t0+0.4,v:0.1},{t:t0+0.7,v:0},{t:t0+1,v:0}]);
+    M.animation.duration = Math.max(dur, t0+1);
+  } else if (id === 'shy') {
+    const t0 = ST.animPlayhead;
+    // Look down + slight turn
+    addKFs('headY', [{t:t0,v:0},{t:t0+0.5,v:0.25},{t:t0+1.2,v:0.22},{t:t0+1.5,v:0.2}]);
+    addKFs('headZ', [{t:t0,v:0},{t:t0+0.4,v:0.15},{t:t0+1,v:0.12},{t:t0+1.5,v:0.1}]);
+    addKFs('eyeX', [{t:t0,v:0},{t:t0+0.5,v:0.4},{t:t0+1,v:0.35},{t:t0+1.5,v:0.3}]);
+    addKFs('blinkL', [{t:t0,v:0},{t:t0+0.4,v:0.3},{t:t0+1.5,v:0.25}]);
+    addKFs('blinkR', [{t:t0,v:0},{t:t0+0.4,v:0.3},{t:t0+1.5,v:0.25}]);
+    M.animation.duration = Math.max(dur, t0+1.5);
   }
   const durEl = document.getElementById('tl-duration');
   if (durEl) durEl.value = M.animation.duration;
