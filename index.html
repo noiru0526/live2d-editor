@@ -8246,6 +8246,7 @@ let _paramRecBuf = {};   // {paramName: [{t, v}]}
 const _PARAM_REC_INTERVAL = 1000 / 30; // 30fps sample
 let _paramRecMode = 'all'; // 'all' | 'filter' | 'params' | 'selected'
 let _paramRecSelected = new Set(); // param names to record in 'selected' mode
+let _paramRecCountdown = 0; // seconds countdown before recording starts (0=off)
 
 function showRecModeMenu(e) {
   const modes = [
@@ -8266,7 +8267,11 @@ function showRecModeMenu(e) {
       }
     })),
     'sep',
-    { icon:'⚙', label:'録音パラメータを選択...', action: showParamRecSelect }
+    { icon:'⚙', label:'録音パラメータを選択...', action: showParamRecSelect },
+    'sep',
+    { icon: _paramRecCountdown===0?'✓':'  ', label:'カウントダウンなし', action:()=>{ _paramRecCountdown=0; document.getElementById('lbl-status').textContent='録音カウントダウン: OFF'; }},
+    { icon: _paramRecCountdown===3?'✓':'  ', label:'カウントダウン: 3秒', action:()=>{ _paramRecCountdown=3; document.getElementById('lbl-status').textContent='録音カウントダウン: 3秒'; }},
+    { icon: _paramRecCountdown===5?'✓':'  ', label:'カウントダウン: 5秒', action:()=>{ _paramRecCountdown=5; document.getElementById('lbl-status').textContent='録音カウントダウン: 5秒'; }},
   ]);
 }
 
@@ -8345,50 +8350,64 @@ function toggleParamRecord() {
     drawMultiTimeline();
     document.getElementById('lbl-status').textContent = `録音完了: ${kfCount}個のKFを挿入しました`;
   } else {
-    // Start recording
-    _paramRecActive = true;
-    _paramRecStart = performance.now();
-    _paramRecBuf = {};
-    let lastSampleT = -1;
+    // Start recording (with optional countdown)
     const btn = document.getElementById('btn-param-rec');
-    if (btn) { btn.textContent = '⏹ 停止'; btn.style.background = '#3a1010'; btn.style.borderColor = 'rgba(255,50,50,.8)'; btn.style.color = '#ff3030'; }
-    document.getElementById('lbl-status').textContent = '⏺ 録音中... スライダーを動かしてください。「停止」で記録を終了します。';
-    function sample() {
-      if (!_paramRecActive) return;
-      const elapsed = (performance.now() - _paramRecStart) / 1000;
-      if (elapsed - lastSampleT >= _PARAM_REC_INTERVAL / 1000 - 0.001) {
-        lastSampleT = elapsed;
-        if (_paramRecMode !== 'filter') {
-          for (const [name, p] of Object.entries(M.params)) {
-            if (_paramRecMode === 'selected' && !_paramRecSelected.has(name)) continue;
-            if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
-            const buf = _paramRecBuf[name];
-            const v = Math.round(p.val * 10000) / 10000;
-            if (!buf.length || Math.abs(v - buf[buf.length-1].v) > 0.001) buf.push({t: elapsed, v});
+    const countdownSec = _paramRecCountdown || 0;
+    const _startRecordingNow = () => {
+      _paramRecActive = true;
+      _paramRecStart = performance.now();
+      _paramRecBuf = {};
+      if (btn) { btn.textContent = '⏹ 停止'; btn.style.background = '#3a1010'; btn.style.borderColor = 'rgba(255,50,50,.8)'; btn.style.color = '#ff3030'; }
+      document.getElementById('lbl-status').textContent = '⏺ 録音中... スライダーを動かしてください。「停止」で記録を終了します。';
+      let lastSampleT = -1;
+      const _sample = () => {
+        if (!_paramRecActive) return;
+        const elapsed = (performance.now() - _paramRecStart) / 1000;
+        if (elapsed - lastSampleT >= _PARAM_REC_INTERVAL / 1000 - 0.001) {
+          lastSampleT = elapsed;
+          if (_paramRecMode !== 'filter') {
+            for (const [name, p] of Object.entries(M.params)) {
+              if (_paramRecMode === 'selected' && !_paramRecSelected.has(name)) continue;
+              if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
+              const buf = _paramRecBuf[name];
+              const v = Math.round(p.val * 10000) / 10000;
+              if (!buf.length || Math.abs(v - buf[buf.length-1].v) > 0.001) buf.push({t: elapsed, v});
+            }
+          }
+          if (_paramRecMode !== 'params') for (const part of M.parts) {
+            if (!part.img) continue;
+            const pid = part.id;
+            const f = part.filter || {b:100,c:100,s:100,h:0};
+            const fEntries = [
+              ['__opacity:'+pid, Math.round((part.opacity??1)*1000)/1000, 0.005],
+              ['__brightness:'+pid, f.b??100, 0.5],
+              ['__contrast:'+pid, f.c??100, 0.5],
+              ['__saturation:'+pid, f.s??100, 0.5],
+              ['__hue:'+pid, f.h??0, 0.5],
+            ];
+            for (const [tn, v, eps] of fEntries) {
+              if (!_paramRecBuf[tn]) _paramRecBuf[tn] = [];
+              const buf = _paramRecBuf[tn];
+              if (!buf.length || Math.abs(v - buf[buf.length-1].v) > eps) buf.push({t: elapsed, v});
+            }
           }
         }
-        // Also record filter/opacity for each visible part
-        if (_paramRecMode !== 'params') for (const part of M.parts) {
-          if (!part.img) continue;
-          const pid = part.id;
-          const f = part.filter || {b:100,c:100,s:100,h:0};
-          const fEntries = [
-            ['__opacity:'+pid, Math.round((part.opacity??1)*1000)/1000, 0.005],
-            ['__brightness:'+pid, f.b??100, 0.5],
-            ['__contrast:'+pid, f.c??100, 0.5],
-            ['__saturation:'+pid, f.s??100, 0.5],
-            ['__hue:'+pid, f.h??0, 0.5],
-          ];
-          for (const [tn, v, eps] of fEntries) {
-            if (!_paramRecBuf[tn]) _paramRecBuf[tn] = [];
-            const buf = _paramRecBuf[tn];
-            if (!buf.length || Math.abs(v - buf[buf.length-1].v) > eps) buf.push({t: elapsed, v});
-          }
-        }
-      }
-      _paramRecRAF = requestAnimationFrame(sample);
+        _paramRecRAF = requestAnimationFrame(_sample);
+      };
+      _paramRecRAF = requestAnimationFrame(_sample);
+    };
+    if (countdownSec > 0) {
+      if (btn) { btn.textContent = `${countdownSec}…`; btn.style.background = '#1a2e1a'; btn.style.borderColor = 'rgba(80,200,80,.6)'; btn.style.color = '#80e080'; }
+      let remaining = countdownSec;
+      document.getElementById('lbl-status').textContent = `⏺ 録音まで ${remaining}秒...`;
+      const _cdTick = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) { clearInterval(_cdTick); _startRecordingNow(); }
+        else { if (btn) btn.textContent = `${remaining}…`; document.getElementById('lbl-status').textContent = `⏺ 録音まで ${remaining}秒...`; }
+      }, 1000);
+    } else {
+      _startRecordingNow();
     }
-    _paramRecRAF = requestAnimationFrame(sample);
   }
 }
 
