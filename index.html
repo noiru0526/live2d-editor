@@ -927,6 +927,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
+    <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
@@ -7682,6 +7683,33 @@ function normalizeSelectedKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `${kfArr.length}個のKF値を[${targetMin.toFixed(2)}..${targetMax.toFixed(2)}]に正規化`;
+}
+
+function bakeAnimationToFPS() {
+  const fpsStr = prompt('ベイクFPS (例: 30 = 30fps でKFを均等配置):', '30');
+  if (fpsStr === null) return;
+  const fps = parseInt(fpsStr);
+  if (isNaN(fps) || fps < 1 || fps > 120) { alert('無効なFPS値です (1〜120)'); return; }
+  const dur = M.animation.duration || 3;
+  const dt = 1 / fps;
+  const trackNames = Object.keys(M.animation.tracks);
+  if (!trackNames.length) { document.getElementById('lbl-status').textContent = 'トラックがありません'; return; }
+  pushAnimUndo();
+  let totalKFs = 0;
+  for (const name of trackNames) {
+    const frames = M.animation.tracks[name];
+    if (!frames || !frames.length) continue;
+    const p = M.params[name] || {min:-10,max:10,val:0};
+    const newFrames = [];
+    for (let t = 0; t <= dur + 0.001; t = Math.round((t+dt)*10000)/10000) {
+      const v = evalAnimTrack(frames, p, Math.min(t, dur));
+      newFrames.push({t: Math.round(Math.min(t,dur)*10000)/10000, v: Math.round(v*10000)/10000, interp:'step'});
+    }
+    M.animation.tracks[name] = newFrames;
+    totalKFs += newFrames.length;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ベイク完了 (${fps}fps): ${trackNames.length}トラック × ${totalKFs}KF`;
 }
 
 function flattenSelectedKFValues() {
