@@ -848,6 +848,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
       <input type="checkbox" id="tl-loop" checked style="accent-color:var(--accent);">ループ
     </label>
+    <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);" title="再生時にプレイヘッドが見えるようにタイムラインを自動スクロール">
+      <input type="checkbox" id="tl-follow-ph" checked style="accent-color:#60d890;">追跡
+    </label>
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
       <input type="checkbox" id="tl-pingpong" style="accent-color:#ff80c0;">🏓 往復
     </label>
@@ -7959,7 +7962,16 @@ function animMultiPlay() {
         const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
       }
     }
-    ST.cachedVerts=null; redraw(); drawMultiTimeline();
+    ST.cachedVerts=null; redraw();
+    // Auto-scroll: keep playhead visible when zoomed
+    const _followPH = document.getElementById('tl-follow-ph')?.checked !== false;
+    if (_followPH && tlZoom > 1) {
+      const _vd = dur / tlZoom;
+      if (t < tlZoomOff + _vd * 0.1 || t > tlZoomOff + _vd * 0.9) {
+        tlZoomOff = Math.max(0, Math.min(dur - _vd, t - _vd * 0.3));
+      }
+    }
+    drawMultiTimeline();
     if (!loop && (sp>=0 ? t>=loopOut : t<=loopIn)) { animMultiStop(); return; }
     animMultiRAF=requestAnimationFrame(tick);
   }
