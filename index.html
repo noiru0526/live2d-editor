@@ -407,7 +407,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       </div>
     </div>
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="ptitle" style="padding:5px 4px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:#c0a0ff;cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button></div>
+      <div class="ptitle" style="padding:5px 4px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:#c0a0ff;cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
       <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 4px;font-size:9px;color:var(--dim);">
         <span>遷移</span>
         <input type="range" id="pose-tween-dur" min="0" max="1" step="0.05" value="0.3"
@@ -6666,6 +6666,41 @@ function savePose() {
     document.getElementById('lbl-status').textContent=`ポーズ保存: ${nm}`;
   });
   setTimeout(()=>{ const el=document.getElementById('pose-nm'); el?.select(); el?.focus(); },50);
+}
+
+function exportPosesJSON() {
+  if (!M.poses.length) { document.getElementById('lbl-status').textContent = 'ポーズがありません'; return; }
+  const data = JSON.stringify({poses: M.poses}, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+  a.download = 'poses.json';
+  a.click();
+  document.getElementById('lbl-status').textContent = `${M.poses.length}個のポーズをエクスポート`;
+}
+
+function importPosesJSON() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = () => {
+    const file = inp.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        const poses = data.poses || data;
+        if (!Array.isArray(poses)) { alert('ポーズ配列が見つかりません'); return; }
+        const validPoses = poses.filter(p => p.name && typeof p.values === 'object');
+        if (!validPoses.length) { alert('有効なポーズがありません'); return; }
+        const mode = confirm(`${validPoses.length}個のポーズを読み込みます。\nOK=追加, キャンセル=置き換え`);
+        if (mode) M.poses.push(...validPoses);
+        else M.poses = validPoses;
+        renderPoseList();
+        document.getElementById('lbl-status').textContent = `${validPoses.length}個のポーズをインポート`;
+      } catch(err) { alert('JSONパースエラー: '+err.message); }
+    };
+    r.readAsText(file);
+  };
+  inp.click();
 }
 
 function recallPose(idx) {
