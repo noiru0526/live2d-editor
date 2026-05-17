@@ -2952,8 +2952,11 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 <strong style="color:#4e7cff">OBS 設定手順</strong><br>
 1. OBS → ソース追加 → ブラウザ<br>
 2. このHTMLファイルのフルパスを入力:<br>
-<code style="color:#ffd060;font-size:10px">file:///C:/path/to/avatar.html</code><br>
-3. 幅: ${EW} / 高さ: ${EH}<br>${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
+<code id="obs-path-code" style="color:#ffd060;font-size:10px">file:///C:/path/to/avatar.html</code>
+<button onclick="(()=>{const p=document.getElementById('obs-path-code').textContent;navigator.clipboard?.writeText(p).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 パスをコピー',2000)}).catch(()=>alert(p));})()" style="margin-left:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:1px 5px;cursor:pointer;">📋 パスをコピー</button><br>
+3. 幅: <strong style="color:#ffd060">${EW}</strong> / 高さ: <strong style="color:#ffd060">${EH}</strong>
+<button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
+${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
 <span style="color:#6878a0">カメラへのアクセスを許可してください</span>
 ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#6878a0">0キー = デフォルトに戻す</span>`:''}
 </div>
@@ -3376,9 +3379,16 @@ function initTracking(){
   cam.start().then(()=>{
     stEl.textContent='Camera: Active ✓ [ヒント]';stEl.className='ok';
     if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+    // Update OBS path with actual file path
+    const pc=document.getElementById('obs-path-code');
+    if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
+    else if(pc)pc.textContent=location.href;
   }).catch(()=>{
     stEl.textContent='Camera: Error [ヒント]';stEl.className='err';
     if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+    const pc=document.getElementById('obs-path-code');
+    if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
+    else if(pc)pc.textContent=location.href;
   });
 }
 // ---- Audio-reactive mouth ----
@@ -5755,12 +5765,14 @@ function renderPoseList() {
   const cont=document.getElementById('pose-list'); if(!cont) return;
   cont.innerHTML='';
   M.poses.forEach((pose,idx)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='margin-bottom:3px;';
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:3px;margin-bottom:2px;';
+    row.style.cssText='display:flex;align-items:center;gap:3px;';
     const btn=document.createElement('button');
     btn.style.cssText='flex:1;text-align:left;background:#1e2540;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
     btn.innerHTML=`<span style="background:rgba(78,124,255,.2);color:#8aabff;border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>${pose.name}`;
-    btn.addEventListener('click',()=>recallPose(idx));
+    btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
     btn.addEventListener('mouseover',()=>{
       // Temp preview on hover
       if (!M.img) return;
@@ -5775,8 +5787,30 @@ function renderPoseList() {
     const delBtn=document.createElement('span');
     delBtn.textContent='×'; delBtn.style.cssText='color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;';
     delBtn.onclick=()=>deletePose(idx);
-    row.appendChild(btn); row.appendChild(delBtn);
-    cont.appendChild(row);
+    // Blend slider: 0=neutral, 100=full pose
+    const slider=document.createElement('input');
+    slider.type='range'; slider.min=0; slider.max=100; slider.value=100;
+    slider.style.cssText='width:60px;height:3px;-webkit-appearance:none;background:#2a3060;border-radius:2px;accent-color:#4e7cff;flex-shrink:0;cursor:pointer;';
+    slider.title='ブレンド強度 (0=ニュートラル, 100=フルポーズ)';
+    let _blendBase = null;
+    slider.addEventListener('mousedown',()=>{
+      _blendBase=Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+    });
+    slider.addEventListener('input',()=>{
+      if (!_blendBase) _blendBase=Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+      const t=parseInt(slider.value)/100;
+      Object.entries(pose.values||{}).forEach(([k,v])=>{
+        if(M.params[k]&&!M.params[k].locked){
+          M.params[k].val=(_blendBase[k]??0)*(1-t)+v*t;
+          const s=document.getElementById(`ps-${k}`);if(s){s.value=M.params[k].val;updateSliderFill(s,M.params[k].val,M.params[k].min,M.params[k].max);}
+          const pv=document.getElementById(`pv-${k}`);if(pv)pv.textContent=M.params[k].val.toFixed(2);
+        }
+      });
+      ST.cachedVerts=null; redraw();
+    });
+    row.appendChild(btn); row.appendChild(slider); row.appendChild(delBtn);
+    wrap.appendChild(row);
+    cont.appendChild(wrap);
   });
   if (M.poses.length===0) {
     const hint=document.createElement('div');
