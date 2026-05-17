@@ -560,6 +560,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <input type="checkbox" id="export-autoplay" style="accent-color:var(--accent);" checked>
           アニメーション自動再生
         </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="export-click-pose" style="accent-color:var(--accent);">
+          クリックでポーズ順次切替
+        </label>
       </div>
       <div class="mcfg-row">
         <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
@@ -3443,6 +3447,7 @@ function genAvatarHTML() {
   const customCSS=(document.getElementById('export-custom-css')?.value||'').trim();
   const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
   const htmlTitle=(document.getElementById('export-html-title')?.value||'').trim()||'Avatar — noiru';
+  const clickPoseCycle=document.getElementById('export-click-pose')?.checked||false;
   const obsMode=document.getElementById('export-obs-mode')?.checked||false;
   const responsiveCanvas=document.getElementById('export-responsive')?.checked||false;
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
@@ -4473,6 +4478,23 @@ ${responsiveCanvas ? `<script>
 })();
 <\/script>` : ''}
 ${customJS ? `<script>\n// Custom JS\n${customJS}\n<\/script>` : ''}
+${clickPoseCycle && M.poses.length > 0 ? `<script>
+(function(){
+  let _cpIdx = -1;
+  const _poses = ${JSON.stringify(M.poses.map(p=>p.values))};
+  const _poseNames = ${JSON.stringify(M.poses.map(p=>p.name))};
+  document.getElementById('c').addEventListener('click', function(){
+    _cpIdx = (_cpIdx + 1) % (_poses.length + 1);
+    const vals = _cpIdx < _poses.length ? _poses[_cpIdx] : null;
+    const label = _cpIdx < _poses.length ? _poseNames[_cpIdx] : 'デフォルト';
+    if (!vals) { for(const k of Object.keys(MD.params)) MD.params[k].val=0; }
+    else { for(const [k,v] of Object.entries(vals)) { if(MD.params[k]) MD.params[k].val=v; } }
+    if(typeof redraw==='function') redraw();
+    if(typeof _exprHUDShow==='function') _exprHUDShow(label, 1200);
+    else { const h=document.getElementById('expr-hud'); if(h){h.textContent=label;h.style.display='block';setTimeout(()=>h.style.display='none',1200);} }
+  });
+})();
+<\/script>` : ''}
 <\/script>
 </body>
 </html>`;
