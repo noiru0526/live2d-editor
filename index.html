@@ -2382,7 +2382,24 @@ function buildParamUI() {
         'sep',
         {label: p.locked ? 'ロック解除' : 'ロック', icon: p.locked?'🔓':'🔒', action: ()=>toggleParamLock(name, {stopPropagation:()=>{}})},
         {label:'値をコピー', icon:'📋', action:()=>{ navigator.clipboard?.writeText(p.val.toFixed(4)); }},
-        {label:'値をリセット（0）', icon:'🎯', action:()=>{ if(!p.locked){p.val=Math.max(p.min,Math.min(p.max,0));buildParamUI();ST.cachedVerts=null;redraw();}}}
+        {label:'値をリセット（0）', icon:'🎯', action:()=>{ if(!p.locked){p.val=Math.max(p.min,Math.min(p.max,0));buildParamUI();ST.cachedVerts=null;redraw();}}},
+        'sep',
+        {label:'範囲を変更...', icon:'↔', action:()=>{
+          const newMin = prompt('最小値 (min):', p.min);
+          if (newMin === null) return;
+          const newMax = prompt('最大値 (max):', p.max);
+          if (newMax === null) return;
+          const mn = parseFloat(newMin), mx = parseFloat(newMax);
+          if (isNaN(mn)||isNaN(mx)||mn>=mx) { alert('無効な範囲です'); return; }
+          p.min = mn; p.max = mx;
+          p.val = Math.max(mn, Math.min(mx, p.val));
+          buildParamUI(); ST.cachedVerts=null; redraw();
+          document.getElementById('lbl-status').textContent = `${p.lbl||name}: 範囲 ${mn}〜${mx}`;
+        }},
+        {label:'ラベル名を変更...', icon:'✏', action:()=>{
+          const newLbl = prompt('パラメータ名:', p.lbl||name);
+          if (newLbl !== null && newLbl.trim()) { p.lbl = newLbl.trim(); buildParamUI(); }
+        }}
       ]);
     });
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
