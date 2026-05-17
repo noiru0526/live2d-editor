@@ -7641,23 +7641,76 @@ let _paramRecRAF = null;
 let _paramRecStart = 0;  // performance.now() at record start
 let _paramRecBuf = {};   // {paramName: [{t, v}]}
 const _PARAM_REC_INTERVAL = 1000 / 30; // 30fps sample
-let _paramRecMode = 'all'; // 'all' | 'filter' | 'params'
+let _paramRecMode = 'all'; // 'all' | 'filter' | 'params' | 'selected'
+let _paramRecSelected = new Set(); // param names to record in 'selected' mode
 
 function showRecModeMenu(e) {
   const modes = [
     { label:'全て録音（デフォルト）', mode:'all' },
     { label:'パラメータのみ録音', mode:'params' },
     { label:'フィルター/透明度のみ録音', mode:'filter' },
+    { label:'選択パラメータのみ録音', mode:'selected' },
   ];
-  showCtxMenu(e.clientX, e.clientY, modes.map(m => ({
-    icon: _paramRecMode===m.mode ? '✓' : '  ',
-    label: m.label,
-    action: () => {
-      _paramRecMode = m.mode;
-      document.getElementById('btn-param-rec').title = `録音モード: ${m.label}`;
-      document.getElementById('lbl-status').textContent = `録音モード: ${m.label}`;
-    }
-  })));
+  showCtxMenu(e.clientX, e.clientY, [
+    ...modes.map(m => ({
+      icon: _paramRecMode===m.mode ? '✓' : '  ',
+      label: m.label,
+      action: () => {
+        _paramRecMode = m.mode;
+        document.getElementById('btn-param-rec').title = `録音モード: ${m.label}`;
+        document.getElementById('lbl-status').textContent = `録音モード: ${m.label}`;
+        if (m.mode === 'selected') showParamRecSelect();
+      }
+    })),
+    'sep',
+    { icon:'⚙', label:'録音パラメータを選択...', action: showParamRecSelect }
+  ]);
+}
+
+function showParamRecSelect() {
+  const existing = document.getElementById('param-rec-select-modal');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'param-rec-select-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:12px 14px;max-width:320px;width:90%;max-height:70vh;display:flex;flex-direction:column;gap:6px;font-size:11px;';
+  const params = Object.entries(M.params);
+  const selAll = _paramRecSelected.size === 0 || _paramRecSelected.size === params.length;
+  box.innerHTML = `<div style="font-size:12px;color:#8898c0;font-weight:bold;margin-bottom:2px;">録音するパラメータを選択</div>
+<div style="display:flex;gap:6px;margin-bottom:4px;">
+  <button id="prs-all" style="flex:1;background:#1e3050;border:1px solid rgba(78,124,255,.4);color:#4e9cff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">全選択</button>
+  <button id="prs-none" style="flex:1;background:#1e3050;border:1px solid rgba(78,124,255,.4);color:#4e9cff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">全解除</button>
+</div>
+<div id="prs-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:2px;padding-right:4px;"></div>
+<div style="display:flex;gap:6px;margin-top:6px;">
+  <button id="prs-ok" style="flex:1;background:#1a3050;border:1px solid rgba(78,124,255,.5);color:#4e9cff;border-radius:4px;padding:3px 8px;cursor:pointer;">OK</button>
+  <button id="prs-cancel" style="flex:1;background:#2e2e3a;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 8px;cursor:pointer;">キャンセル</button>
+</div>`;
+  const list = box.querySelector('#prs-list');
+  const tempSel = new Set(_paramRecSelected.size ? _paramRecSelected : params.map(([n])=>n));
+  params.forEach(([name, p]) => {
+    const row = document.createElement('label');
+    row.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;padding:2px 4px;border-radius:3px;user-select:none;';
+    row.style.background = tempSel.has(name) ? 'rgba(78,124,255,.1)' : '';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = tempSel.has(name);
+    cb.addEventListener('change', () => {
+      if (cb.checked) { tempSel.add(name); row.style.background = 'rgba(78,124,255,.1)'; }
+      else { tempSel.delete(name); row.style.background = ''; }
+    });
+    const lbl = document.createElement('span');
+    lbl.textContent = p.lbl || name;
+    lbl.style.cssText = 'flex:1;color:var(--text);';
+    row.appendChild(cb); row.appendChild(lbl); list.appendChild(row);
+  });
+  box.querySelector('#prs-all').onclick = () => { params.forEach(([n])=>tempSel.add(n)); list.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.checked=true; cb.closest('label').style.background='rgba(78,124,255,.1)'; }); };
+  box.querySelector('#prs-none').onclick = () => { tempSel.clear(); list.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.checked=false; cb.closest('label').style.background=''; }); };
+  box.querySelector('#prs-ok').onclick = () => { _paramRecSelected = new Set(tempSel); _paramRecMode = 'selected'; document.getElementById('btn-param-rec').title = `録音モード: 選択(${_paramRecSelected.size}個)`; document.getElementById('lbl-status').textContent = `録音パラメータ選択: ${_paramRecSelected.size}個`; overlay.remove(); };
+  box.querySelector('#prs-cancel').onclick = () => overlay.remove();
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function toggleParamRecord() {
@@ -7704,6 +7757,7 @@ function toggleParamRecord() {
         lastSampleT = elapsed;
         if (_paramRecMode !== 'filter') {
           for (const [name, p] of Object.entries(M.params)) {
+            if (_paramRecMode === 'selected' && !_paramRecSelected.has(name)) continue;
             if (!_paramRecBuf[name]) _paramRecBuf[name] = [];
             const buf = _paramRecBuf[name];
             const v = Math.round(p.val * 10000) / 10000;
