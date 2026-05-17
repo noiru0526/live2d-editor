@@ -944,6 +944,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="importMotionJSON()" title="JSONモーションインポート: {fps:30, tracks:{param:[v0,v1,...]}} 形式" style="background:#1e2838;border:1px solid rgba(80,180,255,.4);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📄 JSON読込</button>
     <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#60b090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
+    <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
     <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#80a0d0';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
     <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
@@ -958,6 +959,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
+    <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
   </div>
   <!-- Track search bar -->
@@ -7752,18 +7754,28 @@ function _labelHitRow(py, rows) {
   return -1;
 }
 
-// Label canvas click → toggle track visibility
+// Label canvas click → toggle track visibility / Ctrl+click → solo
 tlLabelCanvas.addEventListener('click', e=>{
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
   const params = Object.entries(M.params);
   const ri = _labelHitRow(py, params);
-  if (ri >= 0) {
-    const name = params[ri][0];
+  if (ri < 0) return;
+  const name = params[ri][0];
+  if (e.ctrlKey || e.metaKey) {
+    // Solo mode: hide all tracks except this one (or un-solo if already soloed)
+    const allOthersHidden = params.every(([n]) => n === name || tlHiddenTracks.has(n));
+    if (allOthersHidden) {
+      tlHiddenTracks.clear(); // un-solo
+    } else {
+      tlHiddenTracks.clear();
+      for (const [n] of params) if (n !== name) tlHiddenTracks.add(n);
+    }
+  } else {
     if (tlHiddenTracks.has(name)) tlHiddenTracks.delete(name);
     else tlHiddenTracks.add(name);
-    drawMultiTimeline();
   }
+  drawMultiTimeline();
 });
 
 tlLabelCanvas.addEventListener('contextmenu', e=>{
@@ -8398,6 +8410,27 @@ function toggleTLSnap() {
   if (btn) { btn.style.background = tlSnapEnabled ? '#1e3050' : '#2e3656'; btn.style.color = tlSnapEnabled ? '#4e9cff' : '#80a0d0'; btn.style.borderColor = tlSnapEnabled ? 'rgba(78,124,255,.5)' : 'var(--border)'; }
 }
 function snapT(t) { return tlSnapEnabled ? Math.round(t / tlSnapGrid) * tlSnapGrid : t; }
+
+function fitTimelineToKFs() {
+  const tracks = M.animation.tracks || {};
+  let minT = Infinity, maxT = -Infinity;
+  for (const frames of Object.values(tracks)) {
+    if (!frames?.length) continue;
+    for (const kf of frames) { minT=Math.min(minT,kf.t); maxT=Math.max(maxT,kf.t); }
+  }
+  if (!isFinite(minT)) { tlZoom=1; tlZoomOff=0; drawMultiTimeline(); return; }
+  const dur = M.animation.duration || 3;
+  const span = maxT - minT;
+  if (span < 0.01) { tlZoom=1; tlZoomOff=Math.max(0,minT-0.1); drawMultiTimeline(); return; }
+  const margin = span * 0.1;
+  const start = Math.max(0, minT - margin);
+  const end = Math.min(dur, maxT + margin);
+  const visibleDur = end - start;
+  tlZoom = Math.max(1, dur / Math.max(visibleDur, 0.001));
+  tlZoomOff = start;
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ズームフィット: ${minT.toFixed(2)}s〜${maxT.toFixed(2)}s (ズーム×${tlZoom.toFixed(1)})`;
+}
 
 function toggleTLSearch() {
   const bar = document.getElementById('tl-search-bar');
