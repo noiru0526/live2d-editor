@@ -941,6 +941,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
+    <button onclick="importMotionJSON()" title="JSONモーションインポート: {fps:30, tracks:{param:[v0,v1,...]}} 形式" style="background:#1e2838;border:1px solid rgba(80,180,255,.4);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📄 JSON読込</button>
     <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#60b090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#80a0d0';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
@@ -4454,13 +4455,19 @@ const ctxMenu = document.getElementById('ctx-menu');
 function showCtxMenu(x, y, items) {
   ctxMenu.innerHTML = '';
   for (const item of items) {
-    if (item === 'sep') {
+    if (!item || item === 'sep' || item === null) {
       const sep = document.createElement('div'); sep.className='cm-sep'; ctxMenu.appendChild(sep);
+    } else if (item.action === null && !item.disabled) {
+      // Section header (non-clickable label)
+      const el=document.createElement('div');
+      el.style.cssText='padding:3px 10px;font-size:9px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;user-select:none;';
+      el.textContent=(item.icon||'')+' '+(item.label||'');
+      ctxMenu.appendChild(el);
     } else {
       const el=document.createElement('div');
       el.className='cm-item'+(item.disabled?' cm-disabled':'');
       el.innerHTML=`<span>${item.icon||''}</span><span>${item.label}</span>${item.shortcut?`<span class="cm-shortcut">${item.shortcut}</span>`:''}`;
-      if (!item.disabled) el.onclick=()=>{ hideCtxMenu(); item.action(); };
+      if (!item.disabled && item.action) el.onclick=()=>{ hideCtxMenu(); item.action(); };
       ctxMenu.appendChild(el);
     }
   }
@@ -9099,6 +9106,56 @@ function importAnimJSON() {
   input.click();
 }
 
+function importMotionJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        // Format: { fps: 30, tracks: { paramName: [v0, v1, v2, ...] } }
+        // or { fps: 30, paramName: [v0, v1, ...] }
+        const fps = data.fps || 30;
+        const tracks = data.tracks || data;
+        const dur = M.animation.duration || 3;
+        const mergeMode = confirm('既存KFに追加しますか？\nOK=追加 / キャンセル=上書き');
+        let imported = 0;
+        pushAnimUndo();
+        for (const [rawName, values] of Object.entries(tracks)) {
+          if (rawName === 'fps' || !Array.isArray(values)) continue;
+          // Try to match param by id or label
+          let paramName = rawName;
+          if (!M.params[paramName]) {
+            const found = Object.entries(M.params).find(([k,p]) =>
+              (p.lbl||'').toLowerCase() === rawName.toLowerCase() || k.toLowerCase() === rawName.toLowerCase()
+            );
+            if (found) paramName = found[0];
+            else continue; // skip unknown params
+          }
+          const p = M.params[paramName];
+          if (!mergeMode) M.animation.tracks[paramName] = [];
+          if (!M.animation.tracks[paramName]) M.animation.tracks[paramName] = [];
+          for (let i = 0; i < values.length; i++) {
+            const t = i / fps;
+            if (t > dur) break;
+            const v = Math.max(p.min, Math.min(p.max, parseFloat(values[i]) || 0));
+            M.animation.tracks[paramName] = M.animation.tracks[paramName].filter(k => Math.abs(k.t-t)>0.001);
+            M.animation.tracks[paramName].push({t, v, interp:'linear'});
+          }
+          M.animation.tracks[paramName].sort((a,b)=>a.t-b.t);
+          imported++;
+        }
+        drawMultiTimeline();
+        document.getElementById('lbl-status').textContent = `モーションJSON読込: ${imported}トラック (${fps}fps)`;
+      } catch(err) { alert('インポートエラー: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 function reverseAnimation() {
   const dur = M.animation.duration || 3;
   let hasKF = false;
@@ -9607,6 +9664,26 @@ function applyPlayheadToParams() {
     document.body.appendChild(el);
     return el;
   })();
+  function hitTestTrack(e) {
+    const trk=getTracks(); if(!trk) return null;
+    const r=trk.getBoundingClientRect();
+    if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return null;
+    const dur=M.animation.duration||3; const visibleDur=dur/tlZoom;
+    const t=tlZoomOff+(e.clientX-r.left)/r.width*visibleDur;
+    const py=(e.clientY-r.top)+tlScrollY;
+    const paramRows=Object.entries(M.params);
+    const allRows=tlTrackFilter?paramRows.filter(([n,p])=>{const l=p?.lbl||n;return n.toLowerCase().includes(tlTrackFilter)||l.toLowerCase().includes(tlTrackFilter);}):paramRows;
+    const {offs, rhs} = _rowOffsets(allRows);
+    for (let ri=0;ri<allRows.length;ri++) {
+      if (py<offs[ri]||py>offs[ri]+rhs[ri]) continue;
+      const [name, p] = allRows[ri];
+      const frames = M.animation.tracks[name];
+      if (!frames?.length) return null;
+      return {name, p, t, frames};
+    }
+    return null;
+  }
+
   document.addEventListener('mousemove', e => {
     if (tlmKFDrag || tlmRubber || tlmDragging) { _kfTip.style.display='none'; return; }
     const trk=getTracks(); if(!trk) { _kfTip.style.display='none'; _tlHoverT=null; return; }
@@ -9621,15 +9698,25 @@ function applyPlayheadToParams() {
     const newHoverT = Math.max(0, Math.min(dur, tlZoomOff+(e.clientX-r.left)/r.width*visibleDur));
     if (Math.abs((newHoverT||0) - (_tlHoverT||0)) > 0.001) { _tlHoverT=newHoverT; drawMultiTimeline(); }
     const hit=hitTestKF(e);
-    if (!hit) { _kfTip.style.display='none'; return; }
-    const p=M.params[hit.name];
-    const lbl=p?.lbl||hit.name;
-    const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
-    _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}` ;
+    if (hit) {
+      const p=M.params[hit.name];
+      const lbl=p?.lbl||hit.name;
+      const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
+      _kfTip.innerHTML=`<span style="color:#8898c0">${lbl}</span><br>t: <span style="color:#ffd060">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:#a080d0">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}`;
+    } else {
+      // Show interpolated track value at cursor position
+      const trackHit = hitTestTrack(e);
+      if (trackHit) {
+        const {name, p, t, frames} = trackHit;
+        const v = evalAnimTrack(frames, p || {min:-1,max:1,val:0}, t);
+        _kfTip.innerHTML=`<span style="color:#6878a0">${p?.lbl||name}</span>  @${t.toFixed(3)}s<br>v: <span style="color:#a0d890">${v.toFixed(3)}</span>`;
+      } else {
+        _kfTip.style.display='none'; return;
+      }
+    }
     _kfTip.style.display='block';
     _kfTip.style.left=(e.clientX+14)+'px';
     _kfTip.style.top=(e.clientY-10)+'px';
-    // Keep inside viewport
     const tw=_kfTip.offsetWidth;
     if (e.clientX+14+tw > window.innerWidth) _kfTip.style.left=(e.clientX-14-tw)+'px';
   });
