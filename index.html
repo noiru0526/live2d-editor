@@ -290,6 +290,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="openImageDialog()">画像を開く</button>
   <button class="tbtn" onclick="saveModel()">保存<span class="sk">^S</span></button>
   <button class="tbtn" onclick="exportHTML()">HTML出力</button>
+  <button class="tbtn" onclick="previewHTML()" title="エクスポートHTMLを新しいウィンドウでプレビュー（ダウンロードなし）" style="color:#80ffd0;">👁 プレビュー</button>
   <button class="tbtn" onclick="exportAllClipsHTML()" title="全クリップを個別HTMLファイルとしてダウンロード" style="color:#c0e8ff;">📦 全クリップ</button>
   <button class="tbtn" onclick="exportMotion3JSON()" title=".motion3.json 出力" style="color:#a0d0ff;">motion3</button>
   <button class="tbtn" onclick="exportMoc3JSON()" title="Live2D Cubism互換 .moc3 JSON出力" style="color:#c0a0ff;">.moc3</button>
@@ -2827,6 +2828,15 @@ async function saveModel(filePath) {
 }
 
 // ==================== EXPORT HTML ====================
+function previewHTML() {
+  if (!M.img) { alert('画像を開いてください'); return; }
+  const html = genAvatarHTML();
+  const url = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+  const w = window.open(url, '_blank', 'width=600,height=600');
+  if (!w) alert('ポップアップがブロックされました。ブラウザのポップアップ許可を確認してください。');
+  document.getElementById('lbl-status').textContent = 'プレビューを新しいウィンドウで開きました';
+}
+
 async function exportHTML(filePath) {
   if (!M.img) { alert('画像を開いてください'); return; }
   const html=genAvatarHTML();
