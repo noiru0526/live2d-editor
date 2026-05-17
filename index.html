@@ -824,6 +824,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2e3656;border:1px solid var(--border);color:#c0a080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
+    <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
+    <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
@@ -848,6 +851,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="tl-multi-tracks" style="flex:1;position:relative;overflow:hidden;">
       <canvas id="tl-multi-canvas"></canvas>
     </div>
+  </div>
+  <!-- Horizontal scrollbar for zoomed timeline -->
+  <div id="tl-hscroll-wrap" style="display:flex;height:10px;flex-shrink:0;background:#0e1120;border-top:1px solid rgba(60,70,110,.4);padding:0 90px 0 0;">
+    <input type="range" id="tl-hscroll" min="0" max="100" value="0" step="0.1"
+      style="flex:1;height:100%;accent-color:#4e7cff;opacity:0.6;cursor:pointer;margin:0;"
+      oninput="tlZoomOff=(+this.value/100)*Math.max(0,(M.animation.duration||3)*(1-1/Math.max(1,tlZoom)));drawMultiTimeline();">
   </div>
 </div>
 
@@ -6280,6 +6289,15 @@ function drawMultiTimeline() {
   // Update time label
   const tle=document.getElementById('tl-playhead-time');
   if (tle) tle.textContent=ph.toFixed(3)+'s';
+  // Sync horizontal scrollbar
+  const hscroll=document.getElementById('tl-hscroll');
+  if (hscroll) {
+    const maxOff=Math.max(0,dur*(1-1/Math.max(1,tlZoom)));
+    hscroll.style.display=tlZoom>1?'':'none';
+    hscroll.value=maxOff>0?(tlZoomOff/maxOff*100).toFixed(1):0;
+  }
+  const hscrollWrap=document.getElementById('tl-hscroll-wrap');
+  if (hscrollWrap) hscrollWrap.style.display=tlZoom>1?'flex':'none';
 
   // Rubber-band selection rectangle
   if (typeof tlmRubber !== 'undefined' && tlmRubber) {
@@ -6712,6 +6730,64 @@ function insertPoseKF() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `ポーズKF挿入: ${count}パラメータ @ ${t.toFixed(3)}s`;
+}
+
+function exportAnimJSON() {
+  const clips = M.animClips?.length ? M.animClips : [];
+  const data = {
+    version: 1,
+    animation: M.animation,
+    clips: clips,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
+  a.download = 'noiru-animation.json'; a.click();
+  document.getElementById('lbl-status').textContent = 'アニメーションデータをエクスポートしました';
+}
+
+function importAnimJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.animation) {
+          M.animation = Object.assign(M.animation, data.animation);
+          const durEl=document.getElementById('tl-duration');
+          if (durEl) durEl.value=(M.animation.duration||3).toFixed(1);
+        }
+        if (data.clips?.length) {
+          if (!M.animClips) M.animClips=[];
+          M.animClips.push(...data.clips);
+          if (typeof renderClipTabs==='function') renderClipTabs();
+        }
+        drawMultiTimeline();
+        document.getElementById('lbl-status').textContent = 'アニメーションデータをインポートしました';
+      } catch(e) { alert('インポートエラー: '+e.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function reverseAnimation() {
+  const dur = M.animation.duration || 3;
+  let hasKF = false;
+  for (const frames of Object.values(M.animation.tracks)) {
+    if (frames?.length) { hasKF = true; break; }
+  }
+  if (!hasKF) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+  for (const frames of Object.values(M.animation.tracks)) {
+    if (!frames?.length) continue;
+    for (const kf of frames) kf.t = Math.round((dur - kf.t) * 1000) / 1000;
+    frames.sort((a,b) => a.t - b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `アニメーションを逆転しました (${dur.toFixed(1)}s)`;
 }
 
 function trimAnimDuration() {
