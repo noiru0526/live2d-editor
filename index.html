@@ -3841,6 +3841,47 @@ window.addEventListener('mousemove', e => {
     }
   },{passive:false});
 })();
+// ==================== TWITCH CHAT INTEGRATION ====================
+// Listen for chat messages forwarded via postMessage from a proxy
+// Format: {type:'noiru-chat', user:'username', msg:'hello!'}
+// Or use native EventSource from tmijs-compatible proxy
+let _chatConnected=false;
+const _chatTriggers=[]; // [{keyword, pose, clip, param, value}]
+function initChatTriggers(){
+  // Build triggers from poses: if user types "!happy" and there's a "happy" pose → apply it
+  if(MD.poses?.length){
+    for(const p of MD.poses){
+      _chatTriggers.push({keyword:'!'+p.name.toLowerCase().replace(/\s+/g,''),pose:p.name});
+      _chatTriggers.push({keyword:p.name.toLowerCase(),pose:p.name});
+    }
+  }
+  // Built-in keyword reactions
+  const builtins=[
+    {keyword:'gg',pose:null,param:'mouthOpen',value:0.8},
+    {keyword:'lol',pose:null,param:'mouthOpen',value:1},
+    {keyword:'o7',pose:null,param:'headY',value:-0.3},
+  ];
+  _chatTriggers.push(...builtins);
+}
+window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
+window.addEventListener('message',ev2=>{
+  const d2=ev2.data;
+  if(typeof d2!=='object'||d2.type!=='noiru-chat') return;
+  const msg=(d2.msg||'').toLowerCase().trim();
+  if(!msg) return;
+  for(const t of _chatTriggers){
+    if(!msg.includes(t.keyword)) continue;
+    if(t.pose){
+      const p=MD.poses?.find(x=>x.name===t.pose);
+      if(p){activePose=p;poseBlend=0;}
+    }
+    if(t.param&&params[t.param]!==undefined){
+      params[t.param].val=t.value??0;
+      setTimeout(()=>{if(params[t.param])params[t.param].val=0;},2000);
+    }
+    break;
+  }
+});
 // postMessage API for external/iframe control
 // Commands: setPose, setParam, playClip, playAnim, stopAnim, reset, getState
 window.addEventListener('message',ev=>{
