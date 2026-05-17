@@ -1970,16 +1970,40 @@ function onWheel(e) {
 
 // ==================== UNDO / REDO ====================
 function snapshotState() {
-  return { ap:M.activePart, verts:M.mesh.verts.map(v=>({...v})), def:JSON.parse(JSON.stringify(M.def)) };
+  return {
+    ap:M.activePart,
+    verts:M.mesh.verts.map(v=>({...v})),
+    def:JSON.parse(JSON.stringify(M.def)),
+    // Include animation tracks for undo coverage
+    animTracks: JSON.parse(JSON.stringify(M.animation?.tracks||{})),
+    animDur: M.animation?.duration,
+  };
 }
 function pushUndo() {
   ST.undo.push(snapshotState());
   ST.redo=[];
-  if (ST.undo.length>80) ST.undo.shift();
+  if (ST.undo.length>60) ST.undo.shift();
+}
+// Push undo specifically for animation changes (lighter - doesn't snapshot verts)
+function pushAnimUndo() {
+  ST.undo.push({
+    ap:M.activePart,
+    verts:null, // marker that verts didn't change
+    def:null,
+    animTracks:JSON.parse(JSON.stringify(M.animation?.tracks||{})),
+    animDur:M.animation?.duration,
+  });
+  ST.redo=[];
+  if (ST.undo.length>60) ST.undo.shift();
 }
 function _applySnapshot(s) {
   if (s.ap!==undefined && s.ap<M.parts.length) { M.activePart=s.ap; renderPartsList(); updatePartCtrl(); }
-  M.mesh.verts=s.verts; M.def=s.def;
+  if (s.verts) { M.mesh.verts=s.verts; M.def=s.def; }
+  if (s.animTracks!==null && s.animTracks!==undefined && M.animation) {
+    M.animation.tracks=s.animTracks;
+    if (s.animDur!==undefined) M.animation.duration=s.animDur;
+    drawMultiTimeline();
+  }
   ST.cachedVerts=null; redraw(); updateAllKFDots();
 }
 function undo() { const s=ST.undo.pop(); if(!s) return; ST.redo.push(snapshotState()); _applySnapshot(s); }
@@ -3463,6 +3487,7 @@ document.addEventListener('keydown',e=>{
 
   // Delete/Backspace: in anim mode, delete selected KFs; otherwise reset deform
   if ((e.key==='Delete'||e.key==='Backspace') && ST.animMode && tlSelectedKFs.size>0 && document.activeElement===document.body) {
+    pushAnimUndo();
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       M.animation.tracks[name]=frames.filter(kf=>!tlSelectedKFs.has(kf));
     }
@@ -6419,10 +6444,10 @@ function toggleAnimMode() {
 }
 
 function addAnimKF() {
+  pushAnimUndo();
   const t = ST.animPlayhead;
   for (const [name,p] of Object.entries(M.params)) {
     if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
-    // Remove existing KF at same time (within 0.01s)
     M.animation.tracks[name]=M.animation.tracks[name].filter(k=>Math.abs(k.t-t)>0.01);
     M.animation.tracks[name].push({t, v:p.val});
     M.animation.tracks[name].sort((a,b)=>a.t-b.t);
@@ -7046,6 +7071,7 @@ function applyPlayheadToParams() {
       { icon:'×', label:'選択KFの値をスケール', action:()=>scaleSelectedKFValues() },
       null,
       { icon:'×', label:'このKFを削除', action:()=>{
+        pushAnimUndo();
         M.animation.tracks[hit.name]=M.animation.tracks[hit.name].filter(f=>f!==hit.kf);
         drawMultiTimeline();
       }},
