@@ -930,13 +930,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
+    <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
+    <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
-    <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV</button>
+    <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
+    <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#60b090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
@@ -8470,6 +8473,82 @@ function checkLoopConsistency() {
   }, '自動修正');
 }
 
+function optimizeLoopPoints() {
+  const tracks = M.animation.tracks || {};
+  const dur = M.animation.duration || 3;
+  const names = Object.keys(tracks).filter(k => tracks[k]?.length > 0);
+  if (!names.length) { alert('KFがありません'); return; }
+  // Sample animation at many points and find position where start/end values are closest (total diff)
+  const steps = 100;
+  let bestFrom = 0, bestTo = dur, bestScore = Infinity;
+  for (let si = 0; si < steps; si++) {
+    const from = (si / steps) * dur * 0.5; // try from 0..50% of duration
+    const to = Math.min(dur, from + dur * 0.5); // at least 50% duration
+    let score = 0;
+    for (const name of names) {
+      const p = M.params[name] || {min:-1,max:1,val:0};
+      const vFrom = evalAnimTrack(tracks[name], p, from);
+      const vTo = evalAnimTrack(tracks[name], p, to);
+      score += (vFrom - vTo) ** 2;
+    }
+    if (score < bestScore) { bestScore = score; bestFrom = from; bestTo = to; }
+  }
+  // Now try to maximize the loop region while keeping score low
+  for (let span = dur; span >= dur * 0.3; span -= dur / steps) {
+    for (let from = 0; from + span <= dur; from += dur / steps) {
+      const to = from + span;
+      let score = 0;
+      for (const name of names) {
+        const p = M.params[name] || {min:-1,max:1,val:0};
+        const vFrom = evalAnimTrack(tracks[name], p, from);
+        const vTo = evalAnimTrack(tracks[name], p, to);
+        score += (vFrom - vTo) ** 2;
+      }
+      if (score < bestScore * 2 && span > (bestTo - bestFrom)) {
+        bestScore = score; bestFrom = from; bestTo = to;
+      }
+    }
+    if (bestTo - bestFrom > dur * 0.7) break;
+  }
+  pushAnimUndo();
+  M.animation.loopIn = Math.round(bestFrom * 1000) / 1000;
+  M.animation.loopOut = Math.round(bestTo * 1000) / 1000;
+  const liEl = document.getElementById('tl-loop-in'); if(liEl) liEl.value = M.animation.loopIn.toFixed(2);
+  const loEl = document.getElementById('tl-loop-out'); if(loEl) loEl.value = M.animation.loopOut.toFixed(2);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `ループ最適化: ${M.animation.loopIn.toFixed(2)}s 〜 ${M.animation.loopOut.toFixed(2)}s (差分: ${bestScore.toFixed(4)})`;
+}
+
+function copyAnimTimeRange() {
+  const dur = M.animation.duration || 3;
+  const fromStr = prompt('コピー開始時刻 (秒):', (M.animation.loopIn??0).toFixed(2));
+  if (fromStr===null) return;
+  const from = parseFloat(fromStr);
+  if (isNaN(from)||from<0) return;
+  const toStr = prompt('コピー終了時刻 (秒):', (M.animation.loopOut??dur).toFixed(2));
+  if (toStr===null) return;
+  const to = parseFloat(toStr);
+  if (isNaN(to)||to<=from) return;
+  const pasteStr = prompt('貼り付け先開始時刻 (秒):', to.toFixed(2));
+  if (pasteStr===null) return;
+  const pasteTo = parseFloat(pasteStr);
+  if (isNaN(pasteTo)||pasteTo<0) return;
+  pushAnimUndo();
+  const offset = pasteTo - from;
+  let kfCopied = 0;
+  for (const [name, frames] of Object.entries(M.animation.tracks)) {
+    const inRange = frames.filter(k => k.t >= from && k.t <= to);
+    if (!inRange.length) continue;
+    const newKFs = inRange.map(k => ({...k, t: Math.round((k.t + offset)*10000)/10000}));
+    const newTimes = new Set(newKFs.map(k=>k.t));
+    const existing = frames.filter(k => !newTimes.has(k.t));
+    M.animation.tracks[name] = [...existing, ...newKFs].sort((a,b)=>a.t-b.t);
+    kfCopied += newKFs.length;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `区間コピー: ${kfCopied}KF を ${pasteTo.toFixed(2)}s にコピー`;
+}
+
 function showAnimStats() {
   const tracks = M.animation.tracks || {};
   const trackNames = Object.keys(tracks);
@@ -8704,6 +8783,31 @@ function exportAnimJSON() {
   a.href = URL.createObjectURL(new Blob([json], {type:'application/json'}));
   a.download = 'noiru-animation.json'; a.click();
   document.getElementById('lbl-status').textContent = 'アニメーションデータをエクスポートしました';
+}
+
+function exportMotionCSV() {
+  const tracks = M.animation.tracks || {};
+  const names = Object.keys(tracks).filter(k => tracks[k]?.length > 0);
+  if (!names.length) { document.getElementById('lbl-status').textContent = 'エクスポートするトラックがありません'; return; }
+  // Collect all unique times
+  const allTimes = [...new Set(names.flatMap(n => tracks[n].map(k => k.t)))].sort((a,b)=>a-b);
+  // Build CSV header
+  const header = ['time', ...names.map(n => M.params[n]?.lbl || n)].join(',');
+  // Build rows — for each time, output the interpolated value for each track
+  const rows = allTimes.map(t => {
+    const cells = [t.toFixed(4)];
+    for (const name of names) {
+      const p = M.params[name] || {min:-1,max:1,val:0};
+      const v = evalAnimTrack(tracks[name], p, t);
+      cells.push(v.toFixed(4));
+    }
+    return cells.join(',');
+  });
+  const csv = [header, ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'noiru-animation.csv'; a.click();
+  document.getElementById('lbl-status').textContent = `CSVエクスポート: ${names.length}トラック / ${allTimes.length}タイムポイント`;
 }
 
 function importMotionCSV() {
