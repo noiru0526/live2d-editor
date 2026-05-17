@@ -885,6 +885,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
   </div>
+  <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
+  <div style="height:12px;flex-shrink:0;padding-left:90px;background:#0e1120;border-bottom:1px solid rgba(60,70,110,.3);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
+    <canvas id="tl-minimap" style="display:block;width:100%;height:12px;"></canvas>
+  </div>
   <div id="tl-multi-body" style="display:flex;flex:1;overflow:hidden;min-height:0;">
     <div id="tl-label-col" style="position:relative;width:90px;flex-shrink:0;overflow:hidden;background:#1a1e2e;border-right:1px solid var(--border);">
       <canvas id="tl-label-canvas" style="display:block;"></canvas>
@@ -3182,7 +3186,8 @@ function drawDeformedPart(pd,verts,img,_ctx=ctx){
 
 function draw(ts){
   const dt=Math.min((ts-S.last)/1000,.05);S.last=ts;
-  S.hx=ema(S.hx,tHX,EMA.hx);S.hy=ema(S.hy,tHY,EMA.hy);S.hz=ema(S.hz,tHZ,EMA.hz);
+  const _dz=curDeadZone;
+  S.hx=ema(S.hx,_applyDZ(tHX,_dz),EMA.hx);S.hy=ema(S.hy,_applyDZ(tHY,_dz),EMA.hy);S.hz=ema(S.hz,_applyDZ(tHZ,_dz*0.5),EMA.hz);
   S.bl=ema(S.bl,tBL,EMA.bl);S.br=ema(S.br,tBR,EMA.br);S.mo=ema(S.mo,tMO,EMA.mo);
   S.bwl=ema(S.bwl,tBwL,EMA.bw);S.bwr=ema(S.bwr,tBwR,EMA.bw);
   S.ex=ema(S.ex,tEX,EMA.ex);S.ey=ema(S.ey,tEY,EMA.ey);
@@ -3441,6 +3446,8 @@ function getAudioLevel(){
 const EXPR_POSES=MD.poses??[];
 let activePose=null, poseBlend=0;
 let curSens=SENS;
+let curDeadZone=0; // 0..0.4 dead zone for face tracking
+const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
 const exprHUD=document.getElementById('expr-hud');
 const exprList=document.getElementById('expr-list');
 function updateExprList(activeIdx) {
@@ -3489,6 +3496,9 @@ document.addEventListener('keydown',ev=>{
     curSens=Math.max(0.3, curSens-0.1);
     if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='感度: '+curSens.toFixed(1);setTimeout(()=>exprHUD.style.display='none',1000);}
   }
+  // [ / ] : Dead zone adjustment
+  if (ev.key==='[') { curDeadZone=Math.max(0,curDeadZone-0.02); if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='デッドゾーン: '+Math.round(curDeadZone*100)+'%';setTimeout(()=>exprHUD.style.display='none',1000);} }
+  if (ev.key===']') { curDeadZone=Math.min(0.4,curDeadZone+0.02); if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='デッドゾーン: '+Math.round(curDeadZone*100)+'%';setTimeout(()=>exprHUD.style.display='none',1000);} }
   // H: hide/show status indicator
   if (ev.key==='h'||ev.key==='H') {
     const st=document.getElementById('st');
@@ -6854,7 +6864,59 @@ function drawMultiTimeline() {
     tlMultiCtx.lineWidth = 1;
     tlMultiCtx.strokeRect(rx, ry, rw, rh);
   }
+
+  // Draw minimap
+  const mm=document.getElementById('tl-minimap');
+  if (mm) {
+    const mw=mm.offsetWidth, mh=12;
+    if(mm.width!==mw){mm.width=mw;mm.height=mh;}
+    const mctx=mm.getContext('2d');
+    mctx.clearRect(0,0,mw,mh);
+    mctx.fillStyle='#0e1120'; mctx.fillRect(0,0,mw,mh);
+    // Draw all KF positions as tiny lines
+    for (const [nm, frames] of Object.entries(M.animation.tracks)) {
+      if (!frames?.length) continue;
+      const tc2=_trackColor(nm);
+      mctx.fillStyle=tc2.color.replace('hsl(','hsla(').replace(')',',0.6)');
+      for (const kf of frames) {
+        const kx=Math.round((kf.t/dur)*mw);
+        mctx.fillRect(kx,2,1,mh-4);
+      }
+    }
+    // Playhead
+    const phxm=Math.round((ph/dur)*mw);
+    mctx.fillStyle='rgba(255,255,255,.9)'; mctx.fillRect(phxm,0,1,mh);
+    // Viewport window (when zoomed)
+    if (tlZoom>1) {
+      const vx=Math.round((tlZoomOff/dur)*mw);
+      const vw=Math.round((1/tlZoom)*mw);
+      mctx.fillStyle='rgba(78,124,255,.15)'; mctx.fillRect(vx,0,vw,mh);
+      mctx.strokeStyle='rgba(78,124,255,.5)'; mctx.lineWidth=1;
+      mctx.strokeRect(vx+.5,0,vw-1,mh-1);
+    }
+  }
 }
+
+// Minimap click: jump to that time
+(()=>{
+  const wrap=document.getElementById('tl-minimap-wrap');
+  if (!wrap) return;
+  const seek=e=>{
+    const r=wrap.getBoundingClientRect();
+    const frac=Math.max(0,Math.min(1,(e.clientX-r.left-90)/Math.max(1,r.width-90)));
+    const dur=M.animation.duration||3;
+    const targetT=frac*dur;
+    // Center viewport on this time
+    const visibleDur=dur/tlZoom;
+    tlZoomOff=Math.max(0,Math.min(dur-visibleDur,targetT-visibleDur/2));
+    ST.animPlayhead=Math.max(0,Math.min(dur,targetT));
+    applyPlayheadToParams(); drawMultiTimeline();
+  };
+  let _mmDown=false;
+  wrap.addEventListener('mousedown',e=>{_mmDown=true;seek(e);});
+  wrap.addEventListener('mousemove',e=>{if(_mmDown)seek(e);});
+  document.addEventListener('mouseup',()=>_mmDown=false);
+})();
 
 // Label canvas click → toggle track visibility
 tlLabelCanvas.addEventListener('click', e=>{
