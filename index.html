@@ -298,6 +298,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
   <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
   <button class="tbtn" onclick="exportPNGSequence()" title="タイムラインアニメをPNG連番+ZIPで出力（JSZip使用）" style="color:#a0e8ff;">🖼 PNG列</button>
+  <button class="tbtn" onclick="captureFramePNG()" title="現在フレームをPNGとして保存（透過背景）" style="color:#d0f0ff;">📸</button>
   <button class="tbtn" onclick="exportSpriteSheet()" title="タイムラインアニメをスプライトシートPNGで出力" style="color:#80c8ff;">🀱 スプライト</button>
   <button class="tbtn" id="btn-hq" onclick="toggleHQRender()" title="高品質レンダリング ON/OFF（三角形サブディビジョン・重い）" style="color:#ffe090;">✨ HQ</button>
   <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
@@ -10741,6 +10742,24 @@ function toggleVideoRec() {
 }
 
 // ==================== PNG SEQUENCE EXPORT ====================
+function captureFramePNG() {
+  const canvas = document.getElementById('canvas');
+  if (!canvas) { document.getElementById('lbl-status').textContent = 'キャンバスが見つかりません'; return; }
+  // Create transparent-bg offscreen canvas
+  const off = document.createElement('canvas');
+  off.width = canvas.width; off.height = canvas.height;
+  const ctx = off.getContext('2d');
+  ctx.clearRect(0, 0, off.width, off.height);
+  ctx.drawImage(canvas, 0, 0);
+  const url = off.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  a.download = `noiru-frame-${ts}.png`;
+  a.click();
+  document.getElementById('lbl-status').textContent = 'フレームをPNGで保存しました';
+}
+
 async function exportPNGSequence() {
   if (!M.parts.some(p=>p.img)) { document.getElementById('lbl-status').textContent = '画像を開いてください'; return; }
   const tracks = M.animation.tracks;
