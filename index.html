@@ -88,7 +88,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 #kf-btns .kfb-loop:hover{background:rgba(60,200,255,.1);}
 
 /* Parameter slider fill (Cubism style) */
-.pslider{width:100%;height:4px;-webkit-appearance:none;border-radius:2px;outline:none;cursor:pointer;margin-bottom:3px;background:linear-gradient(to right,var(--accent) var(--fill,50%),var(--border) var(--fill,50%));}
+.pslider{width:100%;height:4px;-webkit-appearance:none;border-radius:2px;outline:none;cursor:pointer;margin-bottom:3px;background:linear-gradient(to right,var(--fill-color,rgba(78,124,255,.4)) var(--fill,50%),var(--border) var(--fill,50%));}
 .pslider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--accent);cursor:pointer;transition:box-shadow .1s;}
 .pslider::-webkit-slider-thumb:hover{box-shadow:0 0 0 3px var(--accent),0 0 8px rgba(78,124,255,.5);}
 
@@ -2306,6 +2306,10 @@ function finalizeLasso() {
 function updateSliderFill(el, val, min, max) {
   const pct = ((val - min) / (max - min) * 100).toFixed(1) + '%';
   el.style.setProperty('--fill', pct);
+  // Show accent fill color when value is non-neutral
+  const neutralVal = Math.max(min, Math.min(max, 0));
+  const isNeutral = Math.abs(val - neutralVal) < 0.001;
+  el.style.setProperty('--fill-color', isNeutral ? 'rgba(78,124,255,.4)' : 'rgba(255,170,60,.7)');
 }
 
 function editParamVal(name, spanEl) {
