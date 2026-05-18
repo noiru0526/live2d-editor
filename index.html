@@ -868,6 +868,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:#1e2838;border:1px solid #3a4470;color:#a0c0ff;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#1e2830;border:1px solid rgba(80,180,100,.4);color:#80c0a0;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
@@ -6177,6 +6178,38 @@ function wcClearExprPresets() {
   if (!confirm('保存済みの表情プリセットをすべて削除しますか？')) return;
   _wcExprPresets = [];
   renderWcExprBtns();
+}
+
+function wcImportRiggerExpressions() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json';
+  inp.onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        // Support both {expressions:[...]} (rigger model/expressions.json) and [{...}] (array)
+        const exprs = Array.isArray(data) ? data : (data.expressions || []);
+        if (!exprs.length) { document.getElementById('lbl-status').textContent = '表情データが見つかりません'; return; }
+        let imported = 0;
+        for (const ex of exprs) {
+          if (!ex.name || !ex.values) continue;
+          // Map rigger param names to editor param names (same keys are used)
+          const vals = {};
+          for (const [k, v] of Object.entries(ex.values)) {
+            if (M.params[k]) vals[k] = v;
+          }
+          _wcExprPresets.push({name: ex.name, vals});
+          imported++;
+        }
+        renderWcExprBtns();
+        document.getElementById('lbl-status').textContent = `リガー表情 ${imported}個をインポートしました`;
+      } catch(err) { document.getElementById('lbl-status').textContent = '読込失敗: ' + err.message; }
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
 }
 
 // Auto-detect expression from smoothed face values and highlight matching button

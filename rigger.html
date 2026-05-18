@@ -1153,11 +1153,12 @@ function mvDn() {
 }
 
 function selPartClick(i, shift=false) {
+  selDeformer = -1; // Deselect deformer when selecting a part
   if (shift) {
     if (selParts.has(i)) { selParts.delete(i); if(selPart===i) selPart=selParts.size>0?[...selParts][0]:-1; }
     else { selParts.add(i); selParts.add(selPart); selPart=i; }
   } else { selPart=i; selParts.clear(); selParts.add(i); }
-  updatePartsUI(); buildKFUI(); updatePartPropsUI(); render();
+  updatePartsUI(); buildKFUI(); updatePartPropsUI(); updateDeformerPropsUI(); render();
 }
 function togVis(i,e) { e.stopPropagation(); parts[i].visible=!parts[i].visible; updatePartsUI(); render(); }
 function togLockItem(i,e) { e.stopPropagation(); parts[i].locked=!parts[i].locked; updatePartsUI(); }
