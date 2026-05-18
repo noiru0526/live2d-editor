@@ -155,6 +155,23 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 .mbn:hover{background:#1e293b;color:#cdd6f4}
 .mbn.ok:hover{background:rgba(124,58,237,.5)}
 
+/* Group headers */
+.pgroup{background:#080b10;border-bottom:1px solid #1a2030;padding:3px 5px;display:flex;align-items:center;gap:3px;cursor:pointer;flex-shrink:0}
+.pgroup:hover{background:#0c1020}
+.pgroup-caret{font-size:8px;color:#2a3a5a;width:10px;text-align:center;flex-shrink:0}
+.pgroup-name{flex:1;font-size:9px;color:#3a5070;font-weight:700;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgroup-count{font-size:8px;color:#2a3a5a;font-family:monospace;margin-right:2px}
+.pi.in-group{padding-left:20px}
+.pgroup-del{background:none;border:none;color:#2a3a5a;cursor:pointer;font-size:10px;padding:0 3px;line-height:1}
+.pgroup-del:hover{color:#f87171}
+
+/* Custom modal fields */
+.mb-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.mb-field{display:flex;flex-direction:column;gap:2px}
+.mb-field label{font-size:8px;color:#4e6080;text-transform:uppercase;letter-spacing:.5px}
+.mb-field input{background:#0a0e18;border:1px solid #2a3a5a;color:#cdd6f4;font-size:10px;padding:3px 6px;border-radius:3px;outline:none;width:100%}
+.mb-field input:focus{border-color:#7c3aed}
+
 /* Scrollbars */
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:#080b10}
@@ -206,6 +223,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <h3>PARTS</h3>
       <div class="ph-actions">
         <button class="ih" onclick="addPartFromFile()" title="PNG画像を追加">＋</button>
+        <button class="ih" onclick="addGroupPrompt()" title="新規グループ（フォルダ）を作成">📁</button>
         <button class="ih" onclick="delPart()" title="削除">✕</button>
         <button class="ih" onclick="mvUp()" title="上へ">↑</button>
         <button class="ih" onclick="mvDn()" title="下へ">↓</button>
@@ -304,6 +322,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <option value="">なし</option>
           </select>
         </div>
+        <div class="prop-row">
+          <span class="prop-lbl">グループ</span>
+          <select class="prop-sel" id="pp-group" onchange="applyPartGroup(this.value)">
+            <option value="">なし</option>
+          </select>
+        </div>
         <div class="prop-row" style="gap:4px;margin-top:2px">
           <button class="tbtn" onclick="centerPart()" style="flex:1;font-size:8px">中央配置</button>
           <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1;font-size:8px">🔓 ロック</button>
@@ -328,7 +352,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <div id="rp-params" class="rpanel">
       <div style="padding:4px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:8px;color:#4e6080;text-transform:uppercase;letter-spacing:1px">パラメータ</span>
-        <span id="spn" style="font-size:9px;color:#7c3aed"></span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span id="spn" style="font-size:9px;color:#7c3aed"></span>
+          <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:10px;color:#4e6080">＋</button>
+        </div>
       </div>
       <div id="params-list"></div>
     </div>
@@ -391,6 +418,39 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   </div>
 </div>
 
+<!-- Group modal -->
+<div id="grpmod" class="mo" style="display:none">
+  <div class="mb">
+    <h3>グループを作成</h3>
+    <input type="text" id="grpni" placeholder="例: 顔パーツ, 髪, 体">
+    <p>グループはパーツリスト内の視覚的な整理に使います。折りたたみ可能です。</p>
+    <div class="ma">
+      <button class="mbn" onclick="cancelAddGroup()">キャンセル</button>
+      <button class="mbn ok" onclick="confirmAddGroup()">作成</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom param modal -->
+<div id="cpmod" class="mo" style="display:none">
+  <div class="mb">
+    <h3>カスタムパラメータを追加</h3>
+    <div class="mb-grid">
+      <div class="mb-field"><label>キー名</label><input type="text" id="cp-key" placeholder="例: blush"></div>
+      <div class="mb-field"><label>ラベル</label><input type="text" id="cp-label" placeholder="例: 頬赤み2"></div>
+    </div>
+    <div class="mb-grid">
+      <div class="mb-field"><label>最小値</label><input type="number" id="cp-min" value="-1" step="0.1"></div>
+      <div class="mb-field"><label>最大値</label><input type="number" id="cp-max" value="1" step="0.1"></div>
+    </div>
+    <p>追加されたパラメータは変形リグで使用できます。</p>
+    <div class="ma">
+      <button class="mbn" onclick="cancelCustomParam()">キャンセル</button>
+      <button class="mbn ok" onclick="confirmCustomParam()">追加</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -427,6 +487,8 @@ let dragSX = 0, dragSY = 0, panOX = 0, panOY = 0;
 let dragPartOX = 0, dragPartOY = 0, dragMultiOrigins = new Map();
 let pendingImg = null, pendingDataURL = null;
 let expressions = [], activeExprIdx = -1;
+let groups = [], customParams = {};
+const collapsedGroups = new Set();
 const physState = new Map();
 let physLastTs = 0;
 
@@ -463,6 +525,7 @@ class Part {
     this.locked = false; this.visible = true; this.zIndex = parts.length;
     this.mesh = null; this.deforms = {};
     this.clipTo = null;
+    this.groupId = null;
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
   }
   get w() { return this.img ? this.img.width : 100; }
@@ -530,6 +593,7 @@ class Part {
       opacity: this.opacity, blendMode: this.blendMode,
       locked: this.locked, visible: this.visible, zIndex: this.zIndex,
       clipTo: this.clipTo,
+      groupId: this.groupId,
       physics: {...this.physics},
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
@@ -544,6 +608,7 @@ class Part {
     p.locked = o.locked || false;
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.clipTo = o.clipTo || null;
+    p.groupId = o.groupId || null;
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
@@ -817,12 +882,21 @@ function loadModelFromJSON(json) {
     canvasH = data.canvasH || data.imgH || 1000;
     document.getElementById('cvW').value = canvasW;
     document.getElementById('cvH').value = canvasH;
+    // Restore custom params first (before Part.fromJSON calls resizeDeforms)
+    customParams = {};
+    if (data.customParams) {
+      for (const [key, cp] of Object.entries(data.customParams)) {
+        P[key] = cp; customParams[key] = cp; pv[key] = 0;
+      }
+    }
     if (data.parts) parts = data.parts.map(o => Part.fromJSON(o));
     expressions = data.expressions || [];
+    groups = data.groups || [];
+    collapsedGroups.clear();
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
     updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); fitView();
-    setStatus(`モデル読込 — ${parts.length}パーツ, ${expressions.length}表情`);
+    setStatus(`モデル読込 — ${parts.length}パーツ, ${expressions.length}表情, ${groups.length}グループ`);
   } catch(err) { setStatus('JSON読込失敗: '+err.message); }
 }
 
@@ -885,9 +959,11 @@ function togLockItem(i,e) { e.stopPropagation(); parts[i].locked=!parts[i].locke
 let dragSrcIdx = -1;
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
-  parts.forEach((pt,i) => {
+  const seenGroups = new Set();
+
+  function makePartItem(pt, i) {
     const d = document.createElement('div');
-    d.className = 'pi' + (i===selPart?' sel':'') + (selParts.has(i)&&i!==selPart?' multi-sel':'');
+    d.className = 'pi' + (i===selPart?' sel':'') + (selParts.has(i)&&i!==selPart?' multi-sel':'') + (pt.groupId?' in-group':'');
     d.draggable = true;
     d.ondragstart = () => { dragSrcIdx=i; };
     d.ondragover = (e) => { e.preventDefault(); d.classList.add('drag-over'); };
@@ -903,11 +979,8 @@ function updatePartsUI() {
       updatePartsUI(); render(); dragSrcIdx=-1;
     };
     d.onclick = (e) => selPartClick(i, e.shiftKey);
-
     const drag = document.createElement('span');
-    drag.className='pi-drag'; drag.textContent='⠿';
-    d.appendChild(drag);
-
+    drag.className='pi-drag'; drag.textContent='⠿'; d.appendChild(drag);
     if (pt.img) {
       const thumb = document.createElement('canvas');
       thumb.width=20; thumb.height=20; thumb.className='pthumbs';
@@ -918,11 +991,9 @@ function updatePartsUI() {
       const te=document.createElement('div'); te.className='pthumbs';
       te.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:#3a4a5a'; te.textContent='?'; d.appendChild(te);
     }
-
     const visSpan = document.createElement('span');
     visSpan.className='pv'+(pt.visible?' on':''); visSpan.textContent=pt.visible?'👁':'·';
     visSpan.onclick=(e)=>togVis(i,e); d.appendChild(visSpan);
-
     const nameSpan = document.createElement('span');
     nameSpan.className='pn'; nameSpan.textContent=pt.name; nameSpan.title='ダブルクリックで名前変更';
     nameSpan.ondblclick=(e)=>{
@@ -936,18 +1007,35 @@ function updatePartsUI() {
       inp.onkeydown=(ev)=>{if(ev.key==='Enter')commit();if(ev.key==='Escape')updatePartsUI();ev.stopPropagation();};
     };
     d.appendChild(nameSpan);
-
     const lockSpan = document.createElement('span');
     lockSpan.className='pi-lock'+(pt.locked?' on':'');
     lockSpan.textContent=pt.locked?'🔒':'';
     lockSpan.onclick=(e)=>togLockItem(i,e); d.appendChild(lockSpan);
-
     if (pt.clipTo) { const b=document.createElement('span'); b.className='pi-clip-badge'; b.textContent='✂'; b.title='クリッピングマスク有効'; d.appendChild(b); }
     if (pt.physics?.enabled) { const b=document.createElement('span'); b.className='pi-phys-badge'; b.textContent='〜'; b.title='物理シミュレーション有効'; d.appendChild(b); }
-    list.appendChild(d);
+    return d;
+  }
+
+  parts.forEach((pt, i) => {
+    if (pt.groupId) {
+      const grp = groups.find(g => g.id === pt.groupId);
+      if (grp && !seenGroups.has(pt.groupId)) {
+        seenGroups.add(pt.groupId);
+        const collapsed = collapsedGroups.has(pt.groupId);
+        const count = parts.filter(p => p.groupId === pt.groupId).length;
+        const gh = document.createElement('div'); gh.className = 'pgroup';
+        gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-del" title="グループを削除">✕</button>`;
+        gh.querySelector('.pgroup-del').onclick = (e) => { e.stopPropagation(); deleteGroup(grp.id); };
+        gh.onclick = () => toggleGroup(grp.id);
+        list.appendChild(gh);
+      }
+      if (collapsedGroups.has(pt.groupId)) return;
+    }
+    list.appendChild(makePartItem(pt, i));
   });
+
   document.getElementById('sb').textContent = parts.length>0
-    ? `${parts.length}パーツ | モード:${mode} | Ctrl+Z:元に戻す | 矢印:1px移動 | Shift+矢印:10px`
+    ? `${parts.length}パーツ | ${groups.length}グループ | モード:${mode} | Ctrl+Z:元に戻す`
     : 'Ready — 「＋ 追加」でPNG画像を読み込んでください';
   updatePartPropsUI();
 }
@@ -971,6 +1059,11 @@ function updatePartPropsUI() {
     clipSel.innerHTML = '<option value="">なし</option>';
     parts.forEach((p,i)=>{ if(i===selPart) return; const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; clipSel.appendChild(o); });
     clipSel.value = pt.clipTo || '';
+    // Group dropdown
+    const grpSel = document.getElementById('pp-group');
+    grpSel.innerHTML = '<option value="">なし</option>';
+    groups.forEach(g=>{ const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; grpSel.appendChild(o); });
+    grpSel.value = pt.groupId || '';
   } else {
     pp.style.display = 'none'; nm.style.display = 'block';
   }
@@ -1102,6 +1195,67 @@ function exportExpressionsJSON() {
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='expressions.json'; a.click();
 }
 
+// ===== GROUPS =====
+function addGroupPrompt() {
+  document.getElementById('grpni').value = `グループ${groups.length+1}`;
+  document.getElementById('grpmod').style.display = 'flex';
+  document.getElementById('grpni').focus(); document.getElementById('grpni').select();
+}
+function confirmAddGroup() {
+  const nm = document.getElementById('grpni').value.trim() || `グループ${groups.length+1}`;
+  document.getElementById('grpmod').style.display = 'none';
+  const g = {id: Date.now().toString(36)+Math.random().toString(36).slice(2), name: nm};
+  groups.push(g);
+  updatePartPropsUI(); updatePartsUI();
+  setStatus(`グループ「${nm}」を作成`);
+}
+function cancelAddGroup() { document.getElementById('grpmod').style.display = 'none'; }
+function deleteGroup(gid) {
+  const grp = groups.find(g => g.id === gid); if (!grp) return;
+  parts.forEach(p => { if (p.groupId === gid) p.groupId = null; });
+  groups = groups.filter(g => g.id !== gid);
+  collapsedGroups.delete(gid);
+  updatePartsUI(); updatePartPropsUI();
+  setStatus(`グループ「${grp.name}」を削除`);
+}
+function toggleGroup(gid) {
+  if (collapsedGroups.has(gid)) collapsedGroups.delete(gid);
+  else collapsedGroups.add(gid);
+  updatePartsUI();
+}
+function applyPartGroup(gid) {
+  if (selPart < 0 || selPart >= parts.length) return;
+  parts[selPart].groupId = gid || null;
+  updatePartsUI();
+  setStatus(gid ? `「${parts[selPart].name}」をグループに追加` : `「${parts[selPart].name}」をグループから外しました`);
+}
+
+// ===== CUSTOM PARAMS =====
+function showCustomParamModal() {
+  document.getElementById('cp-key').value = '';
+  document.getElementById('cp-label').value = '';
+  document.getElementById('cp-min').value = '-1';
+  document.getElementById('cp-max').value = '1';
+  document.getElementById('cpmod').style.display = 'flex';
+  document.getElementById('cp-key').focus();
+}
+function cancelCustomParam() { document.getElementById('cpmod').style.display = 'none'; }
+function confirmCustomParam() {
+  const key = document.getElementById('cp-key').value.trim().replace(/\s+/g,'_');
+  const label = document.getElementById('cp-label').value.trim();
+  const minV = parseFloat(document.getElementById('cp-min').value);
+  const maxV = parseFloat(document.getElementById('cp-max').value);
+  document.getElementById('cpmod').style.display = 'none';
+  if (!key || !label) { setStatus('キー名とラベルは必須です'); return; }
+  if (P[key]) { setStatus(`「${key}」は既に存在します`); return; }
+  const ks = (minV < 0 && maxV > 0) ? [minV, 0, maxV] : [minV, maxV];
+  const cp = {l: label, r: [minV, maxV], k: ks, g: 'カスタム'};
+  P[key] = cp; customParams[key] = cp; pv[key] = 0;
+  parts.forEach(p => p.resizeDeforms());
+  buildParamsUI(); selPrm(key);
+  setStatus(`カスタムパラメータ「${label}」を追加`);
+}
+
 // ===== SMART DEFORM =====
 function smartDeform() {
   if (selPart<0) { setStatus('パーツを選択してください'); return; }
@@ -1173,14 +1327,31 @@ function toggleSec(id) {
 function buildParamsUI() {
   const list=document.getElementById('params-list'); list.innerHTML='';
   let cg='';
-  for (const [pn,pc] of Object.entries(P)) {
+  const allParams = {...P};
+  for (const [pn,pc] of Object.entries(allParams)) {
     if (pc.g!==cg) { cg=pc.g; const gh=document.createElement('div'); gh.className='pg'; gh.textContent='── '+cg; list.appendChild(gh); }
     const item=document.createElement('div'); item.className='pitem'+(pn===selParam?' spa':''); item.id='pi-'+pn;
     const [rmin,rmax]=pc.r, val=pv[pn]||0;
     const sv=((val-rmin)/(rmax-rmin)*100).toFixed(0);
-    item.innerHTML=`<div class="plbl" onclick="selPrm('${pn}')"><span>${pc.l}</span><span class="pv2" id="pv-${pn}">${val.toFixed(2)}</span></div><input type="range" min="0" max="100" value="${sv}" oninput="updPrm('${pn}',this.value)">`;
+    const isCustom=!!customParams[pn];
+    item.innerHTML=`<div class="plbl" onclick="selPrm('${pn}')"><span>${pc.l}${isCustom?'<span style="font-size:7px;color:#7c3aed;margin-left:3px">★</span>':''}</span><span class="pv2" id="pv-${pn}">${val.toFixed(2)}</span></div><input type="range" min="0" max="100" value="${sv}" oninput="updPrm('${pn}',this.value)">`;
+    if (isCustom) {
+      const delBtn=document.createElement('button');
+      delBtn.style.cssText='background:none;border:none;color:#2a3a5a;cursor:pointer;font-size:9px;padding:0 2px;float:right;line-height:1;';
+      delBtn.textContent='✕'; delBtn.title='カスタムパラメータを削除';
+      delBtn.onclick=(e)=>{e.stopPropagation();deleteCustomParam(pn);};
+      item.querySelector('.plbl').appendChild(delBtn);
+    }
     list.appendChild(item);
   }
+}
+function deleteCustomParam(key) {
+  if (!customParams[key]) return;
+  const lbl=P[key].l;
+  delete P[key]; delete customParams[key]; delete pv[key];
+  if (selParam===key) selParam='headX';
+  buildParamsUI(); buildKFUI();
+  setStatus(`カスタムパラメータ「${lbl}」を削除`);
 }
 function selPrm(pn) {
   selParam=pn;
@@ -1317,6 +1488,8 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('ni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd();if(e.key==='Escape')cancelAdd();});
 document.getElementById('exni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmExpr();if(e.key==='Escape')cancelExpr();});
+document.getElementById('grpni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddGroup();if(e.key==='Escape')cancelAddGroup();});
+document.getElementById('cp-key').addEventListener('keydown',e=>{if(e.key==='Enter')confirmCustomParam();if(e.key==='Escape')cancelCustomParam();});
 
 if (isElectron) {
   window.rigger.on('rigger-drop-image',dataURL=>{
@@ -1328,7 +1501,7 @@ if (isElectron) {
 
 // ===== EXPORT =====
 async function saveModelOnly() {
-  const model={version:3, canvasW, canvasH, expressions, parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, groups, customParams, parts:parts.map(p=>p.toJSON(true))};
   const json=JSON.stringify(model,null,2);
   if (isElectron) {
     const ok=await window.rigger.saveModel(json); if(ok) setStatus(`モデル保存完了 (${parts.length}パーツ, ${expressions.length}表情)`);
