@@ -476,6 +476,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" onclick="centerPart()" style="flex:1;font-size:8px">⊕ 中央配置</button>
           <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1;font-size:8px">🔓 ロック</button>
         </div>
+        <div class="prop-row" style="gap:4px;margin-top:2px">
+          <button class="tbtn" onclick="flipPartMesh('h')" style="flex:1;font-size:8px" title="メッシュを水平反転">↔ 反転H</button>
+          <button class="tbtn" onclick="flipPartMesh('v')" style="flex:1;font-size:8px" title="メッシュを垂直反転">↕ 反転V</button>
+        </div>
         <!-- Texture swap panel -->
         <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
@@ -2049,6 +2053,26 @@ function distributeParts(axis) {
 function toggleLock() {
   if (selPart<0||selPart>=parts.length) return;
   parts[selPart].locked=!parts[selPart].locked; updatePartsUI(); render();
+}
+function flipPartMesh(axis) {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState();
+  const pt = parts[selPart];
+  const verts = pt.mesh.verts;
+  const W = pt.w, H = pt.h;
+  if (axis==='h') {
+    for (const v of verts) v.x = W - v.x;
+    for (const deformsByKF of Object.values(pt.deforms))
+      for (const arr of Object.values(deformsByKF))
+        for (const d of arr) d.dx = -d.dx;
+  } else {
+    for (const v of verts) v.y = H - v.y;
+    for (const deformsByKF of Object.values(pt.deforms))
+      for (const arr of Object.values(deformsByKF))
+        for (const d of arr) d.dy = -d.dy;
+  }
+  render();
+  setStatus(`「${pt.name}」を${axis==='h'?'水平':'垂直'}反転`);
 }
 function toggleGrid() { showGrid=!showGrid; document.getElementById('btn-grid').classList.toggle('active',showGrid); render(); }
 function toggleSnapGrid() {
