@@ -368,6 +368,21 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <input type="range" id="pp-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value)" style="flex:1">
           <span id="pp-op-v" style="font-size:9px;color:#cba6f7;font-family:monospace;min-width:28px;text-align:right">100%</span>
         </div>
+        <!-- Opacity KF (shown in deform mode) -->
+        <div id="pp-opkf-row" style="display:none;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <span style="font-size:7px;color:#7c3aed;letter-spacing:.5px;text-transform:uppercase">KF 透明度</span>
+            <span id="pp-opkf-label" style="font-size:8px;color:#a78bfa;font-family:monospace"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="range" id="pp-opkf" min="0" max="100" value="100" oninput="applyOpacityKF(this.value)" style="flex:1;accent-color:#7c3aed">
+            <span id="pp-opkf-v" style="font-size:9px;color:#c4b5fd;font-family:monospace;min-width:28px;text-align:right">100%</span>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:2px">
+            <button onclick="setOpacityKFHere()" style="flex:1;background:#1a1535;border:1px solid rgba(124,58,237,.4);color:#c4b5fd;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
+            <button onclick="clearOpacityKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+          </div>
+        </div>
         <div class="prop-row">
           <span class="prop-lbl">合成</span>
           <select class="prop-sel" id="pp-blend" onchange="applyPartBlend(this.value)">
@@ -638,6 +653,7 @@ class Part {
     this.opacity = 1; this.blendMode = 'source-over';
     this.locked = false; this.visible = true; this.zIndex = parts.length;
     this.mesh = null; this.deforms = {};
+    this.opacityKFs = {}; // {paramKey: {kfValue: 0-1}}
     this.clipTo = null;
     this.groupId = null;
     this.deformerId = null;
@@ -702,6 +718,29 @@ class Part {
     for (let i = 0; i < n; i++) { r[i].x += this.x; r[i].y += this.y; }
     return r;
   }
+  getOpacity(vals) {
+    let opacity = this.opacity;
+    for (const [pn, pval] of Object.entries(vals)) {
+      const pc = P[pn]; if (!pc || !this.opacityKFs[pn]) continue;
+      const okfs = this.opacityKFs[pn];
+      const keys = Object.keys(okfs).map(Number).sort((a,b)=>a-b);
+      if (!keys.length) continue;
+      let factor;
+      if (pval <= keys[0]) factor = okfs[keys[0]];
+      else if (pval >= keys[keys.length-1]) factor = okfs[keys[keys.length-1]];
+      else {
+        for (let i=0; i<keys.length-1; i++) {
+          if (pval >= keys[i] && pval <= keys[i+1]) {
+            const t = (pval - keys[i]) / (keys[i+1] - keys[i]);
+            factor = okfs[keys[i]]*(1-t) + okfs[keys[i+1]]*t;
+            break;
+          }
+        }
+      }
+      if (factor !== undefined) opacity = factor;
+    }
+    return Math.max(0, Math.min(1, opacity));
+  }
   toJSON(withImage = true) {
     return {
       id: this.id, name: this.name, x: this.x, y: this.y,
@@ -711,6 +750,7 @@ class Part {
       groupId: this.groupId,
       deformerId: this.deformerId,
       physics: {...this.physics},
+      opacityKFs: this.opacityKFs,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
       imageData: withImage ? this.imgDataURL : null
@@ -727,6 +767,7 @@ class Part {
     p.groupId = o.groupId || null;
     p.deformerId = o.deformerId || null;
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
+    p.opacityKFs = o.opacityKFs || {};
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
     if (o.imageData) {
@@ -1043,7 +1084,7 @@ function render() {
 
     // Draw textured mesh
     ctx.save();
-    ctx.globalAlpha = pt.opacity !== undefined ? pt.opacity : 1;
+    ctx.globalAlpha = Object.keys(pt.opacityKFs||{}).length ? pt.getOpacity(vals) : (pt.opacity !== undefined ? pt.opacity : 1);
     ctx.globalCompositeOperation = pt.blendMode || 'source-over';
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
@@ -1474,6 +1515,45 @@ function applyPartOpacity(v) {
   document.getElementById('pp-op-v').textContent=v+'%'; render();
 }
 function applyPartBlend(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].blendMode=v; render(); }
+function applyOpacityKF(v) {
+  if (selPart<0||selPart>=parts.length) return;
+  document.getElementById('pp-opkf-v').textContent=v+'%';
+  const pt=parts[selPart];
+  if (!pt.opacityKFs[selParam]) pt.opacityKFs[selParam]={};
+  pt.opacityKFs[selParam][curKF]=parseInt(v)/100;
+  render();
+}
+function setOpacityKFHere() {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState();
+  const v=parseInt(document.getElementById('pp-opkf').value)||100;
+  applyOpacityKF(v);
+  setStatus(`透明度KF: ${P[selParam].l} = ${curKF} → ${v}%`);
+}
+function clearOpacityKF() {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState();
+  const pt=parts[selPart];
+  if (pt.opacityKFs[selParam]) { delete pt.opacityKFs[selParam][curKF]; }
+  document.getElementById('pp-opkf').value=100;
+  document.getElementById('pp-opkf-v').textContent='100%';
+  render(); setStatus('透明度KFをクリア');
+}
+function updateOpacityKFUI() {
+  const row=document.getElementById('pp-opkf-row'); if(!row) return;
+  if (mode==='deform'&&selPart>=0&&selPart<parts.length) {
+    row.style.display='block';
+    const pt=parts[selPart];
+    const curOpKF=pt.opacityKFs[selParam]?.[curKF];
+    const v=curOpKF!==undefined?Math.round(curOpKF*100):Math.round((pt.opacity||1)*100);
+    document.getElementById('pp-opkf').value=v;
+    document.getElementById('pp-opkf-v').textContent=v+'%';
+    const hasKF=curOpKF!==undefined;
+    document.getElementById('pp-opkf-label').textContent=(hasKF?'★ ':'')+(P[selParam]?.l||selParam)+' = '+curKF;
+  } else {
+    row.style.display='none';
+  }
+}
 function applyPartClip(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].clipTo=v||null; updatePartsUI(); render(); }
 function centerPart() {
   if (selPart<0||selPart>=parts.length) return; saveState();
@@ -1840,7 +1920,7 @@ function setMode(m) {
     deform:'変形リグ — KF × パラメータで変形',
     preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中'
   };
-  updatePartPropsUI(); setHint(hints[m]||''); render();
+  updatePartPropsUI(); updateOpacityKFUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
 
@@ -2051,6 +2131,7 @@ function buildKFUI() {
   if (!pc.k.includes(curKF)) curKF=pc.k[0];
   document.getElementById('kf-param-label').textContent=P[selParam]?.l||selParam;
   document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
+  updateOpacityKFUI();
 }
 
 // ===== SMOOTH DEFORM =====
@@ -2418,6 +2499,22 @@ function interpRotDeform(def,vals){
   }
   return{angle,scaleX,scaleY};
 }
+function interpOpacity(pt,vals){
+  if(!pt.opacityKFs||!Object.keys(pt.opacityKFs).length)return pt.opacity!==undefined?pt.opacity:1;
+  let opacity=pt.opacity!==undefined?pt.opacity:1;
+  for(const[pn,pval]of Object.entries(vals)){
+    const pc=PD[pn];if(!pc||!pt.opacityKFs[pn])continue;
+    const okfs=pt.opacityKFs[pn];
+    const keys=Object.keys(okfs).map(Number).sort((a,b)=>a-b);
+    if(!keys.length)continue;
+    let factor;
+    if(pval<=keys[0])factor=okfs[keys[0]];
+    else if(pval>=keys[keys.length-1])factor=okfs[keys[keys.length-1]];
+    else{for(let i=0;i<keys.length-1;i++){if(pval>=keys[i]&&pval<=keys[i+1]){const t=(pval-keys[i])/(keys[i+1]-keys[i]);factor=okfs[keys[i]]*(1-t)+okfs[keys[i+1]]*t;break;}}}
+    if(factor!==undefined)opacity=factor;
+  }
+  return Math.max(0,Math.min(1,opacity));
+}
 function interpDeforms(obj,vals){
   const base=obj._baseVerts||[];const n=base.length;const r=base.map(q=>({x:q.x,y:q.y}));
   for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!obj.deforms?.[pn])continue;
@@ -2507,7 +2604,7 @@ function frame(ts){
       for(const[i0,i1,i2] of clipPt.mesh.tris){ctx.moveTo(cwv[i0].x,cwv[i0].y);ctx.lineTo(cwv[i1].x,cwv[i1].y);ctx.lineTo(cwv[i2].x,cwv[i2].y);ctx.closePath();}
       ctx.clip();
     }
-    ctx.save();ctx.globalAlpha=pt.opacity!==undefined?pt.opacity:1;ctx.globalCompositeOperation=pt.blendMode||'source-over';
+    ctx.save();ctx.globalAlpha=interpOpacity(pt,vals);ctx.globalCompositeOperation=pt.blendMode||'source-over';
     for(const[i0,i1,i2] of pt.mesh.tris){
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
       drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,pt._img);
