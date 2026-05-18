@@ -165,6 +165,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 .pi.in-deformer{padding-left:20px}
 .pdef-del{background:none;border:none;color:#1e4060;cursor:pointer;font-size:10px;padding:0 3px;line-height:1}
 .pdef-del:hover{color:#f87171}
+.pdef.rotation .pdef-name{color:#78500a}
+.pdef.rotation.sel .pdef-name{color:#f59e0b}
+.pdef.rotation .pdef-caret{color:#78500a}
+.pdef.rotation .pdef-count{color:#78500a}
 
 /* Deformer props section */
 #deformer-props{gap:0}
@@ -303,22 +307,44 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <div id="rp-props" class="rpanel on">
       <!-- Deformer properties (shown when deformer selected) -->
       <div class="prop-section" id="deformer-props" style="display:none">
-        <h4>デフォーマープロパティ</h4>
-        <div class="prop-row">
-          <span class="prop-lbl">X</span><input class="prop-in" id="dp-x" type="number" oninput="applyDeformerXY()">
-          <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="dp-y" type="number" oninput="applyDeformerXY()">
+        <h4 id="dp-title">デフォーマープロパティ</h4>
+        <!-- Warp deformer props -->
+        <div id="def-warp-props">
+          <div class="prop-row">
+            <span class="prop-lbl">X</span><input class="prop-in" id="dp-x" type="number" oninput="applyDeformerXY()">
+            <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="dp-y" type="number" oninput="applyDeformerXY()">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">W</span><input class="prop-in" id="dp-w" type="number" oninput="applyDeformerSize()">
+            <span class="prop-lbl" style="margin-left:2px">H</span><input class="prop-in" id="dp-h" type="number" oninput="applyDeformerSize()">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">分割</span>
+            <input class="prop-in" id="dp-cols" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
+            <span style="font-size:9px;color:#4e6080;margin:0 2px">×</span>
+            <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
+          </div>
         </div>
-        <div class="prop-row">
-          <span class="prop-lbl">W</span><input class="prop-in" id="dp-w" type="number" oninput="applyDeformerSize()">
-          <span class="prop-lbl" style="margin-left:2px">H</span><input class="prop-in" id="dp-h" type="number" oninput="applyDeformerSize()">
+        <!-- Rotation deformer props -->
+        <div id="def-rot-props" style="display:none">
+          <div class="prop-row">
+            <span class="prop-lbl">軸X</span><input class="prop-in" id="rp-px" type="number" oninput="applyRotPivot()">
+            <span class="prop-lbl" style="margin-left:2px">軸Y</span><input class="prop-in" id="rp-py" type="number" oninput="applyRotPivot()">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">半径</span><input class="prop-in" id="rp-r" type="number" min="10" max="500" oninput="applyRotRadius()">
+          </div>
+          <div class="prop-row" style="border-top:1px solid #1a3040;margin-top:4px;padding-top:4px">
+            <span class="prop-lbl" style="color:#f59e0b">角度°</span>
+            <input class="prop-in" id="rp-angle" type="number" min="-180" max="180" step="0.5" oninput="applyRotAngle()" style="border-color:rgba(245,158,11,.4)">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">拡縮X</span><input class="prop-in" id="rp-sx" type="number" step="0.01" min="0.01" max="5" oninput="applyRotScale()">
+            <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="rp-sy" type="number" step="0.01" min="0.01" max="5" oninput="applyRotScale()">
+          </div>
+          <div style="font-size:8px;color:#4e6080;margin:2px 4px">※ 角度・拡縮は選択中パラメータのキーフレーム値</div>
         </div>
-        <div class="prop-row">
-          <span class="prop-lbl">分割</span>
-          <input class="prop-in" id="dp-cols" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
-          <span style="font-size:9px;color:#4e6080;margin:0 2px">×</span>
-          <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
-        </div>
-        <div class="prop-row" style="margin-top:2px">
+        <div class="prop-row" style="margin-top:4px">
           <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
         </div>
       </div>
@@ -463,9 +489,17 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 <!-- Deformer modal -->
 <div id="defmod" class="mo" style="display:none">
   <div class="mb">
-    <h3>ワープデフォーマーを作成</h3>
+    <h3>デフォーマーを作成</h3>
     <input type="text" id="defni" placeholder="例: 顔デフォーマー, 体デフォーマー">
-    <p>選択したパーツをこのデフォーマーに割り当ててください。デフォーマーの変形が子パーツに適用されます。</p>
+    <div style="display:flex;gap:12px;margin:6px 0;font-size:10px;color:#8eb0d0">
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="radio" name="deftype" value="warp" checked style="accent-color:#0ea5e9"> ⬡ ワープ変形
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="radio" name="deftype" value="rotation" style="accent-color:#f59e0b"> ⟳ 回転
+      </label>
+    </div>
+    <p>選択したパーツをこのデフォーマーに割り当てます。</p>
     <div class="ma">
       <button class="mbn" onclick="cancelAddDeformer()">キャンセル</button>
       <button class="mbn ok" onclick="confirmAddDeformer()">作成</button>
@@ -750,13 +784,67 @@ class WarpDeformer {
       y: tl.y*(1-tu)*(1-tv) + tr.y*tu*(1-tv) + bl.y*(1-tu)*tv + br.y*tu*tv
     };
   }
+  get type() { return 'warp'; }
   toJSON() {
-    return {id:this.id, name:this.name, x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, deforms:this.deforms};
+    return {id:this.id, name:this.name, type:'warp', x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, deforms:this.deforms};
   }
   static fromJSON(o) {
     const d = new WarpDeformer(o.name);
     d.id = o.id||d.id; d.x=o.x||100; d.y=o.y||100; d.w=o.w||400; d.h=o.h||400;
     d.cols=o.cols||2; d.rows=o.rows||2; d.deforms=o.deforms||{};
+    return d;
+  }
+}
+
+// ===== ROTATION DEFORMER =====
+class RotationDeformer {
+  constructor(name) {
+    this.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    this.name = name;
+    this.type = 'rotation';
+    this.px = 400; this.py = 400;
+    this.r = 80;
+    this.deforms = {};
+    this.initDeforms();
+  }
+  initDeforms() {
+    this.deforms = {};
+    for (const [pn, pc] of Object.entries(P)) {
+      this.deforms[pn] = {};
+      for (const k of pc.k)
+        this.deforms[pn][k] = {angle: 0, scaleX: 1.0, scaleY: 1.0};
+    }
+  }
+  getTransform(vals) {
+    let angle = 0, scaleX = 1.0, scaleY = 1.0;
+    for (const [pn, pval] of Object.entries(vals)) {
+      const pc = P[pn]; if (!pc || !this.deforms[pn]) continue;
+      const ks = pc.k; let k0=ks[0], k1=ks[ks.length-1];
+      for (let i = 0; i < ks.length-1; i++)
+        if (pval >= ks[i] && pval <= ks[i+1]) { k0=ks[i]; k1=ks[i+1]; break; }
+      const t = k0===k1 ? 0 : (pval-k0)/(k1-k0);
+      const d0=this.deforms[pn][k0]||{angle:0,scaleX:1,scaleY:1};
+      const d1=this.deforms[pn][k1]||{angle:0,scaleX:1,scaleY:1};
+      angle += d0.angle*(1-t) + d1.angle*t;
+      scaleX *= d0.scaleX*(1-t) + d1.scaleX*t;
+      scaleY *= d0.scaleY*(1-t) + d1.scaleY*t;
+    }
+    return {angle, scaleX, scaleY};
+  }
+  applyToVert(vx, vy, {angle, scaleX, scaleY}) {
+    const dx = (vx - this.px) * scaleX;
+    const dy = (vy - this.py) * scaleY;
+    const rad = angle * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    return {x: this.px + dx*cos - dy*sin, y: this.py + dx*sin + dy*cos};
+  }
+  toJSON() {
+    return {id:this.id, name:this.name, type:'rotation', px:this.px, py:this.py, r:this.r, deforms:this.deforms};
+  }
+  static fromJSON(o) {
+    const d = new RotationDeformer(o.name);
+    d.id=o.id||d.id; d.px=o.px||400; d.py=o.py||400; d.r=o.r||80;
+    d.deforms=o.deforms||{};
     return d;
   }
 }
@@ -887,14 +975,22 @@ function render() {
 
     const wv = pt.getWorldVerts(vals);
 
-    // Apply warp deformer
+    // Apply deformer (warp or rotation)
     if (pt.deformerId) {
       const def = deformers.find(d => d.id === pt.deformerId);
       if (def) {
-        const dv = def.getDeformedVerts(vals);
-        for (let i = 0; i < wv.length; i++) {
-          const w = def.warpVert(wv[i].x, wv[i].y, dv);
-          wv[i].x = w.x; wv[i].y = w.y;
+        if (def.type === 'rotation') {
+          const tr = def.getTransform(vals);
+          for (let i = 0; i < wv.length; i++) {
+            const w = def.applyToVert(wv[i].x, wv[i].y, tr);
+            wv[i].x = w.x; wv[i].y = w.y;
+          }
+        } else {
+          const dv = def.getDeformedVerts(vals);
+          for (let i = 0; i < wv.length; i++) {
+            const w = def.warpVert(wv[i].x, wv[i].y, dv);
+            wv[i].x = w.x; wv[i].y = w.y;
+          }
         }
       }
     }
@@ -974,56 +1070,81 @@ function render() {
     }
   }
 
-  // Deformer grid overlay
+  // Deformer overlay
   if (mode !== 'preview') {
     deformers.forEach((def, di) => {
       const isSel = di === selDeformer;
-      const dVals = mode === 'deform' && isSel ? {[selParam]: curKF} : {};
-      const dv = def.getDeformedVerts(dVals);
-      const bv = def.baseVerts();
-      const s = def.cols + 1;
       ctx.save();
-      // Base grid ghost
-      ctx.strokeStyle = isSel ? 'rgba(14,165,233,.2)' : 'rgba(14,165,233,.06)';
-      ctx.lineWidth = .5;
-      for (let r = 0; r <= def.rows; r++) {
-        ctx.beginPath();
-        for (let c = 0; c <= def.cols; c++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
-        ctx.stroke();
-      }
-      for (let c = 0; c <= def.cols; c++) {
-        ctx.beginPath();
-        for (let r = 0; r <= def.rows; r++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
-        ctx.stroke();
-      }
-      // Deformed grid
-      ctx.strokeStyle = isSel ? 'rgba(14,165,233,.8)' : 'rgba(14,165,233,.25)';
-      ctx.lineWidth = isSel ? 1.2 : .6;
-      for (let r = 0; r <= def.rows; r++) {
-        ctx.beginPath();
-        for (let c = 0; c <= def.cols; c++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
-        ctx.stroke();
-      }
-      for (let c = 0; c <= def.cols; c++) {
-        ctx.beginPath();
-        for (let r = 0; r <= def.rows; r++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
-        ctx.stroke();
-      }
-      // Grid vertices (only when selected)
-      if (isSel && mode === 'deform') {
-        for (let i = 0; i < dv.length; i++) {
-          const p = m2s(dv[i].x, dv[i].y);
-          const kd = def.deforms[selParam]?.[curKF];
-          const hd = kd && kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
-          ctx.beginPath(); ctx.arc(p.x, p.y, i===dragVI?4.5:(hd?3.5:3), 0, Math.PI*2);
-          ctx.fillStyle = i===dragVI ? '#fff' : hd ? '#38bdf8' : '#0ea5e9';
-          ctx.fill();
+      if (def.type === 'rotation') {
+        // Rotation deformer: circle + cross + angle handle (amber)
+        const pp = m2s(def.px, def.py);
+        const rs = def.r / VS;
+        const tr = isSel && mode === 'deform' ? def.getTransform({[selParam]: curKF}) : {angle:0,scaleX:1,scaleY:1};
+        const rad = tr.angle * Math.PI / 180;
+        ctx.strokeStyle = isSel ? 'rgba(245,158,11,.9)' : 'rgba(245,158,11,.3)';
+        ctx.lineWidth = isSel ? 1.2 : 0.7;
+        ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, rs, 0, Math.PI*2); ctx.stroke();
+        ctx.setLineDash([]);
+        // Cross at pivot
+        ctx.beginPath(); ctx.moveTo(pp.x-7,pp.y); ctx.lineTo(pp.x+7,pp.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(pp.x,pp.y-7); ctx.lineTo(pp.x,pp.y+7); ctx.stroke();
+        // Rotation handle
+        const hx = pp.x + rs*Math.cos(rad), hy = pp.y + rs*Math.sin(rad);
+        ctx.strokeStyle = isSel ? '#f59e0b' : 'rgba(245,158,11,.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(pp.x, pp.y); ctx.lineTo(hx, hy); ctx.stroke();
+        ctx.beginPath(); ctx.arc(hx, hy, isSel?5:3, 0, Math.PI*2);
+        ctx.fillStyle = isSel ? '#f59e0b' : 'rgba(245,158,11,.4)'; ctx.fill();
+        // Pivot dot
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, 4, 0, Math.PI*2);
+        ctx.fillStyle = isSel ? '#fbbf24' : 'rgba(245,158,11,.5)'; ctx.fill();
+        // Label
+        ctx.fillStyle = isSel ? '#f59e0b' : 'rgba(245,158,11,.4)';
+        ctx.font = '9px Segoe UI'; ctx.fillText('⟳ '+def.name, pp.x+rs+4, pp.y);
+      } else {
+        // Warp deformer: grid (blue)
+        const dVals = mode === 'deform' && isSel ? {[selParam]: curKF} : {};
+        const dv = def.getDeformedVerts(dVals);
+        const bv = def.baseVerts();
+        const s = def.cols + 1;
+        ctx.strokeStyle = isSel ? 'rgba(14,165,233,.2)' : 'rgba(14,165,233,.06)';
+        ctx.lineWidth = .5;
+        for (let r = 0; r <= def.rows; r++) {
+          ctx.beginPath();
+          for (let c = 0; c <= def.cols; c++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+          ctx.stroke();
         }
+        for (let c = 0; c <= def.cols; c++) {
+          ctx.beginPath();
+          for (let r = 0; r <= def.rows; r++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+          ctx.stroke();
+        }
+        ctx.strokeStyle = isSel ? 'rgba(14,165,233,.8)' : 'rgba(14,165,233,.25)';
+        ctx.lineWidth = isSel ? 1.2 : .6;
+        for (let r = 0; r <= def.rows; r++) {
+          ctx.beginPath();
+          for (let c = 0; c <= def.cols; c++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+          ctx.stroke();
+        }
+        for (let c = 0; c <= def.cols; c++) {
+          ctx.beginPath();
+          for (let r = 0; r <= def.rows; r++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+          ctx.stroke();
+        }
+        if (isSel && mode === 'deform') {
+          for (let i = 0; i < dv.length; i++) {
+            const p = m2s(dv[i].x, dv[i].y);
+            const kd = def.deforms[selParam]?.[curKF];
+            const hd = kd && kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
+            ctx.beginPath(); ctx.arc(p.x, p.y, i===dragVI?4.5:(hd?3.5:3), 0, Math.PI*2);
+            ctx.fillStyle = i===dragVI ? '#fff' : hd ? '#38bdf8' : '#0ea5e9'; ctx.fill();
+          }
+        }
+        const lp = m2s(def.x, def.y);
+        ctx.fillStyle = isSel ? '#0ea5e9' : 'rgba(14,165,233,.4)';
+        ctx.font = '9px Segoe UI'; ctx.fillText('⬡ '+def.name, lp.x+3, lp.y+11);
       }
-      // Label
-      const lp = m2s(def.x, def.y);
-      ctx.fillStyle = isSel ? '#0ea5e9' : 'rgba(14,165,233,.4)';
-      ctx.font = '9px Segoe UI'; ctx.fillText('⬡ '+def.name, lp.x+3, lp.y+11);
       ctx.restore();
     });
   }
@@ -1097,7 +1218,7 @@ function loadModelFromJSON(json) {
     if (data.parts) parts = data.parts.map(o => Part.fromJSON(o));
     expressions = data.expressions || [];
     groups = data.groups || [];
-    deformers = (data.deformers || []).map(o => WarpDeformer.fromJSON(o));
+    deformers = (data.deformers || []).map(o => o.type === 'rotation' ? RotationDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
     collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
@@ -1230,8 +1351,8 @@ function updatePartsUI() {
     if (hasKids) return; // will be shown when first child part appears
     const collapsed = collapsedDeformers.has(def.id);
     const dh = document.createElement('div');
-    dh.className = 'pdef' + (di === selDeformer ? ' sel' : '');
-    dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">⬡ ${def.name}</span><span class="pdef-count">0</span><button class="pdef-del" title="削除">✕</button>`;
+    dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : '') + (di === selDeformer ? ' sel' : '');
+    dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${def.type==='rotation'?'⟳':'⬡'} ${def.name}</span><span class="pdef-count">0</span><button class="pdef-del" title="削除">✕</button>`;
     dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
     dh.onclick = () => selectDeformer(di);
     list.appendChild(dh);
@@ -1248,8 +1369,8 @@ function updatePartsUI() {
         const collapsed = collapsedDeformers.has(pt.deformerId);
         const count = parts.filter(p => p.deformerId === pt.deformerId).length;
         const dh = document.createElement('div');
-        dh.className = 'pdef' + (di === selDeformer ? ' sel' : '');
-        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">⬡ ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
+        dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : '') + (di === selDeformer ? ' sel' : '');
+        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${def.type==='rotation'?'⟳':'⬡'} ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
         dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
         dh.onclick = () => selectDeformer(di);
         list.appendChild(dh);
@@ -1452,16 +1573,21 @@ function addDeformerPrompt() {
 }
 function confirmAddDeformer() {
   const nm = document.getElementById('defni').value.trim() || `デフォーマー${deformers.length+1}`;
+  const typeVal = document.querySelector('input[name="deftype"]:checked')?.value || 'warp';
   document.getElementById('defmod').style.display = 'none';
-  const def = new WarpDeformer(nm);
-  // Center in canvas
-  def.x = Math.round(canvasW/2 - def.w/2); def.y = Math.round(canvasH/2 - def.h/2);
-  // Assign selected part(s) to this deformer
+  let def;
+  if (typeVal === 'rotation') {
+    def = new RotationDeformer(nm);
+    def.px = Math.round(canvasW/2); def.py = Math.round(canvasH/2);
+  } else {
+    def = new WarpDeformer(nm);
+    def.x = Math.round(canvasW/2 - def.w/2); def.y = Math.round(canvasH/2 - def.h/2);
+  }
   if (selPart >= 0) parts[selPart].deformerId = def.id;
   deformers.push(def);
   selDeformer = deformers.length - 1;
   updatePartsUI(); updateDeformerPropsUI(); render();
-  setStatus(`デフォーマー「${nm}」を作成`);
+  setStatus(`${typeVal==='rotation'?'⟳':'⬡'} デフォーマー「${nm}」を作成`);
 }
 function cancelAddDeformer() { document.getElementById('defmod').style.display = 'none'; }
 function deleteDeformer(di) {
@@ -1515,15 +1641,69 @@ function updateDeformerPropsUI() {
   if (selDeformer >= 0 && selDeformer < deformers.length) {
     dp.style.display = 'block'; pp.style.display = 'none'; nm.style.display = 'none';
     const def = deformers[selDeformer];
-    document.getElementById('dp-x').value = Math.round(def.x);
-    document.getElementById('dp-y').value = Math.round(def.y);
-    document.getElementById('dp-w').value = Math.round(def.w);
-    document.getElementById('dp-h').value = Math.round(def.h);
-    document.getElementById('dp-cols').value = def.cols;
-    document.getElementById('dp-rows').value = def.rows;
+    const warpEl = document.getElementById('def-warp-props');
+    const rotEl = document.getElementById('def-rot-props');
+    const titleEl = document.getElementById('dp-title');
+    if (def.type === 'rotation') {
+      warpEl.style.display = 'none'; rotEl.style.display = 'block';
+      titleEl.textContent = '⟳ 回転デフォーマー';
+      document.getElementById('rp-px').value = Math.round(def.px);
+      document.getElementById('rp-py').value = Math.round(def.py);
+      document.getElementById('rp-r').value = Math.round(def.r);
+      const kf = def.deforms[selParam]?.[curKF] || {angle:0,scaleX:1,scaleY:1};
+      document.getElementById('rp-angle').value = kf.angle.toFixed(1);
+      document.getElementById('rp-sx').value = kf.scaleX.toFixed(2);
+      document.getElementById('rp-sy').value = kf.scaleY.toFixed(2);
+    } else {
+      warpEl.style.display = 'block'; rotEl.style.display = 'none';
+      titleEl.textContent = '⬡ ワープデフォーマー';
+      document.getElementById('dp-x').value = Math.round(def.x);
+      document.getElementById('dp-y').value = Math.round(def.y);
+      document.getElementById('dp-w').value = Math.round(def.w);
+      document.getElementById('dp-h').value = Math.round(def.h);
+      document.getElementById('dp-cols').value = def.cols;
+      document.getElementById('dp-rows').value = def.rows;
+    }
   } else {
     dp.style.display = 'none';
   }
+}
+
+// Rotation deformer prop functions
+function applyRotPivot() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  if (def.type !== 'rotation') return;
+  const nx=parseFloat(document.getElementById('rp-px').value), ny=parseFloat(document.getElementById('rp-py').value);
+  if (!isNaN(nx)) def.px=nx; if (!isNaN(ny)) def.py=ny; render();
+}
+function applyRotRadius() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  if (def.type !== 'rotation') return;
+  const nr=parseFloat(document.getElementById('rp-r').value);
+  if (!isNaN(nr) && nr > 0) def.r=nr; render();
+}
+function applyRotAngle() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  if (def.type !== 'rotation') return;
+  if (!def.deforms[selParam]) def.deforms[selParam] = {};
+  if (!def.deforms[selParam][curKF]) def.deforms[selParam][curKF] = {angle:0,scaleX:1,scaleY:1};
+  const nv = parseFloat(document.getElementById('rp-angle').value);
+  if (!isNaN(nv)) def.deforms[selParam][curKF].angle = nv;
+  render();
+}
+function applyRotScale() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  if (def.type !== 'rotation') return;
+  if (!def.deforms[selParam]) def.deforms[selParam] = {};
+  if (!def.deforms[selParam][curKF]) def.deforms[selParam][curKF] = {angle:0,scaleX:1,scaleY:1};
+  const sx=parseFloat(document.getElementById('rp-sx').value), sy=parseFloat(document.getElementById('rp-sy').value);
+  if (!isNaN(sx) && sx > 0) def.deforms[selParam][curKF].scaleX=sx;
+  if (!isNaN(sy) && sy > 0) def.deforms[selParam][curKF].scaleY=sy;
+  render();
 }
 
 // ===== GROUPS =====
@@ -1758,6 +1938,20 @@ canvas.addEventListener('mousemove',e=>{
     }
     render();
   }
+  if (dragMode==='rot-pivot'&&selDeformer>=0) {
+    const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
+    const def=deformers[selDeformer];
+    def.px+=ddx; def.py+=ddy;
+    updateDeformerPropsUI(); render();
+  }
+  if (dragMode==='rot-handle'&&selDeformer>=0) {
+    const def=deformers[selDeformer];
+    const angle=Math.atan2(mp.y-def.py, mp.x-def.px)*180/Math.PI;
+    if (!def.deforms[selParam]) def.deforms[selParam]={};
+    if (!def.deforms[selParam][curKF]) def.deforms[selParam][curKF]={angle:0,scaleX:1,scaleY:1};
+    def.deforms[selParam][curKF].angle=parseFloat(angle.toFixed(1));
+    updateDeformerPropsUI(); render();
+  }
 });
 
 canvas.addEventListener('mousedown',e=>{
@@ -1786,14 +1980,40 @@ canvas.addEventListener('mousedown',e=>{
     }
     return;
   }
-  // Deformer vertex editing (deform mode + deformer selected)
+  // Deformer editing (deform mode + deformer selected)
   if (mode==='deform'&&selDeformer>=0&&selDeformer<deformers.length) {
     const def=deformers[selDeformer];
-    const dVals={[selParam]:curKF};
-    const dv=def.getDeformedVerts(dVals);
-    const thresh=(15/VS)*(15/VS); let bi=-1, bd=thresh;
-    for (let i=0;i<dv.length;i++) { const ddx=dv[i].x-mp.x, ddy=dv[i].y-mp.y; const d2=ddx*ddx+ddy*ddy; if(d2<bd){bd=d2;bi=i;} }
-    if (bi>=0) { saveState(); dragging=true; dragMode='def-vert'; dragVI=bi; dragSX=mp.x; dragSY=mp.y; render(); return; }
+    if (def.type==='rotation') {
+      // Click near pivot → move pivot; click near handle → rotate
+      const dist=(ax,ay,bx,by)=>Math.sqrt((ax-bx)**2+(ay-by)**2);
+      const tr=def.getTransform({[selParam]:curKF});
+      const rad=tr.angle*Math.PI/180;
+      const hx=def.px+def.r*Math.cos(rad), hy=def.py+def.r*Math.sin(rad);
+      const pivotThresh=12/VS, handleThresh=10/VS;
+      if (dist(mp.x,mp.y,def.px,def.py)<pivotThresh) {
+        saveState(); dragging=true; dragMode='rot-pivot'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+      if (dist(mp.x,mp.y,hx,hy)<handleThresh) {
+        saveState(); dragging=true; dragMode='rot-handle'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+    } else {
+      const dVals={[selParam]:curKF};
+      const dv=def.getDeformedVerts(dVals);
+      const thresh=(15/VS)*(15/VS); let bi=-1, bd=thresh;
+      for (let i=0;i<dv.length;i++) { const ddx=dv[i].x-mp.x, ddy=dv[i].y-mp.y; const d2=ddx*ddx+ddy*ddy; if(d2<bd){bd=d2;bi=i;} }
+      if (bi>=0) { saveState(); dragging=true; dragMode='def-vert'; dragVI=bi; dragSX=mp.x; dragSY=mp.y; render(); return; }
+    }
+  }
+  // Rotation deformer pivot drag (parts mode)
+  if (mode==='parts'&&selDeformer>=0&&selDeformer<deformers.length) {
+    const def=deformers[selDeformer];
+    if (def.type==='rotation') {
+      const pivotThresh=14/VS;
+      const dx=mp.x-def.px, dy=mp.y-def.py;
+      if (Math.sqrt(dx*dx+dy*dy)<pivotThresh) {
+        saveState(); dragging=true; dragMode='rot-pivot'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+    }
   }
   if ((mode==='mesh'||mode==='deform')&&selPart>=0) {
     const pt=parts[selPart];
@@ -1943,6 +2163,17 @@ MODEL.parts.forEach(pt=>{
 if(!totalImg)start();
 
 const DEFORMERS=MODEL.deformers||[];
+function interpRotDeform(def,vals){
+  let angle=0,scaleX=1,scaleY=1;
+  for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!def.deforms?.[pn])continue;
+    const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
+    for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break;}
+    const t=k0===k1?0:(pval-k0)/(k1-k0);
+    const d0=def.deforms[pn][k0]||{angle:0,scaleX:1,scaleY:1},d1=def.deforms[pn][k1]||{angle:0,scaleX:1,scaleY:1};
+    angle+=d0.angle*(1-t)+d1.angle*t;scaleX*=d0.scaleX*(1-t)+d1.scaleX*t;scaleY*=d0.scaleY*(1-t)+d1.scaleY*t;
+  }
+  return{angle,scaleX,scaleY};
+}
 function interpDeforms(obj,vals){
   const base=obj._baseVerts||[];const n=base.length;const r=base.map(q=>({x:q.x,y:q.y}));
   for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!obj.deforms?.[pn])continue;
@@ -1979,7 +2210,12 @@ function getWorldVerts(pt,vals){
   }
   for(let i=0;i<n;i++){r[i].x+=pt.x||0;r[i].y+=pt.y||0;}
   // Apply warp deformer
-  if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}}
+  if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){
+    if(def.type==='rotation'){
+      const tr=interpRotDeform(def,vals);
+      for(let i=0;i<n;i++){const dx=(r[i].x-def.px)*tr.scaleX,dy=(r[i].y-def.py)*tr.scaleY,rad=tr.angle*Math.PI/180,c=Math.cos(rad),s2=Math.sin(rad);r[i].x=def.px+dx*c-dy*s2;r[i].y=def.py+dx*s2+dy*c;}
+    }else{const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}
+  }}
   return r;
 }
 function drawTri(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img){
