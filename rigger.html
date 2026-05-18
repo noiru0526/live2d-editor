@@ -593,21 +593,21 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 
 // ===== PARAMS =====
 const P = {
-  headX:    {l:'頭 X (左右)',  r:[-1,1], k:[-1,0,1],  g:'頭'},
-  headY:    {l:'頭 Y (上下)',  r:[-1,1], k:[-1,0,1],  g:'頭'},
-  headZ:    {l:'頭 Z (傾き)', r:[-1,1], k:[-1,0,1],  g:'頭'},
-  eyeOpenL: {l:'目開閉 L',    r:[0,1],  k:[0,1],     g:'目'},
-  eyeOpenR: {l:'目開閉 R',    r:[0,1],  k:[0,1],     g:'目'},
-  eyeBallX: {l:'眼球 X',      r:[-1,1], k:[-1,0,1],  g:'目'},
-  eyeBallY: {l:'眼球 Y',      r:[-1,1], k:[-1,0,1],  g:'目'},
-  browL:    {l:'眉毛 L',      r:[-1,1], k:[-1,0,1],  g:'眉'},
-  browR:    {l:'眉毛 R',      r:[-1,1], k:[-1,0,1],  g:'眉'},
-  mouthOpen:{l:'口 開き',     r:[0,1],  k:[0,0.5,1], g:'口'},
-  mouthForm:{l:'口 形状',     r:[-1,1], k:[-1,0,1],  g:'口'},
-  cheek:    {l:'頬 赤み',     r:[0,1],  k:[0,1],     g:'体'},
-  bodyX:    {l:'体 X',        r:[-1,1], k:[-1,0,1],  g:'体'},
-  bodyY:    {l:'体 Y',        r:[-1,1], k:[-1,0,1],  g:'体'},
-  breath:   {l:'呼吸',        r:[0,1],  k:[0,1],     g:'体'},
+  headX:    {l:'頭 X (左右)',  r:[-1,1], k:[-1,0,1],  g:'頭', interp:'smooth'},
+  headY:    {l:'頭 Y (上下)',  r:[-1,1], k:[-1,0,1],  g:'頭', interp:'smooth'},
+  headZ:    {l:'頭 Z (傾き)', r:[-1,1], k:[-1,0,1],  g:'頭', interp:'smooth'},
+  eyeOpenL: {l:'目開閉 L',    r:[0,1],  k:[0,1],     g:'目', interp:'smooth'},
+  eyeOpenR: {l:'目開閉 R',    r:[0,1],  k:[0,1],     g:'目', interp:'smooth'},
+  eyeBallX: {l:'眼球 X',      r:[-1,1], k:[-1,0,1],  g:'目', interp:'smooth'},
+  eyeBallY: {l:'眼球 Y',      r:[-1,1], k:[-1,0,1],  g:'目', interp:'smooth'},
+  browL:    {l:'眉毛 L',      r:[-1,1], k:[-1,0,1],  g:'眉', interp:'smooth'},
+  browR:    {l:'眉毛 R',      r:[-1,1], k:[-1,0,1],  g:'眉', interp:'smooth'},
+  mouthOpen:{l:'口 開き',     r:[0,1],  k:[0,0.5,1], g:'口', interp:'smooth'},
+  mouthForm:{l:'口 形状',     r:[-1,1], k:[-1,0,1],  g:'口', interp:'smooth'},
+  cheek:    {l:'頬 赤み',     r:[0,1],  k:[0,1],     g:'体', interp:'linear'},
+  bodyX:    {l:'体 X',        r:[-1,1], k:[-1,0,1],  g:'体', interp:'smooth'},
+  bodyY:    {l:'体 Y',        r:[-1,1], k:[-1,0,1],  g:'体', interp:'smooth'},
+  breath:   {l:'呼吸',        r:[0,1],  k:[0,1],     g:'体', interp:'smooth'},
 };
 
 // ===== STATE =====
@@ -718,7 +718,12 @@ class Part {
       const ks = pc.k; let k0 = ks[0], k1 = ks[ks.length-1];
       for (let i = 0; i < ks.length-1; i++)
         if (pval >= ks[i] && pval <= ks[i+1]) { k0=ks[i]; k1=ks[i+1]; break; }
-      const t = k0===k1 ? 0 : (pval-k0)/(k1-k0);
+      let t = k0===k1 ? 0 : (pval-k0)/(k1-k0);
+      // Apply parameter interpolation type
+      const interp = pc.interp || 'smooth';
+      if (interp === 'smooth') t = t*t*(3-2*t);
+      else if (interp === 'ease-in') t = t*t;
+      else if (interp === 'ease-out') t = 1-(1-t)*(1-t);
       const d0 = this.deforms[pn][k0]||[], d1 = this.deforms[pn][k1]||[];
       for (let i = 0; i < n; i++) {
         r[i].x += (d0[i]?.dx||0)*(1-t) + (d1[i]?.dx||0)*t;
@@ -2622,12 +2627,13 @@ function interpOpacity(pt,vals){
   }
   return Math.max(0,Math.min(1,opacity));
 }
+function _applyInterp(t,interp){if(interp==='smooth')return t*t*(3-2*t);if(interp==='ease-in')return t*t;if(interp==='ease-out')return 1-(1-t)*(1-t);return t;}
 function interpDeforms(obj,vals){
   const base=obj._baseVerts||[];const n=base.length;const r=base.map(q=>({x:q.x,y:q.y}));
   for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!obj.deforms?.[pn])continue;
     const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
     for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break;}
-    const t=k0===k1?0:(pval-k0)/(k1-k0);const d0=obj.deforms[pn][k0]||[],d1=obj.deforms[pn][k1]||[];
+    const t=_applyInterp(k0===k1?0:(pval-k0)/(k1-k0),pc.interp||'smooth');const d0=obj.deforms[pn][k0]||[],d1=obj.deforms[pn][k1]||[];
     for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
   }
   return r;
@@ -2652,7 +2658,7 @@ function getWorldVerts(pt,vals){
     const pc=PD[pn];if(!pc||!pt.deforms[pn])continue;
     const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
     for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break;}
-    const t=k0===k1?0:(pval-k0)/(k1-k0);
+    const t=_applyInterp(k0===k1?0:(pval-k0)/(k1-k0),pc.interp||'smooth');
     const d0=pt.deforms[pn][k0]||[],d1=pt.deforms[pn][k1]||[];
     for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
   }
