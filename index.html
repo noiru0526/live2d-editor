@@ -853,6 +853,23 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <input type="range" id="wc-smooth" min="0" max="0.95" step="0.05" value="0.5" style="flex:1;accent-color:var(--accent);">
     <span id="wc-smooth-val" style="font-size:9px;color:var(--accent);width:28px;">0.50</span>
   </div>
+  <!-- 2D Face Controller -->
+  <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:9px;color:var(--dim);">2D顔コントローラー</span>
+      <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;">
+        <input type="checkbox" id="fc2d-active" style="accent-color:var(--accent);width:10px;height:10px;" onchange="fc2dToggle()">手動制御
+      </label>
+    </div>
+    <div style="display:flex;justify-content:center;">
+      <canvas id="fc2d-canvas" width="120" height="120" style="cursor:crosshair;border-radius:4px;border:1px solid var(--border);display:block;"></canvas>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:2px;">
+      <span id="fc2d-hx" style="font-size:8px;color:#80b0ff;">X: 0.00</span>
+      <button onclick="fc2dReset()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:8px;">↺ リセット</button>
+      <span id="fc2d-hy" style="font-size:8px;color:#b0d0ff;">Y: 0.00</span>
+    </div>
+  </div>
   <!-- Expression presets panel -->
   <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
@@ -6092,6 +6109,87 @@ function toggleWebcamTest() {
   }
   loadAndStart();
 }
+
+// ==================== 2D FACE CONTROLLER ====================
+let _fc2dActive = false, _fc2dDrag = false;
+let _fc2dHX = 0, _fc2dHY = 0;
+
+function fc2dToggle() {
+  _fc2dActive = document.getElementById('fc2d-active')?.checked || false;
+  if (!_fc2dActive) { _fc2dHX = 0; _fc2dHY = 0; }
+  drawFc2d();
+}
+function fc2dReset() {
+  _fc2dHX = 0; _fc2dHY = 0; drawFc2d();
+  if (M.params.headX) M.params.headX.val = 0;
+  if (M.params.headY) M.params.headY.val = 0;
+  ST.cachedVerts = null; redraw();
+}
+function drawFc2d() {
+  const cv = document.getElementById('fc2d-canvas'); if (!cv) return;
+  const ctx2 = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const active = _fc2dActive;
+  ctx2.fillStyle = active ? '#070f18' : '#05090f';
+  ctx2.fillRect(0, 0, W, H);
+  // Grid
+  ctx2.strokeStyle = active ? '#0d2035' : '#0a1820';
+  ctx2.lineWidth = 0.5;
+  [0.25, 0.5, 0.75].forEach(t => {
+    ctx2.beginPath(); ctx2.moveTo(t*W, 0); ctx2.lineTo(t*W, H); ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(0, t*H); ctx2.lineTo(W, t*H); ctx2.stroke();
+  });
+  // Center axes
+  ctx2.strokeStyle = active ? '#1a4060' : '#121e28';
+  ctx2.lineWidth = 1;
+  ctx2.beginPath(); ctx2.moveTo(W/2, 0); ctx2.lineTo(W/2, H); ctx2.stroke();
+  ctx2.beginPath(); ctx2.moveTo(0, H/2); ctx2.lineTo(W, H/2); ctx2.stroke();
+  if (!active) {
+    ctx2.fillStyle = '#2a3a50'; ctx2.font = '9px sans-serif';
+    ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
+    ctx2.fillText('手動制御 OFF', W/2, H/2);
+    return;
+  }
+  // Dot position
+  const dotX = ((_fc2dHX + 1) / 2) * W;
+  const dotY = (1 - (_fc2dHY + 1) / 2) * H;
+  // Crosshair
+  ctx2.strokeStyle = 'rgba(100,180,255,0.3)';
+  ctx2.lineWidth = 0.8; ctx2.setLineDash([3,3]);
+  ctx2.beginPath(); ctx2.moveTo(dotX, 0); ctx2.lineTo(dotX, H); ctx2.stroke();
+  ctx2.beginPath(); ctx2.moveTo(0, dotY); ctx2.lineTo(W, dotY); ctx2.stroke();
+  ctx2.setLineDash([]);
+  // Dot
+  ctx2.beginPath(); ctx2.arc(dotX, dotY, 7, 0, Math.PI*2);
+  ctx2.fillStyle = '#3a8eff'; ctx2.fill();
+  ctx2.strokeStyle = '#80c0ff'; ctx2.lineWidth = 1.5; ctx2.stroke();
+  // Labels
+  ctx2.fillStyle = '#2e5070'; ctx2.font = '7px sans-serif';
+  ctx2.textAlign = 'left'; ctx2.textBaseline = 'top'; ctx2.fillText('頭 X', 3, 3);
+  ctx2.textAlign = 'right'; ctx2.textBaseline = 'bottom'; ctx2.fillText('頭 Y', W-3, H-3);
+  // Update readouts
+  const elx = document.getElementById('fc2d-hx'); if (elx) elx.textContent = 'X: '+_fc2dHX.toFixed(2);
+  const ely = document.getElementById('fc2d-hy'); if (ely) ely.textContent = 'Y: '+_fc2dHY.toFixed(2);
+}
+function _fc2dApply(e) {
+  const cv = document.getElementById('fc2d-canvas'); if (!cv) return;
+  const r = cv.getBoundingClientRect();
+  const cx = (e.clientX - r.left) * (cv.width / r.width);
+  const cy = (e.clientY - r.top) * (cv.height / r.height);
+  _fc2dHX = Math.max(-1, Math.min(1, (cx / cv.width) * 2 - 1));
+  _fc2dHY = Math.max(-1, Math.min(1, 1 - (cy / cv.height) * 2));
+  drawFc2d();
+  if (M.params.headX) { M.params.headX.val = _fc2dHX; const s = document.getElementById('ps-headX'); if(s) s.value = _fc2dHX; }
+  if (M.params.headY) { M.params.headY.val = _fc2dHY; const s = document.getElementById('ps-headY'); if(s) s.value = _fc2dHY; }
+  ST.cachedVerts = null; redraw();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const cv = document.getElementById('fc2d-canvas'); if (!cv) return;
+  cv.addEventListener('mousedown', e => { if (!_fc2dActive) return; _fc2dDrag=true; _fc2dApply(e); e.preventDefault(); });
+  cv.addEventListener('mousemove', e => { if (_fc2dDrag) _fc2dApply(e); });
+  cv.addEventListener('mouseup',   () => { _fc2dDrag=false; });
+  cv.addEventListener('mouseleave',() => { _fc2dDrag=false; });
+  setTimeout(drawFc2d, 100);
+});
 
 // ==================== EXPRESSION PRESETS (FACE TRACKING) ====================
 let _wcExprPresets = []; // [{name, vals:{headX,headY,blinkL,...}}]
@@ -12531,7 +12629,7 @@ function geRender() {
     const x = tToX(kf.frame), y = vToY(kf.value);
     const r = 6 * dpr;
     const isSel = GE.selKF === idx;
-    const easingCol = KF_EASING_COLORS[kf.easing || 'ease'] || '#4e7cff';
+    const easingCol = (kf.slope != null ? '#a0e8ff' : KF_EASING_COLORS[kf.easing || 'ease']) || '#4e7cff';
     ctx.save();
     if (isSel) {
       ctx.shadowColor = 'rgba(255,200,80,0.8)';
@@ -12545,14 +12643,35 @@ function geRender() {
     ctx.lineTo(x, y + r); ctx.lineTo(x - r, y);
     ctx.closePath(); ctx.fill(); ctx.stroke();
     // Easing label below diamond
-    if (!isSel && kf.easing && kf.easing !== 'ease') {
+    if (!isSel && kf.easing && kf.easing !== 'ease' && kf.slope == null) {
       ctx.fillStyle = easingCol;
       ctx.font = `${8*dpr}px monospace`;
       ctx.textAlign = 'center';
       ctx.fillText(kf.easing, x, y + r + 9*dpr);
     }
     ctx.restore();
+
+    // Tangent handles for selected KF
+    if (isSel && kf.slope != null) {
+      const HANDLE_DT = 24 * dpr;
+      const slopePx = kf.slope * (plotH / vRange) / (plotW / tRange);
+      const ang = Math.atan2(-slopePx, 1);
+      const hx = Math.cos(ang) * HANDLE_DT, hy = Math.sin(ang) * HANDLE_DT;
+      // Out handle
+      ctx.strokeStyle = 'rgba(160,232,255,0.7)'; ctx.lineWidth = 1 * dpr;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + hx, y + hy); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x + hx, y + hy, 4 * dpr, 0, Math.PI*2);
+      ctx.fillStyle = '#a0e8ff'; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
+      // In handle (mirror)
+      ctx.strokeStyle = 'rgba(160,232,255,0.7)'; ctx.lineWidth = 1 * dpr;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - hx, y - hy); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x - hx, y - hy, 4 * dpr, 0, Math.PI*2);
+      ctx.fillStyle = '#a0e8ff'; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
+    }
   });
+  canvas._ge_kfs_snap = kfs;
 }
 
 const KF_EASING_COLORS = { ease:'#4e7cff', linear:'#60d890', easeIn:'#ffd060', easeOut:'#f0a040', step:'#ff6060' };
@@ -12567,15 +12686,32 @@ function applyEasing(f, type) {
   }
 }
 
+function _catmullSlope(kfs, i) {
+  if (kfs.length < 2) return 0;
+  const prev = kfs[i-1], next = kfs[i+1], cur = kfs[i];
+  if (prev && next) return (next.value - prev.value) / (next.frame - prev.frame);
+  if (next) return (next.value - cur.value) / (next.frame - cur.frame);
+  if (prev) return (cur.value - prev.value) / (cur.frame - prev.frame);
+  return 0;
+}
 function interpKF(kfs, t) {
   if (kfs.length === 0) return 0;
   if (t <= kfs[0].frame) return kfs[0].value;
   if (t >= kfs[kfs.length-1].frame) return kfs[kfs.length-1].value;
   for (let i = 0; i < kfs.length - 1; i++) {
     if (t >= kfs[i].frame && t <= kfs[i+1].frame) {
-      const f = (t - kfs[i].frame) / (kfs[i+1].frame - kfs[i].frame);
-      const e = applyEasing(f, kfs[i].easing || 'ease');
-      return kfs[i].value + (kfs[i+1].value - kfs[i].value) * e;
+      const dt = kfs[i+1].frame - kfs[i].frame;
+      const u = (t - kfs[i].frame) / dt;
+      // Use cubic Hermite when slope is set on either endpoint
+      if (kfs[i].slope != null || kfs[i+1].slope != null) {
+        const m0 = (kfs[i].slope != null ? kfs[i].slope : _catmullSlope(kfs, i)) * dt;
+        const m1 = (kfs[i+1].slope != null ? kfs[i+1].slope : _catmullSlope(kfs, i+1)) * dt;
+        const v0 = kfs[i].value, v1 = kfs[i+1].value;
+        const u2 = u*u, u3 = u2*u;
+        return (2*u3-3*u2+1)*v0 + (u3-2*u2+u)*m0 + (-2*u3+3*u2)*v1 + (u3-u2)*m1;
+      }
+      const f = applyEasing(u, kfs[i].easing || 'ease');
+      return kfs[i].value + (kfs[i+1].value - kfs[i].value) * f;
     }
   }
   return 0;
@@ -12626,6 +12762,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const kfs = track ? [...track].sort((a,b) => a.frame - b.frame) : [];
     const HIT = 10 * dpr;
 
+    // Check handle hit first (when a KF is selected and has slope)
+    if (GE.selKF !== null && GE.selKF < kfs.length) {
+      const skf = kfs[GE.selKF];
+      if (skf.slope != null) {
+        const kx = ge.tToX(skf.frame), ky = ge.vToY(skf.value);
+        const HANDLE_DT = 24 * dpr;
+        const slopePx = skf.slope * (ge.plotH / (GE.viewMaxV - GE.viewMinV)) / (ge.plotW / (GE.viewMaxT - GE.viewMinT));
+        const ang = Math.atan2(-slopePx, 1);
+        const hx = Math.cos(ang) * HANDLE_DT, hy = Math.sin(ang) * HANDLE_DT;
+        const HR = 8 * dpr;
+        if (Math.hypot(mx-(kx+hx), my-(ky+hy)) < HR || Math.hypot(mx-(kx-hx), my-(ky-hy)) < HR) {
+          GE.drag = { slopeKF: skf, origSlope: skf.slope };
+          return;
+        }
+      }
+    }
+
     let hitIdx = null;
     kfs.forEach((kf, idx) => {
       const kx = ge.tToX(kf.frame), ky = ge.vToY(kf.value);
@@ -12670,6 +12823,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let newT = ge.xToT(mx);
     let newV = ge.yToV(my);
     if (GE.snap) newT = Math.round(newT);
+    // Slope handle drag
+    if (GE.drag.slopeKF) {
+      const ge = canvas._ge; if (!ge) return;
+      const skf = GE.drag.slopeKF;
+      const kx = ge.tToX(skf.frame), ky = ge.vToY(skf.value);
+      const ddx = mx - kx, ddy = my - ky;
+      if (Math.abs(ddx) > 1) {
+        const slopeCanvas = -ddy / ddx;
+        const slopeValue = slopeCanvas * (ge.plotW / (GE.viewMaxT - GE.viewMinT)) / (ge.plotH / (GE.viewMaxV - GE.viewMinV));
+        skf.slope = Math.max(-10, Math.min(10, slopeValue));
+      }
+      geRender(); return;
+    }
+
     newT = Math.max(0, Math.min(M.totalFrames || 120, newT));
     newV = Math.max(-1, Math.min(1, newV));
 
@@ -12704,7 +12871,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const kx = ge.tToX(kf.frame), ky = ge.vToY(kf.value);
       if (Math.abs(mx - kx) < HIT && Math.abs(my - ky) < HIT) hitKF = kf;
     });
-    if (hitKF) showGEEasingMenu(e.clientX, e.clientY, hitKF);
+    if (hitKF) {
+      // Show context menu with easing + slope controls
+      const slopeItems = [
+        { label: hitKF.slope != null ? '✓ ベジェハンドルON (ドラッグで調整)' : 'ベジェハンドル ON (手動タンジェント)', action: () => {
+          if (hitKF.slope == null) { hitKF.slope = 0; }
+          else { delete hitKF.slope; }
+          geRender();
+        }},
+        ...(hitKF.slope != null ? [{ label: 'スロープ = 0（水平）', action: () => { hitKF.slope = 0; geRender(); } },
+          { label: 'スロープリセット（Auto Catmull-Rom）', action: () => { delete hitKF.slope; geRender(); } }] : []),
+      ];
+      showGEEasingMenu(e.clientX, e.clientY, hitKF, slopeItems);
+    }
     else geDeleteKF();
   });
 
@@ -12859,12 +13038,35 @@ function geUpdateOverlayChips() {
 }
 
 // ==================== GE EASING MENU ====================
-function showGEEasingMenu(cx, cy, kf) {
+function showGEEasingMenu(cx, cy, kf, extraItems) {
   const existing = document.getElementById('ge-easing-menu');
   if (existing) existing.remove();
   const menu = document.createElement('div');
   menu.id = 'ge-easing-menu';
-  menu.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;background:#1e2438;border:1px solid #4e5880;border-radius:6px;padding:4px;z-index:1000;min-width:120px;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  menu.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;background:#1e2438;border:1px solid #4e5880;border-radius:6px;padding:4px;z-index:1000;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  // Bezier slope section (top)
+  if (extraItems && extraItems.length) {
+    const sep0 = document.createElement('div');
+    sep0.style.cssText = 'font-size:8px;color:#4a5a7a;padding:3px 8px 1px;letter-spacing:.5px;text-transform:uppercase;';
+    sep0.textContent = 'ベジェ タンジェント';
+    menu.appendChild(sep0);
+    extraItems.forEach(it => {
+      const btn = document.createElement('div');
+      btn.style.cssText = 'padding:4px 10px;cursor:pointer;border-radius:4px;font-size:11px;color:#a0e8ff;';
+      btn.textContent = it.label;
+      btn.onmouseenter = () => btn.style.background = 'rgba(160,232,255,.08)';
+      btn.onmouseleave = () => btn.style.background = '';
+      btn.onclick = () => { it.action(); menu.remove(); };
+      menu.appendChild(btn);
+    });
+    const sep = document.createElement('div');
+    sep.style.cssText = 'height:1px;background:#2e3650;margin:4px 0;';
+    menu.appendChild(sep);
+    const sep1 = document.createElement('div');
+    sep1.style.cssText = 'font-size:8px;color:#4a5a7a;padding:1px 8px;letter-spacing:.5px;text-transform:uppercase;';
+    sep1.textContent = 'イージング';
+    menu.appendChild(sep1);
+  }
   const types = [
     { id:'ease',    label:'⟿ Ease (デフォルト)', col:'#4e7cff' },
     { id:'linear',  label:'→ Linear',             col:'#60d890' },
