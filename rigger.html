@@ -730,6 +730,7 @@ let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
 let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
+let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
 let dragging = false, dragMode = '', dragVI = -1;
 let dragSX = 0, dragSY = 0, panOX = 0, panOY = 0;
@@ -1403,6 +1404,12 @@ function render() {
 
     if (clipPt && clipPt.activeImg) ctx.restore();
 
+    // Hover highlight (parts mode only, unselected hovered part)
+    if (mode==='parts' && pidx===hoveredPartIdx && pidx!==selPart && !selParts.has(pidx)) {
+      const tl=m2s(pt.x,pt.y), br=m2s(pt.x+pt.w,pt.y+pt.h);
+      ctx.save(); ctx.strokeStyle='rgba(180,220,255,.5)'; ctx.lineWidth=1.5;
+      ctx.setLineDash([4,3]); ctx.strokeRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y); ctx.setLineDash([]); ctx.restore();
+    }
     // Mesh overlay
     if (mode !== 'preview') {
       const isSel = pidx === selPart;
@@ -2992,6 +2999,16 @@ canvas.addEventListener('mousemove',e=>{
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
   const mp=s2m(sx,sy);
   document.getElementById('coord-hud').textContent=`${Math.round(mp.x)}, ${Math.round(mp.y)}`;
+  if (!dragging && mode==='parts') {
+    // Hit test for hover highlight (top-most visible part first)
+    let newHov = -1;
+    const sorted = [...parts].map((p,i)=>({p,i})).sort((a,b)=>b.p.zIndex-a.p.zIndex);
+    for (const {p,i} of sorted) {
+      if (!p.visible||!p.activeImg) continue;
+      if (mp.x>=p.x&&mp.x<=p.x+p.w&&mp.y>=p.y&&mp.y<=p.y+p.h) { newHov=i; break; }
+    }
+    if (newHov !== hoveredPartIdx) { hoveredPartIdx=newHov; render(); }
+  }
   if (!dragging) return;
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); updateZoomHUD(); render(); return; }
   if (dragMode==='movepart'&&selPart>=0) {
@@ -3179,6 +3196,9 @@ canvas.addEventListener('mousedown',e=>{
   }
 });
 
+canvas.addEventListener('mouseleave',()=>{
+  if(hoveredPartIdx!==-1){hoveredPartIdx=-1;render();}
+});
 canvas.addEventListener('mouseup',()=>{
   if (dragMode!=='pan') { dragMode=''; dragVI=-1; }
   dragging=false; canvas.style.cursor='crosshair';
