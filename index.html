@@ -586,6 +586,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <input type="checkbox" id="export-click-pose" style="accent-color:var(--accent);">
           クリックでポーズ順次切替
         </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="export-mouse-eye" style="accent-color:var(--accent);">
+          マウスで視線追跡（eyeX/Y）
+        </label>
       </div>
       <div class="mcfg-row">
         <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
@@ -3620,6 +3624,7 @@ function genAvatarHTML() {
   const customJS=(document.getElementById('export-custom-js')?.value||'').trim();
   const htmlTitle=(document.getElementById('export-html-title')?.value||'').trim()||'Avatar — noiru';
   const clickPoseCycle=document.getElementById('export-click-pose')?.checked||false;
+  const mouseEyeFollow=document.getElementById('export-mouse-eye')?.checked||false;
   const obsMode=document.getElementById('export-obs-mode')?.checked||false;
   const responsiveCanvas=document.getElementById('export-responsive')?.checked||false;
   const bgmUrl=(document.getElementById('export-bgm')?.value||'').trim();
@@ -4717,6 +4722,27 @@ ${responsiveCanvas ? `<script>
 })();
 <\/script>` : ''}
 ${customJS ? `<script>\n// Custom JS\n${customJS}\n<\/script>` : ''}
+${mouseEyeFollow ? `<script>
+(function(){
+  const _eyeSmooth = {x:0, y:0};
+  document.addEventListener('mousemove', function(e){
+    const nx = (e.clientX / window.innerWidth * 2 - 1);
+    const ny = -(e.clientY / window.innerHeight * 2 - 1);
+    _eyeSmooth.x += (nx - _eyeSmooth.x) * 0.08;
+    _eyeSmooth.y += (ny - _eyeSmooth.y) * 0.08;
+    if(MD&&MD.params){
+      const ex=MD.params.eyeX; if(ex) ex.val=Math.max(ex.min,Math.min(ex.max,_eyeSmooth.x));
+      const ey=MD.params.eyeY; if(ey) ey.val=Math.max(ey.min,Math.min(ey.max,_eyeSmooth.y*0.6));
+    }
+  });
+  setInterval(function(){
+    if(!MD||!MD.params) return;
+    const ex=MD.params.eyeX, ey=MD.params.eyeY;
+    if(ex){const t=ex.val+((_eyeSmooth.x-ex.val)*0.12);if(Math.abs(t-ex.val)>0.0005)ex.val=t;}
+    if(ey){const t=ey.val+((_eyeSmooth.y*0.6-ey.val)*0.12);if(Math.abs(t-ey.val)>0.0005)ey.val=t;}
+  }, 16);
+})();
+<\/script>` : ''}
 ${clickPoseCycle && M.poses.length > 0 ? `<script>
 (function(){
   let _cpIdx = -1;
