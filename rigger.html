@@ -3412,6 +3412,9 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='c'&&onBody&&selPart>=0){e.preventDefault();copyPartToClipboard();}
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}
   if(e.key==='f'||e.key==='F') fitView();
+  if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;document.getElementById('btn-focus').classList.toggle('active',focusMode);render();}
+  if(e.key==='h'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].visible=!parts[selPart].visible;updatePartsUI();render();}
+  if(e.key==='l'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].locked=!parts[selPart].locked;updatePartsUI();setStatus(`${parts[selPart].name}: ${parts[selPart].locked?'ロック':'ロック解除'}`);}
   // Number keys 1-9 to apply expressions
   const n=parseInt(e.key);
   if(!isNaN(n)&&n>=1&&n<=9&&onBody&&!e.ctrlKey&&!e.metaKey) {
