@@ -8956,6 +8956,28 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       delete M.animation.tracks[srcName];
       drawMultiTimeline();
     }},
+    { icon:'⇅', label:'KF値をオフセット（全KFに定数加算）...', action:()=>{
+      if (!srcFrames?.length) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+      const offStr = prompt(`「${srcParam.lbl}」の全KF値にオフセット値を加算します:\n現在の値範囲: ${Math.min(...srcFrames.map(k=>k.v)).toFixed(3)} 〜 ${Math.max(...srcFrames.map(k=>k.v)).toFixed(3)}`, '0');
+      if (offStr === null) return;
+      const off = parseFloat(offStr);
+      if (isNaN(off) || off === 0) return;
+      pushAnimUndo('KF値オフセット');
+      for (const kf of srcFrames) kf.v = Math.max(srcParam.min, Math.min(srcParam.max, kf.v + off));
+      drawMultiTimeline();
+      document.getElementById('lbl-status').textContent = `KFオフセット: ${srcParam.lbl} +${off}`;
+    }},
+    { icon:'✕', label:'KF値をスケール（全KFを倍率変換）...', action:()=>{
+      if (!srcFrames?.length) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+      const scStr = prompt(`「${srcParam.lbl}」の全KF値を倍率変換します:`, '1.0');
+      if (scStr === null) return;
+      const sc = parseFloat(scStr);
+      if (isNaN(sc) || sc === 1) return;
+      pushAnimUndo('KF値スケール');
+      for (const kf of srcFrames) kf.v = Math.max(srcParam.min, Math.min(srcParam.max, kf.v * sc));
+      drawMultiTimeline();
+      document.getElementById('lbl-status').textContent = `KFスケール: ${srcParam.lbl} ×${sc}`;
+    }},
     null,
     { icon:'↕', label:'トラック高さ: コンパクト (18px)', action:()=>{ tlTrackHeights.set(srcName,18); drawMultiTimeline(); }},
     { icon:'↕', label:'トラック高さ: 標準 (24px)', action:()=>{ tlTrackHeights.delete(srcName); drawMultiTimeline(); }},
