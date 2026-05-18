@@ -1037,6 +1037,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="smartDecimateAnim()" title="スマートデシメーション: パラメータ値域に対する相対閾値で各トラックを個別に最適化" style="background:#2e3656;border:1px solid var(--border);color:#80e0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗜 スマート</button>
     <button onclick="reverseAnimTimeRange()" title="指定した時間範囲内のKFを時間方向に反転（リバース）" style="background:#2e3656;border:1px solid var(--border);color:#d0a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 反転</button>
     <button onclick="smoothAnimKFValues()" title="KF値をスムージング（録音後の値のブレを滑らかにする）" style="background:#2e3656;border:1px solid var(--border);color:#a0c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 スムージング</button>
+    <button onclick="addOvershootToKFs()" title="オーバーシュート追加: 各KFの後に行き過ぎKFを自動挿入（バウンシーな動き）" style="background:#2e3656;border:1px solid rgba(255,160,80,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⤷ 跳ね</button>
     <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2e3656;border:1px solid var(--border);color:#80d0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2e3656;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
@@ -11543,6 +11544,44 @@ function smoothAnimKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `KFスムージング (α=${alpha}): ${totalSmoothed}トラックに適用`;
+}
+
+function addOvershootToKFs() {
+  const input = prompt('オーバーシュート強度 (0.1=弱い, 0.3=中程度, 0.5=強い):', '0.2');
+  if (!input) return;
+  const strength = Math.max(0, Math.min(1, parseFloat(input) || 0.2));
+  const overshootDuration = 0.06; // seconds before/after KF for overshoot KFs
+  const kfToName = new Map();
+  for (const [nm, frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf, nm);
+  const tracksToProcess = tlSelectedKFs.size > 0
+    ? new Set([...tlSelectedKFs].map(kf => kfToName.get(kf)).filter(Boolean))
+    : new Set(Object.keys(M.animation.tracks));
+  pushAnimUndo('オーバーシュート追加');
+  let totalAdded = 0;
+  const dur = M.animation.duration || 3;
+  for (const name of tracksToProcess) {
+    const frames = M.animation.tracks[name]; if (!frames || frames.length < 2) continue;
+    const p = M.params[name]; if (!p) continue;
+    const sorted = [...frames].sort((a, b) => a.t - b.t);
+    const newKFs = [];
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1], cur = sorted[i];
+      const delta = cur.v - prev.v;
+      if (Math.abs(delta) < 0.001) continue;
+      // Add overshoot KF just after cur: value goes past target, then settles
+      const overshootT = Math.min(dur, cur.t + overshootDuration);
+      const overshootV = Math.max(p.min, Math.min(p.max, cur.v + delta * strength));
+      // Check no existing KF at overshootT
+      if (!frames.some(kf => Math.abs(kf.t - overshootT) < 0.005)) {
+        newKFs.push({ t: overshootT, v: overshootV, interp: 'smooth' });
+        totalAdded++;
+      }
+    }
+    frames.push(...newKFs);
+    frames.sort((a, b) => a.t - b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `オーバーシュート追加: ${totalAdded}KF生成 (強度=${strength.toFixed(2)})`;
 }
 
 function normalizeToLoopRegion() {
