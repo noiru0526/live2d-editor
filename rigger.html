@@ -247,6 +247,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn ok" onclick="saveModelOnly()">💾 保存</button>
     <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 出力</button>
     <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
+    <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存">📷 SS</button>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -1161,6 +1162,51 @@ function applyCanvasSize() {
   canvasW = Math.max(100, Math.min(4096, parseInt(document.getElementById('cvW').value)||1000));
   canvasH = Math.max(100, Math.min(4096, parseInt(document.getElementById('cvH').value)||1000));
   fitView(); setStatus(`キャンバス: ${canvasW}×${canvasH}px`);
+}
+function screenshotCanvas() {
+  // Render to an offscreen canvas at native resolution
+  const off = document.createElement('canvas');
+  off.width = canvasW; off.height = canvasH;
+  const octx = off.getContext('2d');
+  // Fill background
+  if (showChecker) {
+    const cs=20;
+    for(let y=0;y<canvasH;y+=cs)for(let x=0;x<canvasW;x+=cs){octx.fillStyle=((x/cs+y/cs)%2===0)?'#cccccc':'#ffffff';octx.fillRect(x,y,cs,cs);}
+  } else {
+    octx.fillStyle='#0c0f18'; octx.fillRect(0,0,canvasW,canvasH);
+  }
+  // Draw sorted parts
+  const vals = getParamVals();
+  const sorted = [...parts].sort((a,b)=>a.zIndex-b.zIndex);
+  for (const pt of sorted) {
+    if (!pt.visible||!pt.activeImg) continue;
+    const wv = pt.getWorldVerts(vals);
+    const baseAlpha = Object.keys(pt.opacityKFs||{}).length ? pt.getOpacity(vals) : (pt.opacity !== undefined ? pt.opacity : 1);
+    octx.save();
+    octx.globalAlpha = baseAlpha;
+    octx.globalCompositeOperation = pt.blendMode||'source-over';
+    for (const [i0,i1,i2] of pt.mesh.tris) {
+      const p0=wv[i0],p1=wv[i1],p2=wv[i2];
+      const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
+      drawTriTexTo(octx,p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,pt.activeImg);
+    }
+    octx.restore();
+  }
+  const a=document.createElement('a');
+  a.href=off.toDataURL('image/png');
+  a.download=`rigger-ss-${Date.now()}.png`;
+  a.click();
+  setStatus('スクリーンショットを保存しました');
+}
+function drawTriTexTo(tc,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img) {
+  // reuse same per-triangle texture mapping as main drawTriTex but to given context
+  const det=(v1-v2)*(u0-u2)+(u2-u1)*(v0-v2);
+  if(Math.abs(det)<0.0001) return;
+  const inv=1/det;
+  const a=(v1-v2)*inv,b=(u2-u1)*inv,c=(v2-v0)*inv,d=(u0-u2)*inv;
+  const e=u0-a*x0-c*y0, f=v0-b*x0-d*y0;
+  tc.save(); tc.beginPath(); tc.moveTo(x0,y0); tc.lineTo(x1,y1); tc.lineTo(x2,y2); tc.closePath(); tc.clip();
+  tc.transform(a,b,c,d,e,f); tc.drawImage(img,0,0); tc.restore();
 }
 function setCanvasPreset(w, h) {
   document.getElementById('cvW').value = w;
