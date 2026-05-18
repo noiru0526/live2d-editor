@@ -230,6 +230,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="sep"></div>
   <div class="tgrp">
     <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
+    <button class="tbtn" id="btn-ruler" onclick="showRuler=!showRuler;this.classList.toggle('active',showRuler);render()" title="ルーラー ON/OFF">📏 ルーラー</button>
     <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ ON/OFF">🧲 スナップ</button>
     <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5" title="グリッド間隔(px)"
       style="width:38px;background:#0d1117;border:1px solid #2a3a5a;color:#6080a0;border-radius:3px;padding:1px 3px;font-size:9px;text-align:center"
@@ -710,7 +711,7 @@ let partsFilter = '';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false;
 let VS = 1, VOX = 0, VOY = 0;
 let dragging = false, dragMode = '', dragVI = -1;
 let dragSX = 0, dragSY = 0, panOX = 0, panOY = 0;
@@ -1561,6 +1562,34 @@ function render() {
   // Request next frame in preview mode for physics
   if (mode === 'preview' && parts.some(p => p.physics?.enabled)) {
     requestAnimationFrame(() => render());
+  }
+
+  // Ruler overlay
+  if (showRuler) {
+    const rulerW = 14, rulerCol = 'rgba(20,28,45,.85)', tickCol = '#3a5060', lblCol = '#5a7888';
+    const step = gridSize, cW = canvas.width, cH = canvas.height;
+    ctx.save();
+    // Top ruler
+    ctx.fillStyle = rulerCol; ctx.fillRect(0, 0, cW, rulerW);
+    // Left ruler
+    ctx.fillStyle = rulerCol; ctx.fillRect(0, 0, rulerW, cH);
+    ctx.strokeStyle = tickCol; ctx.lineWidth = 0.5; ctx.fillStyle = lblCol; ctx.font = '7px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let x = 0; x <= canvasW; x += step) {
+      const sx = m2s(x, 0).x; const major = (x % (step*4) === 0);
+      const th = major ? rulerW : rulerW * 0.5;
+      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, th); ctx.stroke();
+      if (major) ctx.fillText(x, sx, 1);
+    }
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let y = 0; y <= canvasH; y += step) {
+      const sy = m2s(0, y).y; const major = (y % (step*4) === 0);
+      const tw = major ? rulerW : rulerW * 0.5;
+      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(tw, sy); ctx.stroke();
+      if (major) { ctx.save(); ctx.translate(rulerW-1, sy); ctx.rotate(-Math.PI/2); ctx.fillText(y, 0, 0); ctx.restore(); }
+    }
+    ctx.fillStyle = rulerCol; ctx.fillRect(0, 0, rulerW, rulerW); // corner
+    ctx.restore();
   }
 
   updatePartPreview();
