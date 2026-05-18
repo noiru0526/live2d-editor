@@ -241,6 +241,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-edge-hint" style="color:#4a8060;cursor:default" title="ドラッグ中にAltキー: 他パーツのエッジに吸着">Alt=エッジ</button>
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
     <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
+    <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -738,6 +739,7 @@ let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
 let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
+let showDensityHeatmap = false;
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
 let dragging = false, dragMode = '', dragVI = -1;
@@ -1466,6 +1468,27 @@ function render() {
     // Mesh overlay
     if (mode !== 'preview') {
       const isSel = pidx === selPart;
+      // Density heatmap: fill triangles by area (small=red/dense, large=blue/sparse)
+      if (showDensityHeatmap) {
+        const areas = pt.mesh.tris.map(([i0,i1,i2]) => {
+          const a=wv[i0],b=wv[i1],c=wv[i2];
+          return Math.abs((b.x-a.x)*(c.y-a.y)-(c.x-a.x)*(b.y-a.y))*0.5;
+        });
+        const maxA = Math.max(...areas), minA = Math.min(...areas);
+        const range = maxA - minA || 1;
+        ctx.save();
+        pt.mesh.tris.forEach(([i0,i1,i2], ti) => {
+          const norm = (areas[ti] - minA) / range; // 0=small/dense, 1=large
+          // heatmap: small→red, medium→yellow, large→blue
+          const r = Math.round(norm < 0.5 ? 255 : 255*(1-2*(norm-0.5)));
+          const g = Math.round(norm < 0.5 ? 255*norm*2 : 255*(1-2*(norm-0.5)));
+          const b2 = Math.round(norm > 0.5 ? 255*(2*(norm-0.5)) : 0);
+          ctx.fillStyle = `rgba(${r},${g},${b2},0.35)`;
+          const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+          ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.fill();
+        });
+        ctx.restore();
+      }
       ctx.strokeStyle = isSel ? 'rgba(139,92,246,.6)' : 'rgba(80,110,180,.15)';
       ctx.lineWidth = isSel ? .8 : .4;
       for (const [i0,i1,i2] of pt.mesh.tris) {
