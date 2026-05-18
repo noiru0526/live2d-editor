@@ -8219,6 +8219,7 @@ let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
+const tlCustomTrackColors = new Map(); // user-defined track colors: paramName -> hsl string
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _collapsedParamGroups = new Set(); // collapsed parameter group names
 let _soloParam = null; // currently soloed parameter name (others zeroed)
@@ -8306,6 +8307,12 @@ function resizeMultiTimeline() {
 }
 
 function _trackColor(name) {
+  if (tlCustomTrackColors.has(name)) {
+    const col = tlCustomTrackColors.get(name);
+    const m = col.match(/hsl\((\d+)/);
+    const h = m ? parseInt(m[1]) : 0;
+    return { color: col, bg: `hsla(${h},60%,40%,.08)` };
+  }
   const S = {
     '__opacity:':    ['hsl(45,90%,60%)',   'rgba(255,200,60,.05)'],
     '__brightness:': ['hsl(30,90%,60%)',   'rgba(255,140,40,.05)'],
@@ -8978,6 +8985,41 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       for (const kf of srcFrames) kf.v = Math.max(srcParam.min, Math.min(srcParam.max, kf.v * sc));
       drawMultiTimeline();
       document.getElementById('lbl-status').textContent = `KFスケール: ${srcParam.lbl} ×${sc}`;
+    }},
+    null,
+    { icon:'🎨', label: tlCustomTrackColors.has(srcName) ? 'トラックカラーをリセット（自動色に戻す）' : 'トラックカラーを変更...', action:()=>{
+      if (tlCustomTrackColors.has(srcName)) {
+        tlCustomTrackColors.delete(srcName);
+        drawMultiTimeline();
+        return;
+      }
+      // Show hue picker as a small overlay
+      const currentHsl = _trackColor(srcName).color;
+      const hm = currentHsl.match(/hsl\((\d+)/);
+      const currentH = hm ? parseInt(hm[1]) : 200;
+      showModal('トラックカラーを変更', `
+        <div style="font-size:12px;display:grid;gap:12px;">
+          <div>パラメータ: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
+          <div>
+            <label style="font-size:11px;color:var(--dim)">色相 (0–360)</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+              <input id="tc-hue" type="range" min="0" max="359" value="${currentH}"
+                style="flex:1;accent-color:hsl(${currentH},70%,60%)"
+                oninput="document.getElementById('tc-preview').style.background='hsl('+this.value+',70%,60%)';document.getElementById('tc-hue-num').textContent=this.value">
+              <span id="tc-hue-num" style="width:30px;text-align:right">${currentH}</span>
+            </div>
+            <div id="tc-preview" style="margin-top:8px;height:24px;border-radius:4px;background:hsl(${currentH},70%,60%);"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            ${[0,30,60,120,180,210,240,270,300,330].map(h=>`<div onclick="document.getElementById('tc-hue').value=${h};document.getElementById('tc-preview').style.background='hsl(${h},70%,60%)';document.getElementById('tc-hue-num').textContent=${h}" style="width:22px;height:22px;border-radius:3px;background:hsl(${h},70%,60%);cursor:pointer;border:1px solid rgba(255,255,255,.2)"></div>`).join('')}
+          </div>
+        </div>
+      `, ()=>{
+        const h = parseInt(document.getElementById('tc-hue').value);
+        tlCustomTrackColors.set(srcName, `hsl(${h},70%,60%)`);
+        drawMultiTimeline();
+        document.getElementById('lbl-status').textContent = `トラックカラー変更: ${srcParam.lbl}`;
+      });
     }},
     null,
     { icon:'↕', label:'トラック高さ: コンパクト (18px)', action:()=>{ tlTrackHeights.set(srcName,18); drawMultiTimeline(); }},
