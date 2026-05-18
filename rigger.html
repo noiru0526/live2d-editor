@@ -262,6 +262,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="ih" onclick="delPart()" title="削除">✕</button>
         <button class="ih" onclick="mvUp()" title="上へ">↑</button>
         <button class="ih" onclick="mvDn()" title="下へ">↓</button>
+        <button class="ih" onclick="toggleLockAll()" title="全パーツ一括ロック/アンロック">🔒</button>
+        <button class="ih" onclick="toggleVisAll()" title="全パーツ一括表示/非表示">👁</button>
       </div>
     </div>
     <!-- Parts search filter -->
@@ -2085,6 +2087,20 @@ function distributeParts(axis) {
 function toggleLock() {
   if (selPart<0||selPart>=parts.length) return;
   parts[selPart].locked=!parts[selPart].locked; updatePartsUI(); render();
+}
+function toggleLockAll() {
+  if (parts.length===0) return;
+  saveState();
+  const anyUnlocked = parts.some(p=>!p.locked);
+  parts.forEach(p=>p.locked=anyUnlocked);
+  updatePartsUI(); setStatus(anyUnlocked?'全パーツをロックしました':'全パーツのロックを解除しました');
+}
+function toggleVisAll() {
+  if (parts.length===0) return;
+  saveState();
+  const anyHidden = parts.some(p=>!p.visible);
+  parts.forEach(p=>p.visible=anyHidden);
+  updatePartsUI(); render(); setStatus(anyHidden?'全パーツを表示しました':'全パーツを非表示にしました');
 }
 function flipPartMesh(axis) {
   if (selPart<0||selPart>=parts.length) return;
