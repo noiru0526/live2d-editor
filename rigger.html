@@ -223,7 +223,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="sep"></div>
   <div class="tgrp">
     <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
-    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()">🧲 スナップ</button>
+    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ ON/OFF">🧲 スナップ</button>
+    <button class="tbtn" id="btn-edge-hint" style="color:#4a8060;cursor:default" title="ドラッグ中にAltキー: 他パーツのエッジに吸着">Alt=エッジ</button>
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
@@ -2827,7 +2828,34 @@ canvas.addEventListener('mousemove',e=>{
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); updateZoomHUD(); render(); return; }
   if (dragMode==='movepart'&&selPart>=0) {
     const rawDX=mp.x-dragSX, rawDY=mp.y-dragSY;
-    const dx=snapVal(dragPartOX+rawDX)-dragPartOX, dy=snapVal(dragPartOY+rawDY)-dragPartOY;
+    let nx=snapVal(dragPartOX+rawDX), ny=snapVal(dragPartOY+rawDY);
+    // Alt key: snap to edges of other parts (within 12px in canvas coords)
+    if (e.altKey && selParts.size===1 && selPart>=0 && selPart<parts.length) {
+      const pt=parts[selPart];
+      const THRESH=12/zoom;
+      let bestDX=null,bestDY=null;
+      for (let i=0;i<parts.length;i++) {
+        if (i===selPart||!parts[i].visible||!parts[i].activeImg) continue;
+        const op=parts[i];
+        // Horizontal edges: left/right of pt vs left/right of op
+        const ptEdges=[nx, nx+pt.w, nx+pt.w/2];
+        const opEdges=[op.x, op.x+op.w, op.x+op.w/2];
+        for(const pe of ptEdges) for(const oe of opEdges) {
+          const d=Math.abs(pe-oe);
+          if(d<THRESH&&(bestDX===null||d<Math.abs(bestDX))) bestDX=oe-pe;
+        }
+        // Vertical edges
+        const ptVEdges=[ny, ny+pt.h, ny+pt.h/2];
+        const opVEdges=[op.y, op.y+op.h, op.y+op.h/2];
+        for(const pe of ptVEdges) for(const oe of opVEdges) {
+          const d=Math.abs(pe-oe);
+          if(d<THRESH&&(bestDY===null||d<Math.abs(bestDY))) bestDY=oe-pe;
+        }
+      }
+      if(bestDX!==null) nx+=bestDX;
+      if(bestDY!==null) ny+=bestDY;
+    }
+    const dx=nx-dragPartOX, dy=ny-dragPartOY;
     selParts.forEach(i=>{
       if (!parts[i]||parts[i].locked) return;
       const orig=dragMultiOrigins.get(i)||{x:parts[i].x,y:parts[i].y};
