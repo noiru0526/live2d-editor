@@ -224,6 +224,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="tgrp">
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
+    <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
     <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
     <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
@@ -2258,6 +2259,29 @@ function toggleSnapGrid() {
 }
 function toggleChecker() { showChecker=!showChecker; document.getElementById('btn-checker').classList.toggle('active',showChecker); render(); }
 function snapVal(v) { return snapToGrid ? Math.round(v/gridSize)*gridSize : v; }
+function mirrorDupPart() {
+  if (selPart<0||selPart>=parts.length) { setStatus('パーツを選択してください'); return; }
+  saveState();
+  const src = parts[selPart];
+  const json = src.toJSON(true);
+  json.id = Date.now().toString(36)+Math.random().toString(36).slice(2);
+  json.name = src.name + '_ミラー';
+  json.zIndex = parts.length;
+  // Mirror X position relative to canvas center
+  json.x = canvasW - src.x - src.w;
+  json.y = src.y;
+  const np = Part.fromJSON(json);
+  // Flip mesh vertices horizontally
+  const W = np.w;
+  for (const v of np.mesh.verts) v.x = W - v.x;
+  for (const deformsByKF of Object.values(np.deforms))
+    for (const arr of Object.values(deformsByKF))
+      for (const d of arr) d.dx = -d.dx;
+  parts.push(np); selPart=parts.length-1; selParts.clear(); selParts.add(selPart);
+  updatePartsUI(); render();
+  setStatus(`「${np.name}」を水平ミラーコピーしました`);
+}
+
 function dupPart() {
   if (selPart<0||selPart>=parts.length) { setStatus('パーツを選択してください'); return; }
   saveState();
