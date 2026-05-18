@@ -1083,6 +1083,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
     <button onclick="geAddKF()" style="margin-left:4px;background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
     <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
+    <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:#1a1e34;border:1px solid #2a3050;color:#8090c0;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
     <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
     <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:#1a2030;border:1px solid #3a4060;color:#8090c0;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
     <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
@@ -11756,32 +11757,122 @@ function selectAllAnimKF() {
   });
 }
 
-function showAnimEasing() {
-  const easings = ['linear','smooth','ease-in','ease-out','bounce','step'];
-  const easingLabels = {linear:'直線',smooth:'スムーズ（S字）','ease-in':'入り','ease-out':'出し',bounce:'バウンス',step:'ステップ（値ホールド）'};
-  showModal('アニメーション イージング設定', `
-    <div style="display:grid;gap:8px;font-size:12px;">
-      <div><label style="color:var(--dim);font-size:11px">イージング方式</label><br>
-        <select id="anim-easing" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
-          ${easings.map(e=>`<option value="${e}">${e} — ${easingLabels[e]||e}</option>`).join('')}
-        </select></div>
-      <div><label style="color:var(--dim);font-size:11px">対象パラメータ</label><br>
-        <select id="anim-easing-param" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
-          <option value="*">すべて</option>
-          ${Object.entries(M.params).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('')}
-        </select></div>
-      <div style="color:var(--dim);font-size:10px;">選択したパラメータのアニメーション補間方式を変更します</div>
-    </div>
-  `, () => {
-    const easing = document.getElementById('anim-easing').value;
-    const target = document.getElementById('anim-easing-param').value;
-    const keys = target === '*' ? Object.keys(M.params) : [target];
-    for (const k of keys) {
-      if (M.params[k]) M.params[k].interp = easing;
-    }
-    buildParamUI();
-    document.getElementById('lbl-status').textContent = `イージング ${easing} を ${target==='*'?'全パラメータ':M.params[target]?.lbl||target} に適用`;
+// ==================== VISUAL EASING PICKER ====================
+const EASING_CATALOG = [
+  {id:'linear',           label:'Linear（直線）',       fn:t=>t},
+  {id:'smooth',           label:'Smooth（S字）',         fn:t=>t*t*(3-2*t)},
+  {id:'ease-in',          label:'Ease-In（入り）',       fn:t=>t*t},
+  {id:'ease-out',         label:'Ease-Out（出し）',      fn:t=>1-(1-t)*(1-t)},
+  {id:'ease-in-cubic',    label:'Ease-In 3乗',          fn:t=>t*t*t},
+  {id:'ease-out-cubic',   label:'Ease-Out 3乗',         fn:t=>1-(1-t)*(1-t)*(1-t)},
+  {id:'ease-in-out-cubic',label:'S字 3乗',              fn:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2},
+  {id:'sine-out',         label:'Sine（正弦）',          fn:t=>Math.sin(t*Math.PI/2)},
+  {id:'circ-out',         label:'Circ（円弧）',          fn:t=>Math.sqrt(1-(t-1)*(t-1))},
+  {id:'back-out',         label:'Back（オーバーシュート）', fn:t=>{const c=1.70158;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);}},
+  {id:'elastic',          label:'Elastic（バネ）',       fn:t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-.75)*(2*Math.PI/3))+1},
+  {id:'bounce',           label:'Bounce（バウンス）',    fn:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;}},
+  {id:'step',             label:'Step（ホールド）',      fn:()=>0},
+];
+
+function _drawEasingThumb(cv, fn, selected) {
+  const c = cv.getContext('2d');
+  const W = cv.width, H = cv.height, pad = 5;
+  c.clearRect(0,0,W,H);
+  // grid lines
+  c.strokeStyle = 'rgba(40,60,90,.5)'; c.lineWidth = .5;
+  [.25,.5,.75].forEach(v=>{
+    c.beginPath();c.moveTo(pad,pad+(1-v)*(H-2*pad));c.lineTo(W-pad,pad+(1-v)*(H-2*pad));c.stroke();
+    c.beginPath();c.moveTo(pad+v*(W-2*pad),pad);c.lineTo(pad+v*(W-2*pad),H-pad);c.stroke();
   });
+  // curve
+  const grad = c.createLinearGradient(pad,0,W-pad,0);
+  grad.addColorStop(0, selected?'#818cf8':'#2d4a7a');
+  grad.addColorStop(1, selected?'#38bdf8':'#3a8fbf');
+  c.strokeStyle=grad; c.lineWidth = selected?2:1.5;
+  c.beginPath();
+  const steps = W-2*pad;
+  for(let i=0;i<=steps;i++){
+    const t=i/steps, y=fn(t);
+    const sx=pad+i, sy=H-pad-Math.max(-.25,Math.min(1.25,y))*(H-2*pad);
+    i===0?c.moveTo(sx,sy):c.lineTo(sx,sy);
+  }
+  c.stroke();
+  // dots
+  c.fillStyle=selected?'#38bdf8':'rgba(56,189,248,.5)';
+  c.beginPath();c.arc(pad,H-pad,3,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(W-pad,pad,3,0,Math.PI*2);c.fill();
+}
+
+function showEasingPicker(callback, currentEasing) {
+  let overlay = document.getElementById('_ease-overlay');
+  if(overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = '_ease-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(2px);';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#0e1120;border:1px solid #2a3050;border-radius:10px;padding:14px 16px;width:560px;max-width:96vw;box-shadow:0 16px 48px rgba(0,0,0,.7);';
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:#4e6080;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:#4e6080;cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
+  for(const ease of EASING_CATALOG){
+    const isCur = ease.id === currentEasing;
+    const card = document.createElement('div');
+    card.style.cssText = `background:${isCur?'rgba(56,189,248,.1)':'#131828'};border:1px solid ${isCur?'rgba(56,189,248,.5)':'#1e2a40'};border-radius:6px;padding:5px 5px 4px;cursor:pointer;transition:all .12s;`;
+    card.onmouseover=()=>{if(!isCur){card.style.background='#161e34';card.style.borderColor='#2e4060';}};
+    card.onmouseout=()=>{if(!isCur){card.style.background='#131828';card.style.borderColor='#1e2a40';}};
+    card.onclick=()=>{ overlay.remove(); callback(ease.id); };
+    const cv = document.createElement('canvas');
+    cv.width=90;cv.height=50;cv.style.cssText='width:100%;display:block;border-radius:3px;';
+    card.appendChild(cv);
+    const lbl = document.createElement('div');
+    lbl.style.cssText=`font-size:8px;color:${isCur?'#38bdf8':'#3a5070'};text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    lbl.textContent=ease.label;
+    card.appendChild(lbl);
+    grid.appendChild(card);
+    requestAnimationFrame(()=>_drawEasingThumb(cv,ease.fn,isCur));
+  }
+  box.appendChild(grid);
+  overlay.appendChild(box);
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+  document.getElementById('_ease-close').onclick=()=>overlay.remove();
+}
+
+function showAnimEasing() {
+  showEasingPicker((easing)=>{
+    // After picking easing, ask which param to apply to
+    showModal('イージング適用', `
+      <div style="display:grid;gap:8px;font-size:12px;">
+        <div style="color:var(--accent);font-size:13px;font-weight:600;">「${EASING_CATALOG.find(e=>e.id===easing)?.label||easing}」を適用</div>
+        <div><label style="color:var(--dim);font-size:11px">適用対象パラメータ</label><br>
+          <select id="anim-easing-param" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
+            <option value="*">すべてのパラメータ</option>
+            ${Object.entries(M.params).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('')}
+          </select></div>
+      </div>
+    `, ()=>{
+      const target = document.getElementById('anim-easing-param').value;
+      const keys = target==='*' ? Object.keys(M.params) : [target];
+      for(const k of keys){ if(M.params[k]) M.params[k].interp=easing; }
+      buildParamUI();
+      document.getElementById('lbl-status').textContent=`イージング「${easing}」を ${target==='*'?'全パラメータ':M.params[target]?.lbl||target} に適用`;
+    });
+  }, 'linear');
+}
+
+// Graph editor easing picker (for selected KF)
+function geShowEasingPicker() {
+  const p = M.params[GE.param]; if(!p) return;
+  const selKF = GE.selKF; if(selKF==null) return;
+  const kfObj = p.kfs.find(k=>(typeof k==='object'&&k.v===selKF)||k===selKF);
+  const cur = (typeof kfObj==='object'?kfObj.interp:p.interp)||'linear';
+  showEasingPicker((easing)=>{
+    // Apply to the selected KF or the whole param
+    if(typeof kfObj==='object') kfObj.interp=easing;
+    else p.interp=easing;
+    drawGraphEditor(); drawMultiTimeline();
+    document.getElementById('lbl-status').textContent=`イージング「${easing}」を [${p.lbl}] KF=${selKF} に適用`;
+  }, cur);
 }
 
 // ==================== DEFORMER REC KF RECORDING ====================
@@ -12512,6 +12603,7 @@ function geDeleteKF() {
   M.kfTracks[GE.param] = track.filter(k => k !== kf);
   GE.selKF = null;
   document.getElementById('ge-del-btn').style.display = 'none';
+  document.getElementById('ge-easing-btn').style.display = 'none';
   geRender();
   drawMultiTimeline();
 }
@@ -12545,10 +12637,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const kf = kfs[hitIdx];
       GE.drag = { kfIdx: hitIdx, kf, origFrame: kf.frame, origVal: kf.value };
       document.getElementById('ge-del-btn').style.display = '';
+      document.getElementById('ge-easing-btn').style.display = '';
     } else {
       GE.selKF = null;
       GE.drag = null;
       document.getElementById('ge-del-btn').style.display = 'none';
+      document.getElementById('ge-easing-btn').style.display = 'none';
       // Click to add KF at position
       if (e.button === 0) {
         const t = Math.round(ge.xToT(mx));
