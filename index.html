@@ -10425,6 +10425,23 @@ function renderClipTabs() {
     btn.textContent = clip.name;
     btn.title = `クリップ「${clip.name}」に切り替え`;
     btn.style.cssText = `background:${isActive?'#2a1e4a':'#1a1e2e'};border:1px solid ${isActive?'rgba(160,80,255,.8)':'var(--border)'};color:${isActive?'#c080ff':'var(--dim)'};border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;`;
+    btn.draggable = true;
+    btn.dataset.clipIdx = i;
+    btn.ondragstart = (e) => { e.dataTransfer.setData('text/plain', i); btn.style.opacity='.4'; };
+    btn.ondragend = () => { btn.style.opacity=''; };
+    btn.ondragover = (e) => { e.preventDefault(); btn.style.borderStyle='dashed'; };
+    btn.ondragleave = () => { btn.style.borderStyle=''; };
+    btn.ondrop = (e) => {
+      e.preventDefault(); btn.style.borderStyle='';
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = i;
+      if (from === to || isNaN(from)) return;
+      const moved = M.animClips.splice(from, 1)[0];
+      M.animClips.splice(to, 0, moved);
+      if (_activeClipIdx === from) _activeClipIdx = to;
+      else if (_activeClipIdx === to) _activeClipIdx = from > to ? to + 1 : to - 1;
+      renderClipTabs();
+    };
     btn.onclick = () => loadClip(i);
     btn.oncontextmenu = (e) => {
       e.preventDefault();
