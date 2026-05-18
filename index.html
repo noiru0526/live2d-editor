@@ -1053,6 +1053,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <option value="active">🕐 アクティブ順</option>
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
+    <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -7857,6 +7858,8 @@ const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _collapsedParamGroups = new Set(); // collapsed parameter group names
 let _tlDisplayedRows = []; // current displayed rows (with group headers) — shared by draw + click handlers
+let _bgmWaveform = null; // normalized amplitude array [0..1] for BGM waveform visualization
+let _bgmDuration = 0;    // BGM duration in seconds
 let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
 let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
 let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
@@ -7995,6 +7998,40 @@ function drawMultiTimeline() {
     tlMultiCtx.beginPath(); tlMultiCtx.moveTo(rx,0); tlMultiCtx.lineTo(rx-8,0); tlMultiCtx.lineTo(rx,10); tlMultiCtx.closePath(); tlMultiCtx.fill();
     tlMultiCtx.fillStyle='#fff'; tlMultiCtx.font='7px monospace';
     tlMultiCtx.fillText('IN',lx+2,9); tlMultiCtx.fillText('OUT',rx-20,9);
+  }
+
+  // BGM waveform background
+  if (_bgmWaveform && _bgmWaveform.length > 0 && _bgmDuration > 0) {
+    const samples = _bgmWaveform;
+    const bgmDur = _bgmDuration;
+    tlMultiCtx.save();
+    tlMultiCtx.globalAlpha = 0.18;
+    tlMultiCtx.fillStyle = '#a060ff';
+    const steps = Math.min(W, samples.length);
+    const halfH = H / 2;
+    for (let i = 0; i < steps; i++) {
+      const t = tlZoomOff + (i / steps) * visibleDur;
+      if (t < 0 || t >= bgmDur) continue;
+      const si = Math.floor(t / bgmDur * samples.length);
+      const amp = samples[Math.min(si, samples.length-1)];
+      const bx = i;
+      const bh = amp * H * 0.85;
+      tlMultiCtx.fillRect(bx, halfH - bh/2, 1, bh);
+    }
+    tlMultiCtx.restore();
+    // BGM duration marker
+    const bgmEndX = toKX(bgmDur);
+    if (bgmEndX > 0 && bgmEndX < W) {
+      tlMultiCtx.save();
+      tlMultiCtx.strokeStyle = 'rgba(160,100,255,.4)';
+      tlMultiCtx.setLineDash([4,3]);
+      tlMultiCtx.lineWidth = 1;
+      tlMultiCtx.beginPath(); tlMultiCtx.moveTo(bgmEndX,0); tlMultiCtx.lineTo(bgmEndX,H); tlMultiCtx.stroke();
+      tlMultiCtx.setLineDash([]);
+      tlMultiCtx.fillStyle='rgba(160,100,255,.7)'; tlMultiCtx.font='8px monospace';
+      tlMultiCtx.fillText('BGM', bgmEndX-18, 20);
+      tlMultiCtx.restore();
+    }
   }
 
   // Snap grid lines (shown when snap enabled)
@@ -8795,6 +8832,41 @@ function showCameraTrackMenu() {
     null,
     {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ ['__camZoom','__camX','__camY','__camShake'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
   ]);
+}
+
+function loadBGMWaveform() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'audio/*';
+  inp.onchange = async () => {
+    const file = inp.files[0]; if (!file) return;
+    const status = document.getElementById('lbl-status');
+    status.textContent = 'BGM波形デコード中...';
+    try {
+      const buf = await file.arrayBuffer();
+      const ac = new AudioContext();
+      const decoded = await ac.decodeAudioData(buf);
+      _bgmDuration = decoded.duration;
+      // Downsample to ~2000 points for display
+      const ch = decoded.getChannelData(0);
+      const points = 2000;
+      const step = Math.floor(ch.length / points);
+      const waveform = new Float32Array(points);
+      for (let i = 0; i < points; i++) {
+        let max = 0;
+        for (let j = 0; j < step; j++) max = Math.max(max, Math.abs(ch[i*step+j]||0));
+        waveform[i] = max;
+      }
+      _bgmWaveform = waveform;
+      ac.close();
+      const btn = document.getElementById('btn-tl-bgm');
+      if (btn) { btn.style.color='#d0a0ff'; btn.style.borderColor='rgba(180,120,255,.8)'; }
+      status.textContent = `BGM波形読込: ${file.name} (${decoded.duration.toFixed(2)}s)`;
+      drawMultiTimeline();
+    } catch(e) {
+      document.getElementById('lbl-status').textContent = 'BGM波形読込失敗: ' + e.message;
+    }
+  };
+  inp.click();
 }
 
 function scaleSelectedKFTimes() {
