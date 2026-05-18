@@ -1019,8 +1019,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
-    <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏮ 反転</button>
-    <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
+    <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
     <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2e3656;border:1px solid var(--border);color:#a0d0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
@@ -11164,21 +11163,6 @@ function importMotionJSON() {
   input.click();
 }
 
-function reverseAnimation() {
-  const dur = M.animation.duration || 3;
-  let hasKF = false;
-  for (const frames of Object.values(M.animation.tracks)) {
-    if (frames?.length) { hasKF = true; break; }
-  }
-  if (!hasKF) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
-  for (const frames of Object.values(M.animation.tracks)) {
-    if (!frames?.length) continue;
-    for (const kf of frames) kf.t = Math.round((dur - kf.t) * 1000) / 1000;
-    frames.sort((a,b) => a.t - b.t);
-  }
-  drawMultiTimeline();
-  document.getElementById('lbl-status').textContent = `アニメーションを逆転しました (${dur.toFixed(1)}s)`;
-}
 
 // Mirror L↔R parameter tracks (copy blinkL→blinkR, browL→browR, eyeL→eyeR etc.)
 const _MIRROR_PAIRS = [
