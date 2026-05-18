@@ -2626,6 +2626,13 @@ function buildParamUI() {
   renderPosePresets();
   const cont=document.getElementById('params');
   cont.innerHTML='';
+  // Solo mode banner
+  if (_soloParam) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#3a2a00;border:1px solid #f0c040;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#f0c040;';
+    banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:bold;">解除</button>`;
+    cont.appendChild(banner);
+  }
   // Sort: favorites first, then others
   const allEntries = Object.entries(M.params);
   const sorted = [
@@ -2692,6 +2699,8 @@ function renderParamRow(name, p, cont, _isFavArg) {
         <span class="pval" id="pv-${name}" title="クリックで値を直接入力" style="cursor:text;" ondblclick="editParamVal('${name}',this)">${p.val.toFixed(2)}</span>
         <button id="lock-${name}" onclick="toggleParamLock('${name}',event)" title="ロック"
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
+        <button id="solo-${name}" onclick="event.stopPropagation();toggleParamSolo('${name}')" title="このパラメータだけ表示（他は0に）"
+          style="background:none;border:none;color:${_soloParam===name?'#f0c040':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:2px;font-weight:bold;">S</button>
       </div>
       <div class="slider-wrap">
         <input class="pslider" type="range" id="ps-${name}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}"${p.locked?' disabled':''} title="値: ${p.val.toFixed(2)} | 範囲: ${p.min}〜${p.max} | ステップ: ${p.step}">
@@ -6104,6 +6113,35 @@ function toggleParamLock(name, e) {
   if (sl) sl.disabled=p.locked;
 }
 
+function toggleParamSolo(name) {
+  if (_soloParam === name) {
+    // exit solo: restore saved values
+    if (_soloSavedVals) {
+      for (const [k, v] of Object.entries(_soloSavedVals)) {
+        if (M.params[k]) M.params[k].val = v;
+      }
+    }
+    _soloParam = null;
+    _soloSavedVals = null;
+  } else {
+    // enter solo: save all values, zero everything except this param
+    _soloSavedVals = {};
+    for (const [k, p] of Object.entries(M.params)) {
+      _soloSavedVals[k] = p.val;
+    }
+    _soloParam = name;
+    for (const [k, p] of Object.entries(M.params)) {
+      if (k !== name && !p.locked) p.val = 0;
+    }
+  }
+  ST.cachedVerts = null;
+  buildParamUI();
+  redraw();
+  document.getElementById('lbl-status').textContent = _soloParam
+    ? `ソロ: ${M.params[name]?.lbl || name}（他のパラメータを0に）`
+    : 'ソロ解除';
+}
+
 // ==================== BRUSH TOOLS ====================
 function applyBrushSelect(cx, cy, addMode, removeMode) {
   if (!M.img) return;
@@ -8173,6 +8211,8 @@ const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _collapsedParamGroups = new Set(); // collapsed parameter group names
+let _soloParam = null; // currently soloed parameter name (others zeroed)
+let _soloSavedVals = null; // saved param values before solo
 let _tlDisplayedRows = []; // current displayed rows (with group headers) — shared by draw + click handlers
 let _bgmWaveform = null; // normalized amplitude array [0..1] for BGM waveform visualization
 let _bgmDuration = 0;    // BGM duration in seconds
