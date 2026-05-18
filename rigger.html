@@ -460,6 +460,14 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" onclick="centerPart()" style="flex:1;font-size:8px">⊕ 中央配置</button>
           <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1;font-size:8px">🔓 ロック</button>
         </div>
+        <!-- Texture swap panel -->
+        <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
+            <button onclick="addAltTexture()" style="background:#1a2030;border:1px solid rgba(80,160,200,.3);color:#60a0c0;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+          </div>
+          <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
+        </div>
         <!-- Alignment tools (multi-select) -->
         <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
           <div style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
@@ -717,9 +725,16 @@ class Part {
     this.groupId = null;
     this.deformerId = null;
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
+    this.altTextures = []; // [{name, dataURL, img}]
+    this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
   }
   get w() { return this.img ? this.img.width : 100; }
   get h() { return this.img ? this.img.height : 100; }
+  get activeImg() {
+    if (this.activeTexIdx >= 0 && this.altTextures[this.activeTexIdx]?.img)
+      return this.altTextures[this.activeTexIdx].img;
+    return this.img;
+  }
   setImage(img, dataURL) {
     this.img = img; this.imgDataURL = dataURL;
     const cols = parseInt(document.getElementById('mc').value) || 8;
@@ -817,7 +832,9 @@ class Part {
       opacityKFs: this.opacityKFs,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
-      imageData: withImage ? this.imgDataURL : null
+      imageData: withImage ? this.imgDataURL : null,
+      altTextures: withImage ? (this.altTextures||[]).map(t=>({name:t.name, dataURL:t.dataURL})) : [],
+      activeTexIdx: this.activeTexIdx
     };
   }
   static fromJSON(o) {
@@ -834,11 +851,21 @@ class Part {
     p.opacityKFs = o.opacityKFs || {};
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
+    p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
     if (o.imageData) {
       p.imgDataURL = o.imageData;
       const img = new Image();
       img.onload = () => { p.img = img; render(); };
       img.src = o.imageData;
+    }
+    if (Array.isArray(o.altTextures)) {
+      p.altTextures = o.altTextures.map(t => {
+        const entry = {name: t.name, dataURL: t.dataURL, img: null};
+        const img = new Image();
+        img.onload = () => { entry.img = img; render(); };
+        img.src = t.dataURL;
+        return entry;
+      });
     }
     return p;
   }
@@ -1127,7 +1154,7 @@ function drawTriTexCtx(tc, x0,y0, x1,y1, x2,y2, u0,v0, u1,v1, u2,v2, img) {
 function renderPartToCtx(pt, tc, sz, vals) {
   tc.clearRect(0, 0, sz, sz);
   tc.fillStyle = '#0c0f18'; tc.fillRect(0, 0, sz, sz);
-  if (!pt || !pt.img || !pt.mesh.tris.length) return;
+  if (!pt || !pt.activeImg || !pt.mesh.tris.length) return;
   const wv = pt.getWorldVerts(vals);
   if (pt.deformerId) {
     const def = deformers.find(d => d.id === pt.deformerId);
@@ -1155,7 +1182,7 @@ function renderPartToCtx(pt, tc, sz, vals) {
   for (const [i0,i1,i2] of pt.mesh.tris) {
     const p0=wv[i0],p1=wv[i1],p2=wv[i2];
     const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
-    drawTriTexCtx(tc, toSX(p0.x),toSY(p0.y), toSX(p1.x),toSY(p1.y), toSX(p2.x),toSY(p2.y), q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.img);
+    drawTriTexCtx(tc, toSX(p0.x),toSY(p0.y), toSX(p1.x),toSY(p1.y), toSX(p2.x),toSY(p2.y), q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.activeImg);
   }
   tc.globalAlpha = 1;
 }
@@ -1180,7 +1207,7 @@ function updatePartPreview() {
   const plabel = document.getElementById('part-preview-label');
   if (!wrap || !pcanvas) return;
   const pt = selPart >= 0 ? parts[selPart] : null;
-  if (!pt || !pt.img) { wrap.style.display = 'none'; return; }
+  if (!pt || !pt.activeImg) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
   renderPartToCtx(pt, pcanvas.getContext('2d'), 80, getParamVals());
   if (plabel) plabel.textContent = pt.name;
@@ -1243,7 +1270,7 @@ function render() {
   const sorted = [...parts].sort((a,b) => a.zIndex - b.zIndex);
 
   for (const pt of sorted) {
-    if (!pt.visible || !pt.img) continue;
+    if (!pt.visible || !pt.activeImg) continue;
     const pidx = parts.indexOf(pt);
 
     const wv = pt.getWorldVerts(vals);
@@ -1279,7 +1306,7 @@ function render() {
 
     // Clip mask
     const clipPt = pt.clipTo ? parts.find(p => p.id === pt.clipTo) : null;
-    if (clipPt && clipPt.img) {
+    if (clipPt && clipPt.activeImg) {
       const cwv = clipPt.getWorldVerts(vals);
       if (mode === 'preview' && clipPt.physics?.enabled) {
         const ps = physState.get(clipPt.id);
@@ -1302,11 +1329,11 @@ function render() {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
       const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
       const s0=m2s(p0.x,p0.y), s1=m2s(p1.x,p1.y), s2=m2s(p2.x,p2.y);
-      drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.img);
+      drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.activeImg);
     }
     ctx.restore();
 
-    if (clipPt && clipPt.img) ctx.restore();
+    if (clipPt && clipPt.activeImg) ctx.restore();
 
     // Mesh overlay
     if (mode !== 'preview') {
@@ -1630,7 +1657,7 @@ function updatePartsUI() {
     d.onclick = (e) => selPartClick(i, e.shiftKey);
     const drag = document.createElement('span');
     drag.className='pi-drag'; drag.textContent='⠿'; d.appendChild(drag);
-    if (pt.img) {
+    if (pt.activeImg) {
       const thumb = document.createElement('canvas');
       thumb.width=20; thumb.height=20; thumb.className='pthumbs';
       thumb.dataset.pi = i;
@@ -1756,10 +1783,38 @@ function updatePartPropsUI() {
     grpSel.innerHTML = '<option value="">なし</option>';
     groups.forEach(g=>{ const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; grpSel.appendChild(o); });
     grpSel.value = pt.groupId || '';
+    // Texture panel
+    const tp = document.getElementById('tex-panel');
+    const tl = document.getElementById('tex-list');
+    if (tp && tl) {
+      tp.style.display = pt.img ? 'block' : 'none';
+      tl.innerHTML = '';
+      const mkRow = (label, idx, active) => {
+        const row = document.createElement('div');
+        row.style.cssText=`display:flex;align-items:center;gap:3px;padding:1px 2px;border-radius:2px;background:${active?'rgba(80,160,200,.15)':'transparent'};border:1px solid ${active?'rgba(80,160,200,.4)':'transparent'}`;
+        const lbl = document.createElement('span');
+        lbl.style.cssText='flex:1;font-size:8px;color:#607090;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer';
+        lbl.textContent=(active?'★ ':'')+label;
+        lbl.title='クリックで切替';
+        lbl.onclick=()=>{ switchPartTexture(idx); };
+        row.appendChild(lbl);
+        if (idx >= 0) {
+          const del = document.createElement('button');
+          del.textContent='✕'; del.style.cssText='background:none;border:none;color:#804050;cursor:pointer;font-size:8px;padding:0 2px;flex-shrink:0';
+          del.onclick=()=>removeAltTexture(idx);
+          row.appendChild(del);
+        }
+        tl.appendChild(row);
+      };
+      mkRow('ベース', -1, pt.activeTexIdx === -1);
+      (pt.altTextures||[]).forEach((t,i)=>mkRow(t.name, i, pt.activeTexIdx === i));
+    }
   } else if (selDeformer < 0) {
     pp.style.display = 'none'; nm.style.display = 'block';
+    const tp=document.getElementById('tex-panel'); if(tp) tp.style.display='none';
   } else {
     pp.style.display = 'none'; nm.style.display = 'none';
+    const tp=document.getElementById('tex-panel'); if(tp) tp.style.display='none';
   }
 }
 
@@ -1815,6 +1870,44 @@ function updateOpacityKFUI() {
   }
 }
 function applyPartClip(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].clipTo=v||null; updatePartsUI(); render(); }
+function addAltTexture() {
+  if (selPart<0||selPart>=parts.length) return;
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{
+    const file=inp.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const dataURL=e.target.result;
+      const img=new Image();
+      img.onload=()=>{
+        saveState();
+        if (!parts[selPart].altTextures) parts[selPart].altTextures=[];
+        const name=file.name.replace(/\.[^.]+$/,'');
+        parts[selPart].altTextures.push({name, dataURL, img});
+        updatePartPropsUI(); render(); setStatus(`テクスチャ「${name}」を追加しました`);
+      };
+      img.src=dataURL;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+function switchPartTexture(idx) {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState();
+  parts[selPart].activeTexIdx=idx;
+  updatePartsUI(); updatePartPropsUI(); render();
+  setStatus(idx<0 ? 'ベーステクスチャに切替' : `テクスチャ「${parts[selPart].altTextures[idx]?.name}」に切替`);
+}
+function removeAltTexture(idx) {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState();
+  const pt=parts[selPart];
+  pt.altTextures.splice(idx,1);
+  if (pt.activeTexIdx===idx) pt.activeTexIdx=-1;
+  else if (pt.activeTexIdx>idx) pt.activeTexIdx--;
+  updatePartsUI(); updatePartPropsUI(); render(); setStatus('テクスチャを削除しました');
+}
 function centerPart() {
   if (selPart<0||selPart>=parts.length) return; saveState();
   const pt=parts[selPart]; pt.x=Math.round((canvasW-pt.w)/2); pt.y=Math.round((canvasH-pt.h)/2);
