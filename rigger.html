@@ -49,6 +49,8 @@ body{background:#12151f;color:#cdd6f4;font-family:'Segoe UI',system-ui,sans-seri
 .pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#1e293b;border:1px solid #2a3a5a}
 .pi-clip-badge{font-size:7px;color:#60a5fa;opacity:.7;flex-shrink:0}
 .pi-phys-badge{font-size:7px;color:#a78bfa;opacity:.7;flex-shrink:0}
+.pi-zidx{font-size:8px;color:#2a3a5a;flex-shrink:0;cursor:pointer;min-width:18px;text-align:right;font-family:monospace;user-select:none}
+.pi-zidx:hover{color:#7c3aed}
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid #1e2638;flex-shrink:0}
@@ -1693,6 +1695,23 @@ function updatePartsUI() {
     d.onclick = (e) => selPartClick(i, e.shiftKey);
     const drag = document.createElement('span');
     drag.className='pi-drag'; drag.textContent='⠿'; d.appendChild(drag);
+    const zidxSpan = document.createElement('span');
+    zidxSpan.className='pi-zidx'; zidxSpan.textContent=i; zidxSpan.title='ZIndex（クリックで移動）';
+    zidxSpan.onclick=(e)=>{
+      e.stopPropagation();
+      const inp=document.createElement('input');
+      inp.type='number'; inp.value=i; inp.min=0; inp.max=parts.length-1;
+      inp.style.cssText='width:28px;background:#0a0e18;border:1px solid #7c3aed;color:#cdd6f4;font-size:8px;padding:0 2px;border-radius:2px;outline:none;';
+      zidxSpan.replaceWith(inp); inp.focus(); inp.select();
+      const commit=()=>{
+        const target=Math.max(0,Math.min(parts.length-1,parseInt(inp.value)||0));
+        if(target!==i){saveState();const[moved]=parts.splice(i,1);parts.splice(target,0,moved);parts.forEach((p,idx)=>p.zIndex=idx);selPart=target;selParts.clear();selParts.add(target);}
+        updatePartsUI(); render();
+      };
+      inp.onblur=commit;
+      inp.onkeydown=(ev)=>{if(ev.key==='Enter')commit();if(ev.key==='Escape')updatePartsUI();ev.stopPropagation();};
+    };
+    d.appendChild(zidxSpan);
     if (pt.activeImg) {
       const thumb = document.createElement('canvas');
       thumb.width=20; thumb.height=20; thumb.className='pthumbs';
