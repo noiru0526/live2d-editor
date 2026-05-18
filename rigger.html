@@ -536,6 +536,18 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <h3>物理シミュレーション</h3>
         <button class="ih" onclick="clearAllPhysics()" title="全てOFF">✕</button>
       </div>
+      <!-- Physics presets -->
+      <div style="padding:4px 8px;border-bottom:1px solid #1a2030;flex-shrink:0">
+        <div style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">プリセット → 選択パーツに適用</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
+          <button class="tbtn" onclick="applyPhysPreset('hair')"   style="font-size:8px;padding:2px 0" title="剛性:0.18 減衰:0.84 X:1.0 Y:0.3">💇 前髪</button>
+          <button class="tbtn" onclick="applyPhysPreset('longhair')" style="font-size:8px;padding:2px 0" title="剛性:0.10 減衰:0.88 X:0.9 Y:0.5">💈 長髪</button>
+          <button class="tbtn" onclick="applyPhysPreset('skirt')"  style="font-size:8px;padding:2px 0" title="剛性:0.08 減衰:0.92 X:0.7 Y:1.2">👗 スカート</button>
+          <button class="tbtn" onclick="applyPhysPreset('ribbon')" style="font-size:8px;padding:2px 0" title="剛性:0.22 減衰:0.80 X:0.5 Y:0.5">🎀 リボン</button>
+          <button class="tbtn" onclick="applyPhysPreset('cloth')"  style="font-size:8px;padding:2px 0" title="剛性:0.05 減衰:0.94 X:0.5 Y:0.9">🧥 重い布</button>
+          <button class="tbtn" onclick="applyPhysPreset('ear')"    style="font-size:8px;padding:2px 0" title="剛性:0.20 減衰:0.82 X:1.0 Y:0.6">👂 獣耳</button>
+        </div>
+      </div>
       <div id="phys-list" style="flex:1;overflow-y:auto"></div>
       <div class="phys-info">
         ⓘ プレビューモードで物理シミュレーションが動作します。<br>
@@ -1982,6 +1994,28 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+const PHYS_PRESETS = {
+  hair:     { stiffness:0.18, damping:0.84, reactX:1.0, reactY:0.3 },
+  longhair: { stiffness:0.10, damping:0.88, reactX:0.9, reactY:0.5 },
+  skirt:    { stiffness:0.08, damping:0.92, reactX:0.7, reactY:1.2 },
+  ribbon:   { stiffness:0.22, damping:0.80, reactX:0.5, reactY:0.5 },
+  cloth:    { stiffness:0.05, damping:0.94, reactX:0.5, reactY:0.9 },
+  ear:      { stiffness:0.20, damping:0.82, reactX:1.0, reactY:0.6 },
+};
+function applyPhysPreset(name) {
+  const preset = PHYS_PRESETS[name]; if (!preset) return;
+  const targets = selParts.size > 0 ? [...selParts] : (selPart>=0 ? [selPart] : []);
+  if (!targets.length) { setStatus('パーツを選択してください'); return; }
+  saveState();
+  targets.forEach(i => {
+    if (i<0||i>=parts.length) return;
+    Object.assign(parts[i].physics, preset, { enabled: true });
+  });
+  updatePhysicsUI(); render();
+  const labels = {hair:'前髪',longhair:'長髪',skirt:'スカート',ribbon:'リボン',cloth:'重い布',ear:'獣耳'};
+  setStatus(`物理「${labels[name]}」プリセットを${targets.length}パーツに適用`);
 }
 
 // ===== PHYSICS UI =====
