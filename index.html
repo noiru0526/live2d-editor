@@ -10464,7 +10464,45 @@ function renderClipTabs() {
     playAllBtn.style.cssText = 'background:#1e2030;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     playAllBtn.onclick = () => playAllClipsSequential();
     document.getElementById('tl-clips-bar').appendChild(playAllBtn);
+    const mergeBtn = document.createElement('button');
+    mergeBtn.textContent = '⊕ 全結合';
+    mergeBtn.title = '全クリップを時系列に結合してメインアニメーションに書き出す';
+    mergeBtn.style.cssText = 'background:#1e1e30;border:1px solid rgba(160,100,255,.4);color:#c080ff;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    mergeBtn.onclick = () => mergeAllClips();
+    document.getElementById('tl-clips-bar').appendChild(mergeBtn);
   }
+}
+
+function mergeAllClips() {
+  if (!M.animClips?.length) { document.getElementById('lbl-status').textContent = 'クリップがありません'; return; }
+  if (!confirm(`全${M.animClips.length}クリップをメインアニメーションに時系列で結合しますか？\n（メインアニメーションは上書きされます）`)) return;
+  pushAnimUndo('クリップ全結合');
+  // Start with empty animation
+  const merged = { duration: 0, tracks: {}, loopIn: 0, loopOut: null };
+  const allClips = [{ name: 'メイン', animation: M.animation }, ...M.animClips];
+  let timeOffset = 0;
+  for (const clip of allClips) {
+    const anim = clip.animation;
+    const dur = anim.duration || 3;
+    for (const [name, frames] of Object.entries(anim.tracks || {})) {
+      if (!frames?.length) continue;
+      if (!merged.tracks[name]) merged.tracks[name] = [];
+      for (const kf of frames) {
+        merged.tracks[name].push({ ...kf, t: Math.round((kf.t + timeOffset) * 10000) / 10000 });
+      }
+    }
+    timeOffset += dur;
+  }
+  merged.duration = Math.round(timeOffset * 1000) / 1000;
+  merged.loopOut = merged.duration;
+  // Sort all tracks
+  for (const frames of Object.values(merged.tracks)) frames.sort((a, b) => a.t - b.t);
+  M.animation = merged;
+  M.animClips = [];
+  _activeClipIdx = -1;
+  drawMultiTimeline();
+  renderClipTabs();
+  document.getElementById('lbl-status').textContent = `全クリップ結合: ${allClips.length}クリップ → ${merged.duration.toFixed(2)}s, ${Object.keys(merged.tracks).length}トラック`;
 }
 
 let _seqPlayRAF = null;
