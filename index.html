@@ -7856,6 +7856,7 @@ const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _collapsedParamGroups = new Set(); // collapsed parameter group names
+let _tlDisplayedRows = []; // current displayed rows (with group headers) — shared by draw + click handlers
 let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
 let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
 let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
@@ -8110,10 +8111,6 @@ function drawMultiTimeline() {
   const unpinned = _sortRows(allBase.filter(([n]) => !tlPinnedTracks.has(n)));
   const allTrackRows = [...pinned, ...unpinned];
 
-  // Clamp scroll
-  const totalH = allTrackRows.reduce((s,[n])=>s+trackH(n),0);
-  tlScrollY = Math.max(0, Math.min(tlScrollY, Math.max(0, totalH - H)));
-
   // Filter rows by track search and/or hide-empty
   let filteredRows = allTrackRows;
   if (tlTrackFilter) {
@@ -8126,12 +8123,53 @@ function drawMultiTimeline() {
     filteredRows = filteredRows.filter(([name]) => M.animation.tracks[name]?.length > 0);
   }
 
+  // Inject group header sentinel rows
+  if (M.paramGroups?.length) {
+    const paramToGroup = {};
+    for (const grp of M.paramGroups) for (const pid of grp.paramIds) paramToGroup[pid] = grp;
+    const withGroups = [];
+    const insertedGroups = new Set();
+    for (const row of filteredRows) {
+      const grp = paramToGroup[row[0]];
+      if (grp && !insertedGroups.has(grp.id)) {
+        insertedGroups.add(grp.id);
+        withGroups.push(['__grp:' + grp.id, {__isGroup: true, grp}]);
+      }
+      if (!grp || !_collapsedParamGroups.has(grp.id)) withGroups.push(row);
+    }
+    filteredRows = withGroups;
+  }
+  _tlDisplayedRows = filteredRows;
+
+  // Clamp scroll (after group headers injected)
+  const totalH = filteredRows.reduce((s,[n])=>s+trackH(n),0);
+  tlScrollY = Math.max(0, Math.min(tlScrollY, Math.max(0, totalH - H)));
+
   // Draw each param track
   const {offs: _rowOffs, rhs: _rowRhs} = _rowOffsets(filteredRows);
   filteredRows.forEach(([name,p],ri) => {
     const rh = _rowRhs[ri];
     const ry = _rowOffs[ri] - tlScrollY;
     if (ry+rh < 0 || ry > H) return; // skip off-screen rows
+
+    // === GROUP HEADER ===
+    if (name.startsWith('__grp:')) {
+      const grp = p.grp;
+      const isCollapsed = _collapsedParamGroups.has(grp.id);
+      tlMultiCtx.fillStyle = 'rgba(78,100,200,.15)';
+      tlMultiCtx.fillRect(0, ry, W, rh);
+      tlMultiCtx.fillStyle = 'rgba(78,100,200,.4)';
+      tlMultiCtx.fillRect(0, ry+rh-1, W, 1);
+      if (tlLabelCtx) {
+        tlLabelCtx.fillStyle = 'rgba(78,100,200,.2)';
+        tlLabelCtx.fillRect(0, ry, LW, rh);
+        tlLabelCtx.fillStyle = '#8898ee';
+        tlLabelCtx.font = 'bold 9px Segoe UI';
+        tlLabelCtx.fillText((isCollapsed ? '▶ ' : '▼ ') + grp.name, 4, ry + rh/2 + 3);
+      }
+      return;
+    }
+
     // Row background
     const tc = _trackColor(name);
     const isSpecial = !!tc.bg;
@@ -8410,14 +8448,22 @@ function _labelHitRow(py, rows) {
   return -1;
 }
 
-// Label canvas click → toggle track visibility / Ctrl+click → solo
+// Label canvas click → toggle track visibility / Ctrl+click → solo / group header → collapse toggle
 tlLabelCanvas.addEventListener('click', e=>{
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
-  const params = Object.entries(M.params);
-  const ri = _labelHitRow(py, params);
+  const ri = _labelHitRow(py, _tlDisplayedRows);
   if (ri < 0) return;
-  const name = params[ri][0];
+  const [name, p] = _tlDisplayedRows[ri];
+  // Group header: toggle collapse
+  if (name.startsWith('__grp:')) {
+    const grpId = p.grp.id;
+    if (_collapsedParamGroups.has(grpId)) _collapsedParamGroups.delete(grpId);
+    else _collapsedParamGroups.add(grpId);
+    drawMultiTimeline();
+    return;
+  }
+  const params = Object.entries(M.params);
   if (e.ctrlKey || e.metaKey) {
     // Solo mode: hide all tracks except this one (or un-solo if already soloed)
     const allOthersHidden = params.every(([n]) => n === name || tlHiddenTracks.has(n));
@@ -8437,15 +8483,22 @@ tlLabelCanvas.addEventListener('click', e=>{
 tlLabelCanvas.addEventListener('dblclick', e=>{
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
-  const paramEntries = Object.entries(M.params);
-  const ri = _labelHitRow(py, paramEntries);
-  if (ri < 0 || ri >= paramEntries.length) return;
-  const [name, p] = paramEntries[ri];
-  const newLbl = prompt(`「${p.lbl||name}」の表示名を変更:`, p.lbl||name);
+  const ri = _labelHitRow(py, _tlDisplayedRows);
+  if (ri < 0) return;
+  const [name, p] = _tlDisplayedRows[ri];
+  if (name.startsWith('__grp:')) {
+    // Rename group on dblclick
+    const grp = p.grp;
+    const newName = prompt(`グループ名を変更:`, grp.name);
+    if (newName !== null && newName.trim()) { grp.name = newName.trim(); drawMultiTimeline(); }
+    return;
+  }
+  const lp = M.params[name]; if (!lp) return;
+  const newLbl = prompt(`「${lp.lbl||name}」の表示名を変更:`, lp.lbl||name);
   if (newLbl !== null && newLbl.trim()) {
-    p.lbl = newLbl.trim();
+    lp.lbl = newLbl.trim();
     buildParamUI(); drawMultiTimeline();
-    document.getElementById('lbl-status').textContent = `ラベル変更: ${name} → "${p.lbl}"`;
+    document.getElementById('lbl-status').textContent = `ラベル変更: ${name} → "${lp.lbl}"`;
   }
 });
 
@@ -8453,12 +8506,23 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
   e.preventDefault();
   const r = tlLabelCanvas.getBoundingClientRect();
   const py = (e.clientY - r.top) + tlScrollY;
-  const paramEntries = Object.entries(M.params);
-  const ri = _labelHitRow(py, paramEntries);
-  if (ri < 0 || ri >= paramEntries.length) return;
-  const [srcName, srcParam] = paramEntries[ri];
+  const ri = _labelHitRow(py, _tlDisplayedRows);
+  if (ri < 0) return;
+  const [srcName, srcPVal] = _tlDisplayedRows[ri];
+  // Group header context menu
+  if (srcName.startsWith('__grp:')) {
+    const grp = srcPVal.grp;
+    const isCollapsed = _collapsedParamGroups.has(grp.id);
+    showCtxMenu(e.clientX, e.clientY, [
+      { icon: isCollapsed?'▶':'▼', label: isCollapsed?'グループを展開':'グループを折りたたむ', action:()=>{ isCollapsed?_collapsedParamGroups.delete(grp.id):_collapsedParamGroups.add(grp.id); drawMultiTimeline(); }},
+      { icon:'✏', label:'グループ名を変更', action:()=>{ const n=prompt('グループ名:',grp.name); if(n?.trim()) { grp.name=n.trim(); drawMultiTimeline(); } }},
+    ]);
+    return;
+  }
+  const srcParam = M.params[srcName]; if (!srcParam) return;
   const srcFrames = M.animation.tracks[srcName];
   const isLocked = tlLockedTracks.has(srcName);
+  const paramEntries = Object.entries(M.params);
   showCtxMenu(e.clientX, e.clientY, [
     { icon:'🎯', label:`${srcParam.lbl} をアクティブに`, action:()=>setAP(srcName) },
     { icon: isLocked?'🔓':'🔒', label: isLocked?'トラックのロックを解除':'トラックをロック（KF移動禁止）', action:()=>{ isLocked?tlLockedTracks.delete(srcName):tlLockedTracks.add(srcName); drawMultiTimeline(); }},
@@ -10685,25 +10749,20 @@ function applyPlayheadToParams() {
     const r=trk.getBoundingClientRect();
     if (e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) return null;
     const dur=M.animation.duration||3;
-    // Zoom-aware: convert pixel x → time
     const visibleDur=dur/tlZoom;
-    const relX=(e.clientX-r.left)/r.width; // 0..1
-    const t=tlZoomOff+relX*visibleDur;
     const py=(e.clientY-r.top) + tlScrollY;
     const W=r.width;
-    // Include both normal params and special tracks (__*:) in hit test (apply same filter as drawMultiTimeline)
-    const paramRows=Object.entries(M.params);
-    const specialRows=Object.keys(M.animation.tracks||{}).filter(k=>/^__\w+:/.test(k)).map(k=>[k,null]);
-    const allRowsBase=[...paramRows,...specialRows];
-    const allRows=tlTrackFilter?allRowsBase.filter(([n,p])=>{const l=p?.lbl||n;return n.toLowerCase().includes(tlTrackFilter)||l.toLowerCase().includes(tlTrackFilter);}):allRowsBase;
+    // Use the same displayed rows as drawMultiTimeline (includes group headers, collapsed tracks hidden)
+    const allRows = _tlDisplayedRows;
     const {offs:htOffs, rhs:htRhs} = _rowOffsets(allRows);
     for (let ri=0;ri<allRows.length;ri++) {
       const [name]=allRows[ri];
+      if (name.startsWith('__grp:')) continue; // skip group header rows
       const frames=M.animation.tracks[name];
       if (!frames||!frames.length) continue;
       const ry=htOffs[ri]; const rh=htRhs[ri];
       if (py<ry||py>ry+rh) continue;
-      if (tlLockedTracks.has(name)) continue; // skip locked tracks in hit test
+      if (tlLockedTracks.has(name)) continue;
       for (const kf of frames) {
         const kxPx=((kf.t-tlZoomOff)/visibleDur)*W;
         const mxPx=(e.clientX-r.left);
@@ -10940,13 +10999,11 @@ function applyPlayheadToParams() {
       const dur2 = M.animation.duration||3;
       const visibleDur2 = dur2/tlZoom;
       const W2 = rb.r.width;
-      const paramRows2=Object.entries(M.params);
-      const specRows2=Object.keys(M.animation.tracks||{}).filter(k=>/^__\w+:/.test(k)).map(k=>[k,null]);
-      const allRows2Base=[...paramRows2,...specRows2];
-      const allRows2=tlTrackFilter?allRows2Base.filter(([n,p])=>{const l=p?.lbl||n;return n.toLowerCase().includes(tlTrackFilter)||l.toLowerCase().includes(tlTrackFilter);}):allRows2Base;
+      const allRows2 = _tlDisplayedRows;
       const {offs:rb2Offs, rhs:rb2Rhs} = _rowOffsets(allRows2);
       for (let ri=0;ri<allRows2.length;ri++) {
         const [nm]=allRows2[ri];
+        if (nm.startsWith('__grp:')) continue;
         const frms=M.animation.tracks[nm]; if(!frms?.length) continue;
         const ry=rb2Offs[ri]; const rh2=rb2Rhs[ri];
         if (ry+rh2<ryMin||ry>ryMax) continue;
