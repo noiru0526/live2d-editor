@@ -237,6 +237,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
     <button class="tbtn" id="btn-edge-hint" style="color:#4a8060;cursor:default" title="ドラッグ中にAltキー: 他パーツのエッジに吸着">Alt=エッジ</button>
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
+    <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -721,7 +722,7 @@ let partsFilter = '';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
 let VS = 1, VOX = 0, VOY = 0;
 let dragging = false, dragMode = '', dragVI = -1;
 let dragSX = 0, dragSY = 0, panOX = 0, panOY = 0;
@@ -1376,7 +1377,9 @@ function render() {
 
     // Draw textured mesh
     ctx.save();
-    ctx.globalAlpha = Object.keys(pt.opacityKFs||{}).length ? pt.getOpacity(vals) : (pt.opacity !== undefined ? pt.opacity : 1);
+    const baseAlpha = Object.keys(pt.opacityKFs||{}).length ? pt.getOpacity(vals) : (pt.opacity !== undefined ? pt.opacity : 1);
+    const dimmed = focusMode && (mode==='mesh'||mode==='deform') && pidx !== selPart && !selParts.has(pidx);
+    ctx.globalAlpha = dimmed ? baseAlpha * 0.18 : baseAlpha;
     ctx.globalCompositeOperation = pt.blendMode || 'source-over';
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
