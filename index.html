@@ -847,6 +847,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="wc-bl" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#a0e0ff;">瞬き: 0.00</div>
     <div id="wc-mo" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#a0ffd0;">口: 0.00</div>
     <div id="wc-ex" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#ffd0a0;">視線X: 0.00</div>
+    <div id="wc-hz" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#d0b0ff;">頭Z: 0.00</div>
+    <div id="wc-ey" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#ffc0a0;">視線Y: 0.00</div>
+    <div id="wc-brow" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#c0e0a0;">眉: 0.00</div>
   </div>
   <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
     <span style="font-size:9px;color:var(--dim);">平滑化:</span>
@@ -6008,7 +6011,7 @@ function toggleWebcamTest() {
     _wcFM=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${f}`});
     _wcFM.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
     // Smoothed values state
-    const _sm = {hx:0,hy:0,bl:0,mo:0,ex:0};
+    const _sm = {hx:0,hy:0,hz:0,bl:0,mo:0,ex:0,ey:0,brL:0,brR:0};
     _wcFM.onResults(r=>{
       const ovc = document.getElementById('wc-overlay');
       const octx = ovc ? ovc.getContext('2d') : null;
@@ -6020,21 +6023,35 @@ function toggleWebcamTest() {
       // Raw values
       const rhx=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2));
       const rhy=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2));
+      // Head Z (roll): angle of line between eye outer corners
+      const eyeAngle=Math.atan2(lm[263].y-lm[33].y, lm[263].x-lm[33].x);
+      const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5));
       const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
       const rbl=Math.max(0,Math.min(1,(0.27-ear(362,385,387,263,373,380))/(0.08)));
       const rmo=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*28));
-      let rex=0;
+      // Eyebrow raise: distance from brow to eye top, normalized by eye height
+      const browDistL=(lm[105].y-lm[159].y)*100, browDistR=(lm[334].y-lm[386].y)*100;
+      const rbrL=Math.max(-1,Math.min(1,-(browDistL-2.5)*0.4));
+      const rbrR=Math.max(-1,Math.min(1,-(browDistR-2.5)*0.4));
+      let rex=0, rey=0;
       if (lm.length>473) {
         const ri=lm[468],li=lm[473];
         const rW=lm[33].x-lm[133].x, lW=lm[362].x-lm[263].x;
         rex=((rW>0.001?(ri.x-(lm[133].x+lm[33].x)/2)/rW*2:0)+(lW>0.001?(li.x-(lm[263].x+lm[362].x)/2)/lW*2:0))/2*-1.5;
+        const rH=(lm[159].y-lm[145].y), lH=(lm[386].y-lm[374].y);
+        rey=((rH>0.001?(ri.y-(lm[159].y+lm[145].y)/2)/rH*2:0)+(lH>0.001?(li.y-(lm[386].y+lm[374].y)/2)/lH*2:0))/2*-2;
+        rey=Math.max(-1,Math.min(1,rey));
       }
       // Low-pass smooth
       _sm.hx=alpha*_sm.hx+(1-alpha)*rhx;
       _sm.hy=alpha*_sm.hy+(1-alpha)*rhy;
+      _sm.hz=alpha*_sm.hz+(1-alpha)*rhz;
       _sm.bl=alpha*_sm.bl+(1-alpha)*rbl;
       _sm.mo=alpha*_sm.mo+(1-alpha)*rmo;
       _sm.ex=alpha*_sm.ex+(1-alpha)*rex;
+      _sm.ey=alpha*_sm.ey+(1-alpha)*rey;
+      _sm.brL=alpha*_sm.brL+(1-alpha)*rbrL;
+      _sm.brR=alpha*_sm.brR+(1-alpha)*rbrR;
 
       // Draw face mesh overlay
       if (octx && ovc) {
@@ -6075,15 +6092,18 @@ function toggleWebcamTest() {
       document.getElementById('wc-bl').textContent='瞬き: '+_sm.bl.toFixed(2);
       document.getElementById('wc-mo').textContent='口: '+_sm.mo.toFixed(2);
       document.getElementById('wc-ex').textContent='視線X: '+_sm.ex.toFixed(2);
+      const _hz=document.getElementById('wc-hz'); if(_hz) _hz.textContent='頭Z: '+_sm.hz.toFixed(2);
+      const _ey=document.getElementById('wc-ey'); if(_ey) _ey.textContent='視線Y: '+_sm.ey.toFixed(2);
+      const _brow=document.getElementById('wc-brow'); if(_brow) _brow.textContent='眉: '+((_sm.brL+_sm.brR)/2).toFixed(2);
       const sv=document.getElementById('wc-smooth'); const svl=document.getElementById('wc-smooth-val');
       if(sv&&svl) svl.textContent=parseFloat(sv.value).toFixed(2);
       // Apply to current params for live preview
-      if (M.params.headX) { M.params.headX.val=_sm.hx; const s=document.getElementById('ps-headX'); if(s)s.value=_sm.hx; }
-      if (M.params.headY) { M.params.headY.val=_sm.hy; const s=document.getElementById('ps-headY'); if(s)s.value=_sm.hy; }
-      if (M.params.blinkL) M.params.blinkL.val=_sm.bl;
-      if (M.params.blinkR) M.params.blinkR.val=_sm.bl;
-      if (M.params.mouthOpen) M.params.mouthOpen.val=_sm.mo;
-      if (M.params.eyeX) M.params.eyeX.val=_sm.ex;
+      const _setP = (id, v) => { const p=M.params[id]; if(!p) return; p.val=Math.max(p.min,Math.min(p.max,v)); const s=document.getElementById('ps-'+id); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);} const pv=document.getElementById('pv-'+id); if(pv)pv.textContent=p.val.toFixed(2); };
+      _setP('headX', _sm.hx); _setP('headY', _sm.hy); _setP('headZ', _sm.hz);
+      _setP('blinkL', _sm.bl); _setP('blinkR', _sm.bl);
+      _setP('mouthOpen', _sm.mo);
+      _setP('eyeBallX', _sm.ex); _setP('eyeBallY', _sm.ey);
+      _setP('browL', _sm.brL); _setP('browR', _sm.brR);
       ST.cachedVerts=null; redraw();
       // Expression auto-detect
       if (typeof wcAutoDetectExpr === 'function') wcAutoDetectExpr(_sm);
