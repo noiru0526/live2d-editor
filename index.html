@@ -10288,6 +10288,7 @@ function renderClipTabs() {
       showCtxMenu(e.clientX, e.clientY, [
         { icon:'✏', label:`「${clip.name}」名前を変更`, action:()=>{ const n=prompt('クリップ名:', clip.name); if(n) { clip.name=n; renderClipTabs(); }}},
         { icon:'💾', label:'上書き保存（現在の内容で更新）', action:()=>{ clip.animation=_cloneAnim(M.animation); renderClipTabs(); document.getElementById('lbl-status').textContent=`クリップ「${clip.name}」を上書き保存`; }},
+        { icon:'⧉', label:`「${clip.name}」を複製`, action:()=>{ const n=prompt('複製先クリップ名:', clip.name+' コピー'); if(n){M.animClips.splice(i+1,0,{name:n,animation:JSON.parse(JSON.stringify(clip.animation))});renderClipTabs();document.getElementById('lbl-status').textContent=`クリップ「${n}」を複製しました`;}}},
         null,
         { icon:'🗑', label:`「${clip.name}」を削除`, action:()=>{ M.animClips.splice(i,1); if(_activeClipIdx===i)_activeClipIdx=-1; else if(_activeClipIdx>i)_activeClipIdx--; renderClipTabs(); }},
       ]);
