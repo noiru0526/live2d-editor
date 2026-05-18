@@ -990,6 +990,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
       style="width:48px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
+    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1a2030;border:1px solid var(--border);color:#60d890;border-radius:3px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
       style="width:46px;background:#1a1e2e;border:1px solid rgba(78,124,255,.4);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
@@ -9654,6 +9655,23 @@ function clearAnimTracks() {
   M.animation.tracks={};
   ST.animPlayhead=0;
   drawMultiTimeline();
+}
+
+function autoCalcDuration() {
+  const tracks = M.animation.tracks || {};
+  let maxT = 0;
+  for (const kfs of Object.values(tracks)) {
+    if (Array.isArray(kfs) && kfs.length > 0)
+      maxT = Math.max(maxT, kfs[kfs.length-1].t);
+  }
+  if (maxT <= 0) { setStatus('KFが存在しないため自動算出できません'); return; }
+  const margin = Math.max(0.2, maxT * 0.05);
+  const newDur = Math.round((maxT + margin) * 10) / 10;
+  M.animation.duration = newDur;
+  const inp = document.getElementById('tl-duration');
+  if (inp) inp.value = newDur.toFixed(1);
+  drawMultiTimeline();
+  setStatus(`尺を自動設定: ${newDur.toFixed(1)}秒（最終KF ${maxT.toFixed(2)}s + 余白）`);
 }
 
 function showAnimTemplates() {
