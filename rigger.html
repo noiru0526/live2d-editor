@@ -249,7 +249,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn ok" onclick="saveModelOnly()">💾 保存</button>
     <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 出力</button>
     <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
-    <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存">📷 SS</button>
+    <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存 (右クリックで透過PNG)&#10;" oncontextmenu="event.preventDefault();screenshotCanvas(true)">📷 SS</button>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -1173,13 +1173,15 @@ function applyCanvasSize() {
   canvasH = Math.max(100, Math.min(4096, parseInt(document.getElementById('cvH').value)||1000));
   fitView(); setStatus(`キャンバス: ${canvasW}×${canvasH}px`);
 }
-function screenshotCanvas() {
+function screenshotCanvas(transparent) {
   // Render to an offscreen canvas at native resolution
   const off = document.createElement('canvas');
   off.width = canvasW; off.height = canvasH;
   const octx = off.getContext('2d');
   // Fill background
-  if (showChecker) {
+  if (transparent) {
+    // no fill — transparent PNG
+  } else if (showChecker) {
     const cs=20;
     for(let y=0;y<canvasH;y+=cs)for(let x=0;x<canvasW;x+=cs){octx.fillStyle=((x/cs+y/cs)%2===0)?'#cccccc':'#ffffff';octx.fillRect(x,y,cs,cs);}
   } else {
@@ -1204,9 +1206,9 @@ function screenshotCanvas() {
   }
   const a=document.createElement('a');
   a.href=off.toDataURL('image/png');
-  a.download=`rigger-ss-${Date.now()}.png`;
+  a.download=`rigger-ss-${transparent?'transparent-':''}${Date.now()}.png`;
   a.click();
-  setStatus('スクリーンショットを保存しました');
+  setStatus(transparent ? '透過PNGを保存しました' : 'スクリーンショットを保存しました');
 }
 function drawTriTexTo(tc,x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img) {
   // reuse same per-triangle texture mapping as main drawTriTex but to given context
