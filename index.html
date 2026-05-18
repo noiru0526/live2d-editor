@@ -1018,6 +1018,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
+    <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -9673,6 +9674,52 @@ function autoCalcDuration() {
   if (inp) inp.value = newDur.toFixed(1);
   drawMultiTimeline();
   setStatus(`尺を自動設定: ${newDur.toFixed(1)}秒（最終KF ${maxT.toFixed(2)}s + 余白）`);
+}
+
+function showKFShift() {
+  const tracks = M.animation.tracks || {};
+  const allNames = Object.keys(tracks);
+  const active = ST.ap || '';
+  const mo = document.createElement('div');
+  mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  mo.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:260px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:#cdd6f4">↔ KFタイムシフト</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:8px">KFの時刻を前後にずらします。</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:9px;color:#888;min-width:36px">対象</span>
+      <select id="ks-scope" style="flex:1;background:#111827;border:1px solid #2a3a5a;color:#cdd6f4;border-radius:3px;padding:2px;font-size:9px">
+        <option value="all">全トラック</option>
+        ${active&&tracks[active]?`<option value="active" selected>現在 (${active})</option>`:''}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:9px;color:#888;min-width:36px">時刻</span>
+      <input id="ks-offset" type="number" step="0.05" value="0" style="flex:1;background:#0a0e18;border:1px solid #2a3a5a;color:#cdd6f4;border-radius:3px;padding:2px 4px;font-size:10px">
+      <span style="font-size:9px;color:#888">秒</span>
+    </div>
+    <div style="font-size:8px;color:#446060;margin-bottom:8px">※ 0秒未満になるKFは0にクランプされます</div>
+    <div style="display:flex;gap:6px">
+      <button id="ks-ok" style="flex:1;background:#1e3040;border:1px solid #3a5060;color:#60d0a0;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.querySelector('#ks-ok').onclick=()=>{
+    const offset=parseFloat(mo.querySelector('#ks-offset').value)||0;
+    if(offset===0){mo.remove();return;}
+    pushAnimUndo('KFシフト');
+    const scope=mo.querySelector('#ks-scope').value;
+    const names = scope==='active' ? [active] : allNames;
+    for (const nm of names) {
+      const kfs=tracks[nm]; if(!Array.isArray(kfs)) continue;
+      for (const kf of kfs) kf.t=Math.max(0, Math.round((kf.t+offset)*1000)/1000);
+      kfs.sort((a,b)=>a.t-b.t);
+    }
+    drawMultiTimeline();
+    mo.remove();
+    setStatus(`KFシフト: ${offset>0?'+':''}${offset.toFixed(2)}s (${scope==='active'?active:'全トラック'})`);
+  };
+  mo.onclick=(e)=>{if(e.target===mo)mo.remove();};
 }
 
 function showTimeStretch() {
