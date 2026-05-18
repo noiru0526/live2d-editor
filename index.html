@@ -1017,6 +1017,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="reverseAnimation()" title="アニメーションのKFを時間軸で逆転" style="background:#2e3656;border:1px solid var(--border);color:#ffa080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -9672,6 +9673,48 @@ function autoCalcDuration() {
   if (inp) inp.value = newDur.toFixed(1);
   drawMultiTimeline();
   setStatus(`尺を自動設定: ${newDur.toFixed(1)}秒（最終KF ${maxT.toFixed(2)}s + 余白）`);
+}
+
+function showTimeStretch() {
+  const cur = M.animation.duration || 3;
+  const mo = document.createElement('div');
+  mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  mo.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:280px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:#cdd6f4">⏱ タイムストレッチ</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:8px">全KFの時刻を倍率で一括スケーリングします。</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:9px;color:#888;min-width:36px">倍率</span>
+      <input id="ts-factor" type="range" min="0.1" max="4" step="0.05" value="1" style="flex:1;accent-color:#4e7cff" oninput="document.getElementById('ts-fv').textContent=parseFloat(this.value).toFixed(2)+'x'">
+      <span id="ts-fv" style="font-size:10px;color:#4e7cff;min-width:36px;text-align:right;font-family:monospace">1.00x</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:9px;color:#888;min-width:36px">尺も拡縮</span>
+      <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="ts-dur" checked style="accent-color:#4e7cff"><span style="font-size:9px;color:#aaa">自動調整 (${cur.toFixed(1)}s → <span id="ts-dur-preview">${cur.toFixed(1)}</span>s)</span></label>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button id="ts-ok" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80a0ff;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  const fInp=mo.querySelector('#ts-factor'), durEl=mo.querySelector('#ts-dur-preview');
+  fInp.oninput=()=>{const f=parseFloat(fInp.value);mo.querySelector('#ts-fv').textContent=f.toFixed(2)+'x';durEl.textContent=(cur*f).toFixed(1);};
+  mo.querySelector('#ts-ok').onclick=()=>{
+    const factor=parseFloat(fInp.value);
+    pushAnimUndo('タイムストレッチ');
+    for (const kfs of Object.values(M.animation.tracks||{}))
+      if (Array.isArray(kfs)) for (const kf of kfs) kf.t=Math.round(kf.t*factor*1000)/1000;
+    if (mo.querySelector('#ts-dur').checked) {
+      const nd=Math.round(cur*factor*10)/10;
+      M.animation.duration=nd;
+      const inp=document.getElementById('tl-duration'); if(inp) inp.value=nd.toFixed(1);
+    }
+    ST.animPlayhead=Math.min(ST.animPlayhead*factor, M.animation.duration);
+    drawMultiTimeline();
+    mo.remove();
+    setStatus(`タイムストレッチ: ${factor.toFixed(2)}x`);
+  };
+  mo.onclick=(e)=>{if(e.target===mo)mo.remove();};
 }
 
 function showAnimTemplates() {
