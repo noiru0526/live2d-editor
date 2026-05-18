@@ -326,6 +326,13 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       </div>
       <div class="lsec-body" id="canvas-body">
         <div class="mrow">W: <input class="mi" id="cvW" type="number" value="1000" min="100" max="4096" style="width:48px">H: <input class="mi" id="cvH" type="number" value="1000" min="100" max="4096" style="width:48px"></div>
+        <div style="display:flex;gap:2px;flex-wrap:wrap;margin:2px 0">
+          <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(1000,1000)" title="正方形 1:1">1K□</button>
+          <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(1920,1080)" title="横長 16:9">FHD</button>
+          <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(1080,1920)" title="縦長 9:16">縦FHD</button>
+          <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(1080,1080)" title="正方形 1:1">1080□</button>
+          <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(2048,2048)" title="正方形 2K">2K□</button>
+        </div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="applyCanvasSize()">サイズ適用</button>
       </div>
     </div>
@@ -1150,6 +1157,11 @@ function applyCanvasSize() {
   canvasW = Math.max(100, Math.min(4096, parseInt(document.getElementById('cvW').value)||1000));
   canvasH = Math.max(100, Math.min(4096, parseInt(document.getElementById('cvH').value)||1000));
   fitView(); setStatus(`キャンバス: ${canvasW}×${canvasH}px`);
+}
+function setCanvasPreset(w, h) {
+  document.getElementById('cvW').value = w;
+  document.getElementById('cvH').value = h;
+  applyCanvasSize();
 }
 function m2s(mx, my) { return {x: mx*VS+VOX, y: my*VS+VOY}; }
 function s2m(sx, sy) { return {x: (sx-VOX)/VS, y: (sy-VOY)/VS}; }
