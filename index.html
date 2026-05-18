@@ -1023,6 +1023,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#2e3656;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
     <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
@@ -9666,6 +9667,26 @@ function clearAnimTracks() {
   M.animation.tracks={};
   ST.animPlayhead=0;
   drawMultiTimeline();
+}
+
+function padToNeutral() {
+  const tracks = M.animation.tracks || {};
+  const dur = M.animation.duration || 3;
+  const names = Object.keys(tracks).filter(n => Array.isArray(tracks[n]) && tracks[n].length > 0);
+  if (names.length === 0) { setStatus('KFが存在しません'); return; }
+  pushAnimUndo('ニュートラル補完');
+  let added = 0;
+  for (const name of names) {
+    const kfs = tracks[name];
+    const neutral = 0; // neutral value for all params
+    const hasStart = kfs.some(kf => Math.abs(kf.t) < 0.001);
+    const hasEnd = kfs.some(kf => Math.abs(kf.t - dur) < 0.001);
+    if (!hasStart) { kfs.push({t:0, v:neutral, interp:'smooth'}); added++; }
+    if (!hasEnd) { kfs.push({t:dur, v:neutral, interp:'smooth'}); added++; }
+    kfs.sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline();
+  setStatus(`ニュートラル補完: ${added}KF追加 (t=0 / t=${dur.toFixed(1)}s)`);
 }
 
 function autoCalcDuration() {
