@@ -169,6 +169,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 .pdef.rotation.sel .pdef-name{color:#f59e0b}
 .pdef.rotation .pdef-caret{color:#78500a}
 .pdef.rotation .pdef-count{color:#78500a}
+.pdef.bone .pdef-name{color:#7a3510}
+.pdef.bone.sel .pdef-name{color:#ff7040}
+.pdef.bone .pdef-caret{color:#7a3510}
+.pdef.bone .pdef-count{color:#7a3510}
 
 /* Deformer props section */
 #deformer-props{gap:0}
@@ -359,6 +363,28 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           </div>
           <div style="font-size:8px;color:#4e6080;margin:2px 4px">※ 角度・拡縮は選択中パラメータのキーフレーム値</div>
         </div>
+        <!-- Bone deformer props -->
+        <div id="def-bone-props" style="display:none">
+          <div class="prop-row">
+            <span class="prop-lbl">根X</span><input class="prop-in" id="bp-px" type="number" oninput="applyBonePivot()">
+            <span class="prop-lbl" style="margin-left:2px">根Y</span><input class="prop-in" id="bp-py" type="number" oninput="applyBonePivot()">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">長さ</span><input class="prop-in" id="bp-len" type="number" min="10" max="1000" oninput="applyBoneLength()">
+            <span class="prop-lbl" style="margin-left:2px">静止角°</span><input class="prop-in" id="bp-ang" type="number" min="-180" max="180" step="1" oninput="applyBoneRestAngle()">
+          </div>
+          <div class="prop-row" style="border-top:1px solid #1a3040;margin-top:4px;padding-top:4px">
+            <span class="prop-lbl" style="color:#ff7040">KF角°</span>
+            <input class="prop-in" id="bp-kf" type="number" min="-180" max="180" step="0.5" oninput="applyBoneKF()" style="border-color:rgba(255,112,64,.4)">
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl">親ボーン</span>
+            <select class="prop-sel" id="bp-parent" onchange="applyBoneParent(this.value)" style="flex:1;font-size:9px;background:#111827;border:1px solid #2a3a5a;color:#d0d8f0;border-radius:3px;padding:2px">
+              <option value="">なし</option>
+            </select>
+          </div>
+          <div style="font-size:8px;color:#4e6080;margin:2px 4px">※ KF角はデルタ（静止からの変化）</div>
+        </div>
         <div class="prop-row" style="margin-top:4px">
           <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
         </div>
@@ -545,6 +571,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       </label>
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
         <input type="radio" name="deftype" value="rotation" style="accent-color:#f59e0b"> ⟳ 回転
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="radio" name="deftype" value="bone" style="accent-color:#ff7040"> 🦴 ボーン(FK)
       </label>
     </div>
     <p>選択したパーツをこのデフォーマーに割り当てます。</p>
@@ -928,6 +957,81 @@ class RotationDeformer {
   }
 }
 
+// ===== BONE DEFORMER (FK chain) =====
+class BoneDeformer {
+  constructor(name) {
+    this.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    this.name = name;
+    this.type = 'bone';
+    this.px = 500; this.py = 400;
+    this.length = 100;
+    this.angle = -90;
+    this.parentId = null;
+    this.deforms = {};
+    this.initDeforms();
+  }
+  initDeforms() {
+    this.deforms = {};
+    for (const [pn, pc] of Object.entries(P)) {
+      this.deforms[pn] = {};
+      for (const k of pc.k) this.deforms[pn][k] = {dAngle: 0};
+    }
+  }
+  resizeDeforms() {
+    for (const [pn, pc] of Object.entries(P)) {
+      if (!this.deforms[pn]) this.deforms[pn] = {};
+      for (const k of pc.k) if (!this.deforms[pn][k]) this.deforms[pn][k] = {dAngle: 0};
+    }
+  }
+  getWorldTransform(vals, allDeformers) {
+    let dAngle = 0;
+    for (const [pn, pval] of Object.entries(vals)) {
+      const pc = P[pn]; if (!pc || !this.deforms[pn]) continue;
+      const ks = pc.k; let k0=ks[0], k1=ks[ks.length-1];
+      for (let i=0; i<ks.length-1; i++) if (pval>=ks[i]&&pval<=ks[i+1]) { k0=ks[i]; k1=ks[i+1]; break; }
+      const t = k0===k1 ? 0 : (pval-k0)/(k1-k0);
+      const d0=this.deforms[pn][k0]||{dAngle:0}, d1=this.deforms[pn][k1]||{dAngle:0};
+      dAngle += d0.dAngle*(1-t) + d1.dAngle*t;
+    }
+    if (this.parentId) {
+      const parent = allDeformers.find(d=>d.id===this.parentId&&d.type==='bone');
+      if (parent) {
+        const pTr = parent.getWorldTransform(vals, allDeformers);
+        const wa = this.angle + (pTr.worldAngle - parent.angle) + dAngle;
+        return { worldPx:pTr.tipX, worldPy:pTr.tipY, worldAngle:wa,
+                 tipX: pTr.tipX + Math.cos(wa*Math.PI/180)*this.length,
+                 tipY: pTr.tipY + Math.sin(wa*Math.PI/180)*this.length };
+      }
+    }
+    const wa = this.angle + dAngle;
+    return { worldPx:this.px, worldPy:this.py, worldAngle:wa,
+             tipX: this.px + Math.cos(wa*Math.PI/180)*this.length,
+             tipY: this.py + Math.sin(wa*Math.PI/180)*this.length };
+  }
+  applyToVert(vx, vy, tr) {
+    const dx = vx - this.px, dy = vy - this.py;
+    const deltaRad = (tr.worldAngle - this.angle) * Math.PI/180;
+    const cos = Math.cos(deltaRad), sin = Math.sin(deltaRad);
+    return { x: tr.worldPx + dx*cos - dy*sin, y: tr.worldPy + dx*sin + dy*cos };
+  }
+  toJSON() {
+    return {id:this.id, name:this.name, type:'bone', px:this.px, py:this.py,
+            length:this.length, angle:this.angle, parentId:this.parentId, deforms:this.deforms};
+  }
+  static fromJSON(o) {
+    const d = new BoneDeformer(o.name);
+    d.id=o.id||d.id; d.px=o.px??500; d.py=o.py??400;
+    d.length=o.length??100; d.angle=o.angle??-90;
+    d.parentId=o.parentId||null;
+    d.initDeforms();
+    for (const [pn, kfs] of Object.entries(o.deforms||{})) {
+      if (!d.deforms[pn]) d.deforms[pn] = {};
+      Object.assign(d.deforms[pn], kfs);
+    }
+    return d;
+  }
+}
+
 // ===== CANVAS SETUP =====
 function setupCanvas() {
   const cw = document.getElementById('cw');
@@ -1017,7 +1121,10 @@ function updatePartPreview() {
   if (pt.deformerId) {
     const def = deformers.find(d => d.id === pt.deformerId);
     if (def) {
-      if (def.type === 'rotation') {
+      if (def.type === 'bone') {
+        const tr = def.getWorldTransform(vals, deformers);
+        for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
+      } else if (def.type === 'rotation') {
         const tr = def.getTransform(vals);
         for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
       } else {
@@ -1106,11 +1213,14 @@ function render() {
 
     const wv = pt.getWorldVerts(vals);
 
-    // Apply deformer (warp or rotation)
+    // Apply deformer (warp, rotation, or bone)
     if (pt.deformerId) {
       const def = deformers.find(d => d.id === pt.deformerId);
       if (def) {
-        if (def.type === 'rotation') {
+        if (def.type === 'bone') {
+          const tr = def.getWorldTransform(vals, deformers);
+          for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
+        } else if (def.type === 'rotation') {
           const tr = def.getTransform(vals);
           for (let i = 0; i < wv.length; i++) {
             const w = def.applyToVert(wv[i].x, wv[i].y, tr);
@@ -1206,7 +1316,48 @@ function render() {
     deformers.forEach((def, di) => {
       const isSel = di === selDeformer;
       ctx.save();
-      if (def.type === 'rotation') {
+      if (def.type === 'bone') {
+        // Bone deformer: stick with root circle and tip diamond
+        const tr = def.getWorldTransform(mode==='deform'&&isSel ? {[selParam]:curKF} : vals, deformers);
+        const sRoot = m2s(tr.worldPx, tr.worldPy);
+        const sTip  = m2s(tr.tipX, tr.tipY);
+        const sRestRoot = m2s(def.px, def.py);
+        const restAngleRad = def.angle * Math.PI/180;
+        const sRestTip = m2s(def.px + Math.cos(restAngleRad)*def.length, def.py + Math.sin(restAngleRad)*def.length);
+        // Draw rest-pose ghost
+        if (isSel) {
+          ctx.strokeStyle = 'rgba(255,112,64,.15)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+          ctx.beginPath(); ctx.moveTo(sRestRoot.x, sRestRoot.y); ctx.lineTo(sRestTip.x, sRestTip.y); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        // Draw bone stick
+        ctx.strokeStyle = isSel ? 'rgba(255,112,64,.95)' : 'rgba(255,112,64,.4)';
+        ctx.lineWidth = isSel ? 2 : 1.2;
+        ctx.beginPath(); ctx.moveTo(sRoot.x, sRoot.y); ctx.lineTo(sTip.x, sTip.y); ctx.stroke();
+        // Root circle
+        ctx.beginPath(); ctx.arc(sRoot.x, sRoot.y, isSel?6:4, 0, Math.PI*2);
+        ctx.fillStyle = isSel ? '#ff7040' : 'rgba(255,112,64,.6)'; ctx.fill();
+        // Tip diamond
+        const ts = isSel ? 5 : 3.5;
+        ctx.beginPath(); ctx.moveTo(sTip.x, sTip.y-ts); ctx.lineTo(sTip.x+ts, sTip.y);
+        ctx.lineTo(sTip.x, sTip.y+ts); ctx.lineTo(sTip.x-ts, sTip.y); ctx.closePath();
+        ctx.fillStyle = isSel ? '#ffc080' : 'rgba(255,192,128,.6)'; ctx.fill();
+        // Label
+        ctx.fillStyle = isSel ? '#ff7040' : 'rgba(255,112,64,.5)';
+        ctx.font = `${Math.max(8,Math.round(9*VS))}px Segoe UI`;
+        ctx.fillText('🦴 '+def.name, sRoot.x+8, sRoot.y-4);
+        // Connection line to parent
+        if (def.parentId) {
+          const pDef = deformers.find(d=>d.id===def.parentId&&d.type==='bone');
+          if (pDef) {
+            const pTr = pDef.getWorldTransform(mode==='deform'&&isSel ? {[selParam]:curKF} : vals, deformers);
+            const sp = m2s(pTr.tipX, pTr.tipY);
+            ctx.strokeStyle = 'rgba(255,160,80,.35)'; ctx.lineWidth = 0.7; ctx.setLineDash([2,2]);
+            ctx.beginPath(); ctx.moveTo(sp.x, sp.y); ctx.lineTo(sRoot.x, sRoot.y); ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      } else if (def.type === 'rotation') {
         // Rotation deformer: circle + cross + angle handle (amber)
         const pp = m2s(def.px, def.py);
         const rs = def.r / VS;
@@ -1351,7 +1502,7 @@ function loadModelFromJSON(json) {
     if (data.parts) parts = data.parts.map(o => Part.fromJSON(o));
     expressions = data.expressions || [];
     groups = data.groups || [];
-    deformers = (data.deformers || []).map(o => o.type === 'rotation' ? RotationDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
+    deformers = (data.deformers || []).map(o => o.type === 'rotation' ? RotationDeformer.fromJSON(o) : o.type === 'bone' ? BoneDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
     collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
@@ -1484,8 +1635,9 @@ function updatePartsUI() {
     if (hasKids) return; // will be shown when first child part appears
     const collapsed = collapsedDeformers.has(def.id);
     const dh = document.createElement('div');
-    dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : '') + (di === selDeformer ? ' sel' : '');
-    dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${def.type==='rotation'?'⟳':'⬡'} ${def.name}</span><span class="pdef-count">0</span><button class="pdef-del" title="削除">✕</button>`;
+    dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : def.type==='bone' ? ' bone' : '') + (di === selDeformer ? ' sel' : '');
+    const defIcon = def.type==='rotation'?'⟳':def.type==='bone'?'🦴':'⬡';
+    dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${defIcon} ${def.name}</span><span class="pdef-count">0</span><button class="pdef-del" title="削除">✕</button>`;
     dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
     dh.onclick = () => selectDeformer(di);
     list.appendChild(dh);
@@ -1502,8 +1654,9 @@ function updatePartsUI() {
         const collapsed = collapsedDeformers.has(pt.deformerId);
         const count = parts.filter(p => p.deformerId === pt.deformerId).length;
         const dh = document.createElement('div');
-        dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : '') + (di === selDeformer ? ' sel' : '');
-        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${def.type==='rotation'?'⟳':'⬡'} ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
+        dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : def.type==='bone' ? ' bone' : '') + (di === selDeformer ? ' sel' : '');
+        const defIcon2 = def.type==='rotation'?'⟳':def.type==='bone'?'🦴':'⬡';
+        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${defIcon2} ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
         dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
         dh.onclick = () => selectDeformer(di);
         list.appendChild(dh);
@@ -1751,6 +1904,10 @@ function confirmAddDeformer() {
   if (typeVal === 'rotation') {
     def = new RotationDeformer(nm);
     def.px = Math.round(canvasW/2); def.py = Math.round(canvasH/2);
+  } else if (typeVal === 'bone') {
+    def = new BoneDeformer(nm);
+    def.px = Math.round(canvasW/2); def.py = Math.round(canvasH/2);
+    def.length = 80; def.angle = -90;
   } else {
     def = new WarpDeformer(nm);
     def.x = Math.round(canvasW/2 - def.w/2); def.y = Math.round(canvasH/2 - def.h/2);
@@ -1759,7 +1916,8 @@ function confirmAddDeformer() {
   deformers.push(def);
   selDeformer = deformers.length - 1;
   updatePartsUI(); updateDeformerPropsUI(); render();
-  setStatus(`${typeVal==='rotation'?'⟳':'⬡'} デフォーマー「${nm}」を作成`);
+  const icon = typeVal==='rotation'?'⟳':typeVal==='bone'?'🦴':'⬡';
+  setStatus(`${icon} デフォーマー「${nm}」を作成`);
 }
 function cancelAddDeformer() { document.getElementById('defmod').style.display = 'none'; }
 function deleteDeformer(di) {
@@ -1815,9 +1973,30 @@ function updateDeformerPropsUI() {
     const def = deformers[selDeformer];
     const warpEl = document.getElementById('def-warp-props');
     const rotEl = document.getElementById('def-rot-props');
+    const boneEl = document.getElementById('def-bone-props');
     const titleEl = document.getElementById('dp-title');
-    if (def.type === 'rotation') {
-      warpEl.style.display = 'none'; rotEl.style.display = 'block';
+    if (def.type === 'bone') {
+      warpEl.style.display = 'none'; rotEl.style.display = 'none'; boneEl.style.display = 'block';
+      titleEl.textContent = '🦴 ボーンデフォーマー(FK)';
+      document.getElementById('bp-px').value = Math.round(def.px);
+      document.getElementById('bp-py').value = Math.round(def.py);
+      document.getElementById('bp-len').value = Math.round(def.length);
+      document.getElementById('bp-ang').value = def.angle.toFixed(1);
+      const kf = def.deforms[selParam]?.[curKF] || {dAngle:0};
+      document.getElementById('bp-kf').value = (kf.dAngle||0).toFixed(1);
+      // Populate parent selector
+      const parentSel = document.getElementById('bp-parent');
+      const prevParent = def.parentId;
+      parentSel.innerHTML = '<option value="">なし</option>';
+      for (const d2 of deformers) {
+        if (d2.type !== 'bone' || d2.id === def.id) continue;
+        const opt = document.createElement('option');
+        opt.value = d2.id; opt.textContent = d2.name;
+        if (d2.id === prevParent) opt.selected = true;
+        parentSel.appendChild(opt);
+      }
+    } else if (def.type === 'rotation') {
+      warpEl.style.display = 'none'; rotEl.style.display = 'block'; boneEl.style.display = 'none';
       titleEl.textContent = '⟳ 回転デフォーマー';
       document.getElementById('rp-px').value = Math.round(def.px);
       document.getElementById('rp-py').value = Math.round(def.py);
@@ -1827,7 +2006,7 @@ function updateDeformerPropsUI() {
       document.getElementById('rp-sx').value = kf.scaleX.toFixed(2);
       document.getElementById('rp-sy').value = kf.scaleY.toFixed(2);
     } else {
-      warpEl.style.display = 'block'; rotEl.style.display = 'none';
+      warpEl.style.display = 'block'; rotEl.style.display = 'none'; boneEl.style.display = 'none';
       titleEl.textContent = '⬡ ワープデフォーマー';
       document.getElementById('dp-x').value = Math.round(def.x);
       document.getElementById('dp-y').value = Math.round(def.y);
@@ -1876,6 +2055,40 @@ function applyRotScale() {
   if (!isNaN(sx) && sx > 0) def.deforms[selParam][curKF].scaleX=sx;
   if (!isNaN(sy) && sy > 0) def.deforms[selParam][curKF].scaleY=sy;
   render();
+}
+
+// ===== BONE DEFORMER PROP FUNCTIONS =====
+function applyBonePivot() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'bone') return;
+  const nx=parseFloat(document.getElementById('bp-px').value), ny=parseFloat(document.getElementById('bp-py').value);
+  if (!isNaN(nx)) def.px=nx; if (!isNaN(ny)) def.py=ny; render();
+}
+function applyBoneLength() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'bone') return;
+  const nv = parseFloat(document.getElementById('bp-len').value);
+  if (!isNaN(nv) && nv > 0) { def.length = nv; render(); }
+}
+function applyBoneRestAngle() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'bone') return;
+  const nv = parseFloat(document.getElementById('bp-ang').value);
+  if (!isNaN(nv)) { def.angle = nv; render(); }
+}
+function applyBoneKF() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'bone') return;
+  if (!def.deforms[selParam]) def.deforms[selParam] = {};
+  if (!def.deforms[selParam][curKF]) def.deforms[selParam][curKF] = {dAngle: 0};
+  const nv = parseFloat(document.getElementById('bp-kf').value);
+  if (!isNaN(nv)) def.deforms[selParam][curKF].dAngle = nv;
+  render();
+}
+function applyBoneParent(parentId) {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'bone') return;
+  def.parentId = parentId || null; render();
 }
 
 // ===== GROUPS =====
@@ -2361,6 +2574,31 @@ canvas.addEventListener('mousemove',e=>{
     }
     render();
   }
+  if (dragMode==='bone-root'&&selDeformer>=0) {
+    const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
+    const def=deformers[selDeformer]; if(def.type!=='bone') return;
+    def.px+=ddx; def.py+=ddy;
+    updateDeformerPropsUI(); render();
+  }
+  if (dragMode==='bone-tip'&&selDeformer>=0) {
+    const def=deformers[selDeformer]; if(def.type!=='bone') return;
+    const tr = def.getWorldTransform({[selParam]:curKF}, deformers);
+    // Angle from world root to mouse → compute dAngle
+    const worldAngle = Math.atan2(mp.y - tr.worldPx, mp.x - tr.worldPy) * 180/Math.PI;
+    // Actually compute from world root to mouse correctly
+    const targetAngle = Math.atan2(mp.y - tr.worldPy, mp.x - tr.worldPx) * 180/Math.PI;
+    if (!def.deforms[selParam]) def.deforms[selParam]={};
+    if (!def.deforms[selParam][curKF]) def.deforms[selParam][curKF]={dAngle:0};
+    // dAngle = targetAngle - (def.angle + parentRotationDelta)
+    let parentDelta = 0;
+    if (def.parentId) {
+      const parent = deformers.find(d=>d.id===def.parentId&&d.type==='bone');
+      if (parent) { const pTr=parent.getWorldTransform({[selParam]:curKF},deformers); parentDelta=pTr.worldAngle-parent.angle; }
+    }
+    const dAngle = targetAngle - def.angle - parentDelta;
+    def.deforms[selParam][curKF].dAngle = parseFloat(dAngle.toFixed(1));
+    updateDeformerPropsUI(); render();
+  }
   if (dragMode==='rot-pivot'&&selDeformer>=0) {
     const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
     const def=deformers[selDeformer];
@@ -2406,7 +2644,17 @@ canvas.addEventListener('mousedown',e=>{
   // Deformer editing (deform mode + deformer selected)
   if (mode==='deform'&&selDeformer>=0&&selDeformer<deformers.length) {
     const def=deformers[selDeformer];
-    if (def.type==='rotation') {
+    if (def.type==='bone') {
+      const dist=(ax,ay,bx,by)=>Math.sqrt((ax-bx)**2+(ay-by)**2);
+      const tr = def.getWorldTransform({[selParam]:curKF}, deformers);
+      const rootThresh=12/VS, tipThresh=10/VS;
+      if (dist(mp.x,mp.y,tr.worldPx,tr.worldPy)<rootThresh) {
+        saveState(); dragging=true; dragMode='bone-root'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+      if (dist(mp.x,mp.y,tr.tipX,tr.tipY)<tipThresh) {
+        saveState(); dragging=true; dragMode='bone-tip'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+    } else if (def.type==='rotation') {
       // Click near pivot → move pivot; click near handle → rotate
       const dist=(ax,ay,bx,by)=>Math.sqrt((ax-bx)**2+(ay-by)**2);
       const tr=def.getTransform({[selParam]:curKF});
@@ -2427,7 +2675,7 @@ canvas.addEventListener('mousedown',e=>{
       if (bi>=0) { saveState(); dragging=true; dragMode='def-vert'; dragVI=bi; dragSX=mp.x; dragSY=mp.y; render(); return; }
     }
   }
-  // Rotation deformer pivot drag (parts mode)
+  // Deformer pivot drag (parts mode)
   if (mode==='parts'&&selDeformer>=0&&selDeformer<deformers.length) {
     const def=deformers[selDeformer];
     if (def.type==='rotation') {
@@ -2435,6 +2683,12 @@ canvas.addEventListener('mousedown',e=>{
       const dx=mp.x-def.px, dy=mp.y-def.py;
       if (Math.sqrt(dx*dx+dy*dy)<pivotThresh) {
         saveState(); dragging=true; dragMode='rot-pivot'; dragSX=mp.x; dragSY=mp.y; render(); return;
+      }
+    } else if (def.type==='bone') {
+      const pivotThresh=14/VS;
+      const dx=mp.x-def.px, dy=mp.y-def.py;
+      if (Math.sqrt(dx*dx+dy*dy)<pivotThresh) {
+        saveState(); dragging=true; dragMode='bone-root'; dragSX=mp.x; dragSY=mp.y; render(); return;
       }
     }
   }
@@ -2611,6 +2865,24 @@ function interpRotDeform(def,vals){
   }
   return{angle,scaleX,scaleY};
 }
+function interpBoneTransform(def,vals,allDefs){
+  let dAngle=0;
+  for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!def.deforms?.[pn])continue;
+    const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
+    for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break;}
+    const t=k0===k1?0:(pval-k0)/(k1-k0);
+    const d0=def.deforms[pn]?.[k0]||{dAngle:0},d1=def.deforms[pn]?.[k1]||{dAngle:0};
+    dAngle+=d0.dAngle*(1-t)+d1.dAngle*t;
+  }
+  if(def.parentId){const par=allDefs.find(d=>d.id===def.parentId&&d.type==='bone');
+    if(par){const pTr=interpBoneTransform(par,vals,allDefs);
+      const wa=def.angle+(pTr.worldAngle-par.angle)+dAngle;
+      return{worldPx:pTr.tipX,worldPy:pTr.tipY,worldAngle:wa,
+             tipX:pTr.tipX+Math.cos(wa*Math.PI/180)*def.length,tipY:pTr.tipY+Math.sin(wa*Math.PI/180)*def.length};}}
+  const wa=def.angle+dAngle;
+  return{worldPx:def.px,worldPy:def.py,worldAngle:wa,
+         tipX:def.px+Math.cos(wa*Math.PI/180)*def.length,tipY:def.py+Math.sin(wa*Math.PI/180)*def.length};
+}
 function interpOpacity(pt,vals){
   if(!pt.opacityKFs||!Object.keys(pt.opacityKFs).length)return pt.opacity!==undefined?pt.opacity:1;
   let opacity=pt.opacity!==undefined?pt.opacity:1;
@@ -2638,8 +2910,9 @@ function interpDeforms(obj,vals){
   }
   return r;
 }
-// Precompute deformer base verts
+// Precompute deformer base verts (warp only; bone/rotation compute dynamically)
 DEFORMERS.forEach(def=>{
+  if(def.type==='bone'||def.type==='rotation')return;
   const v=[];for(let r=0;r<=def.rows;r++)for(let c=0;c<=def.cols;c++)v.push({x:def.x+c/def.cols*def.w,y:def.y+r/def.rows*def.h});
   def._baseVerts=v;
 });
@@ -2663,9 +2936,12 @@ function getWorldVerts(pt,vals){
     for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
   }
   for(let i=0;i<n;i++){r[i].x+=pt.x||0;r[i].y+=pt.y||0;}
-  // Apply warp deformer
+  // Apply deformer (bone, rotation, or warp)
   if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){
-    if(def.type==='rotation'){
+    if(def.type==='bone'){
+      const tr=interpBoneTransform(def,vals,DEFORMERS);
+      for(let i=0;i<n;i++){const dx=r[i].x-def.px,dy=r[i].y-def.py,dRad=(tr.worldAngle-def.angle)*Math.PI/180,c=Math.cos(dRad),s2=Math.sin(dRad);r[i].x=tr.worldPx+dx*c-dy*s2;r[i].y=tr.worldPy+dx*s2+dy*c;}
+    }else if(def.type==='rotation'){
       const tr=interpRotDeform(def,vals);
       for(let i=0;i<n;i++){const dx=(r[i].x-def.px)*tr.scaleX,dy=(r[i].y-def.py)*tr.scaleY,rad=tr.angle*Math.PI/180,c=Math.cos(rad),s2=Math.sin(rad);r[i].x=def.px+dx*c-dy*s2;r[i].y=def.py+dx*s2+dy*c;}
     }else{const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}
