@@ -3038,9 +3038,48 @@ function initCam(){
 
 // ===== STATUS / INIT =====
 function setStatus(msg) { document.getElementById('sb').textContent=msg; }
+
+// ===== AUTO-SAVE (localStorage) =====
+const RIGGER_AS_KEY = 'rigger-autosave-v1';
+let _riggerAutoSaveTimer = null;
+
+function riggerAutoSave() {
+  if (!parts.some(p => p.img)) return;
+  try {
+    const model = {version:3, canvasW, canvasH, expressions, groups, customParams,
+                   deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(false))};
+    const json = JSON.stringify(model);
+    localStorage.setItem(RIGGER_AS_KEY, json);
+    localStorage.setItem(RIGGER_AS_KEY+'-time', new Date().toISOString());
+    setStatus(`自動保存: ${parts.length}パーツ (${new Date().toLocaleTimeString()})`);
+  } catch(e) { console.warn('rigger auto-save failed', e); }
+}
+
+function checkRiggerAutoSave() {
+  try {
+    const saved = localStorage.getItem(RIGGER_AS_KEY);
+    const savedTime = localStorage.getItem(RIGGER_AS_KEY+'-time');
+    if (!saved || !savedTime) return;
+    const dt = new Date(savedTime);
+    const mins = Math.round((Date.now() - dt.getTime()) / 60000);
+    const data = JSON.parse(saved);
+    if (!data.parts || data.parts.length === 0) return;
+    if (confirm(`自動保存データが見つかりました (${mins}分前, ${data.parts.length}パーツ)\n復元しますか？`)) {
+      loadModelFromJSON(saved);
+    }
+  } catch(e) { console.warn('rigger auto-save restore failed', e); }
+}
+
+function startRiggerAutoSave() {
+  if (_riggerAutoSaveTimer) clearInterval(_riggerAutoSaveTimer);
+  _riggerAutoSaveTimer = setInterval(riggerAutoSave, 120000); // 2 minutes
+}
+
 setupCanvas(); buildParamsUI(); buildKFUI(); setMode('parts'); fitView();
 updateExpressionsUI(); updatePhysicsUI(); updatePartsUI();
 setTimeout(drawXYGrid, 50);
+setTimeout(checkRiggerAutoSave, 500);
+startRiggerAutoSave();
 </script>
 </body>
 </html>

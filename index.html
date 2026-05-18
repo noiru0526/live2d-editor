@@ -244,6 +244,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .tl-track-label-row{position:absolute;left:0;width:90px;display:flex;align-items:center;padding:0 2px 0 3px;box-sizing:border-box;pointer-events:auto;}
 .tl-track-name{font-size:9px;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
 .tl-track-name.active{color:var(--text);}
+.tl-track-name.sync-sel{color:#60c8ff;font-weight:bold;}
 .tl-track-eye{background:none;border:none;cursor:pointer;font-size:10px;padding:0 1px;line-height:1;opacity:.5;flex-shrink:0;}
 .tl-track-eye:hover{opacity:1;}
 .tl-track-eye.muted{opacity:.2;}
@@ -12341,6 +12342,10 @@ function ctxSetTransform() {
 // ==================== UX PATTERN 3: TIMELINE TRACK CONTROLS (ADOBE ANIMATE STYLE) ====================
 if (!window._tlTrackVisible) window._tlTrackVisible = {};
 
+// Multi-parameter sync scrub: selected track set + drag state
+const tlSyncScrubTracks = new Set(); // tracks selected for sync scrub
+let _syncScrubDrag = null; // {startY, trackName, startVals:{name→val}}
+
 function buildTrackOverlay() {
   const overlay = document.getElementById('tl-track-overlay');
   if (!overlay) return;
@@ -12348,33 +12353,81 @@ function buildTrackOverlay() {
   overlay.innerHTML = '';
   overlay.style.pointerEvents = 'auto';
   const {offs:ovOffs, rhs:ovRhs} = _rowOffsets(params);
+
+  // Sync scrub count badge
+  if (tlSyncScrubTracks.size > 0) {
+    const badge = document.createElement('div');
+    badge.style.cssText = 'position:absolute;top:0;left:0;right:0;background:rgba(100,200,255,.12);border-bottom:1px solid rgba(100,200,255,.3);padding:1px 4px;font-size:8px;color:#60c8ff;z-index:1;pointer-events:none;';
+    badge.textContent = `⟷ ${tlSyncScrubTracks.size}トラック同期`;
+    overlay.appendChild(badge);
+  }
+
   params.forEach(([name, p], ri) => {
     const row = document.createElement('div');
     row.className = 'tl-track-label-row';
     row.style.top = (ovOffs[ri]) + 'px';
     row.style.height = ovRhs[ri] + 'px';
     const isMuted = window._tlTrackVisible[name] === false;
+    const isSyncSel = tlSyncScrubTracks.has(name);
+    if (isSyncSel) row.style.background = 'rgba(100,200,255,.12)';
     const nameEl = document.createElement('span');
-    nameEl.className = 'tl-track-name' + (name === ST.ap ? ' active' : '');
+    nameEl.className = 'tl-track-name' + (name === ST.ap ? ' active' : '') + (isSyncSel ? ' sync-sel' : '');
     const shortLbl = p.lbl.length > 9 ? p.lbl.slice(0, 8) + '…' : p.lbl;
     nameEl.textContent = shortLbl;
-    nameEl.title = p.lbl;
-    nameEl.onclick = () => { ST.ap = name; buildTrackOverlay(); drawMultiTimeline(); };
+    nameEl.title = isSyncSel ? `[同期スクラブ中] ${p.lbl} — Ctrl+クリックで解除` : `${p.lbl} — Ctrl+クリックで同期スクラブに追加`;
+    nameEl.onclick = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        // Toggle sync scrub selection
+        if (tlSyncScrubTracks.has(name)) tlSyncScrubTracks.delete(name);
+        else tlSyncScrubTracks.add(name);
+        buildTrackOverlay();
+      } else {
+        ST.ap = name; buildTrackOverlay(); drawMultiTimeline();
+      }
+    };
+    // Vertical drag on label → scrub value for sync tracks
+    nameEl.addEventListener('mousedown', e => {
+      if (e.button !== 0 || e.ctrlKey || e.metaKey) return;
+      e.stopPropagation();
+      const dragTargets = tlSyncScrubTracks.size > 0 && tlSyncScrubTracks.has(name)
+        ? [...tlSyncScrubTracks]
+        : [name];
+      const startVals = {};
+      for (const dn of dragTargets) startVals[dn] = M.params[dn]?.val ?? 0;
+      _syncScrubDrag = {startY: e.clientY, trackName: name, targets: dragTargets, startVals};
+      e.preventDefault();
+    });
     const eyeEl = document.createElement('button');
     eyeEl.className = 'tl-track-eye' + (isMuted ? ' muted' : '');
     eyeEl.textContent = isMuted ? '🙈' : '👁';
     eyeEl.title = isMuted ? 'トラック非表示（クリックで表示）' : 'トラック非表示';
     eyeEl.onclick = (e) => {
       e.stopPropagation();
-      window._tlTrackVisible[name] = isMuted; // toggle: if muted→visible
-      buildTrackOverlay();
-      drawMultiTimeline();
+      window._tlTrackVisible[name] = isMuted;
+      buildTrackOverlay(); drawMultiTimeline();
     };
     row.appendChild(nameEl);
     row.appendChild(eyeEl);
     overlay.appendChild(row);
   });
 }
+
+// Sync scrub mousemove/mouseup handlers
+document.addEventListener('mousemove', e => {
+  if (!_syncScrubDrag) return;
+  const dy = _syncScrubDrag.startY - e.clientY; // up = increase
+  for (const dn of _syncScrubDrag.targets) {
+    const p = M.params[dn]; if (!p) continue;
+    const range = (p.max - p.min) || 1;
+    const newVal = Math.max(p.min, Math.min(p.max, _syncScrubDrag.startVals[dn] + dy * range / 120));
+    p.val = newVal;
+    const sl = document.getElementById(`ps-${dn}`);
+    if (sl) { sl.value = newVal; updateSliderFill(sl, newVal, p.min, p.max); }
+    const pv = document.getElementById(`pv-${dn}`); if (pv) pv.textContent = newVal.toFixed(2);
+  }
+  ST.cachedVerts = null; redraw();
+});
+document.addEventListener('mouseup', () => { if (_syncScrubDrag) { _syncScrubDrag = null; } });
 
 // Patch drawMultiTimeline to also build overlay
 const _origDrawMultiTimeline = drawMultiTimeline;
