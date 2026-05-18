@@ -323,6 +323,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
       </div>
     </div>
 
@@ -2971,6 +2972,18 @@ function removeKFPosition() {
 }
 
 // ===== SMOOTH DEFORM =====
+function snapMeshVertsToGrid() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh) { setStatus('メッシュがありません'); return; }
+  const gsize = gridSize || 8;
+  const snap = v => Math.round(v / gsize) * gsize;
+  saveState();
+  for (const v of pt.mesh.verts) { v.x = snap(v.x); v.y = snap(v.y); }
+  render();
+  setStatus(`頂点をグリッドにスナップ (${gsize}px): ${pt.mesh.verts.length}頂点`);
+}
+
 function smoothDeform() {
   if (selPart < 0) { setStatus('パーツを選択してください'); return; }
   const pt = parts[selPart];
