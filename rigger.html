@@ -1104,19 +1104,10 @@ function drawTriTexCtx(tc, x0,y0, x1,y1, x2,y2, u0,v0, u1,v1, u2,v2, img) {
   tc.transform(a,e,b,f,c,g); tc.drawImage(img,0,0); tc.restore();
 }
 
-function updatePartPreview() {
-  const wrap = document.getElementById('part-preview-wrap');
-  const pcanvas = document.getElementById('part-preview-canvas');
-  const plabel = document.getElementById('part-preview-label');
-  if (!wrap || !pcanvas) return;
-  const pt = selPart >= 0 ? parts[selPart] : null;
-  if (!pt || !pt.img) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  const SZ = 80;
-  const tc = pcanvas.getContext('2d');
-  tc.clearRect(0, 0, SZ, SZ);
-  tc.fillStyle = '#0c0f18'; tc.fillRect(0, 0, SZ, SZ);
-  const vals = getParamVals();
+function renderPartToCtx(pt, tc, sz, vals) {
+  tc.clearRect(0, 0, sz, sz);
+  tc.fillStyle = '#0c0f18'; tc.fillRect(0, 0, sz, sz);
+  if (!pt || !pt.img || !pt.mesh.tris.length) return;
   const wv = pt.getWorldVerts(vals);
   if (pt.deformerId) {
     const def = deformers.find(d => d.id === pt.deformerId);
@@ -1133,12 +1124,11 @@ function updatePartPreview() {
       }
     }
   }
-  // Compute bbox of world verts
   let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity;
   for (const v of wv) { mnX=Math.min(mnX,v.x); mnY=Math.min(mnY,v.y); mxX=Math.max(mxX,v.x); mxY=Math.max(mxY,v.y); }
   const bw = mxX-mnX||1, bh = mxY-mnY||1;
-  const scl = Math.min(SZ/bw, SZ/bh) * 0.9;
-  const ox = (SZ - bw*scl)/2, oy = (SZ - bh*scl)/2;
+  const scl = Math.min(sz/bw, sz/bh) * 0.9;
+  const ox = (sz - bw*scl)/2, oy = (sz - bh*scl)/2;
   const toSX = wx => (wx - mnX)*scl + ox;
   const toSY = wy => (wy - mnY)*scl + oy;
   tc.globalAlpha = pt.opacity !== undefined ? pt.opacity : 1;
@@ -1148,6 +1138,31 @@ function updatePartPreview() {
     drawTriTexCtx(tc, toSX(p0.x),toSY(p0.y), toSX(p1.x),toSY(p1.y), toSX(p2.x),toSY(p2.y), q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.img);
   }
   tc.globalAlpha = 1;
+}
+
+let _thumbRafId = null;
+function scheduleThumbUpdate() {
+  if (_thumbRafId) return;
+  _thumbRafId = requestAnimationFrame(() => {
+    _thumbRafId = null;
+    const vals = getParamVals();
+    document.querySelectorAll('.pthumbs[data-pi]').forEach(c => {
+      const pi = parseInt(c.dataset.pi);
+      if (isNaN(pi) || !parts[pi]) return;
+      renderPartToCtx(parts[pi], c.getContext('2d'), 20, vals);
+    });
+  });
+}
+
+function updatePartPreview() {
+  const wrap = document.getElementById('part-preview-wrap');
+  const pcanvas = document.getElementById('part-preview-canvas');
+  const plabel = document.getElementById('part-preview-label');
+  if (!wrap || !pcanvas) return;
+  const pt = selPart >= 0 ? parts[selPart] : null;
+  if (!pt || !pt.img) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  renderPartToCtx(pt, pcanvas.getContext('2d'), 80, getParamVals());
   if (plabel) plabel.textContent = pt.name;
 }
 
@@ -1449,6 +1464,7 @@ function render() {
   }
 
   updatePartPreview();
+  scheduleThumbUpdate();
 }
 
 // ===== PART MANAGEMENT =====
@@ -1597,8 +1613,8 @@ function updatePartsUI() {
     if (pt.img) {
       const thumb = document.createElement('canvas');
       thumb.width=20; thumb.height=20; thumb.className='pthumbs';
-      const tc=thumb.getContext('2d');
-      tc.drawImage(pt.img, 0, 0, pt.w*Math.min(20/pt.w,20/pt.h), pt.h*Math.min(20/pt.w,20/pt.h));
+      thumb.dataset.pi = i;
+      renderPartToCtx(pt, thumb.getContext('2d'), 20, getParamVals());
       d.appendChild(thumb);
     } else {
       const te=document.createElement('div'); te.className='pthumbs';
