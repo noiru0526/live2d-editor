@@ -155,6 +155,20 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 .mbn:hover{background:#1e293b;color:#cdd6f4}
 .mbn.ok:hover{background:rgba(124,58,237,.5)}
 
+/* Deformer headers */
+.pdef{background:#080e14;border-bottom:1px solid #1a3040;padding:3px 5px;display:flex;align-items:center;gap:3px;cursor:pointer;flex-shrink:0}
+.pdef:hover{background:#0c1520}
+.pdef.sel{background:#0d1a2e;border-color:#0ea5e9;border-bottom-color:#0ea5e9}
+.pdef-caret{font-size:8px;color:#1e4060;width:10px;text-align:center;flex-shrink:0}
+.pdef-name{flex:1;font-size:9px;color:#2e6080;font-weight:700;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdef-count{font-size:8px;color:#1e4060;font-family:monospace;margin-right:2px}
+.pi.in-deformer{padding-left:20px}
+.pdef-del{background:none;border:none;color:#1e4060;cursor:pointer;font-size:10px;padding:0 3px;line-height:1}
+.pdef-del:hover{color:#f87171}
+
+/* Deformer props section */
+#deformer-props{gap:0}
+
 /* Group headers */
 .pgroup{background:#080b10;border-bottom:1px solid #1a2030;padding:3px 5px;display:flex;align-items:center;gap:3px;cursor:pointer;flex-shrink:0}
 .pgroup:hover{background:#0c1020}
@@ -195,6 +209,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="tgrp">
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
+    <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
     <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
   </div>
   <div class="sep"></div>
@@ -286,6 +301,27 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 
     <!-- PROPS tab -->
     <div id="rp-props" class="rpanel on">
+      <!-- Deformer properties (shown when deformer selected) -->
+      <div class="prop-section" id="deformer-props" style="display:none">
+        <h4>デフォーマープロパティ</h4>
+        <div class="prop-row">
+          <span class="prop-lbl">X</span><input class="prop-in" id="dp-x" type="number" oninput="applyDeformerXY()">
+          <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="dp-y" type="number" oninput="applyDeformerXY()">
+        </div>
+        <div class="prop-row">
+          <span class="prop-lbl">W</span><input class="prop-in" id="dp-w" type="number" oninput="applyDeformerSize()">
+          <span class="prop-lbl" style="margin-left:2px">H</span><input class="prop-in" id="dp-h" type="number" oninput="applyDeformerSize()">
+        </div>
+        <div class="prop-row">
+          <span class="prop-lbl">分割</span>
+          <input class="prop-in" id="dp-cols" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
+          <span style="font-size:9px;color:#4e6080;margin:0 2px">×</span>
+          <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
+        </div>
+        <div class="prop-row" style="margin-top:2px">
+          <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
+        </div>
+      </div>
       <div class="prop-section" id="part-props" style="display:none">
         <h4>パーツプロパティ</h4>
         <div class="prop-row">
@@ -319,6 +355,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div class="prop-row">
           <span class="prop-lbl">クリップ</span>
           <select class="prop-sel" id="pp-clip" onchange="applyPartClip(this.value)">
+            <option value="">なし</option>
+          </select>
+        </div>
+        <div class="prop-row">
+          <span class="prop-lbl">デフォーマー</span>
+          <select class="prop-sel" id="pp-deformer" onchange="applyPartDeformer(this.value)">
             <option value="">なし</option>
           </select>
         </div>
@@ -418,6 +460,19 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   </div>
 </div>
 
+<!-- Deformer modal -->
+<div id="defmod" class="mo" style="display:none">
+  <div class="mb">
+    <h3>ワープデフォーマーを作成</h3>
+    <input type="text" id="defni" placeholder="例: 顔デフォーマー, 体デフォーマー">
+    <p>選択したパーツをこのデフォーマーに割り当ててください。デフォーマーの変形が子パーツに適用されます。</p>
+    <div class="ma">
+      <button class="mbn" onclick="cancelAddDeformer()">キャンセル</button>
+      <button class="mbn ok" onclick="confirmAddDeformer()">作成</button>
+    </div>
+  </div>
+</div>
+
 <!-- Group modal -->
 <div id="grpmod" class="mo" style="display:none">
   <div class="mb">
@@ -489,6 +544,8 @@ let pendingImg = null, pendingDataURL = null;
 let expressions = [], activeExprIdx = -1;
 let groups = [], customParams = {};
 const collapsedGroups = new Set();
+let deformers = [], selDeformer = -1;
+const collapsedDeformers = new Set();
 const physState = new Map();
 let physLastTs = 0;
 
@@ -526,6 +583,7 @@ class Part {
     this.mesh = null; this.deforms = {};
     this.clipTo = null;
     this.groupId = null;
+    this.deformerId = null;
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
   }
   get w() { return this.img ? this.img.width : 100; }
@@ -594,6 +652,7 @@ class Part {
       locked: this.locked, visible: this.visible, zIndex: this.zIndex,
       clipTo: this.clipTo,
       groupId: this.groupId,
+      deformerId: this.deformerId,
       physics: {...this.physics},
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
@@ -609,6 +668,7 @@ class Part {
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.clipTo = o.clipTo || null;
     p.groupId = o.groupId || null;
+    p.deformerId = o.deformerId || null;
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
@@ -619,6 +679,85 @@ class Part {
       img.src = o.imageData;
     }
     return p;
+  }
+}
+
+// ===== WARP DEFORMER =====
+class WarpDeformer {
+  constructor(name) {
+    this.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    this.name = name;
+    this.x = 100; this.y = 100; this.w = 400; this.h = 400;
+    this.cols = 2; this.rows = 2;
+    this.deforms = {};
+    this.initDeforms();
+  }
+  get gw() { return this.cols + 1; }
+  get gh() { return this.rows + 1; }
+  get gn() { return this.gw * this.gh; }
+  baseVerts() {
+    const v = [];
+    for (let r = 0; r <= this.rows; r++)
+      for (let c = 0; c <= this.cols; c++)
+        v.push({x: this.x + c/this.cols * this.w, y: this.y + r/this.rows * this.h});
+    return v;
+  }
+  initDeforms() {
+    const n = this.gn;
+    this.deforms = {};
+    for (const [pn, pc] of Object.entries(P)) {
+      this.deforms[pn] = {};
+      for (const k of pc.k)
+        this.deforms[pn][k] = Array.from({length:n}, () => ({dx:0, dy:0}));
+    }
+  }
+  resizeDeforms() {
+    const n = this.gn;
+    for (const [pn, pc] of Object.entries(P)) {
+      if (!this.deforms[pn]) this.deforms[pn] = {};
+      for (const k of pc.k) {
+        const old = this.deforms[pn][k] || [];
+        this.deforms[pn][k] = Array.from({length:n}, (_,i) => old[i] || {dx:0, dy:0});
+      }
+    }
+  }
+  getDeformedVerts(vals) {
+    const base = this.baseVerts(), n = base.length;
+    const r = base.map(q => ({x:q.x, y:q.y}));
+    for (const [pn, pval] of Object.entries(vals)) {
+      const pc = P[pn]; if (!pc || !this.deforms[pn]) continue;
+      const ks = pc.k; let k0=ks[0], k1=ks[ks.length-1];
+      for (let i = 0; i < ks.length-1; i++)
+        if (pval >= ks[i] && pval <= ks[i+1]) { k0=ks[i]; k1=ks[i+1]; break; }
+      const t = k0===k1 ? 0 : (pval-k0)/(k1-k0);
+      const d0=this.deforms[pn][k0]||[], d1=this.deforms[pn][k1]||[];
+      for (let i=0; i<n; i++) {
+        r[i].x += (d0[i]?.dx||0)*(1-t) + (d1[i]?.dx||0)*t;
+        r[i].y += (d0[i]?.dy||0)*(1-t) + (d1[i]?.dy||0)*t;
+      }
+    }
+    return r;
+  }
+  warpVert(vx, vy, dv) {
+    const u = (vx - this.x) / this.w, v = (vy - this.y) / this.h;
+    if (u < 0 || u > 1 || v < 0 || v > 1) return {x:vx, y:vy};
+    const uc = u*this.cols, vc = v*this.rows;
+    const ci = Math.min(Math.floor(uc), this.cols-1), ri = Math.min(Math.floor(vc), this.rows-1);
+    const tu = uc-ci, tv = vc-ri, s = this.cols+1;
+    const tl=dv[ri*s+ci], tr=dv[ri*s+ci+1], bl=dv[(ri+1)*s+ci], br=dv[(ri+1)*s+ci+1];
+    return {
+      x: tl.x*(1-tu)*(1-tv) + tr.x*tu*(1-tv) + bl.x*(1-tu)*tv + br.x*tu*tv,
+      y: tl.y*(1-tu)*(1-tv) + tr.y*tu*(1-tv) + bl.y*(1-tu)*tv + br.y*tu*tv
+    };
+  }
+  toJSON() {
+    return {id:this.id, name:this.name, x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, deforms:this.deforms};
+  }
+  static fromJSON(o) {
+    const d = new WarpDeformer(o.name);
+    d.id = o.id||d.id; d.x=o.x||100; d.y=o.y||100; d.w=o.w||400; d.h=o.h||400;
+    d.cols=o.cols||2; d.rows=o.rows||2; d.deforms=o.deforms||{};
+    return d;
   }
 }
 
@@ -748,6 +887,18 @@ function render() {
 
     const wv = pt.getWorldVerts(vals);
 
+    // Apply warp deformer
+    if (pt.deformerId) {
+      const def = deformers.find(d => d.id === pt.deformerId);
+      if (def) {
+        const dv = def.getDeformedVerts(vals);
+        for (let i = 0; i < wv.length; i++) {
+          const w = def.warpVert(wv[i].x, wv[i].y, dv);
+          wv[i].x = w.x; wv[i].y = w.y;
+        }
+      }
+    }
+
     // Apply physics offset in preview
     if (mode === 'preview' && pt.physics?.enabled) {
       const ps = physState.get(pt.id);
@@ -823,6 +974,60 @@ function render() {
     }
   }
 
+  // Deformer grid overlay
+  if (mode !== 'preview') {
+    deformers.forEach((def, di) => {
+      const isSel = di === selDeformer;
+      const dVals = mode === 'deform' && isSel ? {[selParam]: curKF} : {};
+      const dv = def.getDeformedVerts(dVals);
+      const bv = def.baseVerts();
+      const s = def.cols + 1;
+      ctx.save();
+      // Base grid ghost
+      ctx.strokeStyle = isSel ? 'rgba(14,165,233,.2)' : 'rgba(14,165,233,.06)';
+      ctx.lineWidth = .5;
+      for (let r = 0; r <= def.rows; r++) {
+        ctx.beginPath();
+        for (let c = 0; c <= def.cols; c++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+        ctx.stroke();
+      }
+      for (let c = 0; c <= def.cols; c++) {
+        ctx.beginPath();
+        for (let r = 0; r <= def.rows; r++) { const p=m2s(bv[r*s+c].x,bv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+        ctx.stroke();
+      }
+      // Deformed grid
+      ctx.strokeStyle = isSel ? 'rgba(14,165,233,.8)' : 'rgba(14,165,233,.25)';
+      ctx.lineWidth = isSel ? 1.2 : .6;
+      for (let r = 0; r <= def.rows; r++) {
+        ctx.beginPath();
+        for (let c = 0; c <= def.cols; c++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); c===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+        ctx.stroke();
+      }
+      for (let c = 0; c <= def.cols; c++) {
+        ctx.beginPath();
+        for (let r = 0; r <= def.rows; r++) { const p=m2s(dv[r*s+c].x,dv[r*s+c].y); r===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y); }
+        ctx.stroke();
+      }
+      // Grid vertices (only when selected)
+      if (isSel && mode === 'deform') {
+        for (let i = 0; i < dv.length; i++) {
+          const p = m2s(dv[i].x, dv[i].y);
+          const kd = def.deforms[selParam]?.[curKF];
+          const hd = kd && kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
+          ctx.beginPath(); ctx.arc(p.x, p.y, i===dragVI?4.5:(hd?3.5:3), 0, Math.PI*2);
+          ctx.fillStyle = i===dragVI ? '#fff' : hd ? '#38bdf8' : '#0ea5e9';
+          ctx.fill();
+        }
+      }
+      // Label
+      const lp = m2s(def.x, def.y);
+      ctx.fillStyle = isSel ? '#0ea5e9' : 'rgba(14,165,233,.4)';
+      ctx.font = '9px Segoe UI'; ctx.fillText('⬡ '+def.name, lp.x+3, lp.y+11);
+      ctx.restore();
+    });
+  }
+
   // Position display
   if (mode==='parts' && selPart>=0 && selPart<parts.length) {
     const pt = parts[selPart];
@@ -892,7 +1097,8 @@ function loadModelFromJSON(json) {
     if (data.parts) parts = data.parts.map(o => Part.fromJSON(o));
     expressions = data.expressions || [];
     groups = data.groups || [];
-    collapsedGroups.clear();
+    deformers = (data.deformers || []).map(o => WarpDeformer.fromJSON(o));
+    collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
     updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); fitView();
@@ -960,6 +1166,7 @@ let dragSrcIdx = -1;
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   const seenGroups = new Set();
+  const seenDeformers = new Set();
 
   function makePartItem(pt, i) {
     const d = document.createElement('div');
@@ -1016,7 +1223,41 @@ function updatePartsUI() {
     return d;
   }
 
+  // Render deformers without children first (no parts assigned yet)
+  deformers.forEach((def, di) => {
+    const hasKids = parts.some(p => p.deformerId === def.id);
+    if (hasKids) return; // will be shown when first child part appears
+    const collapsed = collapsedDeformers.has(def.id);
+    const dh = document.createElement('div');
+    dh.className = 'pdef' + (di === selDeformer ? ' sel' : '');
+    dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">⬡ ${def.name}</span><span class="pdef-count">0</span><button class="pdef-del" title="削除">✕</button>`;
+    dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
+    dh.onclick = () => selectDeformer(di);
+    list.appendChild(dh);
+    seenDeformers.add(def.id);
+  });
+
   parts.forEach((pt, i) => {
+    // Deformer header
+    if (pt.deformerId && !seenDeformers.has(pt.deformerId)) {
+      const def = deformers.find(d => d.id === pt.deformerId);
+      if (def) {
+        seenDeformers.add(pt.deformerId);
+        const di = deformers.indexOf(def);
+        const collapsed = collapsedDeformers.has(pt.deformerId);
+        const count = parts.filter(p => p.deformerId === pt.deformerId).length;
+        const dh = document.createElement('div');
+        dh.className = 'pdef' + (di === selDeformer ? ' sel' : '');
+        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">⬡ ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
+        dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
+        dh.onclick = () => selectDeformer(di);
+        list.appendChild(dh);
+      }
+      if (collapsedDeformers.has(pt.deformerId)) return;
+    } else if (pt.deformerId && collapsedDeformers.has(pt.deformerId)) {
+      return; // collapsed deformer
+    }
+
     if (pt.groupId) {
       const grp = groups.find(g => g.id === pt.groupId);
       if (grp && !seenGroups.has(pt.groupId)) {
@@ -1059,13 +1300,20 @@ function updatePartPropsUI() {
     clipSel.innerHTML = '<option value="">なし</option>';
     parts.forEach((p,i)=>{ if(i===selPart) return; const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; clipSel.appendChild(o); });
     clipSel.value = pt.clipTo || '';
+    // Deformer dropdown
+    const defSel = document.getElementById('pp-deformer');
+    defSel.innerHTML = '<option value="">なし</option>';
+    deformers.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.name; defSel.appendChild(o); });
+    defSel.value = pt.deformerId || '';
     // Group dropdown
     const grpSel = document.getElementById('pp-group');
     grpSel.innerHTML = '<option value="">なし</option>';
     groups.forEach(g=>{ const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; grpSel.appendChild(o); });
     grpSel.value = pt.groupId || '';
-  } else {
+  } else if (selDeformer < 0) {
     pp.style.display = 'none'; nm.style.display = 'block';
+  } else {
+    pp.style.display = 'none'; nm.style.display = 'none';
   }
 }
 
@@ -1193,6 +1441,88 @@ function exportExpressionsJSON() {
   const json=JSON.stringify({expressions},null,2);
   const b=new Blob([json],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='expressions.json'; a.click();
+}
+
+// ===== DEFORMERS =====
+function addDeformerPrompt() {
+  document.getElementById('defni').value = `デフォーマー${deformers.length+1}`;
+  document.getElementById('defmod').style.display = 'flex';
+  document.getElementById('defni').focus(); document.getElementById('defni').select();
+}
+function confirmAddDeformer() {
+  const nm = document.getElementById('defni').value.trim() || `デフォーマー${deformers.length+1}`;
+  document.getElementById('defmod').style.display = 'none';
+  const def = new WarpDeformer(nm);
+  // Center in canvas
+  def.x = Math.round(canvasW/2 - def.w/2); def.y = Math.round(canvasH/2 - def.h/2);
+  // Assign selected part(s) to this deformer
+  if (selPart >= 0) parts[selPart].deformerId = def.id;
+  deformers.push(def);
+  selDeformer = deformers.length - 1;
+  updatePartsUI(); updateDeformerPropsUI(); render();
+  setStatus(`デフォーマー「${nm}」を作成`);
+}
+function cancelAddDeformer() { document.getElementById('defmod').style.display = 'none'; }
+function deleteDeformer(di) {
+  if (di < 0 || di >= deformers.length) return;
+  const def = deformers[di];
+  parts.forEach(p => { if (p.deformerId === def.id) p.deformerId = null; });
+  deformers.splice(di, 1);
+  collapsedDeformers.delete(def.id);
+  selDeformer = -1;
+  updatePartsUI(); updateDeformerPropsUI(); render();
+  setStatus(`デフォーマー「${def.name}」を削除`);
+}
+function selectDeformer(di) {
+  selDeformer = di; selPart = -1; selParts.clear();
+  updatePartsUI(); updateDeformerPropsUI(); render();
+}
+function toggleDeformer(did) {
+  if (collapsedDeformers.has(did)) collapsedDeformers.delete(did);
+  else collapsedDeformers.add(did);
+  updatePartsUI();
+}
+function applyPartDeformer(did) {
+  if (selPart < 0 || selPart >= parts.length) return;
+  parts[selPart].deformerId = did || null;
+  updatePartsUI(); render();
+  setStatus(did ? `「${parts[selPart].name}」をデフォーマーに割り当て` : `デフォーマーを解除`);
+}
+function applyDeformerXY() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  const nx=parseFloat(document.getElementById('dp-x').value), ny=parseFloat(document.getElementById('dp-y').value);
+  if (!isNaN(nx)) def.x=nx; if (!isNaN(ny)) def.y=ny; render();
+}
+function applyDeformerSize() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  const nw=parseFloat(document.getElementById('dp-w').value), nh=parseFloat(document.getElementById('dp-h').value);
+  if (!isNaN(nw) && nw > 0) def.w=nw; if (!isNaN(nh) && nh > 0) def.h=nh; render();
+}
+function applyDeformerGrid() {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer];
+  const nc=parseInt(document.getElementById('dp-cols').value)||2, nr=parseInt(document.getElementById('dp-rows').value)||2;
+  def.cols=Math.max(1,Math.min(8,nc)); def.rows=Math.max(1,Math.min(8,nr));
+  def.initDeforms(); render();
+}
+function updateDeformerPropsUI() {
+  const dp = document.getElementById('deformer-props');
+  const pp = document.getElementById('part-props');
+  const nm = document.getElementById('no-sel-msg');
+  if (selDeformer >= 0 && selDeformer < deformers.length) {
+    dp.style.display = 'block'; pp.style.display = 'none'; nm.style.display = 'none';
+    const def = deformers[selDeformer];
+    document.getElementById('dp-x').value = Math.round(def.x);
+    document.getElementById('dp-y').value = Math.round(def.y);
+    document.getElementById('dp-w').value = Math.round(def.w);
+    document.getElementById('dp-h').value = Math.round(def.h);
+    document.getElementById('dp-cols').value = def.cols;
+    document.getElementById('dp-rows').value = def.rows;
+  } else {
+    dp.style.display = 'none';
+  }
 }
 
 // ===== GROUPS =====
@@ -1418,6 +1748,15 @@ canvas.addEventListener('mousemove',e=>{
     }
     render();
   }
+  if (dragMode==='def-vert'&&dragVI>=0&&selDeformer>=0) {
+    const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
+    const def=deformers[selDeformer];
+    if (def.deforms[selParam]?.[curKF]) {
+      def.deforms[selParam][curKF][dragVI].dx+=ddx;
+      def.deforms[selParam][curKF][dragVI].dy+=ddy;
+    }
+    render();
+  }
 });
 
 canvas.addEventListener('mousedown',e=>{
@@ -1445,6 +1784,15 @@ canvas.addEventListener('mousedown',e=>{
       }
     }
     return;
+  }
+  // Deformer vertex editing (deform mode + deformer selected)
+  if (mode==='deform'&&selDeformer>=0&&selDeformer<deformers.length) {
+    const def=deformers[selDeformer];
+    const dVals={[selParam]:curKF};
+    const dv=def.getDeformedVerts(dVals);
+    const thresh=(15/VS)*(15/VS); let bi=-1, bd=thresh;
+    for (let i=0;i<dv.length;i++) { const ddx=dv[i].x-mp.x, ddy=dv[i].y-mp.y; const d2=ddx*ddx+ddy*ddy; if(d2<bd){bd=d2;bi=i;} }
+    if (bi>=0) { saveState(); dragging=true; dragMode='def-vert'; dragVI=bi; dragSX=mp.x; dragSY=mp.y; render(); return; }
   }
   if ((mode==='mesh'||mode==='deform')&&selPart>=0) {
     const pt=parts[selPart];
@@ -1488,6 +1836,7 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('ni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd();if(e.key==='Escape')cancelAdd();});
 document.getElementById('exni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmExpr();if(e.key==='Escape')cancelExpr();});
+document.getElementById('defni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddDeformer();if(e.key==='Escape')cancelAddDeformer();});
 document.getElementById('grpni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddGroup();if(e.key==='Escape')cancelAddGroup();});
 document.getElementById('cp-key').addEventListener('keydown',e=>{if(e.key==='Enter')confirmCustomParam();if(e.key==='Escape')cancelCustomParam();});
 
@@ -1501,7 +1850,7 @@ if (isElectron) {
 
 // ===== EXPORT =====
 async function saveModelOnly() {
-  const model={version:3, canvasW, canvasH, expressions, groups, customParams, parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, groups, customParams, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
   const json=JSON.stringify(model,null,2);
   if (isElectron) {
     const ok=await window.rigger.saveModel(json); if(ok) setStatus(`モデル保存完了 (${parts.length}パーツ, ${expressions.length}表情)`);
@@ -1592,6 +1941,31 @@ MODEL.parts.forEach(pt=>{
 });
 if(!totalImg)start();
 
+const DEFORMERS=MODEL.deformers||[];
+function interpDeforms(obj,vals){
+  const base=obj._baseVerts||[];const n=base.length;const r=base.map(q=>({x:q.x,y:q.y}));
+  for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!obj.deforms?.[pn])continue;
+    const ks=pc.k;let k0=ks[0],k1=ks[ks.length-1];
+    for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){k0=ks[i];k1=ks[i+1];break;}
+    const t=k0===k1?0:(pval-k0)/(k1-k0);const d0=obj.deforms[pn][k0]||[],d1=obj.deforms[pn][k1]||[];
+    for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
+  }
+  return r;
+}
+// Precompute deformer base verts
+DEFORMERS.forEach(def=>{
+  const v=[];for(let r=0;r<=def.rows;r++)for(let c=0;c<=def.cols;c++)v.push({x:def.x+c/def.cols*def.w,y:def.y+r/def.rows*def.h});
+  def._baseVerts=v;
+});
+function warpVert(def,vx,vy,dv){
+  const u=(vx-def.x)/def.w,v=(vy-def.y)/def.h;
+  if(u<0||u>1||v<0||v>1)return{x:vx,y:vy};
+  const uc=u*def.cols,vc=v*def.rows;
+  const ci=Math.min(Math.floor(uc),def.cols-1),ri=Math.min(Math.floor(vc),def.rows-1);
+  const tu=uc-ci,tv=vc-ri,s=def.cols+1;
+  const tl=dv[ri*s+ci],tr=dv[ri*s+ci+1],bl=dv[(ri+1)*s+ci],br=dv[(ri+1)*s+ci+1];
+  return{x:tl.x*(1-tu)*(1-tv)+tr.x*tu*(1-tv)+bl.x*(1-tu)*tv+br.x*tu*tv,y:tl.y*(1-tu)*(1-tv)+tr.y*tu*(1-tv)+bl.y*(1-tu)*tv+br.y*tu*tv};
+}
 function getWorldVerts(pt,vals){
   const v=pt.mesh.verts,n=v.length,r=v.map(q=>({x:q.x,y:q.y}));
   for(const[pn,pval] of Object.entries(vals)){
@@ -1603,6 +1977,8 @@ function getWorldVerts(pt,vals){
     for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
   }
   for(let i=0;i<n;i++){r[i].x+=pt.x||0;r[i].y+=pt.y||0;}
+  // Apply warp deformer
+  if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}}
   return r;
 }
 function drawTri(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img){
