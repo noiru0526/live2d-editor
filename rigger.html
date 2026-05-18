@@ -269,6 +269,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfCopyPrompt()" title="現在のKFのデフォームを別KFにコピー">⧉ コピー</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfMirrorX()" title="現在のKFのX変形を左右反転">↔ ミラーX</button>
         </div>
+        <div style="display:flex;gap:3px;margin-top:3px">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
+        </div>
       </div>
     </div>
 
@@ -2184,7 +2188,7 @@ function buildKFUI() {
   const pc=P[selParam]; if(!pc) return;
   pc.k.forEach(k=>{
     const b=document.createElement('button'); b.className='kb'+(k===curKF?' on':'');
-    b.textContent=typeof k==='number'?k.toFixed(1):k;
+    b.textContent=typeof k==='number'?k.toFixed(2):k;
     b.onclick=()=>{curKF=k;buildKFUI();render();setStatus(`KF: ${P[selParam].l} = ${k}`);};
     c.appendChild(b);
   });
@@ -2192,6 +2196,49 @@ function buildKFUI() {
   document.getElementById('kf-param-label').textContent=P[selParam]?.l||selParam;
   document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
   updateOpacityKFUI();
+}
+
+function addKFPosition() {
+  const pc = P[selParam]; if (!pc) return;
+  const [rmin, rmax] = pc.r;
+  const raw = prompt(`新しいKF位置を入力 (${rmin} 〜 ${rmax}):`, ((rmin+rmax)/2).toFixed(2));
+  if (raw === null) return;
+  const v = parseFloat(raw);
+  if (isNaN(v) || v < rmin || v > rmax) { setStatus(`範囲外: ${rmin} 〜 ${rmax}`); return; }
+  const rounded = Math.round(v * 1000) / 1000;
+  if (pc.k.includes(rounded)) { setStatus(`KF ${rounded} は既に存在します`); return; }
+  saveState();
+  // Interpolate deforms for all parts at the new KF position
+  for (const pt of parts) {
+    if (!pt.deforms[selParam]) continue;
+    const ks = [...pc.k].sort((a,b)=>a-b);
+    let k0 = ks[0], k1 = ks[ks.length-1];
+    for (let i=0; i<ks.length-1; i++) if (rounded >= ks[i] && rounded <= ks[i+1]) { k0=ks[i]; k1=ks[i+1]; break; }
+    const t = k0===k1 ? 0 : (rounded-k0)/(k1-k0);
+    const d0 = pt.deforms[selParam][k0] || [];
+    const d1 = pt.deforms[selParam][k1] || [];
+    const n = pt.mesh.verts.length;
+    pt.deforms[selParam][rounded] = Array.from({length:n}, (_,i) => ({
+      dx: (d0[i]?.dx||0)*(1-t) + (d1[i]?.dx||0)*t,
+      dy: (d0[i]?.dy||0)*(1-t) + (d1[i]?.dy||0)*t,
+    }));
+  }
+  pc.k = [...pc.k, rounded].sort((a,b)=>a-b);
+  curKF = rounded;
+  buildKFUI(); render(); setStatus(`KF追加: ${P[selParam].l} = ${rounded}`);
+}
+
+function removeKFPosition() {
+  const pc = P[selParam]; if (!pc) return;
+  if (pc.k.length <= 2) { setStatus('最低2つのKF位置が必要です'); return; }
+  const ks = [...pc.k].sort((a,b)=>a-b);
+  if (curKF === ks[0] || curKF === ks[ks.length-1]) { setStatus('端点のKFは削除できません'); return; }
+  if (!confirm(`KF位置 ${curKF} (${P[selParam].l}) を削除しますか？`)) return;
+  saveState();
+  for (const pt of parts) { if (pt.deforms[selParam]) delete pt.deforms[selParam][curKF]; }
+  pc.k = pc.k.filter(k => k !== curKF);
+  curKF = pc.k[0];
+  buildKFUI(); render(); setStatus(`KF削除: ${P[selParam].l} = ${curKF}`);
 }
 
 // ===== SMOOTH DEFORM =====
