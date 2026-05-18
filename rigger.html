@@ -250,6 +250,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     </div>
     <div id="parts-list"></div>
 
+    <!-- Live part preview -->
+    <div id="part-preview-wrap" style="padding:4px;display:none;">
+      <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(124,58,237,.3);border-radius:3px;display:block;margin:0 auto;background:#0c0f18;"></canvas>
+      <div id="part-preview-label" style="font-size:8px;color:#6878a0;text-align:center;margin-top:2px;"></div>
+    </div>
+
     <!-- KF Section -->
     <div class="lsec">
       <div class="lsec-hd" onclick="toggleSec('kf-body')">
@@ -976,6 +982,58 @@ function drawTriTex(x0,y0, x1,y1, x2,y2, u0,v0, u1,v1, u2,v2, img) {
   const e=((y1-y0)*(v2-v0)-(y2-y0)*(v1-v0))/d, f=((y2-y0)*(u1-u0)-(y1-y0)*(u2-u0))/d, g=y0-e*u0-f*v0;
   ctx.transform(a,e,b,f,c,g); ctx.drawImage(img,0,0); ctx.restore();
 }
+function drawTriTexCtx(tc, x0,y0, x1,y1, x2,y2, u0,v0, u1,v1, u2,v2, img) {
+  const d = (u1-u0)*(v2-v0) - (u2-u0)*(v1-v0); if (Math.abs(d)<.001) return;
+  tc.save();
+  tc.beginPath(); tc.moveTo(x0,y0); tc.lineTo(x1,y1); tc.lineTo(x2,y2); tc.closePath(); tc.clip();
+  const a=((x1-x0)*(v2-v0)-(x2-x0)*(v1-v0))/d, b=((x2-x0)*(u1-u0)-(x1-x0)*(u2-u0))/d, c=x0-a*u0-b*v0;
+  const e=((y1-y0)*(v2-v0)-(y2-y0)*(v1-v0))/d, f=((y2-y0)*(u1-u0)-(y1-y0)*(u2-u0))/d, g=y0-e*u0-f*v0;
+  tc.transform(a,e,b,f,c,g); tc.drawImage(img,0,0); tc.restore();
+}
+
+function updatePartPreview() {
+  const wrap = document.getElementById('part-preview-wrap');
+  const pcanvas = document.getElementById('part-preview-canvas');
+  const plabel = document.getElementById('part-preview-label');
+  if (!wrap || !pcanvas) return;
+  const pt = selPart >= 0 ? parts[selPart] : null;
+  if (!pt || !pt.img) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const SZ = 80;
+  const tc = pcanvas.getContext('2d');
+  tc.clearRect(0, 0, SZ, SZ);
+  tc.fillStyle = '#0c0f18'; tc.fillRect(0, 0, SZ, SZ);
+  const vals = getParamVals();
+  const wv = pt.getWorldVerts(vals);
+  if (pt.deformerId) {
+    const def = deformers.find(d => d.id === pt.deformerId);
+    if (def) {
+      if (def.type === 'rotation') {
+        const tr = def.getTransform(vals);
+        for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
+      } else {
+        const dv = def.getDeformedVerts(vals);
+        for (let i = 0; i < wv.length; i++) { const w = def.warpVert(wv[i].x, wv[i].y, dv); wv[i].x=w.x; wv[i].y=w.y; }
+      }
+    }
+  }
+  // Compute bbox of world verts
+  let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity;
+  for (const v of wv) { mnX=Math.min(mnX,v.x); mnY=Math.min(mnY,v.y); mxX=Math.max(mxX,v.x); mxY=Math.max(mxY,v.y); }
+  const bw = mxX-mnX||1, bh = mxY-mnY||1;
+  const scl = Math.min(SZ/bw, SZ/bh) * 0.9;
+  const ox = (SZ - bw*scl)/2, oy = (SZ - bh*scl)/2;
+  const toSX = wx => (wx - mnX)*scl + ox;
+  const toSY = wy => (wy - mnY)*scl + oy;
+  tc.globalAlpha = pt.opacity !== undefined ? pt.opacity : 1;
+  for (const [i0,i1,i2] of pt.mesh.tris) {
+    const p0=wv[i0],p1=wv[i1],p2=wv[i2];
+    const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
+    drawTriTexCtx(tc, toSX(p0.x),toSY(p0.y), toSX(p1.x),toSY(p1.y), toSX(p2.x),toSY(p2.y), q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.img);
+  }
+  tc.globalAlpha = 1;
+  if (plabel) plabel.textContent = pt.name;
+}
 
 function render() {
   setupCanvas();
@@ -1229,6 +1287,8 @@ function render() {
   if (mode === 'preview' && parts.some(p => p.physics?.enabled)) {
     requestAnimationFrame(() => render());
   }
+
+  updatePartPreview();
 }
 
 // ===== PART MANAGEMENT =====
