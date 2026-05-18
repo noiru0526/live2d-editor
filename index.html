@@ -2702,6 +2702,8 @@ function renderParamRow(name, p, cont, _isFavArg) {
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
         <button id="solo-${name}" onclick="event.stopPropagation();toggleParamSolo('${name}')" title="このパラメータだけ表示（他は0に）"
           style="background:none;border:none;color:${_soloParam===name?'#f0c040':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:2px;font-weight:bold;">S</button>
+        <button id="bounce-${name}" onclick="event.stopPropagation();toggleParamBounce('${name}')" title="min↔max バウンスプレビュー（クリックで停止）"
+          style="background:none;border:none;color:${_paramBounceName===name?'#60e0ff':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:1px;">⟳</button>
       </div>
       <div class="slider-wrap">
         <input class="pslider" type="range" id="ps-${name}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}"${p.locked?' disabled':''} title="値: ${p.val.toFixed(2)} | 範囲: ${p.min}〜${p.max} | ステップ: ${p.step}">
@@ -2780,7 +2782,13 @@ function renderParamRow(name, p, cont, _isFavArg) {
           _paramDrivers.push({source:name, target:targetName, ratio, offset});
           document.getElementById('lbl-status').textContent = `ドライバー追加: ${p.lbl||name} → ${M.params[targetName].lbl||targetName} (x${ratio}+${offset})`;
         }},
-        {label:'全ドライバーを管理...', icon:'🔗', action: showDriverManager}
+        {label:'全ドライバーを管理...', icon:'🔗', action: showDriverManager},
+        'sep',
+        {label: _paramBounceName===name ? '⟳ バウンス停止' : '⟳ バウンスプレビュー（min↔max）', icon:'⟳', action:()=>toggleParamBounce(name)},
+        {label:'バウンス速度を設定...', icon:'⏩', action:()=>{
+          const v = parseFloat(prompt('バウンス速度（サイクル/秒, 例: 1.5）:', _paramBounceSpeed.toFixed(1)));
+          if (!isNaN(v) && v > 0) { _paramBounceSpeed = v; document.getElementById('lbl-status').textContent = `バウンス速度: ${v.toFixed(1)} Hz`; }
+        }},
       ]);
     });
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
@@ -10170,6 +10178,39 @@ function toggleAutoKF() {
 }
 
 // ==================== PARAM RECORDING ====================
+let _paramBounceRAF = null; // rAF handle for param bounce preview
+let _paramBounceName = null; // name of param being bounced
+let _paramBounceSpeed = 1.5; // bounce cycles per second
+
+function toggleParamBounce(name) {
+  if (_paramBounceRAF) {
+    cancelAnimationFrame(_paramBounceRAF);
+    _paramBounceRAF = null;
+    _paramBounceName = null;
+    buildParamUI();
+    document.getElementById('lbl-status').textContent = 'バウンスプレビュー停止';
+    return;
+  }
+  const p = M.params[name]; if (!p) return;
+  _paramBounceName = name;
+  const start = performance.now();
+  const tick = (now) => {
+    const elapsed = (now - start) / 1000;
+    const phase = (Math.sin(elapsed * _paramBounceSpeed * Math.PI * 2) + 1) / 2; // 0..1
+    const val = p.min + (p.max - p.min) * phase;
+    p.val = Math.round(val * 1000) / 1000;
+    const sl = document.getElementById(`ps-${name}`);
+    if (sl) { sl.value = p.val; updateSliderFill(sl, p.val, p.min, p.max); }
+    const pv = document.getElementById(`pv-${name}`);
+    if (pv) pv.textContent = p.val.toFixed(2);
+    ST.cachedVerts = null; redraw();
+    _paramBounceRAF = requestAnimationFrame(tick);
+  };
+  _paramBounceRAF = requestAnimationFrame(tick);
+  buildParamUI();
+  document.getElementById('lbl-status').textContent = `バウンスプレビュー: ${p.lbl || name} (クリックで停止)`;
+}
+
 let _paramRecActive = false;
 let _paramRecRAF = null;
 let _paramRecStart = 0;  // performance.now() at record start

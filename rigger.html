@@ -3303,6 +3303,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Delete'&&onBody) delPart();
   if((e.ctrlKey||e.metaKey)&&e.key==='z'&&onBody){e.preventDefault();undo();}
   if((e.ctrlKey||e.metaKey)&&e.key==='d'&&onBody){e.preventDefault();dupPart();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='c'&&onBody&&selPart>=0){e.preventDefault();copyPartToClipboard();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}
   if(e.key==='f'||e.key==='F') fitView();
   // Number keys 1-9 to apply expressions
   const n=parseInt(e.key);
