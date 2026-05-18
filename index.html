@@ -1045,6 +1045,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
+    <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
@@ -11488,6 +11489,28 @@ function normalizeToLoopRegion() {
   const loEl = document.getElementById('tl-loop-out'); if (loEl) loEl.value = M.animation.duration.toFixed(2);
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `ループ正規化: ${loopIn.toFixed(3)}s→0, 長さ ${loopLen.toFixed(3)}s`;
+}
+
+function saveLoopAsClip() {
+  const dur = M.animation.duration || 3;
+  const loopIn = M.animation.loopIn ?? 0;
+  const loopOut = M.animation.loopOut ?? dur;
+  const loopLen = loopOut - loopIn;
+  if (loopLen <= 0) { document.getElementById('lbl-status').textContent = 'ループ区間が設定されていません'; return; }
+  const clipName = prompt('クリップ名', `ループ ${loopIn.toFixed(2)}s〜${loopOut.toFixed(2)}s`);
+  if (!clipName) return;
+  // Deep copy animation, keep only loop-region KFs, shift to t=0
+  const newAnim = { duration: Math.round(loopLen * 1000) / 1000, tracks: {}, loopIn: 0, loopOut: Math.round(loopLen * 1000) / 1000 };
+  for (const [name, frames] of Object.entries(M.animation.tracks || {})) {
+    if (!frames?.length) continue;
+    const kept = frames.filter(kf => kf.t >= loopIn - 0.001 && kf.t <= loopOut + 0.001)
+      .map(kf => ({ ...kf, t: Math.round((kf.t - loopIn) * 10000) / 10000 }));
+    if (kept.length) { newAnim.tracks[name] = kept; kept.sort((a,b)=>a.t-b.t); }
+  }
+  if (!M.animClips) M.animClips = [];
+  M.animClips.push({ name: clipName, animation: newAnim });
+  renderClipTabs();
+  document.getElementById('lbl-status').textContent = `クリップ保存: "${clipName}" (${loopLen.toFixed(2)}s, ${Object.keys(newAnim.tracks).length}トラック)`;
 }
 
 function cleanAnimTracks() {
