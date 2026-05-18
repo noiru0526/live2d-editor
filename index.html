@@ -355,6 +355,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
       <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:3px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
       <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:#a0d890;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
+      <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
     </div>
     <div id="params"></div>
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
@@ -1207,6 +1208,7 @@ const M = {
   ],
   posePresets: [], // [{name:'ポーズ名', vals:{paramId:value,...}}]
   animClips: [],   // [{name:'クリップ名', animation:{...}}] named animation clips
+  chatTriggers: [], // [{keyword, action:'pose'|'param'|'clip', target, value}] user-defined
   profile: {
     name: 'noiru',
     author: '',
@@ -3182,6 +3184,7 @@ function modelJSON() {
     paramGroups:M.paramGroups,
     posePresets:M.posePresets||[],
     animClips:M.animClips||[],
+    chatTriggers:M.chatTriggers||[],
     profile:M.profile||null,
   },null,2);
 }
@@ -3251,6 +3254,7 @@ function loadJSON(json, filePath) {
     if (d.paramGroups) M.paramGroups=d.paramGroups;
     if (d.posePresets) M.posePresets=d.posePresets;
     if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
+    if (d.chatTriggers) M.chatTriggers=d.chatTriggers;
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
 
@@ -3564,6 +3568,10 @@ function genAvatarHTML() {
         tracks: c.animation.tracks,
       }
     })),
+    // User-defined chat triggers
+    chatTriggers: M.chatTriggers||[],
+    // Pose presets for chat trigger resolution
+    posePresets: M.posePresets||[],
   };
   const imgSrc=M.img.src;
   let sizeStr=document.getElementById('export-size').value;
@@ -4554,20 +4562,38 @@ window.addEventListener('mousemove', e => {
 let _chatConnected=false;
 const _chatTriggers=[]; // [{keyword, pose, clip, param, value}]
 function initChatTriggers(){
-  // Build triggers from poses: if user types "!happy" and there's a "happy" pose → apply it
-  if(MD.poses?.length){
-    for(const p of MD.poses){
-      _chatTriggers.push({keyword:'!'+p.name.toLowerCase().replace(/\s+/g,''),pose:p.name});
-      _chatTriggers.push({keyword:p.name.toLowerCase(),pose:p.name});
+  // User-defined triggers (from editor chatTriggers panel) take priority
+  if(MD.chatTriggers?.length){
+    for(const t of MD.chatTriggers){
+      _chatTriggers.push({keyword:t.keyword, pose:t.action==='pose'?t.target:null, clip:t.action==='clip'?t.target:null, param:t.action==='param'?t.target:null, value:t.value??0});
     }
   }
-  // Built-in keyword reactions
+  // Auto-generated from posePresets: "!name" and "name" shortcuts
+  const presetNames=new Set(_chatTriggers.map(t=>t.keyword));
+  if(MD.posePresets?.length){
+    for(const p of MD.posePresets){
+      const kw1='!'+p.name.toLowerCase().replace(/\s+/g,'');
+      const kw2=p.name.toLowerCase();
+      if(!presetNames.has(kw1)) _chatTriggers.push({keyword:kw1, pose:p.name});
+      if(!presetNames.has(kw2)) _chatTriggers.push({keyword:kw2, pose:p.name});
+    }
+  }
+  // Legacy: auto from MD.poses
+  if(MD.poses?.length){
+    for(const p of MD.poses){
+      const kw1='!'+p.name.toLowerCase().replace(/\s+/g,'');
+      const kw2=p.name.toLowerCase();
+      if(!presetNames.has(kw1)) _chatTriggers.push({keyword:kw1, pose:p.name});
+      if(!presetNames.has(kw2)) _chatTriggers.push({keyword:kw2, pose:p.name});
+    }
+  }
+  // Built-in keyword reactions (only if not overridden)
   const builtins=[
-    {keyword:'gg',pose:null,param:'mouthOpen',value:0.8},
-    {keyword:'lol',pose:null,param:'mouthOpen',value:1},
-    {keyword:'o7',pose:null,param:'headY',value:-0.3},
+    {keyword:'gg',param:'mouthOpen',value:0.8},
+    {keyword:'lol',param:'mouthOpen',value:1},
+    {keyword:'o7',param:'headY',value:-0.3},
   ];
-  _chatTriggers.push(...builtins);
+  for(const b of builtins){ if(!presetNames.has(b.keyword)) _chatTriggers.push(b); }
 }
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
 window.addEventListener('message',ev2=>{
@@ -4578,8 +4604,14 @@ window.addEventListener('message',ev2=>{
   for(const t of _chatTriggers){
     if(!msg.includes(t.keyword)) continue;
     if(t.pose){
-      const p=MD.poses?.find(x=>x.name===t.pose);
-      if(p){activePose=p;poseBlend=0;}
+      // Try posePresets first, then legacy MD.poses
+      const preset=MD.posePresets?.find(x=>x.name===t.pose);
+      if(preset){for(const[k,v] of Object.entries(preset.vals)){if(params[k])params[k].val=v;}}
+      else{const p=MD.poses?.find(x=>x.name===t.pose);if(p){activePose=p;poseBlend=0;}}
+    }
+    if(t.clip&&typeof switchClip==='function'){
+      const ci=(MD.animClips||[]).findIndex(c=>c.name===t.clip);
+      if(ci>=0){switchClip(ci);}
     }
     if(t.param&&params[t.param]!==undefined){
       params[t.param].val=t.value??0;
@@ -5710,6 +5742,101 @@ function fullAutoSetup() {
 function resetToNeutral() {
   for (const p of Object.values(M.params)) if (!p.locked) p.val=0;
   syncSliders(); ST.cachedVerts=null; redraw(); drawTimeline();
+}
+
+// ==================== CHAT TRIGGERS ====================
+function showChatTriggerPanel() {
+  const existing = document.getElementById('chat-trigger-panel');
+  if (existing) { existing.remove(); return; }
+  if (!M.chatTriggers) M.chatTriggers = [];
+  const panel = document.createElement('div');
+  panel.id = 'chat-trigger-panel';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#1a1e30;border:1px solid rgba(255,200,80,.4);border-radius:8px;padding:10px 12px;z-index:900;width:300px;max-height:440px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
+      <span style="font-size:11px;color:#ffd060;font-weight:600;">💬 チャットトリガー設定</span>
+      <button onclick="document.getElementById('chat-trigger-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:8px;line-height:1.5;">キーワードを検出してポーズ・パラメータ・クリップを切替。アバターHTMLに自動エクスポートされます。</div>
+    <div id="ct-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+    <div style="background:#131828;border:1px solid rgba(255,200,80,.3);border-radius:5px;padding:8px;">
+      <div style="font-size:9px;color:#ffd060;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;">新規追加</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <input id="ct-kw" placeholder="キーワード (例: gg, !happy)" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;outline:none;" />
+        <select id="ct-type" onchange="renderCTTargetOptions()" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;">
+          <option value="pose">ポーズ適用</option>
+          <option value="clip">クリップ再生</option>
+          <option value="param">パラメータ設定</option>
+        </select>
+        <select id="ct-target" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;"></select>
+        <div id="ct-value-row" style="display:none;display:flex;align-items:center;gap:4px;">
+          <span style="font-size:9px;color:var(--dim);white-space:nowrap;">値:</span>
+          <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
+        </div>
+        <button onclick="addChatTrigger()" style="background:#1e2818;border:1px solid rgba(200,200,80,.4);color:#ffd060;border-radius:3px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
+      </div>
+    </div>`;
+  document.body.appendChild(panel);
+  renderCTList();
+  renderCTTargetOptions();
+}
+
+function renderCTList() {
+  const list = document.getElementById('ct-list'); if (!list) return;
+  if (!M.chatTriggers) M.chatTriggers = [];
+  list.innerHTML = '';
+  const actionLabel = t => {
+    if (t.action==='pose') return `📐 ${t.target}`;
+    if (t.action==='clip') return `🎬 ${t.target}`;
+    if (t.action==='param') return `⚙ ${t.target}=${t.value}`;
+    return '?';
+  };
+  if (!M.chatTriggers.length) {
+    list.innerHTML = '<div style="font-size:9px;color:#3a4a6a;padding:4px 0;">登録なし（ポーズプリセットは自動生成されます）</div>';
+    return;
+  }
+  M.chatTriggers.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 5px;background:#131828;border-radius:3px;font-size:10px;';
+    row.innerHTML = `<code style="color:#ffd060;background:#1e2010;padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:#8090b0;">${actionLabel(t)}</span><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function renderCTTargetOptions() {
+  const type = document.getElementById('ct-type')?.value;
+  const sel = document.getElementById('ct-target'); if (!sel) return;
+  const vrow = document.getElementById('ct-value-row');
+  sel.innerHTML = '';
+  if (type === 'pose') {
+    (M.posePresets||[]).forEach(p => { const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); });
+    if (vrow) vrow.style.display = 'none';
+  } else if (type === 'clip') {
+    (M.animClips||[]).forEach(c => { const o=document.createElement('option'); o.value=c.name; o.textContent=c.name; sel.appendChild(o); });
+    if (vrow) vrow.style.display = 'none';
+  } else if (type === 'param') {
+    Object.keys(M.params||{}).forEach(k => { const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+    if (vrow) vrow.style.display = 'flex';
+  }
+  if (!sel.options.length) { const o=document.createElement('option'); o.value=''; o.textContent='（なし）'; sel.appendChild(o); }
+}
+
+function addChatTrigger() {
+  const kw = document.getElementById('ct-kw')?.value.trim().toLowerCase();
+  const type = document.getElementById('ct-type')?.value;
+  const target = document.getElementById('ct-target')?.value;
+  const value = parseFloat(document.getElementById('ct-value')?.value || '1');
+  if (!kw) { document.getElementById('ct-kw')?.focus(); return; }
+  if (!M.chatTriggers) M.chatTriggers = [];
+  M.chatTriggers.push({ keyword: kw, action: type, target, value: type==='param' ? value : undefined });
+  document.getElementById('ct-kw').value = '';
+  renderCTList();
+}
+
+function removeChatTrigger(i) {
+  if (!M.chatTriggers) return;
+  M.chatTriggers.splice(i, 1);
+  renderCTList();
 }
 
 // ==================== POSE PRESETS ====================
