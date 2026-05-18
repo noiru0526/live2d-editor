@@ -889,6 +889,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div style="display:flex;gap:2px;margin-top:4px;">
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:#1e2838;border:1px solid #3a4470;color:#a0c0ff;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#1e2830;border:1px solid rgba(80,180,100,.4);color:#80c0a0;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
+      <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#1e2830;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
@@ -6247,6 +6248,19 @@ function renderWcExprBtns() {
       e.preventDefault();
       showCtxMenu(e.clientX, e.clientY, [
         { icon:'✏', label:'名前を変更', action:()=>{ const n=prompt('名前:',pr.name); if(n){pr.name=n;renderWcExprBtns();}}},
+        { icon:'🎬', label:`現在位置(${ST.animPlayhead.toFixed(3)}s)にKFとして記録`, action:()=>{
+          pushAnimUndo();
+          const t = snapT(ST.animPlayhead);
+          for (const [k, v] of Object.entries(pr.vals)) {
+            if (!M.params[k]) continue;
+            if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+            M.animation.tracks[k] = M.animation.tracks[k].filter(kf=>Math.abs(kf.t-t)>0.005);
+            M.animation.tracks[k].push({t, v, interp:'smooth'});
+            M.animation.tracks[k].sort((a,b)=>a.t-b.t);
+          }
+          drawMultiTimeline();
+          document.getElementById('lbl-status').textContent = `表情「${pr.name}」をt=${t.toFixed(3)}sにKFとして記録`;
+        }},
         { icon:'🗑', label:'削除', action:()=>{ _wcExprPresets.splice(i,1); renderWcExprBtns(); }},
       ]);
     };
@@ -6292,6 +6306,51 @@ function wcSaveExprPreset() {
   _wcExprPresets.push({name, vals});
   renderWcExprBtns();
   document.getElementById('lbl-status').textContent = `表情プリセット「${name}」を保存しました`;
+}
+
+function autoGenerateExprTimeline() {
+  if (_wcExprPresets.length === 0) { alert('表情プリセットがありません。先に「＋ 現在を保存」や「📥 リガー」で表情を読み込んでください。'); return; }
+  const durStr = prompt(`各表情の移行時間(秒):\n(表情${_wcExprPresets.length}個で合計${(_wcExprPresets.length*2).toFixed(1)}秒〜)`, '1.0');
+  if (!durStr) return;
+  const dur = parseFloat(durStr); if (isNaN(dur) || dur <= 0) return;
+  const holdStr = prompt('各表情の保持時間(秒):', '0.5');
+  if (!holdStr) return;
+  const hold = parseFloat(holdStr); if (isNaN(hold) || hold < 0) return;
+  pushAnimUndo();
+  // Clear existing tracks
+  for (const k of Object.keys(M.params)) M.animation.tracks[k] = [];
+  let t = 0;
+  // デフォルト(ゼロ)ポーズをt=0に配置
+  const zeroVals = {};
+  for (const k of Object.keys(M.params)) zeroVals[k] = 0;
+  const stampKFs = (vals, time, interp) => {
+    for (const [k] of Object.entries(M.params)) {
+      const v = vals[k] ?? 0;
+      if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+      M.animation.tracks[k].push({t: Math.round(time*1000)/1000, v, interp: interp||'smooth'});
+    }
+  };
+  stampKFs(zeroVals, 0, 'smooth');
+  for (const pr of _wcExprPresets) {
+    t += dur;
+    stampKFs(pr.vals, t, 'smooth');
+    if (hold > 0) {
+      t += hold;
+      stampKFs(pr.vals, t, 'smooth');
+    }
+    t += dur;
+    stampKFs(zeroVals, t, 'smooth');
+  }
+  // Prune flat tracks (all zero)
+  for (const [k, frames] of Object.entries(M.animation.tracks)) {
+    if (frames.every(f => Math.abs(f.v) < 0.0001)) M.animation.tracks[k] = [];
+  }
+  // Sort all tracks
+  for (const frames of Object.values(M.animation.tracks)) frames.sort((a,b)=>a.t-b.t);
+  M.animation.duration = Math.ceil(t * 10) / 10;
+  const durEl = document.getElementById('tl-dur'); if (durEl) durEl.value = M.animation.duration.toFixed(2);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `タイムライン生成: ${_wcExprPresets.length}表情 / 合計${M.animation.duration.toFixed(1)}秒`;
 }
 
 function wcClearExprPresets() {
