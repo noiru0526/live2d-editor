@@ -8558,9 +8558,40 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
     { icon:'↕', label:'トラック高さ: コンパクト (18px)', action:()=>{ tlTrackHeights.set(srcName,18); drawMultiTimeline(); }},
     { icon:'↕', label:'トラック高さ: 標準 (24px)', action:()=>{ tlTrackHeights.delete(srcName); drawMultiTimeline(); }},
     { icon:'↕', label:'トラック高さ: 広い (48px)', action:()=>{ tlTrackHeights.set(srcName,48); drawMultiTimeline(); }},
-    { icon:'↕', label:'このトラック高さをリセット', action:()=>{ tlTrackHeights.delete(srcName); drawMultiTimeline(); }},
+    null,
+    ..._buildGroupMenuItems(srcName),
   ]);
 });
+
+function _buildGroupMenuItems(paramName) {
+  if (!M.paramGroups) M.paramGroups = [];
+  const currentGroup = M.paramGroups.find(g => g.paramIds.includes(paramName));
+  const items = [];
+  if (currentGroup) {
+    items.push({ icon:'✕', label:`グループ「${currentGroup.name}」から削除`, action:()=>{
+      currentGroup.paramIds = currentGroup.paramIds.filter(id => id !== paramName);
+      if (!currentGroup.paramIds.length) M.paramGroups = M.paramGroups.filter(g => g !== currentGroup);
+      drawMultiTimeline();
+    }});
+  }
+  // Add to existing groups
+  for (const grp of M.paramGroups) {
+    if (grp === currentGroup) continue;
+    items.push({ icon:'📂', label:`グループ「${grp.name}」に追加`, action:()=>{
+      if (!grp.paramIds.includes(paramName)) grp.paramIds.push(paramName);
+      drawMultiTimeline();
+    }});
+  }
+  items.push({ icon:'➕', label:'新しいグループに追加...', action:()=>{
+    const name = prompt('新しいグループ名:');
+    if (!name?.trim()) return;
+    const id = 'grp_' + Date.now();
+    if (currentGroup) currentGroup.paramIds = currentGroup.paramIds.filter(id => id !== paramName);
+    M.paramGroups.push({ id, name: name.trim(), paramIds: [paramName], collapsed: false });
+    drawMultiTimeline();
+  }});
+  return items;
+}
 
 function toggleAnimMode() {
   ST.animMode = !ST.animMode;
