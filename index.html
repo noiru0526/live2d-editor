@@ -4322,6 +4322,19 @@ document.addEventListener('keydown',ev=>{
       }
     }
   }
+  // ?: show keyboard shortcut help overlay
+  if (ev.key==='?' || (ev.shiftKey && ev.key==='/')) {
+    const existing=document.getElementById('kbhelp-overlay');
+    if(existing){existing.remove();return;}
+    const ov=document.createElement('div');
+    ov.id='kbhelp-overlay';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
+    ov.onclick=()=>ov.remove();
+    document.body.appendChild(ov);
+    ev.preventDefault();
+  }
+  if (ev.key==='Escape') { const ov=document.getElementById('kbhelp-overlay'); if(ov) ov.remove(); }
 });
 function applyPoseBlend(dt){
   if(!activePose) return;
