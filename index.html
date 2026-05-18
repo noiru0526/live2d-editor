@@ -1060,6 +1060,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
+    <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#1e2830;border:1px solid rgba(80,200,160,.4);color:#60c8a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -9141,6 +9142,105 @@ function loadBGMWaveform() {
     }
   };
   inp.click();
+}
+
+function showLipSyncDialog() {
+  if (!_bgmWaveform || !_bgmDuration) {
+    alert('先に「🎵 BGM波形」ボタンで音声ファイルを読み込んでください。');
+    return;
+  }
+  const mo = document.createElement('div');
+  mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(2px)';
+  mo.innerHTML=`<div style="background:#131828;border:1px solid rgba(80,200,160,.4);border-radius:6px;padding:16px;width:260px;font-family:monospace;color:#c0d8e0;">
+    <div style="font-size:11px;letter-spacing:1px;color:#60c8a0;text-transform:uppercase;margin-bottom:10px">👄 口パクKF 自動生成</div>
+    <div style="font-size:9px;color:#4e7090;margin-bottom:8px">BGM波形から mouthOpen のKFを生成します</div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
+      <label>パラメータ
+        <select id="ls-param" style="width:100%;background:#0e1120;border:1px solid rgba(80,120,160,.4);color:#c0d8e0;border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
+          <option value="mouthOpen">mouthOpen（口 開き）</option>
+          <option value="mouthShape">mouthShape（口 形）</option>
+        </select>
+      </label>
+      <label>感度（閾値） <span id="ls-thresh-v">0.05</span>
+        <input type="range" id="ls-thresh" min="0" max="0.5" step="0.01" value="0.05"
+          oninput="document.getElementById('ls-thresh-v').textContent=parseFloat(this.value).toFixed(2)"
+          style="width:100%;accent-color:#60c8a0;display:block;margin-top:2px">
+      </label>
+      <label>スムーズ量 <span id="ls-smooth-v">3</span>フレーム
+        <input type="range" id="ls-smooth" min="1" max="15" step="1" value="3"
+          oninput="document.getElementById('ls-smooth-v').textContent=this.value"
+          style="width:100%;accent-color:#60c8a0;display:block;margin-top:2px">
+      </label>
+      <label>KF間隔 <span id="ls-interval-v">0.05</span>秒
+        <input type="range" id="ls-interval" min="0.02" max="0.2" step="0.01" value="0.05"
+          oninput="document.getElementById('ls-interval-v').textContent=parseFloat(this.value).toFixed(2)"
+          style="width:100%;accent-color:#60c8a0;display:block;margin-top:2px">
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:2px">
+        <input type="checkbox" id="ls-replace" checked style="accent-color:#60c8a0">
+        <span>既存KFを置換</span>
+      </label>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button onclick="generateLipSyncKFs()" style="flex:1;background:#1a3028;border:1px solid rgba(80,200,160,.5);color:#60c8a0;border-radius:3px;padding:4px;cursor:pointer;font-size:10px">生成</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1a2030;border:1px solid rgba(100,120,160,.3);color:#607080;border-radius:3px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.addEventListener('click',e=>{if(e.target===mo)mo.remove();});
+}
+
+function generateLipSyncKFs() {
+  if (!_bgmWaveform || !_bgmDuration) return;
+  const paramName = document.getElementById('ls-param')?.value || 'mouthOpen';
+  const threshold = parseFloat(document.getElementById('ls-thresh')?.value || '0.05');
+  const smoothN   = parseInt(document.getElementById('ls-smooth')?.value || '3');
+  const interval  = parseFloat(document.getElementById('ls-interval')?.value || '0.05');
+  const replace   = document.getElementById('ls-replace')?.checked !== false;
+
+  // Sample waveform at interval steps
+  const dur = _bgmDuration;
+  const steps = Math.ceil(dur / interval);
+  const raw = new Float32Array(steps);
+  for (let i = 0; i < steps; i++) {
+    const progress = (i * interval) / dur;
+    const sampleIdx = Math.min(Math.floor(progress * _bgmWaveform.length), _bgmWaveform.length - 1);
+    raw[i] = _bgmWaveform[sampleIdx];
+  }
+
+  // Normalize to 0-1 relative to max
+  const maxAmp = Math.max(...raw, 0.001);
+  const norm = new Float32Array(steps);
+  for (let i = 0; i < steps; i++) norm[i] = raw[i] / maxAmp;
+
+  // Smooth (moving average)
+  const smoothed = new Float32Array(steps);
+  for (let i = 0; i < steps; i++) {
+    let sum = 0, cnt = 0;
+    for (let j = Math.max(0, i - smoothN); j <= Math.min(steps - 1, i + smoothN); j++) { sum += norm[j]; cnt++; }
+    smoothed[i] = sum / cnt;
+  }
+
+  // Apply threshold (silence = 0)
+  const kfVals = new Float32Array(steps);
+  for (let i = 0; i < steps; i++) kfVals[i] = smoothed[i] < threshold ? 0 : smoothed[i];
+
+  pushAnimUndo('口パクKF生成');
+  if (replace) { M.animation.tracks[paramName] = []; }
+  if (!M.animation.tracks[paramName]) M.animation.tracks[paramName] = [];
+
+  const existing = replace ? [] : [...(M.animation.tracks[paramName] || [])];
+  const generated = [];
+  for (let i = 0; i < steps; i++) {
+    const t = Math.round(i * interval * 1000) / 1000;
+    if (t > dur + 0.001) break;
+    generated.push({ t, v: Math.round(kfVals[i] * 100) / 100 });
+  }
+  M.animation.tracks[paramName] = replace ? generated : [...existing, ...generated].sort((a,b)=>a.t-b.t);
+
+  document.querySelector('[style*=fixed][style*=9999]')?.remove();
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `口パクKF ${generated.length}個を「${paramName}」トラックに生成しました`;
 }
 
 function scaleSelectedKFTimes() {
