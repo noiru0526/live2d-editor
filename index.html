@@ -4447,6 +4447,49 @@ document.body.appendChild(_mtBtn);
   settBtn.onclick=()=>{ const v=panel.style.display==='none'; panel.style.display=v?'block':'none'; settBtn.style.color=v?'#60d890':'#a0d0ff'; };
   document.body.appendChild(settBtn);
 })();
+// Voice recognition: keyword → pose/param trigger
+(()=>{
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return; // not supported
+  let _sr = null, _srActive = false;
+  const _srBtn = document.createElement('button');
+  _srBtn.id = 'sr-btn';
+  _srBtn.textContent = '🎙 音声';
+  _srBtn.title = '音声認識でキーワードトリガー（Chrome推奨）';
+  _srBtn.style.cssText = 'position:fixed;bottom:10px;left:230px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _srBtn.onclick = () => {
+    if (_srActive) {
+      _sr?.stop(); _srActive = false;
+      _srBtn.style.color = '#a0d0ff'; _srBtn.style.borderColor = '#3a4470';
+      _srBtn.textContent = '🎙 音声';
+    } else {
+      try {
+        _sr = new SR();
+        _sr.continuous = true; _sr.interimResults = false;
+        _sr.lang = 'ja-JP';
+        _sr.onresult = ev => {
+          for (const res of ev.results) {
+            if (!res.isFinal) continue;
+            const txt = res[0].transcript.toLowerCase().trim();
+            for (const t of _chatTriggers) {
+              if (!txt.includes(t.keyword)) continue;
+              if (t.pose) { const p=MD.poses?.find(x=>x.name===t.pose); if(p){activePose=p;poseBlend=0;} }
+              if (t.param && params[t.param]!==undefined) { params[t.param].val=t.value??0; setTimeout(()=>{if(params[t.param])params[t.param].val=0;},2000); }
+              if (t.clip !== undefined) switchClip(t.clip);
+              break;
+            }
+          }
+        };
+        _sr.onerror = () => { _srActive=false; _srBtn.style.color='#ff6060'; };
+        _sr.onend = () => { if(_srActive) { try{_sr.start();}catch(e){} } };
+        _sr.start(); _srActive = true;
+        _srBtn.style.color = '#60d890'; _srBtn.style.borderColor = 'rgba(96,216,144,.5)';
+        _srBtn.textContent = '🎙 ON';
+      } catch(e) { console.warn('SpeechRecognition failed', e); }
+    }
+  };
+  document.body.appendChild(_srBtn);
+})();
 window.addEventListener('mousemove', e => {
   if (!_mouseTracking) return;
   const nx = (e.clientX / window.innerWidth) * 2 - 1;  // -1..1
