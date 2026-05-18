@@ -494,6 +494,14 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
         </div>
+        <!-- Part note/memo -->
+        <div style="margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
+          <div style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
+          <textarea id="pp-note" rows="2"
+            style="width:100%;background:#0a0e18;border:1px solid #2a3a5a;color:#7a9090;font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
+            placeholder="任意のメモを記録…"
+            oninput="if(selPart>=0&&selPart<parts.length)parts[selPart].note=this.value"></textarea>
+        </div>
         <!-- Alignment tools (multi-select) -->
         <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
           <div style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
@@ -767,6 +775,7 @@ class Part {
     this.altTextures = []; // [{name, dataURL, img}]
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
     this.colorLabel = null; // color hex string or null
+    this.note = ''; // free-form memo text
   }
   get w() { return this.img ? this.img.width : 100; }
   get h() { return this.img ? this.img.height : 100; }
@@ -875,7 +884,8 @@ class Part {
       imageData: withImage ? this.imgDataURL : null,
       altTextures: withImage ? (this.altTextures||[]).map(t=>({name:t.name, dataURL:t.dataURL})) : [],
       activeTexIdx: this.activeTexIdx,
-      colorLabel: this.colorLabel || null
+      colorLabel: this.colorLabel || null,
+      note: this.note || ''
     };
   }
   static fromJSON(o) {
@@ -894,6 +904,7 @@ class Part {
     p.deforms = o.deforms||{};
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
     p.colorLabel = o.colorLabel || null;
+    p.note = o.note || '';
     if (o.imageData) {
       p.imgDataURL = o.imageData;
       const img = new Image();
@@ -1912,6 +1923,9 @@ function updatePartPropsUI() {
     grpSel.innerHTML = '<option value="">なし</option>';
     groups.forEach(g=>{ const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; grpSel.appendChild(o); });
     grpSel.value = pt.groupId || '';
+    // Note field
+    const noteEl = document.getElementById('pp-note');
+    if (noteEl) noteEl.value = pt.note || '';
     // Texture panel
     const tp = document.getElementById('tex-panel');
     const tl = document.getElementById('tex-list');
