@@ -224,6 +224,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="tgrp">
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
+    <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
+    <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
     <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
     <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
   </div>
@@ -2119,6 +2121,31 @@ function distributeParts(axis) {
     ps.forEach(p=>{ p.y=Math.round(cy); cy+=p.h+gap; });
   }
   updatePartsUI(); render(); setStatus(`${idx.length}パーツを${axis==='h'?'水平':'垂直'}等間隔に配置`);
+}
+async function copyPartToClipboard() {
+  if (selPart<0||selPart>=parts.length) { setStatus('パーツが選択されていません'); return; }
+  const json = JSON.stringify({__type:'rigger-part', part: parts[selPart].toJSON(true)});
+  try {
+    await navigator.clipboard.writeText(json);
+    setStatus(`「${parts[selPart].name}」をクリップボードにコピーしました`);
+  } catch(e) { setStatus('クリップボードへのアクセスに失敗: '+e.message); }
+}
+async function pastePartFromClipboard() {
+  let text;
+  try { text = await navigator.clipboard.readText(); }
+  catch(e) { setStatus('クリップボードの読み取りに失敗: '+e.message); return; }
+  try {
+    const data = JSON.parse(text);
+    if (!data.__type||data.__type!=='rigger-part'||!data.part) { setStatus('クリップボードにパーツデータがありません'); return; }
+    saveState();
+    const np = Part.fromJSON(data.part);
+    np.id = 'p_'+Date.now(); np.x += 20; np.y += 20;
+    np.name = np.name + ' コピー';
+    parts.push(np); selPart=parts.length-1; selParts.clear(); selParts.add(selPart);
+    parts.forEach((p,i)=>p.zIndex=i);
+    updatePartsUI(); buildKFUI(); updatePartPropsUI(); render();
+    setStatus(`「${np.name}」を貼り付けました`);
+  } catch(e) { setStatus('ペースト失敗: '+e.message); }
 }
 function toggleLock() {
   if (selPart<0||selPart>=parts.length) return;
