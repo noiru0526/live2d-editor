@@ -422,6 +422,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           oninput="ST.poseTweenDur=parseFloat(this.value);document.getElementById('pose-tween-val').textContent=parseFloat(this.value).toFixed(2)+'s';">
         <span id="pose-tween-val" style="color:var(--accent);width:28px;text-align:right;font-family:monospace;">0.30s</span>
       </div>
+      <div style="padding:2px 4px 3px;flex-shrink:0;display:flex;align-items:center;gap:3px">
+        <span style="font-size:9px;color:var(--dim)">🔍</span>
+        <input id="pose-filter" type="text" placeholder="ポーズ名フィルター…"
+          oninput="renderPoseList()"
+          style="flex:1;background:#0d1117;border:1px solid var(--border);color:#8898c0;font-size:9px;padding:1px 5px;border-radius:2px;outline:none">
+      </div>
       <div id="pose-list" style="display:flex;flex-direction:column;gap:2px;"></div>
     </div>
   </div>
@@ -7396,7 +7402,10 @@ function deletePose(idx) {
 function renderPoseList() {
   const cont=document.getElementById('pose-list'); if(!cont) return;
   cont.innerHTML='';
+  const filterEl=document.getElementById('pose-filter');
+  const filter=(filterEl?.value||'').toLowerCase().trim();
   M.poses.forEach((pose,idx)=>{
+    if (filter && !pose.name.toLowerCase().includes(filter)) return;
     const wrap=document.createElement('div');
     wrap.style.cssText='margin-bottom:3px;';
     const row=document.createElement('div');
