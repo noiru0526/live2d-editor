@@ -312,6 +312,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
         </div>
+        <div style="display:flex;gap:3px;margin-top:3px">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ff8060;border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#a080c0;border-color:rgba(160,100,200,.4)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
+        </div>
       </div>
     </div>
 
@@ -1899,6 +1903,7 @@ function updatePartsUI() {
     lockSpan.onclick=(e)=>togLockItem(i,e); d.appendChild(lockSpan);
     if (pt.clipTo) { const b=document.createElement('span'); b.className='pi-clip-badge'; b.textContent='✂'; b.title='クリッピングマスク有効'; d.appendChild(b); }
     if (pt.physics?.enabled) { const b=document.createElement('span'); b.className='pi-phys-badge'; b.textContent='〜'; b.title='物理シミュレーション有効'; d.appendChild(b); }
+    if (pt.note) { const b=document.createElement('span'); b.style.cssText='font-size:8px;color:#a0c080;cursor:help;flex-shrink:0;'; b.textContent='📝'; b.title=pt.note; d.appendChild(b); }
     // Color label dot
     const clrDot = document.createElement('span');
     clrDot.className='pi-clr'; clrDot.style.background=pt.colorLabel||'transparent'; clrDot.title='カラーラベル';
@@ -2992,6 +2997,45 @@ function removeKFPosition() {
   pc.k = pc.k.filter(k => k !== curKF);
   curKF = pc.k[0];
   buildKFUI(); render(); setStatus(`KF削除: ${P[selParam].l} = ${curKF}`);
+}
+
+function clearCurrentKFDeform() {
+  if (!confirm(`現在KF (${P[selParam]?.l} = ${curKF}) の全パーツのデフォームをリセットしますか？`)) return;
+  saveState();
+  let count = 0;
+  for (const pt of parts) {
+    const d = pt.deforms[selParam]?.[curKF];
+    if (d) { for (const v of d) { v.dx = 0; v.dy = 0; } count++; }
+    if (pt.boneKFs?.[selParam]) delete pt.boneKFs[selParam][curKF];
+    if (pt.opacityKFs?.[selParam]) delete pt.opacityKFs[selParam][curKF];
+  }
+  render();
+  setStatus(`KFクリア: ${P[selParam]?.l} = ${curKF} (${count}パーツ)`);
+}
+
+function interpolateKFFromNeighbors() {
+  // Find neighboring KFs and linearly interpolate deforms
+  const pc = P[selParam]; if (!pc) return;
+  const ks = [...pc.k].sort((a,b)=>a-b);
+  const ci = ks.indexOf(curKF);
+  if (ci <= 0 || ci >= ks.length - 1) { setStatus('補間KFは端点以外に使用してください'); return; }
+  const prevKF = ks[ci - 1], nextKF = ks[ci + 1];
+  const t = (curKF - prevKF) / (nextKF - prevKF); // 0..1
+  saveState();
+  let count = 0;
+  for (const pt of parts) {
+    const prevD = pt.deforms[selParam]?.[prevKF];
+    const nextD = pt.deforms[selParam]?.[nextKF];
+    if (!prevD || !nextD) continue;
+    if (!pt.deforms[selParam]) pt.deforms[selParam] = {};
+    pt.deforms[selParam][curKF] = prevD.map((v, i) => ({
+      dx: v.dx + (nextD[i].dx - v.dx) * t,
+      dy: v.dy + (nextD[i].dy - v.dy) * t,
+    }));
+    count++;
+  }
+  render();
+  setStatus(`補間KF生成: ${P[selParam]?.l} @ ${curKF} (${prevKF}→${nextKF}, t=${t.toFixed(2)}, ${count}パーツ)`);
 }
 
 // ===== SMOOTH DEFORM =====
