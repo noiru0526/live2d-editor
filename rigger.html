@@ -413,6 +413,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="ab" onclick="undo()" style="font-size:9px">↩ 元に戻す (Ctrl+Z)</button>
         <button class="ab pr" onclick="saveModelOnly()">💾 モデル保存</button>
         <button class="ab pr" onclick="exportAvatarHTMLDirect()">🎭 アバターHTML出力</button>
+        <div style="margin-top:4px;font-size:8px;color:#2e5060;line-height:1.4">OBSブラウザソースURL例:<br>
+        <span style="color:#1e6080;font-family:monospace;word-break:break-all">file:///…/avatar.html?fps=30&obs=1</span><br>
+        <span style="color:#1e4050">fps=30|60 · obs=1(バッジ) · nostatus=1 · perf=1(FPSカウンター)</span></div>
       </div>
     </div>
 
@@ -2100,12 +2103,13 @@ function buildAvatarHTML(model) {
 <html><head><meta charset="UTF-8"><title>Live2D Avatar — noiru</title>
 <style>*{margin:0;padding:0}body{background:transparent;overflow:hidden}
 canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
-#st{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.65);color:#aaa;font-size:10px;font-family:monospace;padding:3px 8px;border-radius:4px;pointer-events:none}
+#st{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.65);color:#aaa;font-size:10px;font-family:monospace;padding:3px 8px;border-radius:4px;pointer-events:none;transition:opacity .5s}
+#obs-badge{position:fixed;bottom:8px;right:8px;background:rgba(255,0,0,.15);color:rgba(255,80,80,.6);font-size:8px;font-family:monospace;padding:2px 6px;border-radius:3px;pointer-events:none;border:1px solid rgba(255,80,80,.2)}
 #expr-bar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;pointer-events:none;opacity:.7}
 .expr-btn{background:rgba(0,0,0,.6);color:#ccc;font-size:10px;padding:3px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.15);font-family:monospace}
 .expr-btn.on{background:rgba(124,58,237,.5);border-color:#8b5cf6;color:#e0d0ff}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -2118,6 +2122,19 @@ const W=canvas.width,H=canvas.height;
 const S={headX:0,headY:0,headZ:0,eyeOpenL:0,eyeOpenR:0,eyeBallX:0,eyeBallY:0,browL:0,browR:0,mouthOpen:0,mouthForm:0,cheek:0,bodyX:0,bodyY:0,breath:0};
 const T={...S};
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
+// OBS/Performance settings from URL params
+// Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1
+const _p=new URLSearchParams(location.search);
+const TARGET_FPS=Math.min(120,Math.max(5,parseInt(_p.get('fps')||'60')));
+const OBS_MODE=_p.has('obs');
+const PERF_HUD=_p.has('perf');
+const SHOW_STATUS=!_p.has('nostatus')&&!OBS_MODE;
+let _minFrameMs=1000/TARGET_FPS;
+let _fpsCount=0,_fpsLast=0,_fpsVal=0;
+const _stEl=document.getElementById('st');
+if(!SHOW_STATUS&&!PERF_HUD)_stEl.style.display='none';
+if(OBS_MODE){document.getElementById('obs-badge').style.display='block';}
+document.addEventListener('visibilitychange',()=>{_minFrameMs=document.hidden?200:1000/TARGET_FPS;});
 let curExpr=-1;
 const physMap={};
 const EXPRS=MODEL.expressions||[];
@@ -2226,7 +2243,9 @@ function drawTri(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img){
   ctx.transform(a,e,b,f,c,g);ctx.drawImage(img,0,0);ctx.restore();
 }
 function frame(ts){
+  if(ts-last<_minFrameMs-1){requestAnimationFrame(frame);return;}
   const dt=Math.min((ts-last)/1000,.05);last=ts;
+  _fpsCount++;if(ts-_fpsLast>=1000){_fpsVal=Math.round(_fpsCount*1000/(ts-_fpsLast));_fpsCount=0;_fpsLast=ts;}
   const sm=.12;
   S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,.09);
   S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,.35);S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,.35);
@@ -2296,8 +2315,10 @@ function initCam(){
     if(lm[468]){T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*5));T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.38)*5));}
   });
   const cam=new Camera(v,{onFrame:async()=>{if(v.readyState>=2)await fm.send({image:v})},width:320,height:240});
-  cam.start().then(()=>{document.getElementById('st').textContent='✓ Camera';document.getElementById('st').style.color='#70d870';})
-    .catch(()=>{document.getElementById('st').textContent='No camera';});
+  cam.start().then(()=>{
+    if(SHOW_STATUS||PERF_HUD){_stEl.textContent='✓ Camera';_stEl.style.color='#70d870';}
+    setInterval(()=>{if(SHOW_STATUS||PERF_HUD)_stEl.textContent=(tracking?'✓':'✗')+' | '+_fpsVal+'fps / '+TARGET_FPS+'fps'+' | '+Date().slice(16,21);},1000);
+  }).catch(()=>{if(SHOW_STATUS||PERF_HUD){_stEl.textContent='No camera';_stEl.style.color='#f87171';}});
 }
 <\/script></body></html>`;
 }
