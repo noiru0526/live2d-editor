@@ -11952,9 +11952,31 @@ function applyPlayheadToParams() {
       const dur=M.animation.duration||3;
       const visibleDur=dur/tlZoom;
       const dx=(e.clientX-tlmKFDrag.startX)/r.width*visibleDur;
+      // Build list of all KF times on OTHER tracks for magnetic snap
+      const draggingKFRefs = new Set(tlmKFDrag.entries.map(e=>e.kf));
+      const otherKFTimes = [];
+      if (!e.ctrlKey) { // Ctrl: disable magnetic snap
+        for (const [nm, frms] of Object.entries(M.animation.tracks||{})) {
+          if (!frms?.length) continue;
+          for (const kf of frms) {
+            if (!draggingKFRefs.has(kf)) otherKFTimes.push(kf.t);
+          }
+        }
+      }
+      const snapThreshT = (8/r.width)*visibleDur; // 8px in time
+      const magSnapT = (rawT) => {
+        if (!tlSnapEnabled || otherKFTimes.length === 0) return snapT(rawT);
+        // Find nearest other KF time within threshold
+        let best = null, bestD = snapThreshT;
+        for (const ot of otherKFTimes) {
+          const d = Math.abs(rawT - ot);
+          if (d < bestD) { bestD = d; best = ot; }
+        }
+        return best !== null ? best : snapT(rawT);
+      };
       const affectedNames=new Set();
       for (const {kf,name,origT} of tlmKFDrag.entries) {
-        kf.t=snapT(Math.max(0,Math.min(dur,origT+dx)));
+        kf.t=magSnapT(Math.max(0,Math.min(dur,origT+dx)));
         affectedNames.add(name);
       }
       for (const nm of affectedNames) M.animation.tracks[nm]?.sort((a,b)=>a.t-b.t);
