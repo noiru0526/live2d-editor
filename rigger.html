@@ -51,6 +51,11 @@ body{background:#12151f;color:#cdd6f4;font-family:'Segoe UI',system-ui,sans-seri
 .pi-phys-badge{font-size:7px;color:#a78bfa;opacity:.7;flex-shrink:0}
 .pi-zidx{font-size:8px;color:#2a3a5a;flex-shrink:0;cursor:pointer;min-width:18px;text-align:right;font-family:monospace;user-select:none}
 .pi-zidx:hover{color:#7c3aed}
+.pi-clr{width:8px;height:8px;border-radius:50%;border:1px solid #2a3a5a;flex-shrink:0;cursor:pointer;transition:transform .1s}
+.pi-clr:hover{transform:scale(1.4)}
+.pi-clr-menu{position:absolute;background:#0d1117;border:1px solid #2a3a5a;border-radius:4px;padding:4px;display:flex;flex-wrap:wrap;gap:3px;width:80px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.7)}
+.pi-clr-swatch{width:12px;height:12px;border-radius:50%;cursor:pointer;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
+.pi-clr-swatch:hover{transform:scale(1.3);border-color:rgba(255,255,255,.6)}
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid #1e2638;flex-shrink:0}
@@ -751,6 +756,7 @@ class Part {
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
     this.altTextures = []; // [{name, dataURL, img}]
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
+    this.colorLabel = null; // color hex string or null
   }
   get w() { return this.img ? this.img.width : 100; }
   get h() { return this.img ? this.img.height : 100; }
@@ -858,7 +864,8 @@ class Part {
       deforms: this.deforms,
       imageData: withImage ? this.imgDataURL : null,
       altTextures: withImage ? (this.altTextures||[]).map(t=>({name:t.name, dataURL:t.dataURL})) : [],
-      activeTexIdx: this.activeTexIdx
+      activeTexIdx: this.activeTexIdx,
+      colorLabel: this.colorLabel || null
     };
   }
   static fromJSON(o) {
@@ -876,6 +883,7 @@ class Part {
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
+    p.colorLabel = o.colorLabel || null;
     if (o.imageData) {
       p.imgDataURL = o.imageData;
       const img = new Image();
@@ -1744,6 +1752,32 @@ function updatePartsUI() {
     lockSpan.onclick=(e)=>togLockItem(i,e); d.appendChild(lockSpan);
     if (pt.clipTo) { const b=document.createElement('span'); b.className='pi-clip-badge'; b.textContent='✂'; b.title='クリッピングマスク有効'; d.appendChild(b); }
     if (pt.physics?.enabled) { const b=document.createElement('span'); b.className='pi-phys-badge'; b.textContent='〜'; b.title='物理シミュレーション有効'; d.appendChild(b); }
+    // Color label dot
+    const clrDot = document.createElement('span');
+    clrDot.className='pi-clr'; clrDot.style.background=pt.colorLabel||'transparent'; clrDot.title='カラーラベル';
+    if (pt.colorLabel) clrDot.style.borderColor=pt.colorLabel;
+    clrDot.onclick=(e)=>{
+      e.stopPropagation();
+      document.querySelectorAll('.pi-clr-menu').forEach(m=>m.remove());
+      const menu=document.createElement('div'); menu.className='pi-clr-menu';
+      const rect=clrDot.getBoundingClientRect();
+      menu.style.cssText=`position:fixed;top:${rect.bottom+2}px;left:${rect.left-30}px`;
+      const clrs=['#f87171','#fb923c','#facc15','#4ade80','#22d3ee','#60a5fa','#c084fc','#f9a8d4',null];
+      clrs.forEach(c=>{
+        const sw=document.createElement('span');
+        sw.className='pi-clr-swatch';
+        sw.style.background=c||'transparent';
+        if(!c){sw.style.border='1px dashed #555';sw.title='クリア';}
+        if(c===pt.colorLabel) sw.style.boxShadow='0 0 0 2px #fff';
+        sw.onclick=(ev)=>{ev.stopPropagation();saveState();pt.colorLabel=c;menu.remove();updatePartsUI();};
+        menu.appendChild(sw);
+      });
+      document.body.appendChild(menu);
+      const close=()=>{menu.remove();document.removeEventListener('click',close);};
+      setTimeout(()=>document.addEventListener('click',close),0);
+    };
+    d.appendChild(clrDot);
+    if (pt.colorLabel) d.style.borderLeft=`3px solid ${pt.colorLabel}`;
     return d;
   }
 
