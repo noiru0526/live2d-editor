@@ -1367,6 +1367,20 @@ function render() {
         ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.stroke();
       }
       if (isSel && (mode==='mesh'||mode==='deform')) {
+        // Deform mode: draw neutral (KF=0) wireframe ghost for reference
+        if (mode==='deform') {
+          const neutralVals = Object.fromEntries(Object.keys(getParamVals()).map(k=>[k, P[k]?.k?.[0]??0]));
+          const nv = pt.getWorldVerts(neutralVals);
+          ctx.save();
+          ctx.strokeStyle='rgba(100,200,150,.25)';
+          ctx.lineWidth=.6;
+          ctx.setLineDash([3,3]);
+          for (const [i0,i1,i2] of pt.mesh.tris) {
+            const s0=m2s(nv[i0].x,nv[i0].y), s1=m2s(nv[i1].x,nv[i1].y), s2=m2s(nv[i2].x,nv[i2].y);
+            ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.stroke();
+          }
+          ctx.setLineDash([]); ctx.restore();
+        }
         const kd = mode==='deform' ? (pt.deforms[selParam]?.[curKF]||[]) : [];
         for (let i=0; i<wv.length; i++) {
           const s = m2s(wv[i].x, wv[i].y);
