@@ -1080,6 +1080,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#2e3656;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでしきい値設定" oncontextmenu="event.preventDefault();const v=prompt('削除しきい値(ms)',5);if(v)cleanupAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
+    <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#1e2a1e;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
@@ -10776,6 +10777,29 @@ function showSnapMenu(e) {
     { icon:'⬛', label:'0.1秒刻み', action:()=>{ tlSnapGrid=0.1; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.1秒'; }},
     { icon:'⬛', label:'0.5秒刻み', action:()=>{ tlSnapGrid=0.5; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.5秒'; }},
   ]);
+}
+
+// Quantize all KF times (or selected KFs only) to the nearest snap grid multiple
+function quantizeKFTimes() {
+  if (!tlSnapGrid || tlSnapGrid <= 0) { document.getElementById('lbl-status').textContent = 'スナップグリッドが設定されていません（🧲 右クリックで設定）'; return; }
+  const tracks = M.animation?.tracks;
+  if (!tracks) return;
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  const useSelected = tlSelectedKFs.size > 0;
+  const targetKFs = useSelected ? [...tlSelectedKFs] : Object.values(tracks).flat();
+  if (!targetKFs.length) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+  pushAnimUndo();
+  let count = 0;
+  const affectedNames = new Set();
+  for (const kf of targetKFs) {
+    const newT = Math.round(kf.t / tlSnapGrid) * tlSnapGrid;
+    const rounded = Math.round(newT * 10000) / 10000;
+    if (Math.abs(rounded - kf.t) > 1e-6) { kf.t = rounded; count++; const nm=kfToName.get(kf); if(nm) affectedNames.add(nm); }
+  }
+  for (const nm of affectedNames) tracks[nm]?.sort((a,b)=>a.t-b.t);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `KF量子化: ${count}個を${(tlSnapGrid*1000).toFixed(0)}msグリッドにスナップ`;
 }
 
 function toggleAutoKF() {
