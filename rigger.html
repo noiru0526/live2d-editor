@@ -5816,6 +5816,16 @@ function showAvatarExportDialog() {
         <option value="15">15 fps</option>
       </select>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:#4a9eff"> 🕐 現在時刻</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#4a9eff"> ⏱ 配信タイマー</label>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;font-size:11px">
+        <span style="color:#a0b0d0;white-space:nowrap">🎮 ゲーム名:</span>
+        <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px">
+      </div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
       <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
@@ -5840,9 +5850,16 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-nostatus')?.checked) params.push('nostatus=1');
     if (document.getElementById('av-perf')?.checked) params.push('perf=1');
     if (!document.getElementById('av-hotkeys')?.checked) params.push('hotkeys=0');
+    const wgP = [];
+    if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
+    if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
+    const g = document.getElementById('av-wg-game')?.value?.trim();
+    if (g) wgP.push('game=' + encodeURIComponent(g));
+    if (wgP.length) params.push('widget=' + wgP.join(','));
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
+  overlay.querySelectorAll('input[type="text"]').forEach(el => el.addEventListener('input', updatePreview));
   updatePreview();
 }
 
@@ -5852,6 +5869,9 @@ async function doExportAvatar() {
   const noStatus = document.getElementById('av-nostatus')?.checked;
   const perf = document.getElementById('av-perf')?.checked;
   const noHotkeys = !document.getElementById('av-hotkeys')?.checked;
+  const wgClock = document.getElementById('av-wg-clock')?.checked;
+  const wgTimer = document.getElementById('av-wg-timer')?.checked;
+  const wgGame = document.getElementById('av-wg-game')?.value?.trim() || '';
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   document.getElementById('av-export-overlay')?.remove();
 
@@ -5865,6 +5885,12 @@ async function doExportAvatar() {
   if (noStatus) defaultParams.push('nostatus=1');
   if (perf) defaultParams.push('perf=1');
   if (noHotkeys) defaultParams.push('hotkeys=0');
+  // Widget params
+  const wgParts = [];
+  if (wgClock) wgParts.push('clock');
+  if (wgTimer) wgParts.push('timer');
+  if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
+  if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -5921,8 +5947,12 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .expr-btn.on{background:rgba(124,58,237,.5);border-color:#8b5cf6;color:#e0d0ff}
 #hotkey-panel{position:fixed;top:12px;left:12px;background:rgba(10,12,24,.82);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:10px;font-family:monospace;color:#c0c0d0;pointer-events:none;line-height:1.7;backdrop-filter:blur(4px);transition:opacity .3s}
 #hotkey-panel kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:0 4px;color:#e0e0ff;font-size:9px;margin-right:4px}
+#widget-overlay{position:fixed;bottom:16px;left:16px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:50}
+.wg-item{background:rgba(8,10,20,.78);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:#c0d0e0;backdrop-filter:blur(4px);white-space:nowrap}
+.wg-label{font-size:8px;color:#5a7a9a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
+.wg-val{font-size:13px;color:#e0f0ff;font-weight:bold}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -6196,6 +6226,25 @@ function initCam(){
     setInterval(()=>{if(SHOW_STATUS||PERF_HUD)_stEl.textContent=(tracking?'✓':'✗')+' | '+_fpsVal+'fps / '+TARGET_FPS+'fps'+' | '+Date().slice(16,21);},1000);
   }).catch(()=>{if(SHOW_STATUS||PERF_HUD){_stEl.textContent='No camera';_stEl.style.color='#f87171';}});
 }
+// ===== STREAMING WIDGETS =====
+(function(){
+  const wOverlay=document.getElementById('widget-overlay');
+  if(!wOverlay)return;
+  const wParam=_p.get('widget')||'';
+  if(!wParam)return;
+  const widgets=wParam.split(',').map(s=>s.trim()).filter(Boolean);
+  const _streamStart=Date.now();
+  const pad2=n=>String(n).padStart(2,'0');
+  const fmtTime=d=>\`\${pad2(d.getHours())}:\${pad2(d.getMinutes())}:\${pad2(d.getSeconds())}\`;
+  const fmtDur=ms=>{const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);return h?\`\${h}:\${pad2(m%60)}:\${pad2(s%60)}\`:\`\${m}:\${pad2(s%60)}\`;};
+  const makeWg=(label,valId)=>{const d=document.createElement('div');d.className='wg-item';d.innerHTML=(label?\`<div class="wg-label">\${label}</div>\`:'')+\`<div id="\${valId}" class="wg-val">—</div>\`;wOverlay.appendChild(d);return d;};
+  if(widgets.includes('clock')){makeWg('現在時刻','wg-clock');setInterval(()=>{const el=document.getElementById('wg-clock');if(el)el.textContent=fmtTime(new Date());},1000);}
+  if(widgets.includes('timer')){makeWg('配信時間','wg-timer');setInterval(()=>{const el=document.getElementById('wg-timer');if(el)el.textContent=fmtDur(Date.now()-_streamStart);},1000);}
+  const gameW=widgets.find(w=>w.startsWith('game='));
+  if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;}
+  const textW=widgets.find(w=>w.startsWith('text='));
+  if(textW){const txt=decodeURIComponent(textW.slice(5));makeWg('','wg-text');const el=document.getElementById('wg-text');if(el){el.style.fontSize='12px';el.textContent=txt;}}
+})();
 <\/script></body></html>`;
 }
 
