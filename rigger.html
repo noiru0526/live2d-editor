@@ -223,6 +223,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="sep"></div>
   <div class="tgrp">
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
+    <button class="tbtn" onclick="importSVGAspart()" title="SVGファイルをインポート: 全体を1パーツとして追加、またはレイヤー別に複数パーツ分割">＋ SVG</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
     <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
@@ -2183,6 +2184,112 @@ async function addPartFromFile() {
     document.getElementById('ni').focus(); document.getElementById('ni').select();
   };
   img.src = dataURL;
+}
+
+// ===== SVG IMPORT =====
+function importSVGAspart() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.svg,image/svg+xml';
+  inp.onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    const svgText = await file.text();
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svgEl = svgDoc.querySelector('svg');
+    if (!svgEl) { setStatus('有効なSVGファイルではありません'); return; }
+
+    // Determine SVG dimensions
+    let svgW = parseFloat(svgEl.getAttribute('width') || 0);
+    let svgH = parseFloat(svgEl.getAttribute('height') || 0);
+    if (!svgW || !svgH) {
+      const vb = svgEl.getAttribute('viewBox');
+      if (vb) { const [,, vw, vh] = vb.split(/[\s,]+/).map(Number); svgW=vw; svgH=vh; }
+    }
+    if (!svgW || !svgH) { svgW = svgH = 512; }
+
+    // Prompt: whole SVG or split by <g> groups (layers)
+    const layers = Array.from(svgEl.querySelectorAll('svg > g')).filter(g => g.children.length);
+    const mode = layers.length > 1
+      ? (confirm(`SVGに ${layers.length} つのグループ(レイヤー)が見つかりました。\n[OK] → グループ別に ${layers.length} パーツ作成\n[キャンセル] → 全体を1パーツとして追加`) ? 'layers' : 'whole')
+      : 'whole';
+
+    const maxDim = 1024;
+    const scale = Math.min(1, maxDim / Math.max(svgW, svgH));
+    const rW = Math.round(svgW * scale);
+    const rH = Math.round(svgH * scale);
+
+    const rasterize = (svgSource, w, h) => new Promise(resolve => {
+      const blob = new Blob([svgSource], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const cx = cv.getContext('2d');
+        cx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(cv.toDataURL('image/png'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+
+    const createPartFromDataURL = (dataURL, name, cols, rows) => new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const pt = new Part();
+        pt.name = name;
+        pt.img = img; pt.iw = img.width; pt.ih = img.height;
+        pt.x = 0; pt.y = 0;
+        pt.mesh = { cols, rows };
+        const totalV = (cols + 1) * (rows + 1);
+        pt.mesh.verts = Array.from({ length: totalV }, (_, i) => {
+          const gx = i % (cols + 1), gy = Math.floor(i / (cols + 1));
+          return { x: (gx / cols) * img.width - img.width / 2, y: (gy / rows) * img.height - img.height / 2 };
+        });
+        pt.mesh.tris = [];
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          const tl = r * (cols + 1) + c, tr = tl + 1, bl = tl + (cols + 1), br = bl + 1;
+          pt.mesh.tris.push([tl, bl, tr], [tr, bl, br]);
+        }
+        resolve(pt);
+      };
+      img.src = dataURL;
+    });
+
+    if (mode === 'whole') {
+      const dataURL = await rasterize(svgText, rW, rH);
+      if (!dataURL) { setStatus('SVGのラスタライズに失敗しました'); return; }
+      const baseName = file.name.replace(/\.svg$/i, '');
+      const cols = Math.max(2, Math.min(8, Math.round(rW / 64)));
+      const rows = Math.max(2, Math.min(8, Math.round(rH / 64)));
+      const pt = await createPartFromDataURL(dataURL, baseName, cols, rows);
+      saveState();
+      parts.push(pt); selPart = parts.length - 1; selParts.clear();
+      buildPartsList(); render(); scheduleThumbUpdate();
+      setStatus(`SVGインポート: ${baseName} (${rW}×${rH}px, ${cols}×${rows}グリッド)`);
+    } else {
+      saveState();
+      let added = 0;
+      for (const g of layers) {
+        const layerName = g.getAttribute('id') || g.getAttribute('inkscape:label') || `layer${added + 1}`;
+        // Build a standalone SVG with just this layer
+        const clone = svgEl.cloneNode(false);
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        clone.innerHTML = g.outerHTML;
+        const svgSrc = new XMLSerializer().serializeToString(clone);
+        const dataURL = await rasterize(svgSrc, rW, rH);
+        if (!dataURL) continue;
+        const cols = Math.max(2, Math.min(8, Math.round(rW / 64)));
+        const rows = Math.max(2, Math.min(8, Math.round(rH / 64)));
+        const pt = await createPartFromDataURL(dataURL, layerName, cols, rows);
+        parts.push(pt); added++;
+      }
+      selPart = parts.length - 1; selParts.clear();
+      buildPartsList(); render(); scheduleThumbUpdate();
+      setStatus(`SVGインポート: ${added} パーツ追加`);
+    }
+  };
+  inp.click();
 }
 
 async function loadModelJSON() {
