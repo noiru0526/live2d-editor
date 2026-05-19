@@ -1066,6 +1066,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2e3656;border:1px solid var(--border);color:#a0e0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:#2e3656;border:1px solid var(--border);color:#c0e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
     <button onclick="showAllParamsHeatmap()" title="全パラメータのKF値密度ヒートマップ（どのパラメータがどの値域を多く使っているか）" style="background:#2e3656;border:1px solid rgba(255,180,80,.4);color:#ffc060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌡 値域マップ</button>
+    <button onclick="showParamCorrelation()" title="2パラメータ間のKF値相関散布図（同時刻の値を対プロット）" style="background:#2e3656;border:1px solid rgba(200,160,255,.4);color:#d0a8ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📉 相関グラフ</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
@@ -11937,6 +11938,61 @@ function showAllParamsHeatmap() {
       }
     });
   });
+}
+
+function showParamCorrelation() {
+  const trackNames = Object.keys(M.animation.tracks).filter(n=>M.animation.tracks[n]?.length>1&&M.params[n]);
+  if (trackNames.length < 2) { document.getElementById('lbl-status').textContent = '相関グラフには2つ以上のパラメータトラックが必要です'; return; }
+  const nameA = ST.ap && M.animation.tracks[ST.ap] ? ST.ap : trackNames[0];
+  const nameB = trackNames.find(n=>n!==nameA) || trackNames[1];
+  const W=280,H=280,PAD=30;
+  const bodyHTML = `<div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+      <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <button onclick="drawCorrPlot()" style="background:#1e2e40;border:1px solid rgba(200,160,255,.4);color:#d0a8ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
+    </div>
+    <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0c18;border-radius:4px;border:1px solid var(--border);"></canvas>
+    <div id="corr-info" style="font-size:9px;color:var(--dim);margin-top:4px;text-align:center;"></div>
+  </div>`;
+  showModal('パラメータ相関グラフ', bodyHTML);
+  window.drawCorrPlot = () => {
+    const an=document.getElementById('corr-a')?.value, bn=document.getElementById('corr-b')?.value;
+    const frA=M.animation.tracks[an]||[], frB=M.animation.tracks[bn]||[];
+    const pA=M.params[an], pB=M.params[bn]; if(!pA||!pB) return;
+    const cvs=document.getElementById('corr-cvs'); if(!cvs) return;
+    const ctx2=cvs.getContext('2d'); ctx2.clearRect(0,0,W,H);
+    // Collect all unique times from both tracks
+    const times=[...new Set([...frA.map(k=>k.t),...frB.map(k=>k.t)])].sort((a,b)=>a-b);
+    const pts=times.map(t=>({x:evalAnimTrack(frA,pA,t), y:evalAnimTrack(frB,pB,t)}));
+    // Axes
+    const mapX=v=>PAD+((v-pA.min)/(pA.max-pA.min||1))*(W-PAD*2);
+    const mapY=v=>H-PAD-((v-pB.min)/(pB.max-pB.min||1))*(H-PAD*2);
+    ctx2.strokeStyle='#2a3050'; ctx2.lineWidth=1;
+    ctx2.beginPath(); ctx2.moveTo(PAD,PAD); ctx2.lineTo(PAD,H-PAD); ctx2.lineTo(W-PAD,H-PAD); ctx2.stroke();
+    // Zero lines
+    ctx2.strokeStyle='rgba(100,120,200,.4)'; ctx2.setLineDash([3,3]);
+    const zeroX=mapX(0), zeroY=mapY(0);
+    if(zeroX>PAD&&zeroX<W-PAD){ctx2.beginPath();ctx2.moveTo(zeroX,PAD);ctx2.lineTo(zeroX,H-PAD);ctx2.stroke();}
+    if(zeroY>PAD&&zeroY<H-PAD){ctx2.beginPath();ctx2.moveTo(PAD,zeroY);ctx2.lineTo(W-PAD,zeroY);ctx2.stroke();}
+    ctx2.setLineDash([]);
+    // Plot points with time-based color gradient
+    pts.forEach((p,i)=>{const norm=i/(pts.length-1||1);const r=Math.round(norm*220);const b=Math.round((1-norm)*220);ctx2.fillStyle=`rgb(${r},80,${b})`;ctx2.beginPath();ctx2.arc(mapX(p.x),mapY(p.y),2.5,0,Math.PI*2);ctx2.fill();});
+    // Axis labels
+    ctx2.fillStyle='#5060a0'; ctx2.font='9px monospace'; ctx2.textAlign='center';
+    ctx2.fillText(pA.lbl||an,W/2,H-5);
+    ctx2.save(); ctx2.translate(10,H/2); ctx2.rotate(-Math.PI/2); ctx2.fillText(pB.lbl||bn,0,0); ctx2.restore();
+    // Correlation coefficient
+    const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+    const mx=xs.reduce((a,b)=>a+b,0)/xs.length, my=ys.reduce((a,b)=>a+b,0)/ys.length;
+    const cov=xs.reduce((a,v,i)=>a+(v-mx)*(ys[i]-my),0)/xs.length;
+    const sx=Math.sqrt(xs.reduce((a,v)=>a+(v-mx)**2,0)/xs.length);
+    const sy=Math.sqrt(ys.reduce((a,v)=>a+(v-my)**2,0)/ys.length);
+    const r_val=(sx&&sy)?cov/(sx*sy):0;
+    const infoEl=document.getElementById('corr-info');
+    if(infoEl) infoEl.textContent=`相関係数 r = ${r_val.toFixed(4)}  |  サンプル: ${pts.length}点  |  色: 青=開始→赤=終了`;
+  };
+  requestAnimationFrame(()=>window.drawCorrPlot?.());
 }
 
 function insertPoseKF() {
