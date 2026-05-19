@@ -889,6 +889,7 @@ let meshSymmetry = false; // mirror vertex edits across center X axis of part
 let globalCoordMode = false; // show part position as center offset from canvas center
 let _brushRadius = 60; // canvas-space radius for brush deform mode
 let _brushMousePos = null; // {x,y} for brush cursor overlay
+let _boxSelectEnd = null; // {x,y} end corner of box selection in progress
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
@@ -2122,6 +2123,18 @@ function render() {
     }
     ctx.fillStyle = rulerCol; ctx.fillRect(0, 0, rulerW, rulerW); // corner
     ctx.restore();
+  }
+
+  // Box selection overlay (parts mode)
+  if (dragMode === 'box-select' && _boxSelectEnd && mode === 'parts') {
+    const s1 = m2s(dragSX, dragSY), s2 = m2s(_boxSelectEnd.x, _boxSelectEnd.y);
+    const sx = Math.min(s1.x, s2.x), sy = Math.min(s1.y, s2.y);
+    const sw = Math.abs(s2.x - s1.x), sh = Math.abs(s2.y - s1.y);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(80,180,255,0.8)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+    ctx.strokeRect(sx, sy, sw, sh);
+    ctx.fillStyle = 'rgba(80,180,255,0.06)'; ctx.fillRect(sx, sy, sw, sh);
+    ctx.setLineDash([]); ctx.restore();
   }
 
   // Brush deform cursor overlay (deform mode)
@@ -4583,6 +4596,7 @@ canvas.addEventListener('mousemove',e=>{
   if (!dragging && mode==='deform') { render(); return; }
   if (!dragging) return;
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); updateZoomHUD(); render(); return; }
+  if (dragMode==='box-select') { _boxSelectEnd={x:mp.x,y:mp.y}; render(); return; }
   if (dragMode==='movepart'&&selPart>=0) {
     const rawDX=mp.x-dragSX, rawDY=mp.y-dragSY;
     let nx=snapVal(dragPartOX+rawDX), ny=snapVal(dragPartOY+rawDY);
@@ -4757,6 +4771,12 @@ canvas.addEventListener('mousedown',e=>{
         dragMultiOrigins.clear();
         selParts.forEach(i=>dragMultiOrigins.set(i,{x:parts[i].x,y:parts[i].y}));
       }
+    } else {
+      // Start box selection on empty space
+      if (!e.shiftKey) { selParts.clear(); selPart=-1; updatePartsUI(); }
+      dragging=true; dragMode='box-select';
+      dragSX=mp.x; dragSY=mp.y;
+      _boxSelectEnd={x:mp.x,y:mp.y};
     }
     return;
   }
@@ -4838,6 +4858,21 @@ canvas.addEventListener('mouseleave',()=>{
 canvas.addEventListener('mouseup', e => {
   const wasVI = dragVI;
   const wasMode = dragMode;
+  // Finalize box selection
+  if (wasMode === 'box-select' && _boxSelectEnd) {
+    const bx1 = Math.min(dragSX, _boxSelectEnd.x), bx2 = Math.max(dragSX, _boxSelectEnd.x);
+    const by1 = Math.min(dragSY, _boxSelectEnd.y), by2 = Math.max(dragSY, _boxSelectEnd.y);
+    const addMode = e.shiftKey;
+    if (!addMode) { selParts.clear(); selPart = -1; }
+    parts.forEach((pt, i) => {
+      if (!pt.visible) return;
+      const cx = pt.x + pt.w/2, cy = pt.y + pt.h/2;
+      if (cx>=bx1&&cx<=bx2&&cy>=by1&&cy<=by2) { selParts.add(i); selPart=i; }
+    });
+    if (selPart < 0 && selParts.size > 0) selPart = [...selParts][0];
+    _boxSelectEnd = null;
+    updatePartsUI(); render();
+  }
   if (dragMode!=='pan') { dragMode=''; dragVI=-1; }
   dragging=false; canvas.style.cursor='crosshair';
   if (_snapGuideX!==null || _snapGuideY!==null) { _snapGuideX=null; _snapGuideY=null; render(); }
