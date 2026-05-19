@@ -278,6 +278,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="ih" onclick="sortPartsByName()" title="パーツ名のアルファベット順にソート">↕A</button>
         <button class="ih" onclick="collapseAllGroups(true)" title="全グループ折りたたむ">⊟</button>
         <button class="ih" onclick="collapseAllGroups(false)" title="全グループ展開">⊞</button>
+        <button class="ih" onclick="setAllPartsVisible(true)" title="全パーツを表示">👁</button>
+        <button class="ih" onclick="setAllPartsVisible(false)" title="全パーツを非表示">🚫</button>
+        <button class="ih" onclick="invertPartsVisible()" title="表示/非表示を反転">⇄</button>
       </div>
     </div>
     <!-- Parts search filter -->
@@ -2127,6 +2130,15 @@ function addGuideAtPos(wx, wy) {
   _customGuides.push({ axis, pos, color: 'rgba(255,200,80,0.7)' });
   render();
   setStatus(`ガイド追加: ${axis.toUpperCase()}=${pos}`);
+}
+
+function setAllPartsVisible(v) {
+  saveState(); parts.forEach(p => p.visible = v); updatePartsUI(); render();
+  setStatus(v ? '全パーツを表示' : '全パーツを非表示');
+}
+function invertPartsVisible() {
+  saveState(); parts.forEach(p => p.visible = !p.visible); updatePartsUI(); render();
+  setStatus('表示/非表示を反転');
 }
 
 function toggleColorFilter(color) {
