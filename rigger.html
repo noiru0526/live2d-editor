@@ -245,6 +245,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
     <button class="tbtn" id="btn-bounds" onclick="showBounds=!showBounds;this.classList.toggle('active',showBounds);render()" title="バウンディングボックス: 全パーツのAABBを表示">⬚ バウンド</button>
     <button class="tbtn" id="btn-solo" onclick="togglePartSolo()" title="ソロ表示: 選択パーツだけを表示（Shift+Sでも切替）">⊙ ソロ</button>
+    <button class="tbtn" id="btn-silhouette" onclick="silhouetteMode=!silhouetteMode;this.classList.toggle('active',silhouetteMode);render();" title="シルエットモード: テクスチャなしで塗りつぶし表示、メッシュ輪郭確認用">⬛ シルエット</button>
     <button class="tbtn" onclick="showGuideManager()" title="カスタムガイドライン: 参照線を追加・管理">⊞ ガイド</button>
     <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
@@ -881,7 +882,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -1605,7 +1606,10 @@ function render() {
   const tl = m2s(0,0), br = m2s(canvasW, canvasH);
 
   // Checkerboard or solid bg
-  if (showChecker) {
+  if (silhouetteMode) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
+  } else if (showChecker) {
     const cs = Math.max(6, Math.round(10*VS));
     for (let cy = tl.y; cy < br.y; cy+=cs)
       for (let cx = tl.x; cx < br.x; cx+=cs) {
@@ -1719,11 +1723,22 @@ function render() {
     const _hsb = _hasHSBKF ? pt.getHSBKF(vals) : {hue:pt.hue||0, sat:pt.saturate!==undefined?pt.saturate:100, bri:pt.brightness!==undefined?pt.brightness:100};
     const _hue = _hsb.hue, _sat = _hsb.sat, _bri = _hsb.bri;
     if (_hue !== 0 || _sat !== 100 || _bri !== 100) ctx.filter = `hue-rotate(${_hue}deg) saturate(${_sat/100}) brightness(${_bri/100})`;
-    for (const [i0,i1,i2] of pt.mesh.tris) {
-      const p0=wv[i0], p1=wv[i1], p2=wv[i2];
-      const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
-      const s0=m2s(p0.x,p0.y), s1=m2s(p1.x,p1.y), s2=m2s(p2.x,p2.y);
-      drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.activeImg);
+    if (silhouetteMode) {
+      const silColor = pt.colorLabel || '#000000';
+      ctx.fillStyle = silColor;
+      ctx.beginPath();
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+        ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath();
+      }
+      ctx.fill();
+    } else {
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const p0=wv[i0], p1=wv[i1], p2=wv[i2];
+        const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
+        const s0=m2s(p0.x,p0.y), s1=m2s(p1.x,p1.y), s2=m2s(p2.x,p2.y);
+        drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.activeImg);
+      }
     }
     ctx.restore();
 
