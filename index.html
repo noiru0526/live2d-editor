@@ -1098,6 +1098,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <option value="alpha">🔤 アルファベット順</option>
       <option value="kf-count">📊 KF数順</option>
       <option value="active">🕐 アクティブ順</option>
+      <option value="custom">✋ カスタム</option>
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
@@ -8394,7 +8395,8 @@ let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
 let tlShowValues = true;  // show current value in track labels
 let tlWaveform = false;   // fill under curve (waveform-style display)
-let tlSortMode = 'default'; // 'default'|'alpha'|'kf-count'|'active'
+let tlSortMode = 'default'; // 'default'|'alpha'|'kf-count'|'active'|'custom'
+const tlCustomOrder = new Map(); // paramName → rank (0-based) for custom sort mode
 let tlFrameGrid = false;  // show per-frame grid lines at tlSnapGrid FPS
 let _tlHoverT = null; // current hover time on timeline canvas (null = not hovering)
 
@@ -8682,6 +8684,10 @@ function drawMultiTimeline() {
       const bMax=bT?.length?Math.max(...bT.map(k=>k.t)):0;
       return bMax-aMax;
     });
+    if (tlSortMode === 'custom') {
+      const MAX = rows.length + 100;
+      return [...rows].sort((a,b)=>(tlCustomOrder.get(a[0])??MAX)-(tlCustomOrder.get(b[0])??MAX));
+    }
     return rows;
   };
   const pinned = _sortRows(allBase.filter(([n]) => tlPinnedTracks.has(n)));
@@ -9083,6 +9089,74 @@ tlLabelCanvas.addEventListener('dblclick', e=>{
     document.getElementById('lbl-status').textContent = `ラベル変更: ${name} → "${lp.lbl}"`;
   }
 });
+
+// Track drag-reorder on label canvas (Alt+drag to reorder, switches to custom sort mode)
+(()=>{
+  let _tlDragRow = null; // {name, startRi, curY}
+  let _tlDragOverRi = -1;
+  const _tlDragLine = document.createElement('div');
+  _tlDragLine.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:#4e7cff;pointer-events:none;display:none;z-index:10;';
+  document.getElementById('tl-multi-tracks')?.appendChild(_tlDragLine);
+
+  tlLabelCanvas.addEventListener('mousedown', e=>{
+    if (!e.altKey) return;
+    const r = tlLabelCanvas.getBoundingClientRect();
+    const py = (e.clientY - r.top) + tlScrollY;
+    const ri = _labelHitRow(py, _tlDisplayedRows);
+    if (ri < 0) return;
+    const [name] = _tlDisplayedRows[ri];
+    if (name.startsWith('__grp:')) return;
+    _tlDragRow = {name, startRi: ri, curY: e.clientY};
+    e.preventDefault(); e.stopPropagation();
+    tlLabelCanvas.style.cursor = 'grabbing';
+    _tlDragLine.style.display = 'block';
+  });
+  document.addEventListener('mousemove', e=>{
+    if (!_tlDragRow) return;
+    _tlDragRow.curY = e.clientY;
+    const r = tlLabelCanvas.getBoundingClientRect();
+    const py = (e.clientY - r.top) + tlScrollY;
+    const {offs, rhs} = _rowOffsets(_tlDisplayedRows);
+    let targetRi = _tlDisplayedRows.length;
+    for (let i=0;i<_tlDisplayedRows.length;i++) {
+      if (py < offs[i] + rhs[i]/2) { targetRi=i; break; }
+    }
+    _tlDragOverRi = targetRi;
+    const lineY = targetRi < _tlDisplayedRows.length
+      ? offs[targetRi] - tlScrollY + r.top - r.top  // relative to container
+      : (offs[_tlDisplayedRows.length-1]||0) + (rhs[_tlDisplayedRows.length-1]||18) - tlScrollY;
+    _tlDragLine.style.top = (lineY + tlScrollY - tlScrollY)+'px';
+    // Simpler: position relative to tracks container
+    const tracksEl = document.getElementById('tl-multi-tracks');
+    const tr = tracksEl?.getBoundingClientRect();
+    if (tr) {
+      const relY = targetRi < _tlDisplayedRows.length
+        ? offs[targetRi] - tlScrollY
+        : offs[_tlDisplayedRows.length-1] - tlScrollY + (rhs[_tlDisplayedRows.length-1]||18);
+      _tlDragLine.style.top = Math.max(0, relY) + 'px';
+    }
+  });
+  document.addEventListener('mouseup', e=>{
+    if (!_tlDragRow) return;
+    const {name} = _tlDragRow;
+    const srcRi = _tlDisplayedRows.findIndex(([n])=>n===name);
+    let targetRi = _tlDragOverRi;
+    if (targetRi > srcRi) targetRi--; // account for removal
+    _tlDragRow = null; _tlDragOverRi = -1;
+    _tlDragLine.style.display = 'none';
+    tlLabelCanvas.style.cursor = '';
+    if (srcRi < 0 || targetRi === srcRi || targetRi < 0) return;
+    // Reorder: build new order, assign ranks, switch to custom mode
+    const rows = [..._tlDisplayedRows];
+    const [moved] = rows.splice(srcRi, 1);
+    rows.splice(targetRi, 0, moved);
+    rows.forEach(([n], i) => { if (!n.startsWith('__grp:')) tlCustomOrder.set(n, i); });
+    tlSortMode = 'custom';
+    const sel = document.getElementById('tl-sort-mode'); if (sel) sel.value = 'custom';
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `トラック「${M.params[name]?.lbl||name}」を移動しました（カスタムソート）`;
+  });
+})();
 
 tlLabelCanvas.addEventListener('contextmenu', e=>{
   e.preventDefault();
