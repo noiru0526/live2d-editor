@@ -333,6 +333,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
       </div>
     </div>
 
@@ -2572,6 +2573,69 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+function subdivideMesh() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh || !pt.mesh.cols || !pt.mesh.rows) { setStatus('グリッドメッシュが必要です（再生成してください）'); return; }
+  const oldCols = pt.mesh.cols, oldRows = pt.mesh.rows;
+  const newCols = oldCols * 2, newRows = oldRows * 2;
+  if (newCols > 64 || newRows > 64) { setStatus(`細分化後 ${newCols}×${newRows} は上限(64)を超えます`); return; }
+  saveState();
+
+  // Build new vertex grid (2*oldCols+1) × (2*oldRows+1)
+  const w = pt.w, h = pt.h;
+  const newVerts = [];
+  for (let r = 0; r <= newRows; r++)
+    for (let c = 0; c <= newCols; c++)
+      newVerts.push({ x: c / newCols * w, y: r / newRows * h });
+
+  // Build new triangles
+  const newTris = [];
+  for (let r = 0; r < newRows; r++)
+    for (let c = 0; c < newCols; c++) {
+      const tl = r*(newCols+1)+c, tr = tl+1, bl = tl+newCols+1, br = bl+1;
+      newTris.push([tl, tr, bl]); newTris.push([tr, br, bl]);
+    }
+
+  // Interpolate deforms: for each param and KF, bilinearly interpolate from old to new grid
+  const oldW = oldCols + 1; // old vertex columns
+  const getOldDeform = (deformArr, oc, or_) => deformArr[or_ * oldW + oc] || {dx:0, dy:0};
+
+  const newDeforms = {};
+  for (const [pn, pkfs] of Object.entries(pt.deforms || {})) {
+    newDeforms[pn] = {};
+    for (const [kfKey, oldArr] of Object.entries(pkfs)) {
+      const newArr = [];
+      for (let nr = 0; nr <= newRows; nr++) {
+        for (let nc = 0; nc <= newCols; nc++) {
+          // Map new grid (nc, nr) to old grid float coords
+          const fc = nc / 2, fr = nr / 2;
+          const oc0 = Math.floor(fc), or0 = Math.floor(fr);
+          const oc1 = Math.min(oc0 + 1, oldCols), or1 = Math.min(or0 + 1, oldRows);
+          const tx = fc - oc0, ty = fr - or0;
+          const d00 = getOldDeform(oldArr, oc0, or0);
+          const d10 = getOldDeform(oldArr, oc1, or0);
+          const d01 = getOldDeform(oldArr, oc0, or1);
+          const d11 = getOldDeform(oldArr, oc1, or1);
+          newArr.push({
+            dx: d00.dx*(1-tx)*(1-ty) + d10.dx*tx*(1-ty) + d01.dx*(1-tx)*ty + d11.dx*tx*ty,
+            dy: d00.dy*(1-tx)*(1-ty) + d10.dy*tx*(1-ty) + d01.dy*(1-tx)*ty + d11.dy*tx*ty,
+          });
+        }
+      }
+      newDeforms[pn][kfKey] = newArr;
+    }
+  }
+
+  pt.mesh = { verts: newVerts, tris: newTris, cols: newCols, rows: newRows };
+  pt.deforms = newDeforms;
+  // Update mc/mr inputs to reflect new size
+  const mcEl = document.getElementById('mc'), mrEl = document.getElementById('mr');
+  if (mcEl) mcEl.value = newCols; if (mrEl) mrEl.value = newRows;
+  render(); scheduleThumbUpdate(selPart);
+  setStatus(`「${pt.name}」細分化: ${oldCols}×${oldRows} → ${newCols}×${newRows}`);
 }
 
 function trimMeshByAlpha() {
