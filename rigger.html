@@ -704,7 +704,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="ab" onclick="resetAll()">パーツ全リセット</button>
         <button class="ab" onclick="undo()" style="font-size:9px">↩ 元に戻す (Ctrl+Z)</button>
         <button class="ab pr" onclick="saveModelOnly()">💾 モデル保存</button>
-        <button class="ab pr" onclick="exportAvatarHTMLDirect()">🎭 アバターHTML出力</button>
+        <button class="ab pr" onclick="showAvatarExportDialog()">🎭 アバターHTML出力</button>
         <div style="margin-top:4px;font-size:8px;color:#2e5060;line-height:1.4">OBSブラウザソースURL例:<br>
         <span style="color:#1e6080;font-family:monospace;word-break:break-all">file:///…/avatar.html?fps=30&obs=1</span><br>
         <span style="color:#1e4050">fps=30|60 · obs=1(バッジ) · nostatus=1 · perf=1(FPSカウンター) · hotkeys=1(キー一覧表示)</span></div>
@@ -5787,6 +5787,112 @@ async function saveModelOnly() {
     const b=new Blob([json],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='live2d-rig.json'; a.click();
     setStatus('live2d-rig.json をエクスポート');
+  }
+}
+
+function showAvatarExportDialog() {
+  if (parts.length === 0) { setStatus('パーツがありません'); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'av-export-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML = `
+    <div style="background:#131828;border:1px solid rgba(124,58,237,.4);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+      <div style="font-size:14px;color:#c0d8ff;margin-bottom:14px;font-weight:bold">🎭 アバターHTML書き出し設定</div>
+
+      <div style="font-size:10px;color:#8090b0;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:#7c3aed"> OBSモード（バッジ表示）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
+      </div>
+
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
+      <select id="av-fps" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;margin-bottom:12px">
+        <option value="">制限なし（デバイス最大）</option>
+        <option value="60">60 fps</option>
+        <option value="30" selected>30 fps（推奨）</option>
+        <option value="24">24 fps</option>
+        <option value="15">15 fps</option>
+      </select>
+
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
+      <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
+      <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
+
+      <div style="background:#0e1120;border:1px solid #1a2a3a;border-radius:4px;padding:6px 8px;margin-bottom:12px">
+        <div style="font-size:9px;color:#4a7090;margin-bottom:2px">生成されるURLパラメータ（参考）</div>
+        <div id="av-url-preview" style="font-size:9px;color:#60a0d0;font-family:monospace;word-break:break-all">?fps=30</div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="doExportAvatar()" style="background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.6);color:#d0b0ff;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px;font-weight:600">🎭 書き出し</button>
+      </div>
+    </div>`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+  const updatePreview = () => {
+    const params = [];
+    const fps = document.getElementById('av-fps')?.value;
+    if (fps) params.push(`fps=${fps}`);
+    if (document.getElementById('av-obs')?.checked) params.push('obs=1');
+    if (document.getElementById('av-nostatus')?.checked) params.push('nostatus=1');
+    if (document.getElementById('av-perf')?.checked) params.push('perf=1');
+    if (!document.getElementById('av-hotkeys')?.checked) params.push('hotkeys=0');
+    document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
+  };
+  overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
+  updatePreview();
+}
+
+async function doExportAvatar() {
+  const fps = document.getElementById('av-fps')?.value || '';
+  const obs = document.getElementById('av-obs')?.checked;
+  const noStatus = document.getElementById('av-nostatus')?.checked;
+  const perf = document.getElementById('av-perf')?.checked;
+  const noHotkeys = !document.getElementById('av-hotkeys')?.checked;
+  let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
+  document.getElementById('av-export-overlay')?.remove();
+
+  const model = { version: 3, canvasW, canvasH, expressions, parts: parts.map(p => p.toJSON(true)) };
+  let html = buildAvatarHTML(model);
+
+  // Inject default params via meta tag so avatar auto-applies them on load
+  const defaultParams = [];
+  if (fps) defaultParams.push(`fps=${fps}`);
+  if (obs) defaultParams.push('obs=1');
+  if (noStatus) defaultParams.push('nostatus=1');
+  if (perf) defaultParams.push('perf=1');
+  if (noHotkeys) defaultParams.push('hotkeys=0');
+  if (defaultParams.length) {
+    const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
+    html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
+    // Inject auto-apply script: reads meta and applies as if URL params
+    const injectScript = `<script>
+(function(){
+  const meta=document.querySelector('meta[name="av-defaults"]');
+  if(!meta)return;
+  const search=meta.content;
+  const orig=new URLSearchParams(window.location.search);
+  const defs=new URLSearchParams(search);
+  defs.forEach((v,k)=>{if(!orig.has(k))orig.set(k,v);});
+  Object.defineProperty(window,'_avDefaults',{get:()=>orig});
+  const origGet=URLSearchParams.prototype.get;
+  // Expose merged params as window.__avp for avatar script to read
+  window.__avp=orig;
+})();
+<\/script>`;
+    html = html.replace('</head>', injectScript + '</head>');
+  }
+
+  if (isElectron) {
+    const ok = await window.rigger.exportAvatar(html, filename);
+    if (ok) setStatus(`アバターHTMLを保存しました: ${filename}`);
+  } else {
+    const b = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; a.click();
+    setStatus(`アバターHTMLを書き出しました: ${filename}`);
   }
 }
 
