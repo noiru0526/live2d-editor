@@ -1410,6 +1410,7 @@ const M = {
   posePresets: [], // [{name:'ポーズ名', vals:{paramId:value,...}}]
   animClips: [],   // [{name:'クリップ名', animation:{...}}] named animation clips
   chatTriggers: [], // [{keyword, action:'pose'|'param'|'clip', target, value}] user-defined
+  kfComments: {}, // {`${paramId}:${kfValue}`: 'comment text'} — notes attached to keyframes
   profile: {
     name: 'noiru',
     author: '',
@@ -3167,12 +3168,25 @@ function updateKFList() {
   cont.innerHTML='';
   for (const kfv of [...p.kfs].sort((a,b)=>a-b)) {
     const hasD=!!M.def[`${name}:${kfv}`];
+    const cmtKey=`${name}:${kfv}`;
+    const cmt=(M.kfComments||{})[cmtKey]||'';
     const item=document.createElement('div');
     item.className='kfi'+(ST.selKF===kfv?' sel':'');
-    item.innerHTML=`<span style="color:${hasD?'#ffd060':'#6878a0'}">●</span>
+    item.style.flexDirection='column'; item.style.alignItems='stretch';
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;width:100%';
+    row.innerHTML=`<span style="color:${hasD?'#ffd060':'#6878a0'}">●</span>
       <span class="kfv">${kfv.toFixed(2)}</span>
       <span style="flex:1;font-size:10px;color:#6878a0;padding-left:6px">${hasD?'データあり':''}</span>
-      <span class="kfd-btn" onclick="doDelKFVal('${name}',${kfv})">×</span>`;
+      <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#a0c0ff':'#3a4a6a'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
+      <span class="kfd-btn" onclick="event.stopPropagation();doDelKFVal('${name}',${kfv})">×</span>`;
+    item.appendChild(row);
+    if (cmt) {
+      const cmtEl=document.createElement('div');
+      cmtEl.style.cssText='font-size:9px;color:#7090b0;padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
+      cmtEl.textContent=cmt;
+      item.appendChild(cmtEl);
+    }
     item.addEventListener('click',()=>{
       ST.selKF=kfv; p.val=kfv;
       document.getElementById(`ps-${name}`).value=kfv;
@@ -3183,6 +3197,33 @@ function updateKFList() {
   }
   document.getElementById('sb-kf').textContent=`KF: ${p.kfs.length}個`;
   drawTimeline();
+}
+
+function editKFComment(paramId, kfv) {
+  const key=`${paramId}:${kfv}`;
+  const current=(M.kfComments||{})[key]||'';
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML=`<div style="background:#131828;border:1px solid rgba(100,150,255,.3);border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="font-size:12px;color:#c0d8ff;margin-bottom:8px">KFメモ — <span style="color:#ffd060">${paramId}:${kfv}</span></div>
+    <textarea id="kfc-input" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
+      <button onclick="this.closest('[style]').parentElement.remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="saveKFComment('${paramId}',${kfv});this.closest('[style]').parentElement.remove()" style="background:rgba(74,158,255,.2);border:1px solid rgba(74,158,255,.5);color:#80c0ff;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">保存</button>
+    </div>
+  </div>`;
+  overlay.onclick=()=>overlay.remove();
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('kfc-input')?.focus(),50);
+}
+
+function saveKFComment(paramId, kfv) {
+  if (!M.kfComments) M.kfComments={};
+  const key=`${paramId}:${kfv}`;
+  const val=document.getElementById('kfc-input')?.value?.trim()||'';
+  if (val) M.kfComments[key]=val; else delete M.kfComments[key];
+  updateKFList();
+  document.getElementById('lbl-status').textContent=val?`KFメモを保存: ${key}`:`KFメモを削除: ${key}`;
 }
 
 function addKF() {
@@ -3419,6 +3460,7 @@ function modelJSON() {
     posePresets:M.posePresets||[],
     animClips:M.animClips||[],
     chatTriggers:M.chatTriggers||[],
+    kfComments:M.kfComments||{},
     midiMappings:M.midiMappings||{cc:{},notes:{}},
     gamepadMappings:M.gamepadMappings||{axes:[],buttons:[]},
     neutralPose:M.neutralPose||null,
@@ -3492,6 +3534,7 @@ function loadJSON(json, filePath) {
     if (d.posePresets) M.posePresets=d.posePresets;
     if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
     if (d.chatTriggers) M.chatTriggers=d.chatTriggers;
+    if (d.kfComments) M.kfComments=d.kfComments;
     if (d.midiMappings) M.midiMappings=d.midiMappings;
     if (d.gamepadMappings) M.gamepadMappings=d.gamepadMappings;
     if (d.neutralPose) M.neutralPose=d.neutralPose;
@@ -16838,6 +16881,39 @@ function showGEEasingMenu(cx, cy, kf, extraItems) {
 }
 
 // ==================== PNG FRAME SEQUENCE EXPORT ====================
+async function generateExportThumbnails(mo) {
+  if (!ST.animMode || !M.animation?.tracks) return;
+  const s = parseFloat(mo.querySelector('#ps-start')?.value)||0;
+  const e = parseFloat(mo.querySelector('#ps-end')?.value)||(M.animation.duration||3);
+  const times = [s, (s+e)/2, e];
+  const savedT = ST.animPlayhead;
+  const savedVals = Object.fromEntries(Object.entries(M.params).map(([k,v])=>[k,v.val]));
+  const canvas = document.getElementById('c');
+  for (let i = 0; i < times.length; i++) {
+    ST.animPlayhead = times[i];
+    applyPlayheadToParams();
+    ST.cachedVerts = null; redraw();
+    await new Promise(r => requestAnimationFrame(r));
+    const thumb = mo.querySelector(`#ps-thumb-${i}`);
+    if (!thumb || !canvas) continue;
+    const tc = thumb.getContext('2d');
+    const tw = thumb.width, th = thumb.height;
+    const aspect = canvas.width / (canvas.height || 1);
+    const sw = aspect >= 1 ? tw : Math.round(th * aspect);
+    const sh = aspect >= 1 ? Math.round(tw / aspect) : th;
+    const ox = Math.round((tw - sw) / 2), oy = Math.round((th - sh) / 2);
+    tc.fillStyle = '#0d1117'; tc.fillRect(0, 0, tw, th);
+    tc.drawImage(canvas, ox, oy, sw, sh);
+    // time label
+    tc.fillStyle = 'rgba(0,0,0,.55)'; tc.fillRect(0, th-14, tw, 14);
+    tc.fillStyle = '#80c0ff'; tc.font = '8px monospace'; tc.textAlign = 'center';
+    tc.fillText(`t=${times[i].toFixed(2)}s`, tw/2, th-4);
+  }
+  ST.animPlayhead = savedT;
+  for (const [k,v] of Object.entries(savedVals)) M.params[k].val = v;
+  ST.cachedVerts = null; redraw();
+}
+
 function showPNGSequenceDialog() {
   if (!ST.animMode || !M.animation?.tracks) {
     document.getElementById('lbl-status').textContent = 'アニメーションモードで使用してください（A キー）';
@@ -16877,6 +16953,14 @@ function showPNGSequenceDialog() {
         <input id="ps-prefix" type="text" value="frame" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
     </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:8px;color:#4a6080;margin-bottom:4px">プレビュー (開始 / 中間 / 終了)</div>
+      <div id="ps-thumb-row" style="display:flex;gap:6px;">
+        <canvas id="ps-thumb-0" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
+        <canvas id="ps-thumb-1" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
+        <canvas id="ps-thumb-2" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
+      </div>
+    </div>
     <div id="ps-preview" style="font-size:9px;color:#60a0d0;margin-bottom:8px;"></div>
     <div id="ps-progress" style="display:none;font-size:10px;color:#ffd060;margin-bottom:6px;text-align:center;"></div>
     <div style="display:flex;gap:6px;">
@@ -16885,15 +16969,22 @@ function showPNGSequenceDialog() {
     </div>
   </div>`;
   document.body.appendChild(mo);
+  let _thumbDebounce = null;
+  const scheduleThumbGen = () => {
+    clearTimeout(_thumbDebounce);
+    _thumbDebounce = setTimeout(() => generateExportThumbnails(mo), 400);
+  };
   const updatePreview = () => {
     const s = parseFloat(mo.querySelector('#ps-start').value)||0;
     const e = parseFloat(mo.querySelector('#ps-end').value)||dur;
     const fps = parseInt(mo.querySelector('#ps-fps').value)||24;
     const frames = Math.round((e-s)*fps);
     mo.querySelector('#ps-preview').textContent = `約 ${frames} フレーム (${(e-s).toFixed(2)}秒 × ${fps}fps)`;
+    scheduleThumbGen();
   };
   mo.querySelectorAll('#ps-start,#ps-end,#ps-fps').forEach(el=>el.oninput=updatePreview);
   updatePreview();
+  generateExportThumbnails(mo);
   mo.querySelector('#ps-start-btn').onclick = async () => {
     const startT = parseFloat(mo.querySelector('#ps-start').value)||0;
     const endT = parseFloat(mo.querySelector('#ps-end').value)||dur;

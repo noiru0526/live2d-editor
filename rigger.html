@@ -225,6 +225,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
     <button class="tbtn" onclick="importSVGAspart()" title="SVGファイルをインポート: 全体を1パーツとして追加、またはレイヤー別に複数パーツ分割">＋ SVG</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
+    <button class="tbtn" onclick="generateShadowPart()" title="選択パーツを黒/半透明でオフセット複製して影パーツを自動生成（saturate=0・brightness=0・opacity=0.5）">🌑 影生成</button>
     <button class="tbtn" onclick="generateColorVariants()" title="選択パーツを複数の色相シフトでバリエーション生成（服・目の色違い等）">🎨 カラーバリ</button>
     <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
@@ -366,6 +367,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
         </div>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="showDeformWaveModal()" title="サインウェーブパターンを頂点デフォームに適用（波紋・揺れ・うねり効果）">〜 Wave</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
@@ -3462,6 +3464,30 @@ function dupPart() {
   parts.push(np); selPart=parts.length-1; selParts.clear(); selParts.add(selPart);
   updatePartsUI(); render(); setStatus(`「${np.name}」を複製`);
 }
+
+function generateShadowPart() {
+  if (selPart < 0 || selPart >= parts.length) { setStatus('パーツを選択してください'); return; }
+  const orig = parts[selPart];
+  if (!orig.imgDataURL) { setStatus('画像を持つパーツを選択してください'); return; }
+  saveState();
+  const json = JSON.parse(JSON.stringify(orig.toJSON(true)));
+  json.id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  json.name = '影_' + orig.name;
+  json.opacity = 0.5;
+  json.saturate = 0;
+  json.brightness = 0;
+  json.x = orig.x + 8;
+  json.y = orig.y + 10;
+  const shadow = Part.fromJSON(json);
+  // Insert directly before selPart so shadow renders behind original
+  parts.splice(selPart, 0, shadow);
+  parts.forEach((p, idx) => p.zIndex = idx);
+  selPart = selPart + 1; // original part moved one index forward
+  selParts.clear(); selParts.add(selPart);
+  updatePartsUI(); scheduleThumbUpdate(); render();
+  setStatus(`影パーツを生成: 「${shadow.name}」`);
+}
+
 function rebuildMesh() {
   if (selPart<0) { setStatus('パーツを選択してください'); return; }
   saveState();
@@ -4751,6 +4777,79 @@ function smoothDeform() {
   pt.deforms[selParam][curKF] = nd;
   render();
   setStatus(`スムーズ適用: ${P[selParam].l} KF=${curKF}`);
+}
+
+function showDeformWaveModal() {
+  if (selPart < 0 || selPart >= parts.length) { setStatus('パーツを選択してください'); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'wave-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML = `
+    <div style="background:#131828;border:1px solid rgba(100,150,255,.3);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;color:#c0d8ff;margin-bottom:14px;font-weight:bold">〜 デフォームWave</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#809090">
+        <span>振幅 (px)</span>
+        <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>周波数</span>
+        <input id="wave-freq" type="number" value="2" min="0.1" max="20" step="0.1" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>位相 (deg)</span>
+        <input id="wave-phase" type="number" value="0" min="-360" max="360" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>方向</span>
+        <select id="wave-dir" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px">
+          <option value="x">X（Y軸に波）</option>
+          <option value="y">Y（X軸に波）</option>
+          <option value="xy">XY 両方</option>
+        </select>
+        <span>適用先</span>
+        <select id="wave-mode" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px">
+          <option value="add">加算（既存デフォームに加える）</option>
+          <option value="set">上書き</option>
+        </select>
+        <span>対象KF</span>
+        <select id="wave-kf" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px">
+          <option value="current">現在のKFのみ</option>
+          <option value="all">全KF</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="applyDeformWave()" style="background:rgba(74,158,255,.2);border:1px solid rgba(74,158,255,.5);color:#80c0ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
+      </div>
+    </div>`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+function applyDeformWave() {
+  document.getElementById('wave-modal-overlay')?.remove();
+  if (selPart < 0) return;
+  const pt = parts[selPart];
+  if (!pt.mesh) { setStatus('メッシュがありません'); return; }
+  const amp = parseFloat(document.getElementById('wave-amp')?.value) || 20;
+  const freq = parseFloat(document.getElementById('wave-freq')?.value) || 2;
+  const phaseDeg = parseFloat(document.getElementById('wave-phase')?.value) || 0;
+  const dir = document.getElementById('wave-dir')?.value || 'x';
+  const mode = document.getElementById('wave-mode')?.value || 'add';
+  const kfTarget = document.getElementById('wave-kf')?.value || 'current';
+  const phaseRad = phaseDeg * Math.PI / 180;
+  const n = pt.mesh.verts.length;
+  const pw = pt.w || 1, ph = pt.h || 1;
+  const pc = P[selParam]; if (!pc) { setStatus('パラメータを選択してください'); return; }
+  saveState();
+  const applyWave = (kfKey) => {
+    const d = pt.deforms[selParam]?.[kfKey]; if (!d) return;
+    for (let i = 0; i < n; i++) {
+      const v = pt.mesh.verts[i];
+      const wx = (dir === 'x' || dir === 'xy') ? amp * Math.sin(freq * (v.y / ph) * Math.PI * 2 + phaseRad) : 0;
+      const wy = (dir === 'y' || dir === 'xy') ? amp * Math.sin(freq * (v.x / pw) * Math.PI * 2 + phaseRad) : 0;
+      if (mode === 'set') { d[i].dx = wx; d[i].dy = wy; }
+      else { d[i].dx = (d[i].dx || 0) + wx; d[i].dy = (d[i].dy || 0) + wy; }
+    }
+  };
+  if (kfTarget === 'all') { for (const k of pc.k) applyWave(k); }
+  else applyWave(curKF);
+  render(); scheduleThumbUpdate();
+  setStatus(`Wave適用: 振幅${amp}px 周波数${freq} 方向${dir}`);
 }
 
 // ===== PARAM SWEEP =====
