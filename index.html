@@ -280,7 +280,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
   <button class="tbtn" id="btn-osc" onclick="toggleOscilloscope()" title="パラメータ波形モニター: 全パラメータ値のリアルタイム波形表示">📈 波形</button>
   <div class="tsep"></div>
-  <button class="tbtn" onclick="resetToNeutral()" title="全パラメータをゼロに戻す">ニュートラル</button>
+  <button class="tbtn" id="btn-neutral" onclick="resetToNeutral()" oncontextmenu="event.preventDefault();saveCustomNeutral();" title="全パラメータをニュートラルに戻す&#10;右クリック: 現在値をカスタムニュートラルとして保存">ニュートラル</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-anim-rec" onclick="toggleAnimRec()" title="パラメータ変化をリアルタイム録音">⏺ アニメ録音</button>
   <button class="tbtn" id="btn-face-rec" onclick="toggleFaceRec()" title="ウェブカム顔トラッキング + 録音を同時開始" style="color:#ff80c0;">🎭 顔録音</button>
@@ -3318,6 +3318,7 @@ function modelJSON() {
     animClips:M.animClips||[],
     chatTriggers:M.chatTriggers||[],
     midiMappings:M.midiMappings||{cc:{},notes:{}},
+    neutralPose:M.neutralPose||null,
     profile:M.profile||null,
   },null,2);
 }
@@ -3389,6 +3390,7 @@ function loadJSON(json, filePath) {
     if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
     if (d.chatTriggers) M.chatTriggers=d.chatTriggers;
     if (d.midiMappings) M.midiMappings=d.midiMappings;
+    if (d.neutralPose) M.neutralPose=d.neutralPose;
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
 
@@ -6066,8 +6068,17 @@ function fullAutoSetup() {
 }
 
 function resetToNeutral() {
-  for (const p of Object.values(M.params)) if (!p.locked) p.val=0;
+  const np = M.neutralPose || {};
+  for (const [k, p] of Object.entries(M.params)) if (!p.locked) p.val = np[k] ?? 0;
   syncSliders(); ST.cachedVerts=null; redraw(); drawTimeline();
+}
+function saveCustomNeutral() {
+  M.neutralPose = {};
+  for (const [k, p] of Object.entries(M.params)) M.neutralPose[k] = p.val;
+  const hasNonZero = Object.values(M.neutralPose).some(v => Math.abs(v) > 0.001);
+  const btn = document.getElementById('btn-neutral');
+  if (btn) { btn.style.borderColor = hasNonZero ? 'rgba(100,200,100,.6)' : ''; btn.style.color = hasNonZero ? '#80e090' : ''; btn.title = hasNonZero ? 'カスタムニュートラル適用\n右クリック: 現在値を更新' : '全パラメータをニュートラルに戻す\n右クリック: 現在値をカスタムニュートラルとして保存'; }
+  document.getElementById('lbl-status').textContent = `カスタムニュートラル保存 (${Object.keys(M.neutralPose).length}パラメータ)`;
 }
 
 // ==================== CHAT TRIGGERS ====================
