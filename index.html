@@ -602,6 +602,23 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           マウスで視線追跡（eyeX/Y）
         </label>
       </div>
+      <div class="mcfg-row" style="align-items:center;gap:6px;">
+        <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ポーズトランジション:</label>
+        <select id="export-pose-transition" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+          <option value="0">即時（トランジションなし）</option>
+          <option value="150">高速 (150ms)</option>
+          <option value="300" selected>標準 (300ms)</option>
+          <option value="500">ゆっくり (500ms)</option>
+          <option value="800">なめらか (800ms)</option>
+        </select>
+        <select id="export-pose-easing" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+          <option value="ease">ease</option>
+          <option value="linear">linear</option>
+          <option value="easeOut" selected>easeOut</option>
+          <option value="easeIn">easeIn</option>
+          <option value="elastic">elastic</option>
+        </select>
+      </div>
       <div class="mcfg-row">
         <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
         <select id="export-loop-count" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
@@ -3837,6 +3854,8 @@ function genAvatarHTML() {
   const clickEffect=document.getElementById('export-click-effect')?.checked||false;
   const clickEffectType=document.getElementById('export-click-effect-type')?.value||'hearts';
   const hotkeyHelp=document.getElementById('export-hotkey-help')?.checked!==false;
+  const poseTransitionMs=parseInt(document.getElementById('export-pose-transition')?.value||'300');
+  const poseEasing=document.getElementById('export-pose-easing')?.value||'easeOut';
   // Build pose hotkey map: key → pose index (-1 = default)
   const poseHotkeyMap = {};
   const defKey = _exportHotkeys['__default__'] ?? '0';
@@ -4592,7 +4611,10 @@ function getAudioLevel(){
 // ---- Expression board ----
 const EXPR_POSES=MD.poses??[];
 const POSE_HOTKEYS=${JSON.stringify(poseHotkeyMap)};
+const _POSE_TRANS_MS=${poseTransitionMs};
+const _POSE_EASING=${JSON.stringify(poseEasing)};
 let activePose=null, poseBlend=0;
+let _posePrev=null, _posePrevT=0; // for smooth transition tracking
 let curSens=SENS;
 let curDeadZone=0; // 0..0.4 dead zone for face tracking
 const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
@@ -4610,6 +4632,12 @@ function updateExprList(activeIdx) {
   });
 }
 function _setPose(idx){
+  // Capture current param state as 'previous' for smooth transition
+  if(_POSE_TRANS_MS>0){
+    const snap={name:'__snap__',values:{}};
+    for(const[k,p]of Object.entries(params)) snap.values[k]=p.val;
+    _posePrev=snap; _posePrevT=0;
+  }
   if(idx<0){activePose=null;poseBlend=0;updateExprList(0);}
   else{activePose=EXPR_POSES[idx];poseBlend=0;updateExprList(idx+1);}
   if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+(activePose?activePose.name:'デフォルト');setTimeout(()=>exprHUD.style.display='none',1500);}
@@ -4628,11 +4656,9 @@ document.addEventListener('keydown',ev=>{
   if (ev.key in POSE_HOTKEYS) {
     const idx = POSE_HOTKEYS[ev.key];
     if (idx === -1) {
-      activePose=null; poseBlend=0; updateExprList(0);
-      if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: デフォルト';setTimeout(()=>exprHUD.style.display='none',1500);}
+      _setPose(-1);
     } else if (idx < EXPR_POSES.length) {
-      activePose=EXPR_POSES[idx]; poseBlend=0; updateExprList(idx+1);
-      if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+activePose.name;setTimeout(()=>exprHUD.style.display='none',2000);}
+      _setPose(idx);
     }
   }
   // Sensitivity control: +/- keys
@@ -4695,12 +4721,37 @@ document.addEventListener('keydown',ev=>{
   }
   if (ev.key==='Escape') { const ov=document.getElementById('kbhelp-overlay'); if(ov) ov.remove(); }
 });
-function applyPoseBlend(dt){
-  if(!activePose) return;
-  poseBlend=Math.min(1,poseBlend+dt*4);
-  for(const[k,v]of Object.entries(activePose.values)){
-    if(params[k]) params[k].val+=(v-params[k].val)*0.15;
+function _poseEase(t){
+  if(_POSE_EASING==='linear') return t;
+  if(_POSE_EASING==='easeIn') return t*t;
+  if(_POSE_EASING==='ease') return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  if(_POSE_EASING==='elastic'){
+    if(t===0||t===1) return t;
+    return Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1;
   }
+  return 1-Math.pow(1-t,2); // easeOut default
+}
+function applyPoseBlend(dt){
+  if(!activePose&&!_posePrev) return;
+  if(_POSE_TRANS_MS<=0){
+    // instant
+    if(activePose){for(const[k,v]of Object.entries(activePose.values)){if(params[k])params[k].val=v;}}
+    else{for(const k of Object.keys(params))params[k].val=0;}
+    _posePrev=null; _posePrevT=0; return;
+  }
+  _posePrevT=Math.min(1,_posePrevT+dt*1000/_POSE_TRANS_MS);
+  const ef=_poseEase(_posePrevT);
+  const allKeys=new Set([
+    ...(activePose?Object.keys(activePose.values):[]),
+    ...(_posePrev?Object.keys(_posePrev.values):[])
+  ]);
+  for(const k of allKeys){
+    if(!params[k]) continue;
+    const fromV=_posePrev?.values[k]??0;
+    const toV=activePose?.values[k]??0;
+    params[k].val=fromV+(toV-fromV)*ef;
+  }
+  if(_posePrevT>=1){ _posePrev=null; _posePrevT=0; }
 }
 
 img.onload=img.onerror=()=>{
