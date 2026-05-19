@@ -2642,24 +2642,36 @@ function batchEditPartProps() {
           <option value="0">解除</option><option value="1">ロック</option>
         </select>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bp-clr-on">
+        <label for="bp-clr-on" style="font-size:11px;color:var(--dim);width:80px;">カラーラベル</label>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+          ${['#f87171','#fb923c','#facc15','#4ade80','#22d3ee','#60a5fa','#c084fc','#f9a8d4'].map(c=>`<div class="bp-clr-swatch" data-color="${c}" onclick="document.querySelectorAll('.bp-clr-swatch').forEach(s=>s.style.boxShadow='');this.style.boxShadow='0 0 0 2px #fff';document.getElementById('bp-clr-val').value='${c}';" style="width:14px;height:14px;border-radius:50%;background:${c};cursor:pointer;border:1px solid rgba(255,255,255,.2);flex-shrink:0;"></div>`).join('')}
+          <div class="bp-clr-swatch" data-color="" onclick="document.querySelectorAll('.bp-clr-swatch').forEach(s=>s.style.boxShadow='');this.style.boxShadow='0 0 0 2px #fff';document.getElementById('bp-clr-val').value='';" style="width:14px;height:14px;border-radius:50%;background:transparent;cursor:pointer;border:1px solid rgba(255,255,255,.3);flex-shrink:0;" title="なし（クリア）">✕</div>
+          <input type="hidden" id="bp-clr-val" value="">
+        </div>
+      </div>
     </div>
   `, () => {
     const applyOpacity = document.getElementById('bp-opacity-on').checked;
     const applyBlend   = document.getElementById('bp-blend-on').checked;
     const applyVisible = document.getElementById('bp-visible-on').checked;
     const applyLocked  = document.getElementById('bp-locked-on').checked;
-    if (!applyOpacity && !applyBlend && !applyVisible && !applyLocked) return;
+    const applyClr     = document.getElementById('bp-clr-on').checked;
+    if (!applyOpacity && !applyBlend && !applyVisible && !applyLocked && !applyClr) return;
     saveState();
     const opacity = parseFloat(document.getElementById('bp-opacity').value) / 100;
     const blend   = document.getElementById('bp-blend').value;
     const visible = document.getElementById('bp-visible').value === '1';
     const locked  = document.getElementById('bp-locked').value === '1';
+    const clrVal  = document.getElementById('bp-clr-val').value || null;
     for (const i of targets) {
       if (!parts[i]) continue;
       if (applyOpacity) parts[i].opacity = Math.max(0, Math.min(1, opacity));
       if (applyBlend)   parts[i].blendMode = blend;
       if (applyVisible) parts[i].visible = visible;
       if (applyLocked)  parts[i].locked = locked;
+      if (applyClr)     parts[i].colorLabel = clrVal;
     }
     updatePartsUI(); render();
     setStatus(`一括適用: ${targets.length}パーツ`);
