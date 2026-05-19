@@ -313,6 +313,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="showPNGSequenceDialog()" title="アニメーション区間をPNGシーケンスとして書き出し">🖼 PNG列</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
+  <button class="tbtn" id="btn-histogram" onclick="toggleHistogramPanel()" title="パラメータKF値ヒストグラム表示" style="color:#ffd080;">📊 ヒスト</button>
+  <button class="tbtn" id="btn-abplay" onclick="toggleABPlayback()" title="アニメーションA/B区間比較プレイバック" style="color:#80ffb0;">⇄ A/B再生</button>
   <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
   <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFromFileInput(this)">
   <div class="tsep"></div>
@@ -987,6 +989,44 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <canvas id="snapshot-canvas-b" style="flex:1;object-fit:contain;display:block;max-width:100%;max-height:100%;"></canvas>
     </div>
   </div>
+</div>
+
+<!-- Parameter Histogram Panel -->
+<div id="histogram-panel" style="display:none;position:fixed;right:16px;top:48px;width:340px;max-height:70vh;overflow-y:auto;background:#0e1120;border:1px solid #2e3656;border-radius:8px;z-index:160;box-shadow:0 4px 20px rgba(0,0,0,.6);">
+  <div style="display:flex;align-items:center;padding:6px 10px;background:#1a1e2e;border-bottom:1px solid #2e3656;gap:6px;position:sticky;top:0;">
+    <span style="font-size:12px;font-weight:700;color:#ffd080;">📊 KFヒストグラム</span>
+    <select id="hist-param-sel" onchange="renderHistogram()" style="flex:1;font-size:11px;background:#0e1120;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;"></select>
+    <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:#2e3656;border:none;color:#c8d4f0;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:11px;">✕</button>
+  </div>
+  <div style="padding:10px;">
+    <canvas id="hist-canvas" width="300" height="140" style="width:100%;background:#080a14;border-radius:4px;display:block;"></canvas>
+    <div id="hist-stats" style="margin-top:6px;font-size:10px;color:#6878a0;display:flex;gap:12px;flex-wrap:wrap;"></div>
+    <div style="margin-top:8px;">
+      <label style="font-size:10px;color:#6878a0;">ビン数: <span id="hist-bin-lbl">20</span></label>
+      <input type="range" id="hist-bins" min="5" max="60" value="20" oninput="document.getElementById('hist-bin-lbl').textContent=this.value;renderHistogram();" style="width:100%;margin-top:2px;accent-color:#ffd080;">
+    </div>
+    <div style="margin-top:6px;display:flex;gap:6px;">
+      <label style="font-size:10px;color:#6878a0;"><input type="checkbox" id="hist-all-tracks" onchange="renderHistogram()" style="margin-right:3px;">全トラック重ねて表示</label>
+    </div>
+  </div>
+</div>
+
+<!-- A/B Playback Panel -->
+<div id="abplay-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:#0e1120;border:1px solid #2e3656;border-radius:8px;z-index:165;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:8px 12px;display:none;flex-direction:row;align-items:center;gap:10px;">
+  <span style="font-size:11px;color:#80ffb0;font-weight:700;">⇄ A/B再生</span>
+  <span style="font-size:10px;color:#6878a0;">A:</span>
+  <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:#080a14;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;">
+  <span style="font-size:10px;color:#4e6880;">→</span>
+  <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#080a14;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;">
+  <span style="font-size:10px;color:#6878a0;">B:</span>
+  <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#080a14;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;">
+  <span style="font-size:10px;color:#4e6880;">→</span>
+  <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:#080a14;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;">
+  <span style="font-size:10px;color:#6878a0;">ホールド:</span>
+  <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#080a14;border:1px solid #2e3656;color:#c8d4f0;border-radius:3px;padding:1px 4px;">
+  <span style="font-size:10px;color:#6878a0;">s</span>
+  <span id="ab-indicator" style="font-size:11px;font-weight:700;min-width:16px;color:#ffd080;">A</span>
+  <button onclick="stopABPlayback()" style="background:#2e3656;border:none;color:#c8d4f0;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:11px;">停止</button>
 </div>
 
 <!-- Weight Paint HUD -->
@@ -16922,6 +16962,183 @@ async function exportGIF() {
     document.getElementById('lbl-status').textContent = 'GIF出力エラー: ' + err;
   });
   captureNextFrame();
+}
+
+// ==================== PARAMETER HISTOGRAM ====================
+function toggleHistogramPanel() {
+  const panel = document.getElementById('histogram-panel');
+  const btn = document.getElementById('btn-histogram');
+  const visible = panel.style.display === 'none' || panel.style.display === '';
+  panel.style.display = visible ? 'block' : 'none';
+  btn.classList.toggle('active', visible);
+  if (visible) {
+    populateHistParamSel();
+    renderHistogram();
+  }
+}
+
+function populateHistParamSel() {
+  const sel = document.getElementById('hist-param-sel');
+  const tracks = M.animation.tracks;
+  const params = Object.keys(tracks).filter(k => !k.startsWith('__') && tracks[k] && tracks[k].length > 0);
+  sel.innerHTML = params.map(k => `<option value="${k}">${k}</option>`).join('');
+  if (!sel.value && params.length) sel.value = params[0];
+}
+
+function renderHistogram() {
+  const canvas = document.getElementById('hist-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#080a14';
+  ctx.fillRect(0, 0, W, H);
+
+  const allTracks = document.getElementById('hist-all-tracks')?.checked;
+  const selParam = document.getElementById('hist-param-sel')?.value;
+  const bins = parseInt(document.getElementById('hist-bins')?.value || '20');
+  const tracks = M.animation.tracks;
+
+  const tracksToShow = allTracks
+    ? Object.keys(tracks).filter(k => !k.startsWith('__') && tracks[k] && tracks[k].length > 0)
+    : (selParam && tracks[selParam] ? [selParam] : []);
+
+  if (!tracksToShow.length) {
+    ctx.fillStyle = '#6878a0';
+    ctx.font = '11px monospace';
+    ctx.fillText('KFなし', W/2-20, H/2);
+    return;
+  }
+
+  const COLORS = ['#ffd080','#80c8ff','#80ff90','#ff8888','#c880ff','#ffaa60','#60ffe0'];
+  let globalMin = Infinity, globalMax = -Infinity;
+  const valSets = tracksToShow.map(k => {
+    const vals = tracks[k].map(kf => kf.v);
+    globalMin = Math.min(globalMin, ...vals);
+    globalMax = Math.max(globalMax, ...vals);
+    return { key: k, vals };
+  });
+  if (globalMax === globalMin) globalMax = globalMin + 1;
+  const binW = (globalMax - globalMin) / bins;
+
+  const maxCount = tracksToShow.reduce((mx, k) => {
+    const vals = tracks[k].map(kf => kf.v);
+    const hist = new Array(bins).fill(0);
+    vals.forEach(v => { const bi = Math.min(bins-1, Math.floor((v - globalMin) / binW)); hist[bi]++; });
+    return Math.max(mx, ...hist);
+  }, 0);
+
+  const pad = { l: 30, r: 8, t: 10, b: 20 };
+  const gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
+
+  // Grid lines
+  ctx.strokeStyle = '#1a1e2e'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + gH - (i / 4) * gH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + gW, y); ctx.stroke();
+    ctx.fillStyle = '#4e5880'; ctx.font = '9px monospace';
+    ctx.fillText(Math.round(maxCount * i / 4), 2, y + 3);
+  }
+
+  // Draw bars for each track
+  valSets.forEach(({ vals }, ti) => {
+    const hist = new Array(bins).fill(0);
+    vals.forEach(v => { const bi = Math.min(bins-1, Math.floor((v - globalMin) / binW)); hist[bi]++; });
+    const color = COLORS[ti % COLORS.length];
+    ctx.globalAlpha = allTracks ? 0.6 : 0.85;
+    hist.forEach((count, bi) => {
+      if (!count) return;
+      const bh = (count / maxCount) * gH;
+      const bx = pad.l + (bi / bins) * gW;
+      const bWidth = (gW / bins) - 1;
+      ctx.fillStyle = color;
+      ctx.fillRect(bx, pad.t + gH - bh, bWidth, bh);
+    });
+    ctx.globalAlpha = 1;
+  });
+
+  // X axis labels
+  ctx.fillStyle = '#6878a0'; ctx.font = '9px monospace';
+  for (let i = 0; i <= 4; i++) {
+    const v = globalMin + (i / 4) * (globalMax - globalMin);
+    const x = pad.l + (i / 4) * gW;
+    ctx.fillText(v.toFixed(1), x - 8, H - 4);
+  }
+
+  // Stats
+  const statsEl = document.getElementById('hist-stats');
+  if (statsEl) {
+    const allVals = valSets.flatMap(s => s.vals);
+    const mean = allVals.reduce((a,b)=>a+b,0) / allVals.length;
+    const std = Math.sqrt(allVals.reduce((s,v)=>s+(v-mean)*(v-mean),0)/allVals.length);
+    statsEl.innerHTML = `
+      <span>KF数: <b style="color:#c8d4f0">${allVals.length}</b></span>
+      <span>最小: <b style="color:#80c8ff">${globalMin.toFixed(3)}</b></span>
+      <span>最大: <b style="color:#ff8888">${globalMax.toFixed(3)}</b></span>
+      <span>平均: <b style="color:#ffd080">${mean.toFixed(3)}</b></span>
+      <span>σ: <b style="color:#80ffb0">${std.toFixed(3)}</b></span>
+    `;
+  }
+}
+
+// ==================== A/B PLAYBACK ====================
+let _abActive = false, _abRAF = null, _abPhase = 'A', _abPhaseStart = 0;
+
+function toggleABPlayback() {
+  if (_abActive) { stopABPlayback(); return; }
+  const panel = document.getElementById('abplay-panel');
+  panel.style.display = 'flex';
+  document.getElementById('btn-abplay').classList.add('active');
+  _abActive = true;
+  _abPhase = 'A';
+  _abPhaseStart = performance.now();
+  _abPlayLoop();
+}
+
+function stopABPlayback() {
+  _abActive = false;
+  if (_abRAF) { cancelAnimationFrame(_abRAF); _abRAF = null; }
+  document.getElementById('abplay-panel').style.display = 'none';
+  document.getElementById('btn-abplay').classList.remove('active');
+}
+
+function _abPlayLoop() {
+  if (!_abActive) return;
+  const now = performance.now();
+  const aStart = parseFloat(document.getElementById('ab-a-start')?.value ?? 0);
+  const aEnd   = parseFloat(document.getElementById('ab-a-end')?.value ?? 1);
+  const bStart = parseFloat(document.getElementById('ab-b-start')?.value ?? 1);
+  const bEnd   = parseFloat(document.getElementById('ab-b-end')?.value ?? 2);
+  const hold   = parseFloat(document.getElementById('ab-hold')?.value ?? 1.5) * 1000;
+
+  const elapsed = now - _abPhaseStart;
+  const [rangeStart, rangeEnd] = _abPhase === 'A' ? [aStart, aEnd] : [bStart, bEnd];
+  const dur = (rangeEnd - rangeStart) * 1000;
+  const phaseTime = dur > 0 ? elapsed % (dur + hold) : elapsed % hold;
+  let t;
+  if (phaseTime < dur) {
+    t = rangeStart + (phaseTime / dur) * (rangeEnd - rangeStart);
+  } else {
+    t = rangeEnd;
+    if (elapsed >= dur + hold) {
+      _abPhase = _abPhase === 'A' ? 'B' : 'A';
+      _abPhaseStart = now;
+    }
+  }
+
+  // Apply animation at time t
+  const tracks = M.animation.tracks;
+  for (const [name, frames] of Object.entries(tracks)) {
+    const p = M.params[name]; if (!p || !frames || !frames.length) continue;
+    p.val = evalAnimTrack(frames, p, t);
+  }
+  ST.cachedVerts = null;
+  redraw();
+
+  const ind = document.getElementById('ab-indicator');
+  if (ind) { ind.textContent = _abPhase; ind.style.color = _abPhase === 'A' ? '#80ffb0' : '#80c8ff'; }
+
+  _abRAF = requestAnimationFrame(_abPlayLoop);
 }
 
 // ==================== INIT ====================
