@@ -276,6 +276,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
   <button class="tbtn" id="btn-midi" onclick="toggleMidiPanel()" title="MIDIコントローラー: CC→パラメータ・ノート→ポーズのマッピング">🎹 MIDI</button>
+  <button class="tbtn" id="btn-gamepad" onclick="toggleGamepadPanel()" title="ゲームパッドコントローラー: スティック軸→パラメータ・ボタン→ポーズのマッピング">🎮 GPad</button>
   <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
   <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
   <button class="tbtn" id="btn-osc" onclick="toggleOscilloscope()" title="パラメータ波形モニター: 全パラメータ値のリアルタイム波形表示">📈 波形</button>
@@ -3318,6 +3319,7 @@ function modelJSON() {
     animClips:M.animClips||[],
     chatTriggers:M.chatTriggers||[],
     midiMappings:M.midiMappings||{cc:{},notes:{}},
+    gamepadMappings:M.gamepadMappings||{axes:[],buttons:[]},
     neutralPose:M.neutralPose||null,
     profile:M.profile||null,
   },null,2);
@@ -3390,6 +3392,7 @@ function loadJSON(json, filePath) {
     if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
     if (d.chatTriggers) M.chatTriggers=d.chatTriggers;
     if (d.midiMappings) M.midiMappings=d.midiMappings;
+    if (d.gamepadMappings) M.gamepadMappings=d.gamepadMappings;
     if (d.neutralPose) M.neutralPose=d.neutralPose;
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
@@ -7458,6 +7461,200 @@ function _midiRenderNoteList() {
     row.innerHTML = `<code style="color:#ff80c0;background:#1e0828;padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:#8090b0;">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
+}
+
+// ==================== GAMEPAD CONTROLLER ====================
+if (!M.gamepadMappings) M.gamepadMappings = { axes: [], buttons: [] };
+let _gpadActive = false;
+let _gpadRAF = null;
+let _gpadLearnTarget = null; // {type:'axis'|'button', paramOrAction:string}
+
+function toggleGamepadPanel() {
+  const existing = document.getElementById('gpad-panel');
+  if (existing) { existing.remove(); _gpadActive=false; if(_gpadRAF){cancelAnimationFrame(_gpadRAF);_gpadRAF=null;} document.getElementById('btn-gamepad').classList.remove('on'); return; }
+  const panel = document.createElement('div');
+  panel.id = 'gpad-panel';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#1a1e30;border:1px solid rgba(60,180,100,.4);border-radius:8px;padding:10px 12px;z-index:900;width:320px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
+      <span style="font-size:11px;color:#60e090;font-weight:600;">🎮 ゲームパッド</span>
+      <div id="gpad-status-dot" style="width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;"></div>
+      <span id="gpad-status-txt" style="font-size:9px;color:var(--dim);">未接続</span>
+      <button onclick="document.getElementById('gpad-panel').remove();document.getElementById('btn-gamepad').classList.remove('on');_gpadActive=false;" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:8px;line-height:1.5;">ゲームパッドのスティック軸をパラメータに、ボタンをポーズ/表情にマッピングします。</div>
+    <!-- Gamepad visualizer -->
+    <canvas id="gpad-canvas" width="296" height="60" style="display:block;background:#0e1120;border-radius:4px;border:1px solid #2a3450;margin-bottom:8px;"></canvas>
+    <!-- Axis Mappings -->
+    <div style="margin-bottom:8px;">
+      <div style="font-size:9px;color:#60e090;margin-bottom:4px;font-weight:600;">軸 → パラメータ</div>
+      <div id="gpad-axis-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:100px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input id="gpad-axis-num" type="number" min="0" max="15" placeholder="軸#" style="width:44px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="gpad-axis-param" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
+        <button onclick="_gpadAddAxisMap()" style="background:#1e2818;border:1px solid rgba(60,200,80,.4);color:#60e090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+      </div>
+      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#1e2818;border:1px solid rgba(60,200,80,.3);color:#40b060;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
+    </div>
+    <!-- Button Mappings -->
+    <div>
+      <div style="font-size:9px;color:#ffa060;margin-bottom:4px;font-weight:600;">ボタン → ポーズ/表情</div>
+      <div id="gpad-btn-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:100px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input id="gpad-btn-num" type="number" min="0" max="31" placeholder="B#" style="width:40px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="gpad-btn-target" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <button onclick="_gpadAddBtnMap()" style="background:#1e1820;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+      </div>
+    </div>`;
+  document.body.appendChild(panel);
+  document.getElementById('btn-gamepad').classList.add('on');
+  _gpadActive = true;
+  _gpadPopulateParams();
+  _gpadPopulateTargets();
+  _gpadRenderAxisList();
+  _gpadRenderBtnList();
+  _gpadLoop();
+  window.addEventListener('gamepadconnected', _gpadOnConnect);
+  window.addEventListener('gamepaddisconnected', _gpadOnDisconnect);
+}
+
+function _gpadOnConnect(e) {
+  const el = document.getElementById('gpad-status-dot'); if(el) el.style.background='#40e080';
+  const t = document.getElementById('gpad-status-txt'); if(t) t.textContent=`接続: ${e.gamepad.id.slice(0,30)}`;
+}
+function _gpadOnDisconnect() {
+  const el = document.getElementById('gpad-status-dot'); if(el) el.style.background='#555';
+  const t = document.getElementById('gpad-status-txt'); if(t) t.textContent='切断';
+}
+
+function _gpadPopulateParams() {
+  const sel = document.getElementById('gpad-axis-param'); if (!sel) return;
+  sel.innerHTML = '';
+  Object.keys(M.params).forEach(k => { const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+}
+function _gpadPopulateTargets() {
+  const sel = document.getElementById('gpad-btn-target'); if (!sel) return;
+  sel.innerHTML = '';
+  (M.posePresets||[]).forEach(p => { const o=document.createElement('option'); o.value='pose:'+p.name; o.textContent='📐 '+p.name; sel.appendChild(o); });
+  (M.expressions||[]).forEach(ex => { const o=document.createElement('option'); o.value='expr:'+ex.name; o.textContent='😊 '+ex.name; sel.appendChild(o); });
+}
+
+function _gpadAddAxisMap() {
+  const axis = document.getElementById('gpad-axis-num')?.value;
+  const param = document.getElementById('gpad-axis-param')?.value;
+  const scale = parseFloat(document.getElementById('gpad-axis-scale')?.value)||1;
+  if (axis===''||!param) return;
+  if (!M.gamepadMappings) M.gamepadMappings={axes:[],buttons:[]};
+  M.gamepadMappings.axes = M.gamepadMappings.axes.filter(m=>String(m.axis)!==String(axis));
+  M.gamepadMappings.axes.push({axis:parseInt(axis), param, scale});
+  _gpadRenderAxisList();
+}
+function _gpadAddBtnMap() {
+  const btn = document.getElementById('gpad-btn-num')?.value;
+  const target = document.getElementById('gpad-btn-target')?.value;
+  if (btn===''||!target) return;
+  if (!M.gamepadMappings) M.gamepadMappings={axes:[],buttons:[]};
+  M.gamepadMappings.buttons = M.gamepadMappings.buttons.filter(m=>String(m.btn)!==String(btn));
+  M.gamepadMappings.buttons.push({btn:parseInt(btn), target});
+  _gpadRenderBtnList();
+}
+
+function _gpadRenderAxisList() {
+  const list = document.getElementById('gpad-axis-list'); if(!list) return;
+  list.innerHTML = '';
+  (M.gamepadMappings?.axes||[]).forEach(m => {
+    const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:#131828;border-radius:3px;font-size:9px;';
+    row.innerHTML=`<code style="color:#60e090;background:#0e2010;padding:1px 4px;border-radius:2px;">A${m.axis}</code><span style="flex:1;color:#8090b0;">→ ${m.param} ×${m.scale||1}</span><button onclick="M.gamepadMappings.axes=M.gamepadMappings.axes.filter(a=>a.axis!==${m.axis});_gpadRenderAxisList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function _gpadRenderBtnList() {
+  const list = document.getElementById('gpad-btn-list'); if(!list) return;
+  list.innerHTML = '';
+  (M.gamepadMappings?.buttons||[]).forEach(m => {
+    const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:#131828;border-radius:3px;font-size:9px;';
+    row.innerHTML=`<code style="color:#ffa060;background:#1e0e00;padding:1px 4px;border-radius:2px;">B${m.btn}</code><span style="flex:1;color:#8090b0;">→ ${m.target}</span><button onclick="M.gamepadMappings.buttons=M.gamepadMappings.buttons.filter(b=>b.btn!==${m.btn});_gpadRenderBtnList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+let _gpadLearnMode = false, _gpadLearnParamName = '';
+function _gpadLearnAxis() {
+  _gpadLearnMode = !_gpadLearnMode;
+  const btn = document.getElementById('gpad-learn-axis');
+  if (btn) { btn.style.background = _gpadLearnMode ? '#1e3818' : '#1e2818'; btn.style.color = _gpadLearnMode ? '#a0f0a0' : '#40b060'; btn.textContent = _gpadLearnMode ? '🔴 スティックを動かしてください...' : '🎯 軸学習モード（スティックを動かして自動検出）'; }
+  if (_gpadLearnMode) {
+    const param = document.getElementById('gpad-axis-param')?.value;
+    if (!param) { _gpadLearnMode=false; return; }
+    _gpadLearnParamName = param;
+  }
+}
+
+let _gpadPrevBtns = {};
+function _gpadLoop() {
+  if (!_gpadActive || !document.getElementById('gpad-panel')) { _gpadRAF=null; return; }
+  const gamepads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+  const cv = document.getElementById('gpad-canvas');
+  const ctx = cv ? cv.getContext('2d') : null;
+  if (ctx) {
+    ctx.fillStyle='#0e1120'; ctx.fillRect(0,0,cv.width,cv.height);
+    if (gamepads.length === 0) { ctx.fillStyle='#3a4a6a'; ctx.font='10px monospace'; ctx.textAlign='center'; ctx.fillText('ゲームパッドが接続されていません', cv.width/2, cv.height/2+4); }
+  }
+
+  for (const gp of gamepads) {
+    // Draw axis bars
+    if (ctx && gp.axes) {
+      const barW = cv.width / Math.max(gp.axes.length, 4);
+      gp.axes.forEach((v, i) => {
+        const bx = i*barW+2, bw = barW-4, cy2 = cv.height/2;
+        ctx.fillStyle='#1a2a3a'; ctx.fillRect(bx, 4, bw, cv.height-8);
+        ctx.fillStyle=Math.abs(v)>0.1?'#60e090':'#2a4a3a';
+        const h=(cv.height-8)*Math.abs(v)/2;
+        ctx.fillRect(bx+1, v>0?cy2:cy2-h, bw-2, h||1);
+        ctx.fillStyle='#4a6a5a'; ctx.font='7px monospace'; ctx.textAlign='center';
+        ctx.fillText(`A${i}`, bx+bw/2, cv.height-2);
+        // Learn mode detection
+        if (_gpadLearnMode && Math.abs(v) > 0.5) {
+          const aEl = document.getElementById('gpad-axis-num'); if(aEl) aEl.value=i;
+          _gpadLearnMode=false;
+          const lbtn=document.getElementById('gpad-learn-axis');
+          if(lbtn){lbtn.style.background='#1e2818';lbtn.style.color='#40b060';lbtn.textContent='🎯 軸学習モード（スティックを動かして自動検出）';}
+        }
+      });
+    }
+    // Apply axis mappings
+    for (const m of (M.gamepadMappings?.axes||[])) {
+      const v = gp.axes[m.axis] ?? 0;
+      const p = M.params[m.param]; if (!p) continue;
+      const scaled = Math.max(-1, Math.min(1, v)) * (m.scale||1);
+      p.val = Math.max(p.min, Math.min(p.max, scaled * (p.max - p.min) / 2 + (p.max + p.min) / 2 - (p.max - p.min) / 2 * (1 - m.scale||0)));
+    }
+    // Apply button mappings
+    for (const m of (M.gamepadMappings?.buttons||[])) {
+      const pressed = gp.buttons[m.btn]?.pressed ?? false;
+      const wasPressed = _gpadPrevBtns[`${gp.index}:${m.btn}`] ?? false;
+      if (pressed && !wasPressed) { // rising edge only
+        if (m.target.startsWith('pose:')) {
+          const poseName = m.target.slice(5);
+          const pose = (M.posePresets||[]).find(p=>p.name===poseName);
+          if (pose) applyPosePreset(pose);
+        } else if (m.target.startsWith('expr:')) {
+          const exprName = m.target.slice(5);
+          const expr = (M.expressions||[]).find(ex=>ex.name===exprName);
+          if (expr) applyExpression(expr);
+        }
+      }
+      _gpadPrevBtns[`${gp.index}:${m.btn}`] = pressed;
+    }
+    // Update status
+    const dot = document.getElementById('gpad-status-dot');
+    const txt = document.getElementById('gpad-status-txt');
+    if (dot) dot.style.background = '#40e080';
+    if (txt) txt.textContent = gp.id.slice(0,28);
+    if (gp.axes?.length || gp.buttons?.length) { ST.cachedVerts=null; redraw(); }
+  }
+  _gpadRAF = requestAnimationFrame(_gpadLoop);
 }
 
 // ==================== PARAM AUTO-SCAN ====================
