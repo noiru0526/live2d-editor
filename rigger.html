@@ -2019,6 +2019,55 @@ function togVis(i,e) { e.stopPropagation(); parts[i].visible=!parts[i].visible; 
 function togLockItem(i,e) { e.stopPropagation(); parts[i].locked=!parts[i].locked; updatePartsUI(); }
 
 let dragSrcIdx = -1;
+function exportSinglePart(idx) {
+  const pt = parts[idx]; if (!pt) return;
+  const json = pt.toJSON();
+  // Include image data if available
+  const canvas2 = document.createElement('canvas');
+  if (pt._img && pt.w && pt.h) {
+    canvas2.width = pt.w; canvas2.height = pt.h;
+    canvas2.getContext('2d').drawImage(pt._img, 0, 0, pt.w, pt.h);
+    json._exportedImageData = canvas2.toDataURL('image/png');
+  }
+  const blob = new Blob([JSON.stringify({riggerSinglePart:true, version:3, part:json}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = (pt.name||'part') + '_export.json'; a.click();
+  setStatus(`「${pt.name}」を書き出しました`);
+}
+
+function importSinglePart() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const file = inp.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.riggerSinglePart || !data.part) { alert('このファイルはパーツエクスポートJSONではありません'); return; }
+        saveState();
+        const p = Part.fromJSON(data.part);
+        p.name = p.name + '_import';
+        p.x += 30; p.y += 30;
+        p.zIndex = parts.length;
+        if (data.part._exportedImageData) {
+          const img = new Image();
+          img.onload = () => {
+            p._img = img; p.activeImg = data.part._exportedImageData;
+            parts.push(p); updatePartsUI(); render();
+            setStatus(`パーツ「${p.name}」をインポートしました`);
+          };
+          img.src = data.part._exportedImageData;
+        } else {
+          parts.push(p); updatePartsUI(); render();
+          setStatus(`パーツ「${p.name}」をインポートしました（テクスチャなし）`);
+        }
+      } catch(err) { alert('パーツJSONの読み込みに失敗: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
 function showGuideManager() {
   const COLORS = ['rgba(255,200,80,0.7)','rgba(80,200,255,0.7)','rgba(200,100,255,0.7)','rgba(100,255,150,0.7)','rgba(255,100,100,0.7)'];
   const renderRows = () => _customGuides.map((g,i)=>`
@@ -3763,8 +3812,11 @@ canvas.addEventListener('contextmenu', e => {
     items.push({ icon:'⬇', label:'最背面へ', action:()=>{ saveState(); const [moved]=parts.splice(hitIdx,1); parts.unshift(moved); parts.forEach((p,idx)=>p.zIndex=idx); selPart=0; selParts.clear(); selParts.add(0); updatePartsUI(); render(); }});
     items.push(null);
     items.push({ icon:'🗑', label:'削除', danger:true, action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); delPart(); }});
+    items.push(null);
+    items.push({ icon:'💾', label:'このパーツをJSONに書き出す', action:()=>exportSinglePart(hitIdx) });
   } else {
     items.push({ icon:'📋', label:'パーツを貼り付け (Ctrl+V)', action:()=>pastePartFromClipboard() });
+    items.push({ icon:'📥', label:'パーツJSONをインポート', action:()=>importSinglePart() });
     items.push({ icon:'🔍', label:'フィット表示', action:()=>fitView() });
     items.push({ icon:'📷', label:'スクリーンショット', action:()=>screenshotCanvas() });
   }
