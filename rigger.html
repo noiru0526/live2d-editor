@@ -272,6 +272,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <div class="ph-actions">
         <button class="ih" onclick="addPartFromFile()" title="PNG画像を追加">＋</button>
         <button class="ih" onclick="addGroupPrompt()" title="新規グループ（フォルダ）を作成">📁</button>
+        <button class="ih" onclick="createGroupsFromColorLabels()" title="カラーラベルの色ごとにグループを自動作成（未グループのラベル付きパーツ対象）">🏷→📁</button>
         <button class="ih" onclick="delPart()" title="削除">✕</button>
         <button class="ih" onclick="mvUp()" title="上へ">↑</button>
         <button class="ih" onclick="mvDn()" title="下へ">↓</button>
@@ -3478,6 +3479,25 @@ function applyPartGroup(gid) {
   parts[selPart].groupId = gid || null;
   updatePartsUI();
   setStatus(gid ? `「${parts[selPart].name}」をグループに追加` : `「${parts[selPart].name}」をグループから外しました`);
+}
+// Create a group for each distinct colorLabel (only for labeled parts not already in a group)
+function createGroupsFromColorLabels() {
+  const unGrouped = parts.filter(p => p.colorLabel && !p.groupId);
+  if (!unGrouped.length) { setStatus('グループ化できるカラーラベル付きパーツがありません'); return; }
+  const colors = [...new Set(unGrouped.map(p => p.colorLabel))];
+  saveState();
+  let created = 0;
+  for (const color of colors) {
+    const matching = unGrouped.filter(p => p.colorLabel === color);
+    if (!matching.length) continue;
+    const gid = 'grp-' + Date.now() + '-' + created;
+    const colorName = color.replace(/[^a-f0-9#]/gi,'').slice(0,7);
+    groups.push({ id: gid, name: `グループ (${colorName})` });
+    matching.forEach(p => p.groupId = gid);
+    created++;
+  }
+  updatePartsUI();
+  setStatus(`カラーラベルから${created}グループを作成 (${unGrouped.length}パーツ)`);
 }
 
 // ===== CUSTOM PARAMS =====
