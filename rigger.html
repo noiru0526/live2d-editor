@@ -371,6 +371,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
         <button id="btn-mesh-sym" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleMeshSymmetry()" title="シメトリ編集: 頂点移動をX軸に対称反映（メッシュ/デフォームモードで有効）(S)">⇄ シメトリ</button>
         <div style="display:flex;gap:2px;margin-top:2px;">
+          <button id="btn-pin-mode" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="togglePinMode()" title="ピンモード: Alt+クリックで頂点をピン固定（固定頂点はデフォーム/ブラシの影響を受けない）">📌 ピン</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="clearAllPins()" title="全ピンを解除">× 全解除</button>
+        </div>
+        <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="exportDeformCSV()" title="全デフォームデータをCSVでエクスポート">↓ CSV</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="document.getElementById('csv-import-in').click()" title="CSVからデフォームデータをインポート">↑ CSV</button>
           <input id="csv-import-in" type="file" accept=".csv" style="display:none" onchange="importDeformCSV(event)">
@@ -882,7 +886,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -981,6 +985,7 @@ class Part {
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
     this.colorLabel = null; // color hex string or null
     this.note = ''; // free-form memo text
+    this.pinnedVerts = new Set(); // vertex indices that are locked from deform
   }
   get w() { return this.img ? this.img.width : 100; }
   get h() { return this.img ? this.img.height : 100; }
@@ -1157,7 +1162,8 @@ class Part {
       altTextures: withImage ? (this.altTextures||[]).map(t=>({name:t.name, dataURL:t.dataURL})) : [],
       activeTexIdx: this.activeTexIdx,
       colorLabel: this.colorLabel || null,
-      note: this.note || ''
+      note: this.note || '',
+      pinnedVerts: this.pinnedVerts ? [...this.pinnedVerts] : []
     };
   }
   static fromJSON(o) {
@@ -1181,6 +1187,7 @@ class Part {
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
     p.colorLabel = o.colorLabel || null;
     p.note = o.note || '';
+    p.pinnedVerts = new Set(Array.isArray(o.pinnedVerts) ? o.pinnedVerts : []);
     if (o.imageData) {
       p.imgDataURL = o.imageData;
       const img = new Image();
@@ -1872,6 +1879,15 @@ function render() {
         const _symMirrorI = (meshSymmetry && dragVI>=0) ? getMirrorVertIdx(dragVI, pt.mesh) : -1;
         for (let i=0; i<wv.length; i++) {
           const s = m2s(wv[i].x, wv[i].y);
+          const isPinned = pt.pinnedVerts && pt.pinnedVerts.has(i);
+          if (isPinned) {
+            // Draw cyan X for pinned vertices
+            ctx.save(); ctx.strokeStyle='#00e8ff'; ctx.lineWidth=1.5;
+            const r=5;
+            ctx.beginPath(); ctx.moveTo(s.x-r,s.y-r); ctx.lineTo(s.x+r,s.y+r);
+            ctx.moveTo(s.x+r,s.y-r); ctx.lineTo(s.x-r,s.y+r); ctx.stroke(); ctx.restore();
+            continue;
+          }
           const hd = kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
           const isMirror = i === _symMirrorI;
           ctx.beginPath(); ctx.arc(s.x, s.y, i===dragVI?4.5:(isMirror?4:(hd?3.5:2.5)), 0, Math.PI*2);
@@ -3390,6 +3406,19 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+function togglePinMode() {
+  pinMode = !pinMode;
+  const btn = document.getElementById('btn-pin-mode');
+  if (btn) { btn.style.background = pinMode ? 'rgba(255,220,80,.3)' : ''; btn.style.borderColor = pinMode ? '#ffd050' : ''; }
+  setStatus(pinMode ? 'ピンモード ON: Alt+クリックで頂点をピン固定/解除' : 'ピンモード OFF');
+}
+
+function clearAllPins() {
+  if (selPart < 0) return;
+  parts[selPart].pinnedVerts.clear();
+  render(); setStatus('全ピンを解除しました');
 }
 
 function toggleMeshSymmetry() {
@@ -4964,6 +4993,7 @@ canvas.addEventListener('mousemove',e=>{
     const R = _brushRadius || 50; // canvas-space radius
     const vals=getParamVals(); const wv=pt.getWorldVerts(vals);
     for (let i=0;i<wv.length;i++) {
+      if (pt.pinnedVerts.has(i)) continue; // skip pinned vertices
       const dist=Math.sqrt((wv[i].x-mp.x)**2+(wv[i].y-mp.y)**2);
       if (dist>=R) continue;
       const falloff = Math.cos((dist/R)*Math.PI*0.5)**2;
@@ -4982,6 +5012,7 @@ canvas.addEventListener('mousemove',e=>{
   if (dragMode==='vert'&&dragVI>=0&&selPart>=0) {
     const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
     const pt=parts[selPart];
+    if (pt.pinnedVerts.has(dragVI)) { render(); return; } // skip pinned vertex
     if (mode==='mesh'){
       pt.mesh.verts[dragVI].x+=ddx; pt.mesh.verts[dragVI].y+=ddy; pt.resizeDeforms();
       if (meshSymmetry) {
@@ -5054,6 +5085,21 @@ canvas.addEventListener('mousemove',e=>{
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
   const mp=s2m(sx,sy);
+  // Alt+click in mesh/deform mode with pin mode active: toggle vertex pin
+  if (e.button===0 && e.altKey && pinMode && (mode==='mesh'||mode==='deform') && selPart>=0) {
+    const pt=parts[selPart];
+    if (pt.mesh) {
+      const vals={}; for(const k of Object.keys(P)) vals[k]=0;
+      if(mode==='deform') vals[selParam]=curKF;
+      const wv=pt.getWorldVerts(vals);
+      const thresh=(15/VS)*(15/VS); let bi=-1, bd=thresh;
+      for (let i=0;i<wv.length;i++) { const dx=wv[i].x-mp.x, dy=wv[i].y-mp.y; const d2=dx*dx+dy*dy; if(d2<bd){bd=d2;bi=i;} }
+      if (bi>=0) {
+        if (pt.pinnedVerts.has(bi)) pt.pinnedVerts.delete(bi); else pt.pinnedVerts.add(bi);
+        render(); setStatus(`頂点${bi}: ${pt.pinnedVerts.has(bi)?'ピン固定':'ピン解除'}`); return;
+      }
+    }
+  }
   if (e.button===1||e.button===2||(e.button===0&&e.altKey)) {
     dragging=true; dragMode='pan'; dragSX=sx; dragSY=sy; panOX=VOX; panOY=VOY;
     canvas.style.cursor='grabbing'; return;

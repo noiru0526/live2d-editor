@@ -290,6 +290,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" onclick="gradientKFBetween()" title="KF間に滑らかなグラジェント補間を追加" style="color:#80c0ff;">〜 補間</button>
   <button class="tbtn" onclick="reduceKFDensity()" title="冗長なKFを間引いて軽量化" style="color:#a0c080;">✂ 間引き</button>
   <button class="tbtn" onclick="pingPongAnim()" title="アニメーションを逆転させてピンポンループを作成" style="color:#ffd0a0;">⇌ ピンポン</button>
+  <button class="tbtn" id="btn-rnd-pose" onclick="randomizePose()" title="全パラメータをランダムな値に設定（表情・ポーズのバリエーション探索用）" style="color:#ff90d0;">🎲 ランダム</button>
+  <button class="tbtn" id="btn-rnd-cfg" onclick="toggleRandomPoseConfig()" title="ランダムポーズ設定（各パラメータの範囲・強度）" style="color:#ff90d0;padding:2px 5px;">⚙</button>
   <div class="tsep"></div>
   <button class="tbtn" id="btn-def-mode" onclick="toggleDeformerMode()" title="デフォーマー操作モード (D)">デフォーマー<span class="sk">D</span></button>
   <button class="tbtn" onclick="addWarpDeformer()" title="ワープデフォーマーを追加">＋ワープ</button>
@@ -989,6 +991,27 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <canvas id="snapshot-canvas-b" style="flex:1;object-fit:contain;display:block;max-width:100%;max-height:100%;"></canvas>
     </div>
   </div>
+</div>
+
+<!-- Random Pose Config Panel -->
+<div id="rnd-pose-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:#0e1120;border:1px solid rgba(255,144,208,.3);border-radius:8px;z-index:162;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:10px 14px;min-width:280px;max-height:60vh;overflow-y:auto;">
+  <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
+    <span style="font-size:12px;font-weight:700;color:#ff90d0;">🎲 ランダムポーズ設定</span>
+    <button onclick="document.getElementById('rnd-pose-panel').style.display='none'" style="margin-left:auto;background:none;border:none;color:#6878a0;cursor:pointer;font-size:13px;">✕</button>
+  </div>
+  <div style="font-size:9px;color:#6878a0;margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <label style="font-size:10px;color:#a0b0d0;white-space:nowrap;">全体強度:</label>
+    <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:#ff90d0;">
+    <span id="rnd-global-lbl" style="font-size:10px;color:#ff90d0;min-width:28px;">100%</span>
+    <button onclick="randomizePose()" style="background:#2e1830;border:1px solid rgba(255,144,208,.4);color:#ff90d0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
+  </div>
+  <div style="margin-bottom:6px;display:flex;gap:6px;">
+    <label style="font-size:10px;color:#6878a0;"><input type="checkbox" id="rnd-animate" onchange="toggleRndAnimate(this.checked)" style="margin-right:3px;">自動ランダム (<span id="rnd-interval-lbl">2</span>s毎)</label>
+    <input type="range" id="rnd-interval" min="0.5" max="10" step="0.5" value="2" oninput="document.getElementById('rnd-interval-lbl').textContent=this.value;" style="flex:1;accent-color:#ff90d0;">
+  </div>
+  <div id="rnd-param-list" style="display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto;"></div>
+  <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:#1e1428;border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
 </div>
 
 <!-- Parameter Histogram Panel -->
@@ -16962,6 +16985,72 @@ async function exportGIF() {
     document.getElementById('lbl-status').textContent = 'GIF出力エラー: ' + err;
   });
   captureNextFrame();
+}
+
+// ==================== RANDOM POSE ====================
+const _rndStrengths = {}; // paramKey → 0..1 strength override
+let _rndAnimTimer = null;
+
+function toggleRandomPoseConfig() {
+  const panel = document.getElementById('rnd-pose-panel');
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : 'block';
+  if (!visible) buildRndParamList();
+}
+
+function buildRndParamList() {
+  const list = document.getElementById('rnd-param-list'); if (!list) return;
+  list.innerHTML = '';
+  const slider = document.getElementById('rnd-global-strength');
+  if (slider) slider.oninput = () => {
+    document.getElementById('rnd-global-lbl').textContent = slider.value + '%';
+  };
+  for (const [k, p] of Object.entries(M.params)) {
+    const str = _rndStrengths[k] ?? 1;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    const lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:9px;color:#8090b0;width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;';
+    lbl.textContent = k; lbl.title = k;
+    const sl = document.createElement('input');
+    sl.type = 'range'; sl.min = '0'; sl.max = '100'; sl.value = Math.round(str * 100);
+    sl.style.cssText = 'flex:1;accent-color:#ff90d0;height:4px;';
+    sl.oninput = () => { _rndStrengths[k] = parseInt(sl.value) / 100; };
+    const val = document.createElement('span');
+    val.style.cssText = 'font-size:9px;color:#ff90d0;min-width:24px;text-align:right;';
+    val.textContent = Math.round(str * 100) + '%';
+    sl.addEventListener('input', () => { val.textContent = sl.value + '%'; });
+    row.appendChild(lbl); row.appendChild(sl); row.appendChild(val);
+    list.appendChild(row);
+  }
+}
+
+function randomizePose() {
+  const globalStr = parseInt(document.getElementById('rnd-global-strength')?.value ?? 100) / 100;
+  pushUndo('ランダムポーズ');
+  for (const [k, p] of Object.entries(M.params)) {
+    const str = (_rndStrengths[k] ?? 1) * globalStr;
+    if (str <= 0) continue;
+    const range = p.max - p.min;
+    const target = p.min + Math.random() * range;
+    p.val = p.val + (target - p.val) * str;
+    p.val = Math.max(p.min, Math.min(p.max, p.val));
+  }
+  updateSliders();
+  ST.cachedVerts = null;
+  redraw();
+  document.getElementById('lbl-status').textContent = 'ランダムポーズを適用しました';
+}
+
+function toggleRndAnimate(on) {
+  if (_rndAnimTimer) { clearInterval(_rndAnimTimer); _rndAnimTimer = null; }
+  if (on) {
+    const interval = parseFloat(document.getElementById('rnd-interval')?.value ?? 2) * 1000;
+    _rndAnimTimer = setInterval(randomizePose, interval);
+    document.getElementById('btn-rnd-pose').style.outline = '1px solid #ff90d0';
+  } else {
+    document.getElementById('btn-rnd-pose').style.outline = '';
+  }
 }
 
 // ==================== PARAMETER HISTOGRAM ====================
