@@ -369,6 +369,11 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('left')" title="左→右にミラー">←→</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('right')" title="右→左にミラー">→←</button>
         </div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
+          <span style="font-size:8px;color:#809090;flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
+          <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:#4a9eff;" oninput="setBrushRadius(this.value)">
+          <span id="brush-radius-val" style="font-size:8px;color:#90b0c0;flex:0 0 auto;min-width:24px;text-align:right">60</span>
+        </div>
       </div>
     </div>
 
@@ -854,6 +859,8 @@ let showDeformVectors = false; // show deform displacement arrows for current KF
 let showZDepth = false; // show Z-depth color overlay (blue=back → red=front)
 let meshSymmetry = false; // mirror vertex edits across center X axis of part
 let globalCoordMode = false; // show part position as center offset from canvas center
+let _brushRadius = 60; // canvas-space radius for brush deform mode
+let _brushMousePos = null; // {x,y} for brush cursor overlay
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
@@ -2062,6 +2069,25 @@ function render() {
       if (major) { ctx.save(); ctx.translate(rulerW-1, sy); ctx.rotate(-Math.PI/2); ctx.fillText(y, 0, 0); ctx.restore(); }
     }
     ctx.fillStyle = rulerCol; ctx.fillRect(0, 0, rulerW, rulerW); // corner
+    ctx.restore();
+  }
+
+  // Brush deform cursor overlay (deform mode)
+  if (mode === 'deform' && _brushMousePos !== null) {
+    const sc = m2s(_brushMousePos.x, _brushMousePos.y);
+    const rPx = _brushRadius * VS;
+    ctx.save();
+    ctx.strokeStyle = dragging && dragMode==='brush-deform' ? 'rgba(80,220,255,0.9)' : 'rgba(100,200,255,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 2]);
+    ctx.beginPath(); ctx.arc(sc.x, sc.y, rPx, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(100,200,255,0.4)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(sc.x, sc.y, 3, 0, Math.PI * 2); ctx.stroke();
+    if (dragging && dragMode==='brush-deform') {
+      ctx.fillStyle = 'rgba(80,220,255,0.06)';
+      ctx.beginPath(); ctx.arc(sc.x, sc.y, rPx, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -4190,6 +4216,19 @@ function smoothDeform() {
   setStatus(`スムーズ適用: ${P[selParam].l} KF=${curKF}`);
 }
 
+// ===== BRUSH DEFORM UTILS =====
+function setBrushRadius(v) {
+  _brushRadius = Math.max(10, Math.min(400, parseFloat(v)));
+  updateBrushRadiusUI();
+  render();
+}
+function updateBrushRadiusUI() {
+  const sl = document.getElementById('brush-radius-slider');
+  const vl = document.getElementById('brush-radius-val');
+  if (sl) sl.value = Math.round(_brushRadius);
+  if (vl) vl.textContent = Math.round(_brushRadius);
+}
+
 // ===== DEFORM PRESETS =====
 let _deformPresets = []; // [{name, param, kf, mesh:{cols,rows}, data:[{dx,dy}]}]
 function saveDeformPreset() {
@@ -4363,6 +4402,10 @@ function kfScaleDeform() {
 // ===== CANVAS INTERACTION =====
 canvas.addEventListener('wheel',e=>{
   e.preventDefault();
+  if (e.ctrlKey && mode==='deform') {
+    _brushRadius = Math.max(10, Math.min(400, _brushRadius * (e.deltaY>0 ? 0.88 : 1.12)));
+    updateBrushRadiusUI(); render(); return;
+  }
   const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
   const f=e.deltaY>0?.88:1.12;
   VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; VS*=f; updateZoomHUD(); render();
@@ -4412,6 +4455,7 @@ canvas.addEventListener('contextmenu', e => {
 canvas.addEventListener('mousemove',e=>{
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
   const mp=s2m(sx,sy);
+  _brushMousePos = mp;
   document.getElementById('coord-hud').textContent=`${Math.round(mp.x)}, ${Math.round(mp.y)}`;
   if (!dragging && mode==='parts') {
     // Hit test for hover highlight (top-most visible part first)
@@ -4423,6 +4467,7 @@ canvas.addEventListener('mousemove',e=>{
     }
     if (newHov !== hoveredPartIdx) { hoveredPartIdx=newHov; render(); }
   }
+  if (!dragging && mode==='deform') { render(); return; }
   if (!dragging) return;
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); updateZoomHUD(); render(); return; }
   if (dragMode==='movepart'&&selPart>=0) {
@@ -4478,6 +4523,31 @@ canvas.addEventListener('mousemove',e=>{
       parts[i].x=orig.x+dx; parts[i].y=orig.y+dy;
     });
     updatePartPropsUI(); render(); return;
+  }
+  // Ctrl+drag in deform mode: brush deform (affect nearby verts with falloff)
+  if (e.ctrlKey && mode==='deform' && selPart>=0 && dragging && dragMode==='brush-deform') {
+    const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
+    const pt=parts[selPart];
+    if (!pt.mesh) { render(); return; }
+    if (!pt.deforms[selParam]) pt.deforms[selParam]={};
+    if (!pt.deforms[selParam][curKF]) pt.deforms[selParam][curKF]=Array.from({length:pt.mesh.verts.length},()=>({dx:0,dy:0}));
+    const R = _brushRadius || 50; // canvas-space radius
+    const vals=getParamVals(); const wv=pt.getWorldVerts(vals);
+    for (let i=0;i<wv.length;i++) {
+      const dist=Math.sqrt((wv[i].x-mp.x)**2+(wv[i].y-mp.y)**2);
+      if (dist>=R) continue;
+      const falloff = Math.cos((dist/R)*Math.PI*0.5)**2;
+      pt.deforms[selParam][curKF][i].dx += ddx*falloff;
+      pt.deforms[selParam][curKF][i].dy += ddy*falloff;
+      if (meshSymmetry) {
+        const mi=getMirrorVertIdx(i,pt.mesh);
+        if (mi>=0&&pt.deforms[selParam][curKF][mi]) {
+          pt.deforms[selParam][curKF][mi].dx -= ddx*falloff;
+          pt.deforms[selParam][curKF][mi].dy += ddy*falloff;
+        }
+      }
+    }
+    render(); return;
   }
   if (dragMode==='vert'&&dragVI>=0&&selPart>=0) {
     const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
@@ -4628,6 +4698,14 @@ canvas.addEventListener('mousedown',e=>{
       }
     }
   }
+  // Ctrl+click in deform mode: start brush-deform
+  if (e.ctrlKey && mode==='deform' && selPart>=0) {
+    const pt=parts[selPart];
+    if (pt.mesh) {
+      saveState(); dragging=true; dragMode='brush-deform';
+      dragSX=mp.x; dragSY=mp.y; render(); return;
+    }
+  }
   if ((mode==='mesh'||mode==='deform')&&selPart>=0) {
     const pt=parts[selPart];
     const vals={}; for(const k of Object.keys(P)) vals[k]=0;
@@ -4640,7 +4718,9 @@ canvas.addEventListener('mousedown',e=>{
 });
 
 canvas.addEventListener('mouseleave',()=>{
-  if(hoveredPartIdx!==-1){hoveredPartIdx=-1;render();}
+  const needRedraw = hoveredPartIdx!==-1 || (mode==='deform' && _brushMousePos!==null);
+  hoveredPartIdx=-1; _brushMousePos=null;
+  if (needRedraw) render();
 });
 canvas.addEventListener('mouseup', e => {
   const wasVI = dragVI;
