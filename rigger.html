@@ -242,6 +242,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
     <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
     <button class="tbtn" id="btn-bounds" onclick="showBounds=!showBounds;this.classList.toggle('active',showBounds);render()" title="バウンディングボックス: 全パーツのAABBを表示">⬚ バウンド</button>
+    <button class="tbtn" id="btn-solo" onclick="togglePartSolo()" title="ソロ表示: 選択パーツだけを表示（Shift+Sでも切替）">⊙ ソロ</button>
     <button class="tbtn" onclick="showGuideManager()" title="カスタムガイドライン: 参照線を追加・管理">⊞ ガイド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
@@ -785,6 +786,7 @@ for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
 let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
+let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
 let showDeformVectors = false; // show deform displacement arrows for current KF
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
@@ -1473,6 +1475,7 @@ function render() {
   for (const pt of sorted) {
     if (!pt.visible || !pt.activeImg) continue;
     const pidx = parts.indexOf(pt);
+    if (_soloPartIdx >= 0 && pidx !== _soloPartIdx) continue;
 
     const wv = pt.getWorldVerts(vals);
 
@@ -2019,6 +2022,20 @@ function togVis(i,e) { e.stopPropagation(); parts[i].visible=!parts[i].visible; 
 function togLockItem(i,e) { e.stopPropagation(); parts[i].locked=!parts[i].locked; updatePartsUI(); }
 
 let dragSrcIdx = -1;
+function togglePartSolo() {
+  if (_soloPartIdx >= 0) {
+    _soloPartIdx = -1;
+    document.getElementById('btn-solo')?.classList.remove('active');
+    setStatus('ソロ解除');
+  } else {
+    if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+    _soloPartIdx = selPart;
+    document.getElementById('btn-solo')?.classList.add('active');
+    setStatus(`ソロ: 「${parts[selPart].name}」のみ表示`);
+  }
+  render();
+}
+
 function exportSinglePart(idx) {
   const pt = parts[idx]; if (!pt) return;
   const json = pt.toJSON();
@@ -4052,6 +4069,7 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}
   if(e.key==='f'||e.key==='F') fitView();
   if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;document.getElementById('btn-focus').classList.toggle('active',focusMode);render();}
+  if(e.key==='S'&&e.shiftKey&&onBody&&!e.ctrlKey){e.preventDefault();togglePartSolo();}
   if(e.key==='h'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].visible=!parts[selPart].visible;updatePartsUI();render();}
   if(e.key==='l'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].locked=!parts[selPart].locked;updatePartsUI();setStatus(`${parts[selPart].name}: ${parts[selPart].locked?'ロック':'ロック解除'}`);}
   // Number keys 1-9 to apply expressions

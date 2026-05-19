@@ -12423,6 +12423,8 @@ function animMultiPlay() {
     // Apply track values with proper interpolation (hidden tracks are muted)
     for (const [name,frames] of Object.entries(M.animation.tracks)) {
       if (!frames.length || tlHiddenTracks.has(name)) continue;
+      if (tlMutedTracks.has(name)) continue;
+      if (tlSoloTrack && name !== tlSoloTrack) continue;
       const p=M.params[name];
       if (p) {
         p.val=evalAnimTrack(frames, p, t);
