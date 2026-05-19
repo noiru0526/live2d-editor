@@ -519,6 +519,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         <div style="padding:8px;font-size:9px;color:#3a4870;text-align:center;">履歴なし</div>
       </div>
     </div>
+    <!-- Animation Snippets Panel -->
+    <div id="snippet-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
+      <div style="display:flex;align-items:center;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.15);" onclick="toggleSection('snippet-list',this)">
+        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;">アニメスニペット</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
+      </div>
+      <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:4px 6px;">
+        <div id="snippet-items"></div>
+        <div style="display:flex;gap:4px;margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
+          <button onclick="saveCurrentAsSnippet()" style="flex:1;background:#1a2038;border:1px solid rgba(100,160,255,.3);color:#80a8d8;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
+          <button onclick="exportSnippets()" style="background:#1a2038;border:1px solid rgba(80,120,200,.3);color:#6090c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
+          <button onclick="importSnippetsFile()" style="background:#1a2038;border:1px solid rgba(80,120,200,.3);color:#6090c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
+        </div>
+      </div>
+    </div>
+
     <div id="mesh-cfg">
       <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="mesh-cfg-body">
@@ -17299,6 +17315,158 @@ function removeMarkerAt(t) {
   const idx = M.animation.markers.findIndex(m => Math.abs(m.t - t) < 0.05);
   if (idx >= 0) { M.animation.markers.splice(idx, 1); drawMultiTimeline(); }
 }
+
+// ==================== ANIMATION SNIPPETS ====================
+const _BUILT_IN_SNIPPETS = [
+  {id:'blink', name:'👁 まばたき', dur:0.28, tracks:{
+    eyeOpenL:[{t:0,v:1},{t:0.08,v:0,e:'ease-in'},{t:0.20,v:0},{t:0.28,v:1,e:'ease-out'}],
+    eyeOpenR:[{t:0,v:1},{t:0.08,v:0,e:'ease-in'},{t:0.20,v:0},{t:0.28,v:1,e:'ease-out'}]
+  }},
+  {id:'surprised', name:'😮 驚き', dur:0.5, tracks:{
+    eyeOpenL:[{t:0,v:1},{t:0.1,v:1.5,e:'ease-out'},{t:0.5,v:1}],
+    eyeOpenR:[{t:0,v:1},{t:0.1,v:1.5,e:'ease-out'},{t:0.5,v:1}],
+    browL:[{t:0,v:0},{t:0.1,v:1,e:'ease-out'},{t:0.5,v:0}],
+    browR:[{t:0,v:0},{t:0.1,v:1,e:'ease-out'},{t:0.5,v:0}],
+    mouthOpen:[{t:0,v:0},{t:0.1,v:0.8,e:'ease-out'},{t:0.5,v:0.2}]
+  }},
+  {id:'smile', name:'😊 微笑み', dur:0.5, tracks:{
+    mouthForm:[{t:0,v:0},{t:0.3,v:1,e:'smooth'},{t:0.5,v:1}],
+    browL:[{t:0,v:0},{t:0.3,v:-0.4,e:'smooth'}],
+    browR:[{t:0,v:0},{t:0.3,v:-0.4,e:'smooth'}]
+  }},
+  {id:'sad', name:'😢 悲しみ', dur:0.6, tracks:{
+    mouthForm:[{t:0,v:0},{t:0.4,v:-0.8,e:'smooth'},{t:0.6,v:-0.8}],
+    browL:[{t:0,v:0},{t:0.4,v:-0.7,e:'smooth'}],
+    browR:[{t:0,v:0},{t:0.4,v:-0.7,e:'smooth'}],
+    eyeOpenL:[{t:0,v:1},{t:0.4,v:0.6}],
+    eyeOpenR:[{t:0,v:1},{t:0.4,v:0.6}]
+  }},
+  {id:'angry', name:'😤 怒り', dur:0.4, tracks:{
+    browL:[{t:0,v:0},{t:0.2,v:1,e:'ease-in'}],
+    browR:[{t:0,v:0},{t:0.2,v:1,e:'ease-in'}],
+    mouthForm:[{t:0,v:0},{t:0.2,v:-0.6,e:'ease-in'}],
+    eyeOpenL:[{t:0,v:1},{t:0.2,v:0.4}],
+    eyeOpenR:[{t:0,v:1},{t:0.2,v:0.4}]
+  }},
+  {id:'headshake', name:'🫨 頭を振る', dur:0.8, tracks:{
+    headX:[{t:0,v:0},{t:0.2,v:0.6,e:'ease-out'},{t:0.4,v:0,e:'ease-in'},{t:0.6,v:-0.6,e:'ease-out'},{t:0.8,v:0,e:'ease-in'}]
+  }},
+  {id:'nod', name:'↓ 頷く', dur:0.5, tracks:{
+    headY:[{t:0,v:0},{t:0.15,v:0.8,e:'ease-out'},{t:0.3,v:0.1,e:'ease-in'},{t:0.45,v:0.5,e:'ease-out'},{t:0.5,v:0}]
+  }},
+  {id:'breathe', name:'🌬 呼吸', dur:2.0, tracks:{
+    breath:[{t:0,v:0},{t:1.0,v:1,e:'smooth'},{t:2.0,v:0,e:'smooth'}]
+  }},
+  {id:'wink', name:'😉 ウィンク', dur:0.3, tracks:{
+    eyeOpenL:[{t:0,v:1},{t:0.08,v:0,e:'ease-in'},{t:0.22,v:0},{t:0.3,v:1,e:'ease-out'}]
+  }},
+  {id:'talk', name:'💬 トーク', dur:1.0, tracks:{
+    mouthOpen:[{t:0,v:0},{t:0.1,v:0.8},{t:0.2,v:0.2},{t:0.35,v:0.9},{t:0.5,v:0.1},{t:0.65,v:0.7},{t:0.8,v:0.1},{t:1.0,v:0}]
+  }}
+];
+
+if (!M.customSnippets) M.customSnippets = [];
+
+function _getAllSnippets() {
+  return [..._BUILT_IN_SNIPPETS, ...(M.customSnippets||[])];
+}
+
+function buildSnippetUI() {
+  const el = document.getElementById('snippet-items');
+  if (!el) return;
+  el.innerHTML = '';
+  _getAllSnippets().forEach((s, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:3px;padding:2px 4px;border-radius:3px;border:1px solid transparent';
+    row.onmouseenter = () => row.style.borderColor = 'rgba(100,160,255,.2)';
+    row.onmouseleave = () => row.style.borderColor = 'transparent';
+    const nameEl = document.createElement('span');
+    nameEl.style.cssText = 'flex:1;font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nameEl.textContent = s.name;
+    nameEl.title = `${Object.keys(s.tracks||{}).length}トラック / ${s.dur?.toFixed(2)||'?'}s`;
+    const insBtn = document.createElement('button');
+    insBtn.textContent = '挿入';
+    insBtn.style.cssText = 'background:#1a3028;border:1px solid rgba(60,200,100,.3);color:#60c080;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;flex-shrink:0';
+    insBtn.onclick = () => insertSnippet(i);
+    row.appendChild(nameEl);
+    row.appendChild(insBtn);
+    if (i >= _BUILT_IN_SNIPPETS.length) {
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '✕';
+      delBtn.style.cssText = 'background:none;border:none;color:#804050;cursor:pointer;font-size:9px;padding:0 2px;flex-shrink:0';
+      delBtn.onclick = () => { M.customSnippets.splice(i - _BUILT_IN_SNIPPETS.length, 1); buildSnippetUI(); };
+      row.appendChild(delBtn);
+    }
+    el.appendChild(row);
+  });
+}
+
+function insertSnippet(idx) {
+  const snippets = _getAllSnippets();
+  const s = snippets[idx]; if (!s) return;
+  const t0 = ST.animPlayhead ?? 0;
+  saveUndoAnimLight();
+  let inserted = 0;
+  for (const [paramId, kfs] of Object.entries(s.tracks || {})) {
+    if (!M.params[paramId]) continue;
+    if (!M.animation.tracks[paramId]) M.animation.tracks[paramId] = [];
+    for (const kf of kfs) {
+      const t = snapT(t0 + (kf.t || 0));
+      M.animation.tracks[paramId] = M.animation.tracks[paramId].filter(k => Math.abs(k.t - t) > 0.001);
+      M.animation.tracks[paramId].push({ t, v: kf.v, easing: kf.e || 'smooth' });
+      inserted++;
+    }
+    M.animation.tracks[paramId].sort((a, b) => a.t - b.t);
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `「${s.name}」を t=${t0.toFixed(2)}s に挿入 (${inserted} KF)`;
+}
+
+function saveCurrentAsSnippet() {
+  // Save KFs in the current playhead region (+/-0.5s by default) as a snippet
+  const t0 = Math.max(0, (M.animation?.loopIn ?? 0));
+  const t1 = M.animation?.loopOut ?? M.animation?.duration ?? 3;
+  if (Math.abs(t1 - t0) < 0.05) { document.getElementById('lbl-status').textContent = 'スニペット保存にはループ区間を設定してください'; return; }
+  const name = prompt('スニペット名:', 'カスタムスニペット');
+  if (!name) return;
+  const snipTracks = {};
+  for (const [pid, kfs] of Object.entries(M.animation?.tracks || {})) {
+    const relevant = kfs.filter(k => k.t >= t0 - 0.001 && k.t <= t1 + 0.001);
+    if (!relevant.length) continue;
+    snipTracks[pid] = relevant.map(k => ({ t: parseFloat((k.t - t0).toFixed(4)), v: k.v, e: k.easing }));
+  }
+  if (!Object.keys(snipTracks).length) { document.getElementById('lbl-status').textContent = 'スニペット範囲内にKFがありません'; return; }
+  if (!M.customSnippets) M.customSnippets = [];
+  M.customSnippets.push({ id: 'custom_' + Date.now(), name, dur: parseFloat((t1 - t0).toFixed(3)), tracks: snipTracks });
+  buildSnippetUI();
+  document.getElementById('lbl-status').textContent = `スニペット「${name}」を保存しました (${Object.keys(snipTracks).length}トラック)`;
+}
+
+function exportSnippets() {
+  const customs = M.customSnippets || [];
+  if (!customs.length) { document.getElementById('lbl-status').textContent = 'カスタムスニペットがありません'; return; }
+  const blob = new Blob([JSON.stringify(customs, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'snippets.json'; a.click();
+}
+
+function importSnippetsFile() {
+  const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    file.text().then(txt => {
+      const data = JSON.parse(txt);
+      const snippets = Array.isArray(data) ? data : [data];
+      if (!M.customSnippets) M.customSnippets = [];
+      M.customSnippets.push(...snippets);
+      buildSnippetUI();
+      document.getElementById('lbl-status').textContent = `${snippets.length}件のスニペットを読み込みました`;
+    });
+  };
+  input.click();
+}
+
+// Initialize snippet UI on page load
+setTimeout(buildSnippetUI, 100);
 
 // ==================== RANDOM POSE ====================
 const _rndStrengths = {}; // paramKey → 0..1 strength override
