@@ -483,6 +483,28 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <option value="difference">差の絶対値</option>
           </select>
         </div>
+        <!-- Color adjustment (HSB) -->
+        <div style="margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
+            <button onclick="resetPartHSB()" style="background:none;border:1px solid rgba(100,120,180,.3);color:#607090;border-radius:2px;padding:0 4px;cursor:pointer;font-size:7px" title="リセット">↺</button>
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl" title="色相回転 (-180〜+180°)">H°</span>
+            <input type="range" id="pp-hue" min="-180" max="180" value="0" oninput="applyPartHSB()" style="flex:1;accent-color:#c080ff">
+            <span id="pp-hue-v" style="font-size:9px;color:#c080ff;font-family:monospace;min-width:28px;text-align:right">0°</span>
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl" title="彩度 (0〜200%)">Sat</span>
+            <input type="range" id="pp-sat" min="0" max="200" value="100" oninput="applyPartHSB()" style="flex:1;accent-color:#ff80c0">
+            <span id="pp-sat-v" style="font-size:9px;color:#ff80c0;font-family:monospace;min-width:28px;text-align:right">100%</span>
+          </div>
+          <div class="prop-row">
+            <span class="prop-lbl" title="輝度 (0〜200%)">Bri</span>
+            <input type="range" id="pp-bri" min="0" max="200" value="100" oninput="applyPartHSB()" style="flex:1;accent-color:#ffd060">
+            <span id="pp-bri-v" style="font-size:9px;color:#ffd060;font-family:monospace;min-width:28px;text-align:right">100%</span>
+          </div>
+        </div>
         <div class="prop-row">
           <span class="prop-lbl">クリップ</span>
           <select class="prop-sel" id="pp-clip" onchange="applyPartClip(this.value)">
@@ -819,6 +841,7 @@ class Part {
     this.img = null; this.imgDataURL = null;
     this.x = 0; this.y = 0;
     this.opacity = 1; this.blendMode = 'source-over';
+    this.hue = 0; this.saturate = 100; this.brightness = 100;
     this.locked = false; this.visible = true; this.zIndex = parts.length;
     this.mesh = null; this.deforms = {};
     this.opacityKFs = {}; // {paramKey: {kfValue: 0-1}}
@@ -927,6 +950,7 @@ class Part {
     return {
       id: this.id, name: this.name, x: this.x, y: this.y,
       opacity: this.opacity, blendMode: this.blendMode,
+      hue: this.hue||0, saturate: this.saturate!==undefined?this.saturate:100, brightness: this.brightness!==undefined?this.brightness:100,
       locked: this.locked, visible: this.visible, zIndex: this.zIndex,
       clipTo: this.clipTo,
       groupId: this.groupId,
@@ -947,6 +971,7 @@ class Part {
     p.id = o.id||p.id; p.x = o.x||0; p.y = o.y||0;
     p.opacity = o.opacity !== undefined ? o.opacity : 1;
     p.blendMode = o.blendMode || 'source-over';
+    p.hue = o.hue || 0; p.saturate = o.saturate !== undefined ? o.saturate : 100; p.brightness = o.brightness !== undefined ? o.brightness : 100;
     p.locked = o.locked || false;
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.clipTo = o.clipTo || null;
@@ -1228,6 +1253,8 @@ function screenshotCanvas(transparent) {
     octx.save();
     octx.globalAlpha = baseAlpha;
     octx.globalCompositeOperation = pt.blendMode||'source-over';
+    const _sh=pt.hue||0,_ss=pt.saturate!==undefined?pt.saturate:100,_sb=pt.brightness!==undefined?pt.brightness:100;
+    if (_sh!==0||_ss!==100||_sb!==100) octx.filter=`hue-rotate(${_sh}deg) saturate(${_ss/100}) brightness(${_sb/100})`;
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];
       const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
@@ -1486,6 +1513,8 @@ function render() {
     const dimmed = focusMode && (mode==='mesh'||mode==='deform') && pidx !== selPart && !selParts.has(pidx);
     ctx.globalAlpha = dimmed ? baseAlpha * 0.18 : baseAlpha;
     ctx.globalCompositeOperation = pt.blendMode || 'source-over';
+    const _hue = pt.hue||0, _sat = pt.saturate!==undefined?pt.saturate:100, _bri = pt.brightness!==undefined?pt.brightness:100;
+    if (_hue !== 0 || _sat !== 100 || _bri !== 100) ctx.filter = `hue-rotate(${_hue}deg) saturate(${_sat/100}) brightness(${_bri/100})`;
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
       const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
@@ -2095,6 +2124,11 @@ function updatePartPropsUI() {
     document.getElementById('pp-op').value = op;
     document.getElementById('pp-op-v').textContent = op+'%';
     document.getElementById('pp-blend').value = pt.blendMode||'source-over';
+    // HSB color adjustment
+    const hue = pt.hue||0, sat = pt.saturate!==undefined?pt.saturate:100, bri = pt.brightness!==undefined?pt.brightness:100;
+    document.getElementById('pp-hue').value = hue; document.getElementById('pp-hue-v').textContent = hue+'°';
+    document.getElementById('pp-sat').value = sat; document.getElementById('pp-sat-v').textContent = sat+'%';
+    document.getElementById('pp-bri').value = bri; document.getElementById('pp-bri-v').textContent = bri+'%';
     document.getElementById('btn-lock').textContent = pt.locked?'🔒 解除':'🔓 ロック';
     // Clip mask dropdown
     const clipSel = document.getElementById('pp-clip');
@@ -2161,6 +2195,25 @@ function applyPartOpacity(v) {
   document.getElementById('pp-op-v').textContent=v+'%'; render();
 }
 function applyPartBlend(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].blendMode=v; render(); }
+function applyPartHSB() {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt = parts[selPart];
+  const h = parseInt(document.getElementById('pp-hue').value)||0;
+  const s = parseInt(document.getElementById('pp-sat').value); const b = parseInt(document.getElementById('pp-bri').value);
+  pt.hue = h; pt.saturate = s; pt.brightness = b;
+  document.getElementById('pp-hue-v').textContent = h+'°';
+  document.getElementById('pp-sat-v').textContent = s+'%';
+  document.getElementById('pp-bri-v').textContent = b+'%';
+  render();
+}
+function resetPartHSB() {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt = parts[selPart]; pt.hue=0; pt.saturate=100; pt.brightness=100;
+  document.getElementById('pp-hue').value=0; document.getElementById('pp-hue-v').textContent='0°';
+  document.getElementById('pp-sat').value=100; document.getElementById('pp-sat-v').textContent='100%';
+  document.getElementById('pp-bri').value=100; document.getElementById('pp-bri-v').textContent='100%';
+  render();
+}
 function applyOpacityKF(v) {
   if (selPart<0||selPart>=parts.length) return;
   document.getElementById('pp-opkf-v').textContent=v+'%';
