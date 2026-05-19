@@ -1035,6 +1035,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
     <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:#1e2a1e;border:1px solid rgba(96,216,144,.35);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
+    <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:#2a1a1a;border:1px solid rgba(255,80,80,.35);color:#ff8080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
     <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -10160,6 +10161,68 @@ function reverseAnimation() {
   ST.animPlayhead = Math.max(0, dur - ST.animPlayhead);
   drawMultiTimeline();
   setStatus('アニメーション反転完了');
+}
+
+function showKFRangeDelete() {
+  const dur = M.animation.duration || 3;
+  const li = (M.animation.loopIn ?? 0).toFixed(3);
+  const lo = (M.animation.loopOut ?? dur).toFixed(3);
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #3a2a2a;border-radius:8px;padding:16px;width:280px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:#cdd6f4">🗑 KF区間削除</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:8px">指定した時刻範囲内の全トラックKFを削除します。</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:24px;">開始</span>
+      <input id="dr-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888;min-width:12px;">〜</span>
+      <span style="font-size:9px;color:#888;min-width:24px;">終了</span>
+      <input id="dr-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+    </div>
+    <div style="margin-bottom:8px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#a0b0c0;cursor:pointer;">
+        <input type="checkbox" id="dr-current-only" style="accent-color:#ff6060;">
+        現在のトラックのみ削除 (全トラックでなく選択中パラメータのみ)
+      </label>
+    </div>
+    <div id="dr-preview" style="font-size:9px;color:#60a0d0;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:6px">
+      <button id="dr-ok" style="flex:1;background:#2e1a1a;border:1px solid rgba(255,80,80,.5);color:#ff8080;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  const updatePreview = () => {
+    const s = parseFloat(mo.querySelector('#dr-start').value);
+    const e = parseFloat(mo.querySelector('#dr-end').value);
+    const curOnly = mo.querySelector('#dr-current-only').checked;
+    if (!isFinite(s)||!isFinite(e)||e<=s) { mo.querySelector('#dr-preview').textContent='有効な範囲を入力してください'; return; }
+    let count = 0;
+    const tracks = curOnly ? (ST.ap ? {[ST.ap]: M.animation.tracks[ST.ap]||[]} : {}) : M.animation.tracks||{};
+    for (const kfs of Object.values(tracks)) count += (kfs||[]).filter(kf=>kf.t>=s&&kf.t<=e).length;
+    mo.querySelector('#dr-preview').textContent = `削除対象: ${count}KF (${curOnly?'現在トラック':'全トラック'})`;
+  };
+  mo.querySelectorAll('#dr-start,#dr-end,#dr-current-only').forEach(el=>el.oninput=updatePreview);
+  updatePreview();
+  mo.querySelector('#dr-ok').onclick = () => {
+    const s = parseFloat(mo.querySelector('#dr-start').value);
+    const e = parseFloat(mo.querySelector('#dr-end').value);
+    if (!isFinite(s)||!isFinite(e)||e<=s) { alert('有効な範囲を入力してください'); return; }
+    const curOnly = mo.querySelector('#dr-current-only').checked;
+    const tracks = curOnly ? (ST.ap ? {[ST.ap]: M.animation.tracks[ST.ap]||[]} : {}) : M.animation.tracks||{};
+    let count = 0;
+    pushAnimUndo('KF区間削除');
+    for (const name of Object.keys(tracks)) {
+      const before = (M.animation.tracks[name]||[]).length;
+      M.animation.tracks[name] = (M.animation.tracks[name]||[]).filter(kf=>kf.t<s||kf.t>e);
+      count += before - M.animation.tracks[name].length;
+    }
+    tlSelectedKFs.clear();
+    drawMultiTimeline();
+    mo.remove();
+    setStatus(`KF区間削除: ${count}KF (${s.toFixed(2)}s〜${e.toFixed(2)}s)`);
+  };
+  mo.onclick = e => { if (e.target===mo) mo.remove(); };
 }
 
 function showKFShift() {
