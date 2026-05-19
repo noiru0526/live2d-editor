@@ -6394,7 +6394,7 @@ function renderCTList() {
   M.chatTriggers.forEach((t, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 5px;background:#131828;border-radius:3px;font-size:10px;';
-    row.innerHTML = `<code style="color:#ffd060;background:#1e2010;padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:#8090b0;">${actionLabel(t)}</span><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
+    row.innerHTML = `<code style="color:#ffd060;background:#1e2010;padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:#8090b0;">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:#60d890;cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -6433,6 +6433,24 @@ function removeChatTrigger(i) {
   if (!M.chatTriggers) return;
   M.chatTriggers.splice(i, 1);
   renderCTList();
+}
+
+function testChatTrigger(i) {
+  const t = M.chatTriggers?.[i]; if (!t) return;
+  if (t.action === 'pose') {
+    const pi = (M.posePresets||[]).findIndex(p => p.name === t.target);
+    if (pi >= 0) { loadPosePreset(pi); document.getElementById('lbl-status').textContent = `テスト: ポーズ「${t.target}」を適用`; }
+    else document.getElementById('lbl-status').textContent = `テスト失敗: ポーズ「${t.target}」が見つかりません`;
+  } else if (t.action === 'param') {
+    const p = M.params[t.target]; if (!p) { document.getElementById('lbl-status').textContent = `テスト失敗: パラメータ「${t.target}」が見つかりません`; return; }
+    p.val = Math.max(p.min, Math.min(p.max, t.value ?? 0));
+    syncSliders(); ST.cachedVerts = null; redraw();
+    document.getElementById('lbl-status').textContent = `テスト: ${t.target}=${p.val.toFixed(2)}`;
+  } else if (t.action === 'clip') {
+    const ci = (M.animClips||[]).findIndex(c => c.name === t.target);
+    if (ci >= 0 && typeof switchClip === 'function') { switchClip(ci); document.getElementById('lbl-status').textContent = `テスト: クリップ「${t.target}」再生`; }
+    else document.getElementById('lbl-status').textContent = `テスト失敗: クリップ「${t.target}」が見つかりません`;
+  }
 }
 
 // ==================== POSE PRESETS ====================
