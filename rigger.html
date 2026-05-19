@@ -334,6 +334,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ff8060;border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#a080c0;border-color:rgba(160,100,200,.4)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
         </div>
+        <div style="display:flex;gap:3px;margin-top:3px">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#60d8c0;border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80c0ff;border-color:rgba(80,150,255,.4)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
+        </div>
       </div>
     </div>
 
@@ -4184,6 +4188,49 @@ function smoothDeform() {
   pt.deforms[selParam][curKF] = nd;
   render();
   setStatus(`スムーズ適用: ${P[selParam].l} KF=${curKF}`);
+}
+
+// ===== DEFORM PRESETS =====
+let _deformPresets = []; // [{name, param, kf, mesh:{cols,rows}, data:[{dx,dy}]}]
+function saveDeformPreset() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh) { setStatus('メッシュが必要です'); return; }
+  const d = pt.deforms[selParam]?.[curKF];
+  if (!d) { setStatus('現在KFにデフォームデータがありません'); return; }
+  const name = prompt('プリセット名:', `${pt.name}_${P[selParam]?.l||selParam}_KF${curKF}`);
+  if (!name) return;
+  _deformPresets.push({
+    name, param: selParam, kf: curKF,
+    mesh: {cols: pt.mesh.cols, rows: pt.mesh.rows},
+    data: d.map(v=>({dx:v.dx, dy:v.dy}))
+  });
+  setStatus(`デフォームプリセット保存: "${name}"`);
+}
+function loadDeformPreset() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh) { setStatus('メッシュが必要です'); return; }
+  if (!_deformPresets.length) { setStatus('保存済みプリセットがありません（💾 保存ボタンで先に保存してください）'); return; }
+  const items = _deformPresets
+    .filter(p => p.mesh.cols === pt.mesh.cols && p.mesh.rows === pt.mesh.rows)
+    .map(p => ({
+      icon: '📂',
+      label: `${p.name} [${p.param}=${p.kf}]`,
+      action: () => {
+        saveState();
+        if (!pt.deforms[selParam]) pt.deforms[selParam] = {};
+        pt.deforms[selParam][curKF] = p.data.map(v=>({dx:v.dx, dy:v.dy}));
+        render(); setStatus(`プリセット適用: "${p.name}" → ${P[selParam]?.l||selParam} KF=${curKF}`);
+      }
+    }));
+  if (!items.length) {
+    setStatus(`このメッシュ解像度（${pt.mesh.cols}×${pt.mesh.rows}）のプリセットがありません`); return;
+  }
+  items.unshift({ icon:'ℹ', label:`${pt.name} に適用するプリセット選択`, disabled:true });
+  items.push(null);
+  items.push({ icon:'🗑', label:`全プリセット削除（${_deformPresets.length}件）`, action:()=>{ if(confirm('全プリセットを削除しますか？')){_deformPresets=[];setStatus('プリセット全削除');} } });
+  showRigCtxMenu(window.innerWidth/2, window.innerHeight/2, items);
 }
 
 // ===== MESH FLIP =====
