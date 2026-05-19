@@ -339,6 +339,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div class="ptitle" style="display:flex;align-items:center;">パラメータ
       <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;padding:0 6px;line-height:1;" title="パラメータを追加 (+)">+</button>
       <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
+      <button onclick="autoGroupParams()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="名前プレフィックスで自動グルーピング">A</button>
     </div>
     <div style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
@@ -9065,6 +9066,48 @@ function _buildGroupMenuItems(paramName) {
     drawMultiTimeline();
   }});
   return items;
+}
+
+function autoGroupParams() {
+  if (!M.paramGroups) M.paramGroups = [];
+  const params = Object.keys(M.params);
+  if (!params.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
+
+  // Extract prefix: use first camelCase word or underscore segment
+  const getPrefix = name => {
+    // Remove leading __ for special tracks
+    const n = name.replace(/^__/, '');
+    // CamelCase: first lowercase→uppercase transition
+    const cc = n.match(/^([a-z]+)/i);
+    if (cc) return cc[1].toLowerCase();
+    // Underscore prefix
+    const us = n.split('_')[0];
+    return us.toLowerCase();
+  };
+
+  const groups = {};
+  for (const name of params) {
+    const prefix = getPrefix(name);
+    if (!groups[prefix]) groups[prefix] = [];
+    groups[prefix].push(name);
+  }
+
+  // Only create groups for prefixes with 2+ params
+  let created = 0;
+  for (const [prefix, ids] of Object.entries(groups)) {
+    if (ids.length < 2) continue;
+    const existing = M.paramGroups.find(g => g.id === 'auto_' + prefix);
+    if (existing) {
+      // Update with any new params
+      for (const id of ids) if (!existing.paramIds.includes(id)) existing.paramIds.push(id);
+    } else {
+      const label = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+      M.paramGroups.push({ id: 'auto_' + prefix, name: '📂 ' + label, paramIds: ids, collapsed: false });
+      created++;
+    }
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = created > 0 ? `自動グループ作成: ${created}グループ` : 'グループを更新しました';
 }
 
 function toggleAnimMode() {
