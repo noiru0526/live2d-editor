@@ -1059,6 +1059,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
     <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
+    <button onclick="repeatLoopRegion()" title="ループ区間を指定回数繰り返して展開（アニメーションを伸長）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0f0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔁 区間繰り返し</button>
     <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#2e3656;border:1px solid rgba(100,160,255,.4);color:#80a4ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
@@ -13121,6 +13122,39 @@ function normalizeToLoopRegion() {
   const loEl = document.getElementById('tl-loop-out'); if (loEl) loEl.value = M.animation.duration.toFixed(2);
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `ループ正規化: ${loopIn.toFixed(3)}s→0, 長さ ${loopLen.toFixed(3)}s`;
+}
+
+function repeatLoopRegion() {
+  const dur = M.animation.duration || 3;
+  const loopIn = M.animation.loopIn ?? 0;
+  const loopOut = M.animation.loopOut ?? dur;
+  const loopLen = loopOut - loopIn;
+  if (loopLen <= 0.01) { document.getElementById('lbl-status').textContent = 'ループ区間を設定してください'; return; }
+  const nStr = prompt(`ループ区間（${loopIn.toFixed(2)}s〜${loopOut.toFixed(2)}s）を何回繰り返しますか？`, '3');
+  if (!nStr) return;
+  const n = parseInt(nStr);
+  if (isNaN(n)||n<1||n>20) { document.getElementById('lbl-status').textContent = '1〜20回の整数を入力してください'; return; }
+  pushAnimUndo('区間繰り返し展開');
+  for (const [, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!frames) continue;
+    const regionKFs = frames.filter(kf=>kf.t>=loopIn-0.001&&kf.t<=loopOut+0.001);
+    if (!regionKFs.length) continue;
+    // Insert N-1 additional copies after the first (already exists)
+    for (let rep=1; rep<n; rep++) {
+      for (const kf of regionKFs) {
+        const t = Math.round((kf.t + rep*loopLen)*10000)/10000;
+        if (!frames.some(f=>Math.abs(f.t-t)<0.001)) {
+          frames.push({...kf, t});
+        }
+      }
+    }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  const newDur = Math.max(dur, loopOut + (n-1)*loopLen);
+  M.animation.duration = Math.round(newDur*1000)/1000;
+  const el = document.getElementById('tl-duration'); if (el) el.value = M.animation.duration.toFixed(1);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `区間繰り返し×${n}: ${loopIn.toFixed(2)}〜${loopOut.toFixed(2)}s → ${n}回展開 (合計${(loopLen*n).toFixed(2)}s)`;
 }
 
 function saveLoopAsClip() {

@@ -4931,7 +4931,8 @@ canvas.addEventListener('dblclick', e => {
 });
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){pendingImg=null;pendingDataURL=null;render();setHint('');}
+  if(e.key==='Escape'){pendingImg=null;pendingDataURL=null;render();setHint(''); document.getElementById('shortcuts-overlay')?.remove();}
+  if(e.key==='?') { e.preventDefault(); showShortcutsOverlay(); return; }
   const onBody=document.activeElement===document.body||document.activeElement===canvas;
   if(e.key==='Delete'&&onBody) delPart();
   if((e.ctrlKey||e.metaKey)&&e.key==='z'&&onBody){e.preventDefault();undo();}
@@ -4961,6 +4962,41 @@ document.addEventListener('keydown',e=>{
     }
   }
 });
+function showShortcutsOverlay() {
+  document.getElementById('shortcuts-overlay')?.remove();
+  const d = document.createElement('div');
+  d.id = 'shortcuts-overlay';
+  d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:990;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  d.onclick = ()=>d.remove();
+  const shortcuts = [
+    ['全般',''],
+    ['Ctrl+Z','元に戻す'],['Ctrl+D','パーツ複製'],['Ctrl+C/V','コピー/ペースト'],
+    ['Delete','パーツ削除'],['F / f','フィット表示'],['F2','フォーカスモード切替'],
+    ['H','選択パーツ表示/非表示'],['L','選択パーツロック切替'],
+    ['Shift+S','ソロ表示切替'],['0','全パラメータリセット'],
+    ['1〜9','表情プリセット適用'],
+    ['↑↓←→','パーツ移動 (Shift=10px)'],
+    ['モード・ツール',''],
+    ['Ctrl+ドラッグ','ブラシデフォーム (デフォームモード)'],
+    ['Ctrl+ホイール','ブラシ半径変更'],
+    ['S','シメトリモード切替 (メッシュ/デフォームモード)'],
+    ['Alt+ドラッグ','パーツ移動のエッジスナップ'],
+  ];
+  const rows = shortcuts.map(([k, v])=> v ?
+    `<tr><td style="padding:3px 12px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 12px;color:#a0b8d0;font-size:11px;">${v}</td></tr>` :
+    `<tr><td colspan="2" style="padding:6px 12px 3px;font-size:9px;color:#4e6080;text-transform:uppercase;letter-spacing:1px;border-top:1px solid rgba(255,255,255,.08);">${k}</td></tr>`
+  ).join('');
+  d.innerHTML = `<div style="background:#131828;border:1px solid rgba(100,150,255,.3);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
+      <span style="font-size:13px;font-weight:600;color:#cdd6f4;">⌨ キーボードショートカット</span>
+      <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:#6878a0;cursor:pointer;font-size:16px;padding:0;">×</button>
+    </div>
+    <table style="width:100%;border-collapse:collapse;">${rows}</table>
+    <div style="text-align:center;color:#3a4a6a;font-size:9px;margin-top:12px;padding:0 12px;">クリックで閉じる / ショートカット: ? または Shift+?</div>
+  </div>`;
+  document.body.appendChild(d);
+}
+
 document.getElementById('ni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd();if(e.key==='Escape')cancelAdd();});
 document.getElementById('exni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmExpr();if(e.key==='Escape')cancelExpr();});
 document.getElementById('defni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddDeformer();if(e.key==='Escape')cancelAddDeformer();});
