@@ -1084,6 +1084,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
     <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#80a0d0';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
+    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'#a0e0ff':'#80a0d0';this.style.borderColor=tlColorByGroup?'rgba(96,200,255,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
     <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
     <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2e3656;border:1px solid var(--border);color:#a0b0d0;border-radius:3px;padding:1px 3px;font-size:9px;cursor:pointer;">
       <option value="default">↕ デフォルト</option>
@@ -8420,6 +8421,16 @@ function resizeMultiTimeline() {
   drawMultiTimeline();
 }
 
+let tlColorByGroup = false; // color tracks by name prefix (group hue) instead of per-track hue
+
+function _paramGroupKey(name) {
+  // Extract prefix: first camelCase word, underscore segment, or first 3 Japanese chars
+  if (name.startsWith('__')) return name.split(':')[0];
+  const stripped = name.replace(/^Param/i, '');
+  const m = stripped.match(/^([a-zA-Z぀-鿿]{2,}?)(?=[A-Z0-9_]|$)/);
+  return m ? m[1].toLowerCase() : name.slice(0, 4).toLowerCase();
+}
+
 function _trackColor(name) {
   if (tlCustomTrackColors.has(name)) {
     const col = tlCustomTrackColors.get(name);
@@ -8438,8 +8449,12 @@ function _trackColor(name) {
   for (const [pfx,[col,bg]] of Object.entries(S)) {
     if (name.startsWith(pfx)) return { color: col, bg };
   }
-  const _h = name.split('').reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffff, 7);
-  return { color: `hsl(${(_h*137.5)%360},70%,60%)`, bg: null };
+  const hashKey = tlColorByGroup ? _paramGroupKey(name) : name;
+  const _h = hashKey.split('').reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffff, 7);
+  const hue = (_h*137.5)%360;
+  const lightness = tlColorByGroup ? (55 + (name.length*3)%15) : 60; // slight variation within group
+  const sat = tlColorByGroup ? 65 : 70;
+  return { color: `hsl(${hue},${sat}%,${lightness}%)`, bg: tlColorByGroup ? `hsla(${hue},50%,30%,.06)` : null };
 }
 
 function drawMultiTimeline() {
