@@ -1032,6 +1032,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#2e3656;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
+    <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:#1e2a1e;border:1px solid rgba(96,216,144,.35);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
     <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2e3656;border:1px solid var(--border);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2e3656;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -10230,6 +10231,78 @@ function showTimeStretch() {
     setStatus(`タイムストレッチ: ${factor.toFixed(2)}x`);
   };
   mo.onclick=(e)=>{if(e.target===mo)mo.remove();};
+}
+
+let _rangeClipboard = null; // {tracks: {name: [{dt,v,interp,color?,note?}]}, duration: number}
+
+function showRangeCopyPaste() {
+  const dur = M.animation.duration || 3;
+  const li = (M.animation.loopIn ?? 0).toFixed(3);
+  const lo = (M.animation.loopOut ?? dur).toFixed(3);
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  const hasCb = _rangeClipboard !== null;
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:300px">
+    <h3 style="margin:0 0 10px;font-size:13px;color:#cdd6f4">📋 区間コピー&ペースト</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px">指定区間の全トラックKFをコピーして、ペースト位置に貼り付けます。</div>
+    <div style="font-size:9px;color:#4a6080;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:24px;">開始</span>
+      <input id="rc-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888;min-width:12px;">〜</span>
+      <span style="font-size:9px;color:#888;min-width:24px;">終了</span>
+      <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+    </div>
+    <button id="rc-copy-btn" style="width:100%;background:#1a2e1a;border:1px solid rgba(96,216,144,.4);color:#60d890;border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
+    <div style="font-size:9px;color:#4a6080;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
+    <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:60px;">挿入開始</span>
+      <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
+    </div>
+    <div style="font-size:8px;color:#506090;margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
+    <div style="display:flex;gap:6px">
+      <button id="rc-paste-btn" style="flex:1;background:${hasCb?'#1e2e40':'#1a1e2e'};border:1px solid ${hasCb?'rgba(78,124,255,.5)':'rgba(60,80,120,.3)'};color:${hasCb?'#80a0ff':'#404060'};border-radius:4px;padding:4px;cursor:pointer;font-size:10px;" ${!hasCb?'disabled':''}>📌 ペースト</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">閉じる</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.querySelector('#rc-copy-btn').onclick = () => {
+    const s = parseFloat(mo.querySelector('#rc-start').value);
+    const e = parseFloat(mo.querySelector('#rc-end').value);
+    if (!isFinite(s)||!isFinite(e)||e<=s) { alert('有効な開始・終了時刻を入力してください'); return; }
+    const tracks = {};
+    for (const [name, kfs] of Object.entries(M.animation.tracks||{})) {
+      const inRange = kfs.filter(kf => kf.t >= s - 0.001 && kf.t <= e + 0.001);
+      if (inRange.length > 0) tracks[name] = inRange.map(kf => ({dt: kf.t - s, v: kf.v, interp: kf.interp, ...(kf.color?{color:kf.color}:{}), ...(kf.note?{note:kf.note}:{})}));
+    }
+    _rangeClipboard = {tracks, duration: e - s};
+    const cnt = Object.values(tracks).reduce((a,v)=>a+v.length,0);
+    setStatus(`区間コピー: ${s.toFixed(2)}s〜${e.toFixed(2)}s (${Object.keys(tracks).length}トラック, ${cnt}KF)`);
+    mo.remove();
+  };
+  mo.querySelector('#rc-paste-btn').onclick = () => {
+    if (!_rangeClipboard) return;
+    const pasteAt = parseFloat(mo.querySelector('#rc-paste').value);
+    if (!isFinite(pasteAt)||pasteAt<0) { alert('有効な挿入位置を入力してください'); return; }
+    pushAnimUndo('区間ペースト');
+    for (const [name, kfs] of Object.entries(_rangeClipboard.tracks)) {
+      if (!M.params[name]) continue;
+      if (!M.animation.tracks[name]) M.animation.tracks[name] = [];
+      for (const ck of kfs) {
+        const t = Math.round((pasteAt + ck.dt) * 1000) / 1000;
+        M.animation.tracks[name] = M.animation.tracks[name].filter(kf => Math.abs(kf.t - t) > 0.005);
+        const newKF = {t, v: ck.v, interp: ck.interp || 'linear'};
+        if (ck.color) newKF.color = ck.color; if (ck.note) newKF.note = ck.note;
+        M.animation.tracks[name].push(newKF);
+        M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+      }
+    }
+    drawMultiTimeline();
+    mo.remove();
+    const cnt = Object.values(_rangeClipboard.tracks).reduce((a,v)=>a+v.length,0);
+    setStatus(`区間ペースト: t=${pasteAt.toFixed(2)}s (${cnt}KF)`);
+  };
+  mo.onclick = (e) => { if (e.target===mo) mo.remove(); };
 }
 
 function showAnimTemplates() {
