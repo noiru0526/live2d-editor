@@ -983,6 +983,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <div id="tl-multi-header">
     <button onclick="animMultiPlay()" id="btn-multi-play" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
     <button onclick="animMultiStop()" style="background:#2e3656;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
+    <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:#1a1e2e;border:1px solid rgba(100,180,255,.4);color:#80b4ff;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
+    <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:#1a1e2e;border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
+    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:#1a1e2e;border:1px solid rgba(150,150,150,.3);color:#888;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
     <select id="tl-speed" title="再生速度" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 2px;font-size:10px;cursor:pointer;">
       <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
@@ -1058,6 +1061,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
     <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2e3656;border:1px solid var(--border);color:#a0e0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
+    <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:#2e3656;border:1px solid var(--border);color:#c0e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
+    <button onclick="showAllParamsHeatmap()" title="全パラメータのKF値密度ヒートマップ（どのパラメータがどの値域を多く使っているか）" style="background:#2e3656;border:1px solid rgba(255,180,80,.4);color:#ffc060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌡 値域マップ</button>
     <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2e3656;border:1px solid var(--border);color:#80ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
     <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2e3656;border:1px solid var(--border);color:#80d0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
     <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#1e2838;border:1px solid rgba(80,200,160,.4);color:#80d0b0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
@@ -11652,6 +11657,80 @@ function showParamStats() {
   );
 }
 
+function showParamHistogram() {
+  const name = ST.ap;
+  if (!name) { document.getElementById('lbl-status').textContent = '先にパラメータを選択してください'; return; }
+  const frames = M.animation.tracks[name];
+  if (!frames?.length) { document.getElementById('lbl-status').textContent = `「${M.params[name]?.lbl||name}」にKFがありません`; return; }
+  const p = M.params[name]; const BINS = 20;
+  const vals = frames.map(k=>k.v);
+  const mn = p.min, mx = p.max;
+  const binW = (mx - mn) / BINS;
+  const counts = new Array(BINS).fill(0);
+  for (const v of vals) { const bi = Math.min(BINS-1, Math.max(0, Math.floor((v-mn)/binW))); counts[bi]++; }
+  const maxCount = Math.max(...counts, 1);
+  const bodyHTML = `<div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:4px">${p?.lbl||name} — KF値分布 (${frames.length}個)</div>
+    <canvas id="hist-cvs" width="320" height="120" style="display:block;background:#0e1120;border-radius:3px;border:1px solid var(--border);"></canvas>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-top:2px;"><span>${mn.toFixed(2)}</span><span>→ 値 →</span><span>${mx.toFixed(2)}</span></div>
+  </div>`;
+  showModal(`ヒストグラム: ${p?.lbl||name}`, bodyHTML);
+  requestAnimationFrame(() => {
+    const cvs = document.getElementById('hist-cvs'); if(!cvs) return;
+    const ctx2 = cvs.getContext('2d'); const W=320,H=120,PAD=4;
+    const bw = (W-PAD*2)/BINS;
+    for (let i=0;i<BINS;i++) {
+      const bh = Math.round((counts[i]/maxCount)*(H-PAD*2));
+      const norm = i/BINS;
+      const hue = 200 - norm*140;
+      ctx2.fillStyle = `hsl(${hue},80%,55%)`;
+      ctx2.fillRect(PAD+i*bw, H-PAD-bh, bw-1, bh);
+    }
+    // median line
+    const sorted = [...vals].sort((a,b)=>a-b);
+    const med = sorted[Math.floor(sorted.length/2)];
+    const medX = PAD + ((med-mn)/(mx-mn||1))*(W-PAD*2);
+    ctx2.strokeStyle='#ffffffaa'; ctx2.lineWidth=1; ctx2.setLineDash([3,3]);
+    ctx2.beginPath(); ctx2.moveTo(medX,PAD); ctx2.lineTo(medX,H-PAD); ctx2.stroke();
+    ctx2.setLineDash([]);
+    ctx2.fillStyle='#fff'; ctx2.font='9px monospace'; ctx2.textAlign='center';
+    ctx2.fillText(`中央値 ${med.toFixed(2)}`, medX, 12);
+  });
+}
+
+function showAllParamsHeatmap() {
+  const tracks = Object.entries(M.animation.tracks).filter(([n,f])=>f.length>0&&M.params[n]);
+  if (!tracks.length) { document.getElementById('lbl-status').textContent = 'アニメーショントラックがありません'; return; }
+  const W=340, ROW=14, PAD=4, BINS=20;
+  const H = tracks.length*ROW + PAD*2;
+  const bodyHTML = `<div style="overflow-y:auto;max-height:420px;">
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px">全パラメータ KF値域ヒートマップ — 青=低頻度・赤=高頻度</div>
+    <canvas id="heatmap-cvs" width="${W}" height="${H}" style="display:block;background:#0e1120;border-radius:3px;"></canvas>
+  </div>`;
+  showModal('値域ヒートマップ', bodyHTML);
+  requestAnimationFrame(() => {
+    const cvs = document.getElementById('heatmap-cvs'); if(!cvs) return;
+    const ctx2 = cvs.getContext('2d');
+    const bw = (W - 90 - PAD*2) / BINS;
+    tracks.forEach(([name, frames], ri) => {
+      const p = M.params[name];
+      const mn=p.min, mx=p.max, rng=mx-mn||1;
+      const counts = new Array(BINS).fill(0);
+      for (const kf of frames) { const bi=Math.min(BINS-1,Math.max(0,Math.floor((kf.v-mn)/rng*BINS))); counts[bi]++; }
+      const mc = Math.max(...counts, 1);
+      const y = PAD + ri*ROW;
+      ctx2.fillStyle='var(--dim)'; ctx2.font=`${ROW-2}px sans-serif`;
+      ctx2.fillStyle='#8899aa'; ctx2.fillText((p.lbl||name).slice(0,9), 2, y+ROW-3);
+      for (let i=0;i<BINS;i++) {
+        const norm = counts[i]/mc;
+        const r=Math.round(norm*220), g=Math.round(norm*80), b=Math.round((1-norm)*220);
+        ctx2.fillStyle=`rgb(${r},${g},${b})`;
+        ctx2.fillRect(90+PAD+i*bw, y+1, bw-0.5, ROW-2);
+      }
+    });
+  });
+}
+
 function insertPoseKF() {
   // Insert KF for every param at current playhead using current param values
   if (!ST.animMode) { document.getElementById('lbl-status').textContent = 'アニメモードで使用してください'; return; }
@@ -12633,6 +12712,102 @@ function animMultiStop() {
   if (animMultiRAF) { cancelAnimationFrame(animMultiRAF); animMultiRAF=null; }
   const btn=document.getElementById('btn-multi-play');
   if (btn) btn.textContent='▶';
+}
+
+// ===== A/B COMPARISON PLAYBACK =====
+const _abSnapshots = { A: null, B: null };
+let _abInterval = 2; // seconds per slot
+let _abRAF = null;
+let _abCurrent = 'A';
+let _abSlotStart = 0; // performance.now() when current slot started
+
+function abSnapShot(slot) {
+  _abSnapshots[slot] = {
+    tracks: JSON.parse(JSON.stringify(M.animation.tracks)),
+    duration: M.animation.duration,
+    loopIn: M.animation.loopIn,
+    loopOut: M.animation.loopOut
+  };
+  const btn = document.getElementById(`btn-ab-snap-${slot.toLowerCase()}`);
+  if (btn) { const orig = btn.style.borderColor; btn.style.borderColor = slot==='A'?'#80b4ff':'#ffb060'; btn.textContent = slot+'✓'; }
+  document.getElementById('lbl-status').textContent = `A/B: ${slot}スナップショット記録 (${Object.keys(M.animation.tracks).length}トラック)`;
+}
+
+function _abApplySlot(slot, t) {
+  const snap = _abSnapshots[slot]; if (!snap) return;
+  const dur = snap.duration || 3;
+  const loopIn = snap.loopIn ?? 0;
+  const loopOut = snap.loopOut ?? dur;
+  const loopLen = Math.max(loopOut - loopIn, 0.01);
+  const tt = loopIn + ((t - loopIn) % loopLen);
+  for (const [name, frames] of Object.entries(snap.tracks)) {
+    if (!frames.length) continue;
+    const p = M.params[name];
+    if (p) { p.val = evalAnimTrack(frames, p, tt); const s=document.getElementById(`ps-${name}`); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);} }
+  }
+}
+
+function _getOrCreateABBadge() {
+  let badge = document.getElementById('ab-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'ab-badge';
+    badge.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9999;font-size:22px;font-weight:bold;font-family:monospace;padding:4px 16px;border-radius:6px;pointer-events:none;transition:background .15s,color .15s;';
+    document.body.appendChild(badge);
+  }
+  return badge;
+}
+
+function toggleABPlay() {
+  if (_abRAF) {
+    cancelAnimationFrame(_abRAF);
+    _abRAF = null;
+    const badge = document.getElementById('ab-badge');
+    if (badge) badge.remove();
+    const btn = document.getElementById('btn-ab-play');
+    if (btn) { btn.textContent='A/B'; btn.style.borderColor='rgba(150,150,150,.3)'; btn.style.color='#888'; }
+    document.getElementById('lbl-status').textContent = 'A/B比較終了';
+    return;
+  }
+  if (!_abSnapshots.A || !_abSnapshots.B) {
+    document.getElementById('lbl-status').textContent = 'A/B: AとBを両方記録してから再生してください';
+    return;
+  }
+  animMultiStop();
+  const badge = _getOrCreateABBadge();
+  const btn = document.getElementById('btn-ab-play');
+  if (btn) { btn.textContent='■ A/B'; btn.style.borderColor='#a0ff80'; btn.style.color='#a0ff80'; }
+  _abCurrent = 'A';
+  _abSlotStart = performance.now();
+  let t = 0;
+  let lastNow = performance.now();
+  function tick(now) {
+    const dt = (now - lastNow) / 1000;
+    lastNow = now;
+    t += dt;
+    if ((now - _abSlotStart) / 1000 >= _abInterval) {
+      _abCurrent = _abCurrent === 'A' ? 'B' : 'A';
+      _abSlotStart = now;
+      t = 0; // reset playhead at each switch
+    }
+    const snap = _abSnapshots[_abCurrent];
+    const dur = snap?.duration || 3;
+    const loopIn = snap?.loopIn ?? 0;
+    const loopOut = snap?.loopOut ?? dur;
+    const loopLen = Math.max(loopOut - loopIn, 0.01);
+    const tt = loopIn + (t % loopLen);
+    _abApplySlot(_abCurrent, tt);
+    ST.cachedVerts = null; redraw();
+    // Update badge
+    if (_abCurrent === 'A') {
+      badge.textContent = 'A'; badge.style.background = 'rgba(80,140,255,.85)'; badge.style.color = '#fff';
+    } else {
+      badge.textContent = 'B'; badge.style.background = 'rgba(255,140,60,.85)'; badge.style.color = '#fff';
+    }
+    _abRAF = requestAnimationFrame(tick);
+  }
+  _abRAF = requestAnimationFrame(tick);
+  document.getElementById('lbl-status').textContent = `A/B比較再生開始（${_abInterval}秒ごとに切替）`;
 }
 
 function navParamKF(name, dir) {
