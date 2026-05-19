@@ -1202,6 +1202,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#1e2a1e;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
+    <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
     <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:#1e2028;border:1px solid rgba(120,180,255,.4);color:#90c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
     <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:#1e1a2a;border:1px solid rgba(200,140,255,.4);color:#c890ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
@@ -5290,6 +5291,8 @@ document.addEventListener('keydown',e=>{
       if (e.key==='j'||e.key==='J') { animMultiStop(); ST.animPlayhead=Math.max(0,ST.animPlayhead-fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
       if (e.key==='k'||e.key==='K') { animMultiStop(); e.preventDefault(); }
       if (e.key==='l'||e.key==='L') { animMultiStop(); ST.animPlayhead=Math.min(M.animation.duration,ST.animPlayhead+fps); applyPlayheadToParams(); drawMultiTimeline(); e.preventDefault(); }
+      // M: add marker at playhead
+      if ((e.key==='m'||e.key==='M') && !e.ctrlKey) { addTimelineMarker(); e.preventDefault(); }
       // [ and ] : jump between markers
       if (e.key==='['||e.key===']') {
         const markers=(M.animation.markers||[]).map(m=>m.t).sort((a,b)=>a-b);
@@ -9826,6 +9829,31 @@ function drawMultiTimeline() {
       tlMultiCtx.fillText(_fmtTime(_tlHoverT), hx+2, 10);
     }
   }
+
+  // Timeline markers
+  const markers = M.animation.markers || [];
+  markers.forEach(mk => {
+    const mx = toKX(mk.t);
+    if (mx < 0 || mx > W) return;
+    const mc = mk.color || '#ffd080';
+    tlMultiCtx.save();
+    tlMultiCtx.strokeStyle = mc; tlMultiCtx.lineWidth = 1;
+    tlMultiCtx.setLineDash([3,3]);
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(mx,10); tlMultiCtx.lineTo(mx,H); tlMultiCtx.stroke();
+    tlMultiCtx.setLineDash([]);
+    // Diamond marker head
+    tlMultiCtx.fillStyle = mc;
+    tlMultiCtx.beginPath(); tlMultiCtx.moveTo(mx,2); tlMultiCtx.lineTo(mx+5,8); tlMultiCtx.lineTo(mx,14); tlMultiCtx.lineTo(mx-5,8); tlMultiCtx.closePath(); tlMultiCtx.fill();
+    // Label
+    if (mk.label) {
+      tlMultiCtx.font='8px monospace'; tlMultiCtx.fillStyle='rgba(10,12,30,.85)';
+      const tw=tlMultiCtx.measureText(mk.label).width;
+      tlMultiCtx.fillRect(mx+6,2,tw+4,9);
+      tlMultiCtx.fillStyle=mc;
+      tlMultiCtx.fillText(mk.label, mx+8, 10);
+    }
+    tlMultiCtx.restore();
+  });
 
   // Playhead
   const phx = toKX(ph);
@@ -16985,6 +17013,35 @@ async function exportGIF() {
     document.getElementById('lbl-status').textContent = 'GIF出力エラー: ' + err;
   });
   captureNextFrame();
+}
+
+// ==================== TIMELINE MARKERS ====================
+const MARKER_COLORS = ['#ffd080','#ff8080','#80ff90','#80c8ff','#ff90d0','#c080ff','#ffa060'];
+let _markerColorIdx = 0;
+
+function addTimelineMarker() {
+  if (!M.animation.markers) M.animation.markers = [];
+  const t = ST.animPlayhead;
+  const existing = M.animation.markers.find(m => Math.abs(m.t - t) < 0.01);
+  if (existing) {
+    // Cycle color on re-add
+    const colors = MARKER_COLORS;
+    existing.color = colors[(colors.indexOf(existing.color) + 1) % colors.length];
+    drawMultiTimeline(); return;
+  }
+  const label = prompt('マーカーラベル（空白でOK）:', '') ?? null;
+  if (label === null) return; // cancelled
+  M.animation.markers.push({ t, label: label.trim(), color: MARKER_COLORS[_markerColorIdx % MARKER_COLORS.length] });
+  _markerColorIdx++;
+  M.animation.markers.sort((a,b) => a.t - b.t);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `マーカー追加: t=${t.toFixed(3)} "${label}"`;
+}
+
+function removeMarkerAt(t) {
+  if (!M.animation.markers) return;
+  const idx = M.animation.markers.findIndex(m => Math.abs(m.t - t) < 0.05);
+  if (idx >= 0) { M.animation.markers.splice(idx, 1); drawMultiTimeline(); }
 }
 
 // ==================== RANDOM POSE ====================
