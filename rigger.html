@@ -349,6 +349,11 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
         <button id="btn-mesh-sym" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleMeshSymmetry()" title="シメトリ編集: 頂点移動をX軸に対称反映（メッシュ/デフォームモードで有効）(S)">⇄ シメトリ</button>
+        <div style="display:flex;gap:2px;margin-top:2px;" title="デフォームを対称化: 現在KFの変形データを左右対称に整形">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('avg')" title="左右平均対称化">⇌ 平均</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('left')" title="左→右にミラー">←→</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('right')" title="右→左にミラー">→←</button>
+        </div>
       </div>
     </div>
 
@@ -3744,6 +3749,46 @@ function snapMeshVertsToGrid() {
   for (const v of pt.mesh.verts) { v.x = snap(v.x); v.y = snap(v.y); }
   render();
   setStatus(`頂点をグリッドにスナップ (${gsize}px): ${pt.mesh.verts.length}頂点`);
+}
+
+// Make current KF's deform symmetric: average each vertex's dx with the mirror vertex's -dx
+// Mode: 'avg'=average both sides, 'left'=mirror left→right, 'right'=mirror right→left
+function symmetrizeDeform(mode) {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh || !pt.mesh.cols) { setStatus('グリッドメッシュが必要です'); return; }
+  const d = pt.deforms[selParam]?.[curKF];
+  if (!d) { setStatus('変形データがありません（KFを設定してください）'); return; }
+  saveState();
+  const mesh = pt.mesh;
+  const stride = mesh.cols + 1;
+  const nd = d.map(v => ({dx: v.dx, dy: v.dy}));
+  for (let i = 0; i < d.length; i++) {
+    const c = i % stride, r = Math.floor(i / stride);
+    const mc = mesh.cols - c;
+    if (mc <= c) continue; // only process left half (c < mid) to avoid double-processing
+    const mi = r * stride + mc;
+    if (mi >= d.length) continue;
+    if (mode === 'left') {
+      nd[mi].dx = -d[i].dx; nd[mi].dy = d[i].dy;
+    } else if (mode === 'right') {
+      nd[i].dx = -d[mi].dx; nd[i].dy = d[mi].dy;
+    } else { // 'avg'
+      const avgX = (d[i].dx - d[mi].dx) / 2;
+      const avgY = (d[i].dy + d[mi].dy) / 2;
+      nd[i].dx = avgX; nd[i].dy = avgY;
+      nd[mi].dx = -avgX; nd[mi].dy = avgY;
+    }
+  }
+  // Center column: zero out X deform (it must be 0 for true symmetry if c===mc)
+  for (let i = 0; i < d.length; i++) {
+    const c = i % stride;
+    if (c === mesh.cols - c) nd[i].dx = 0;
+  }
+  pt.deforms[selParam][curKF] = nd;
+  render();
+  const modeLabel = mode==='left'?'左→右ミラー':mode==='right'?'右→左ミラー':'平均対称化';
+  setStatus(`デフォーム${modeLabel}: ${P[selParam].l} KF=${curKF}`);
 }
 
 function smoothDeform() {
