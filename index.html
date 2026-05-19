@@ -1034,6 +1034,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2e3656;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2e3656;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
     <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#2e3656;border:1px solid rgba(100,80,200,.5);color:#c0a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="showPoseSequencer()" title="複数ポーズを順番に並べてアニメーションKFを自動生成（ループ可）" style="background:#2e3656;border:1px solid rgba(100,200,180,.4);color:#80d8c0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🔀 シーケンサー</button>
     <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#2e3656;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
@@ -10718,6 +10719,98 @@ function showAnimMerge() {
     }
     drawMultiTimeline(); mo.remove();
     setStatus(`アニメーションマージ完了: ${merged}KF追加 (オフセット+${off.toFixed(2)}s)`);
+  };
+}
+
+function showPoseSequencer() {
+  const poses = M.posePresets || [];
+  if (!poses.length) { document.getElementById('lbl-status').textContent = 'ポーズプリセットが必要です（先にポーズを保存してください）'; return; }
+  let sequence = []; // [{poseIdx, holdSec}]
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  const renderSeq = () => {
+    const seqDiv = mo.querySelector('#seq-list');
+    if (!seqDiv) return;
+    seqDiv.innerHTML = sequence.length ? sequence.map((item,i) =>
+      `<div style="display:flex;align-items:center;gap:4px;padding:3px 6px;background:#131828;border-radius:3px;margin-bottom:3px;font-size:10px;">
+        <span style="color:#80d8c0;min-width:12px;">${i+1}.</span>
+        <span style="flex:1;color:#cdd6f4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${poses[item.poseIdx]?.name||'?'}</span>
+        <span style="color:#80b4ff;min-width:32px;text-align:right;">${item.holdSec.toFixed(2)}s</span>
+        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:#506080;cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
+        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#506080;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
+        <button onclick="seqRemove(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:9px;color:#3a4a6a;padding:4px 0;">シーケンスが空です</div>';
+    const total = sequence.reduce((a,s)=>a+s.holdSec,0);
+    const totalEl = mo.querySelector('#seq-total');
+    if (totalEl) totalEl.textContent = `合計: ${total.toFixed(2)}s`;
+  };
+  window.seqMoveUp = i => { if(i>0)[sequence[i-1],sequence[i]]=[sequence[i],sequence[i-1]]; renderSeq(); };
+  window.seqMoveDown = i => { if(i<sequence.length-1)[sequence[i+1],sequence[i]]=[sequence[i],sequence[i+1]]; renderSeq(); };
+  window.seqRemove = i => { sequence.splice(i,1); renderSeq(); };
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:320px;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin:0 0 8px;font-size:13px;color:#cdd6f4">🔀 ポーズシーケンサー</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px">ポーズを順番に並べてアニメーションKFを自動生成します。</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <select id="seq-pose" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${poses.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}</select>
+      <input id="seq-hold" type="number" value="0.5" step="0.1" min="0.05" style="width:52px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888">s</span>
+      <button onclick="seqAdd()" style="background:#1e2838;border:1px solid rgba(100,200,180,.4);color:#80d8c0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">追加</button>
+    </div>
+    <div id="seq-list" style="max-height:200px;overflow-y:auto;margin-bottom:8px;"></div>
+    <div id="seq-total" style="font-size:9px;color:#5080a0;margin-bottom:8px;">合計: 0s</div>
+    <div style="display:flex;gap:4px;margin-bottom:8px;align-items:center;">
+      <label style="font-size:9px;color:#888;white-space:nowrap;">開始時刻</label>
+      <input id="seq-start-t" type="number" value="0" step="0.1" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888">s</span>
+      <label style="font-size:9px;color:#888;white-space:nowrap;">ループ</label>
+      <input type="checkbox" id="seq-loop" style="accent-color:#80d8c0;">
+      <label style="font-size:9px;color:#888;white-space:nowrap;">×</label>
+      <input id="seq-reps" type="number" value="1" min="1" max="20" style="width:32px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="seq-gen" style="flex:1;background:#1e2e24;border:1px solid rgba(100,200,180,.5);color:#80d8c0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.onclick = e => { if(e.target===mo) mo.remove(); };
+  window.seqAdd = () => {
+    const idx = parseInt(mo.querySelector('#seq-pose').value);
+    const hold = parseFloat(mo.querySelector('#seq-hold').value)||0.5;
+    sequence.push({poseIdx:idx, holdSec:Math.max(0.05,hold)});
+    renderSeq();
+  };
+  renderSeq();
+  mo.querySelector('#seq-gen').onclick = () => {
+    if (!sequence.length) { alert('シーケンスが空です'); return; }
+    const startT = parseFloat(mo.querySelector('#seq-start-t').value)||0;
+    const loop = mo.querySelector('#seq-loop').checked;
+    const reps = Math.max(1, parseInt(mo.querySelector('#seq-reps').value)||1);
+    const interp = 'linear';
+    pushAnimUndo('ポーズシーケンスKF生成');
+    const fullSeq = loop ? Array.from({length:reps}, ()=>[...sequence]).flat() : sequence;
+    let t = startT;
+    for (const item of fullSeq) {
+      const pose = poses[item.poseIdx]; if (!pose) continue;
+      for (const [k, v] of Object.entries(pose.vals||{})) {
+        const p = M.params[k]; if (!p) continue;
+        if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+        const existing = M.animation.tracks[k].findIndex(kf=>Math.abs(kf.t-t)<0.002);
+        if (existing>=0) M.animation.tracks[k].splice(existing,1);
+        M.animation.tracks[k].push({t:Math.round(t*1000)/1000, v:Math.max(p.min,Math.min(p.max,v)), interp});
+      }
+      t += item.holdSec;
+    }
+    // Sort all modified tracks
+    for (const [k] of Object.entries((fullSeq[0] ? poses[fullSeq[0].poseIdx]?.vals||{} : {}))) {
+      M.animation.tracks[k]?.sort((a,b)=>a.t-b.t);
+    }
+    for (const k of Object.keys(M.animation.tracks)) M.animation.tracks[k].sort((a,b)=>a.t-b.t);
+    // Auto-extend duration if needed
+    if (t > (M.animation.duration||3)) { M.animation.duration=Math.ceil(t*10)/10; const el=document.getElementById('tl-duration'); if(el) el.value=M.animation.duration; }
+    drawMultiTimeline(); mo.remove();
+    document.getElementById('lbl-status').textContent = `ポーズシーケンスKF生成: ${fullSeq.length}ポーズ → t=${startT.toFixed(2)}s〜${t.toFixed(2)}s`;
   };
 }
 
