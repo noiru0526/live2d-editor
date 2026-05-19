@@ -4489,11 +4489,57 @@ canvas.addEventListener('mousedown',e=>{
 canvas.addEventListener('mouseleave',()=>{
   if(hoveredPartIdx!==-1){hoveredPartIdx=-1;render();}
 });
-canvas.addEventListener('mouseup',()=>{
+canvas.addEventListener('mouseup', e => {
+  const wasVI = dragVI;
+  const wasMode = dragMode;
   if (dragMode!=='pan') { dragMode=''; dragVI=-1; }
   dragging=false; canvas.style.cursor='crosshair';
   if (_snapGuideX!==null || _snapGuideY!==null) { _snapGuideX=null; _snapGuideY=null; render(); }
+  // Show vertex coordinate HUD when a vertex was dragged in deform mode
+  if (wasVI>=0 && wasMode==='vert' && (mode==='deform'||mode==='mesh') && selPart>=0) {
+    showVertexCoordHUD(wasVI, e.clientX, e.clientY);
+  }
 });
+function showVertexCoordHUD(vi, clientX, clientY) {
+  document.getElementById('vert-coord-hud')?.remove();
+  const pt = parts[selPart]; if (!pt?.mesh) return;
+  const isDef = mode === 'deform';
+  const d = isDef ? (pt.deforms[selParam]?.[curKF]?.[vi] || {dx:0,dy:0}) : null;
+  const vx = isDef ? (d.dx||0) : pt.mesh.verts[vi].x;
+  const vy = isDef ? (d.dy||0) : pt.mesh.verts[vi].y;
+  const hud = document.createElement('div');
+  hud.id = 'vert-coord-hud';
+  hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:#131828;border:1px solid rgba(139,92,246,.6);border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:#c0c0ff;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
+  hud.innerHTML = `<span style="color:#7c3aed;">${isDef?'Δ':'V'}${vi}</span>
+    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#0e1120;border:1px solid rgba(139,92,246,.4);color:#cba6f7;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#0e1120;border:1px solid rgba(139,92,246,.4);color:#cba6f7;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#1a1040;border:1px solid rgba(139,92,246,.5);color:#a08cff;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
+    <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:#504060;cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
+  document.body.appendChild(hud);
+  document.getElementById('vhud-x').addEventListener('keydown', e => { if(e.key==='Enter') applyVertexCoordHUD(vi,isDef); if(e.key==='Escape') hud.remove(); });
+  document.getElementById('vhud-y').addEventListener('keydown', e => { if(e.key==='Enter') applyVertexCoordHUD(vi,isDef); if(e.key==='Escape') hud.remove(); });
+  setTimeout(()=>{ const dismiss = ev=>{ if(!hud.contains(ev.target)){hud.remove();document.removeEventListener('mousedown',dismiss);} }; document.addEventListener('mousedown',dismiss); },100);
+}
+function applyVertexCoordHUD(vi, isDef) {
+  const pt = parts[selPart]; if (!pt?.mesh) return;
+  const nx = parseFloat(document.getElementById('vhud-x')?.value);
+  const ny = parseFloat(document.getElementById('vhud-y')?.value);
+  if (isNaN(nx) || isNaN(ny)) return;
+  saveState();
+  if (isDef) {
+    if (!pt.deforms[selParam]) pt.deforms[selParam]={};
+    if (!pt.deforms[selParam][curKF]) pt.deforms[selParam][curKF] = Array.from({length:pt.mesh.verts.length},()=>({dx:0,dy:0}));
+    pt.deforms[selParam][curKF][vi].dx = nx;
+    pt.deforms[selParam][curKF][vi].dy = ny;
+  } else {
+    pt.mesh.verts[vi].x = nx;
+    pt.mesh.verts[vi].y = ny;
+    pt.resizeDeforms();
+  }
+  render(); document.getElementById('vert-coord-hud')?.remove();
+  setStatus(`頂点${vi} ${isDef?'デフォーム':'座標'}設定: (${nx.toFixed(2)}, ${ny.toFixed(2)})`);
+}
+
 canvas.addEventListener('dblclick', e => {
   if (!e.altKey) return;
   e.preventDefault();

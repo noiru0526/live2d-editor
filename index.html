@@ -1058,6 +1058,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
     <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
+    <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#2e3656;border:1px solid rgba(100,160,255,.4);color:#80a4ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
@@ -12814,6 +12815,76 @@ function saveLoopAsClip() {
   M.animClips.push({ name: clipName, animation: newAnim });
   renderClipTabs();
   document.getElementById('lbl-status').textContent = `クリップ保存: "${clipName}" (${loopLen.toFixed(2)}s, ${Object.keys(newAnim.tracks).length}トラック)`;
+}
+
+function showClipBlend() {
+  const clips = (M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0);
+  if (clips.length < 2) { document.getElementById('lbl-status').textContent = 'クリップが2つ以上必要です（ループ→クリップで保存してください）'; return; }
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  const opts = clips.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:300px">
+    <h3 style="margin:0 0 8px;font-size:13px;color:#cdd6f4">⊕ クリップブレンド合成</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px">2つのクリップを時間軸ごとにブレンドして新規クリップを生成します。</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:32px;">クリップA</span>
+      <select id="cb-a" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:32px;">クリップB</span>
+      <select id="cb-b" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:32px;">A比率</span>
+      <input type="range" id="cb-weight" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:#80b4ff;">
+      <span id="cb-w-lbl" style="font-size:9px;color:#80b4ff;min-width:40px;text-align:right;">A 50%</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:32px;">クリップ名</span>
+      <input id="cb-name" type="text" value="ブレンド1" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:6px">
+      <button id="cb-ok" style="flex:1;background:#1e2438;border:1px solid rgba(100,160,255,.5);color:#80b4ff;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.onclick = e => { if(e.target===mo) mo.remove(); };
+  const wSlider = mo.querySelector('#cb-weight');
+  wSlider.addEventListener('input', () => {
+    const w = parseFloat(wSlider.value);
+    mo.querySelector('#cb-w-lbl').textContent = `A ${Math.round(w*100)}%`;
+  });
+  // Set B to second clip by default
+  if (clips.length > 1) mo.querySelector('#cb-b').value = '1';
+  mo.querySelector('#cb-ok').onclick = () => {
+    const ai = parseInt(mo.querySelector('#cb-a').value);
+    const bi = parseInt(mo.querySelector('#cb-b').value);
+    const wA = parseFloat(wSlider.value);
+    const wB = 1 - wA;
+    const name = mo.querySelector('#cb-name').value.trim() || 'ブレンド';
+    const clipA = clips[ai].animation, clipB = clips[bi].animation;
+    const dur = Math.max(clipA.duration||3, clipB.duration||3);
+    const newTracks = {};
+    const allNames = new Set([...Object.keys(clipA.tracks||{}), ...Object.keys(clipB.tracks||{})]);
+    for (const tname of allNames) {
+      const frA = clipA.tracks?.[tname]||[], frB = clipB.tracks?.[tname]||[];
+      const p = M.params[tname]; if (!p) continue;
+      // Collect all unique time points from both clips
+      const times = [...new Set([...frA.map(k=>k.t), ...frB.map(k=>k.t)])].sort((a,b)=>a-b);
+      if (!times.length) continue;
+      const blended = times.map(t => {
+        const vA = evalAnimTrack(frA, p, t);
+        const vB = evalAnimTrack(frB, p, t);
+        return { t, v: vA*wA + vB*wB, interp: 'linear' };
+      });
+      if (blended.length) newTracks[tname] = blended;
+    }
+    if (!M.animClips) M.animClips = [];
+    M.animClips.push({ name, animation: { duration: dur, tracks: newTracks } });
+    renderClipTabs(); mo.remove();
+    document.getElementById('lbl-status').textContent = `クリップブレンド生成: "${name}" (A×${Math.round(wA*100)}%+B×${Math.round(wB*100)}%)`;
+  };
 }
 
 function cleanAnimTracks() {
