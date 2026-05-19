@@ -762,6 +762,30 @@ let physLastTs = 0;
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
+function showRigCtxMenu(x, y, items) {
+  document.getElementById('rig-ctx-menu')?.remove();
+  const menu = document.createElement('div');
+  menu.id = 'rig-ctx-menu';
+  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:#1a1e30;border:1px solid rgba(78,124,255,.4);border-radius:6px;padding:3px 0;z-index:9999;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;`;
+  for (const item of items) {
+    if (!item) { const sep=document.createElement('div'); sep.style.cssText='border-top:1px solid rgba(255,255,255,.08);margin:2px 0;'; menu.appendChild(sep); continue; }
+    const row = document.createElement('div');
+    row.style.cssText = `padding:5px 12px;cursor:pointer;color:${item.danger?'#ff8080':'var(--text)'};display:flex;align-items:center;gap:7px;white-space:nowrap;`;
+    row.innerHTML = `<span style="width:14px;text-align:center;">${item.icon||''}</span>${item.label}`;
+    row.onmouseenter = () => row.style.background = 'rgba(78,124,255,.2)';
+    row.onmouseleave = () => row.style.background = '';
+    row.onclick = () => { menu.remove(); item.action?.(); };
+    if (item.disabled) { row.style.opacity='.4'; row.style.cursor='default'; row.onclick=null; }
+    menu.appendChild(row);
+  }
+  document.body.appendChild(menu);
+  const rect = menu.getBoundingClientRect();
+  if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 4) + 'px';
+  if (rect.bottom > window.innerHeight) menu.style.top = (y - rect.height) + 'px';
+  const dismiss = e => { if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', dismiss); } };
+  setTimeout(() => document.addEventListener('mousedown', dismiss), 0);
+}
+
 // ===== UNDO =====
 let undoStack = [];
 function saveState() {
@@ -3211,7 +3235,42 @@ canvas.addEventListener('wheel',e=>{
   VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; VS*=f; updateZoomHUD(); render();
 },{passive:false});
 
-canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if (mode !== 'parts') return;
+  const r = canvas.getBoundingClientRect();
+  const mp = s2m(e.clientX - r.left, e.clientY - r.top);
+  // Hit test to find clicked part
+  let hitIdx = -1;
+  const sorted = [...parts].map((p,i)=>({p,i})).sort((a,b)=>b.p.zIndex-a.p.zIndex);
+  for (const {p,i} of sorted) {
+    if (!p.visible || !p.activeImg) continue;
+    if (mp.x>=p.x&&mp.x<=p.x+p.w&&mp.y>=p.y&&mp.y<=p.y+p.h) { hitIdx=i; break; }
+  }
+  const pt = hitIdx >= 0 ? parts[hitIdx] : null;
+  if (hitIdx >= 0 && selPart !== hitIdx) { selPartClick(hitIdx, false); }
+
+  const items = [];
+  if (pt) {
+    items.push({ icon:'✏', label:`「${pt.name}」を選択中` , disabled:true });
+    items.push(null);
+    items.push({ icon:'⧉', label:'複製', action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); dupPart(); }});
+    items.push({ icon:'↔', label:'ミラー複製', action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); mirrorDupPart(); }});
+    items.push(null);
+    items.push({ icon:pt.visible?'👁':'🚫', label:pt.visible?'非表示にする':'表示する', action:()=>{ pt.visible=!pt.visible; updatePartsUI(); render(); }});
+    items.push({ icon:pt.locked?'🔓':'🔒', label:pt.locked?'ロック解除':'ロックする', action:()=>{ pt.locked=!pt.locked; updatePartsUI(); setStatus(`${pt.name}: ${pt.locked?'ロック':'ロック解除'}`); }});
+    items.push(null);
+    items.push({ icon:'⬆', label:'最前面へ', action:()=>{ saveState(); const [moved]=parts.splice(hitIdx,1); parts.push(moved); parts.forEach((p,idx)=>p.zIndex=idx); selPart=parts.length-1; selParts.clear(); selParts.add(selPart); updatePartsUI(); render(); }});
+    items.push({ icon:'⬇', label:'最背面へ', action:()=>{ saveState(); const [moved]=parts.splice(hitIdx,1); parts.unshift(moved); parts.forEach((p,idx)=>p.zIndex=idx); selPart=0; selParts.clear(); selParts.add(0); updatePartsUI(); render(); }});
+    items.push(null);
+    items.push({ icon:'🗑', label:'削除', danger:true, action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); delPart(); }});
+  } else {
+    items.push({ icon:'📋', label:'パーツを貼り付け (Ctrl+V)', action:()=>pastePartFromClipboard() });
+    items.push({ icon:'🔍', label:'フィット表示', action:()=>fitView() });
+    items.push({ icon:'📷', label:'スクリーンショット', action:()=>screenshotCanvas() });
+  }
+  showRigCtxMenu(e.clientX, e.clientY, items);
+});
 
 canvas.addEventListener('mousemove',e=>{
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
