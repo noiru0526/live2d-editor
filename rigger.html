@@ -229,6 +229,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
     <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
+    <button class="tbtn" onclick="batchRenameParts()" title="パーツをまとめてリネーム: プレフィックス追加・検索置換など">✏ 一括名前変更</button>
     <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
     <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
   </div>
@@ -724,6 +725,18 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         </div>
         <div style="display:flex;justify-content:center">
           <canvas id="xy-canvas" width="148" height="148" style="cursor:crosshair;border-radius:4px;border:1px solid #1a3040;display:block"></canvas>
+        </div>
+      </div>
+      <!-- KF Loop Preview -->
+      <div style="padding:4px 6px;border-bottom:1px solid #1a2030;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:7px;color:#2e5070;text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
+          <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:#4e6080">▶ 再生</button>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <span style="font-size:8px;color:#4e6080;white-space:nowrap;">速度</span>
+          <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:#7c3aed;">
+          <span id="kf-loop-speed-v" style="font-size:8px;color:#7c3aed;min-width:20px;">1.0</span>
         </div>
       </div>
       <div id="params-list"></div>
@@ -3455,6 +3468,127 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+// ===== KF LOOP PREVIEW =====
+let _kfLoopActive = false, _kfLoopRAF = null, _kfLoopT = 0, _kfLoopDir = 1, _kfLoopLastNow = null;
+
+function toggleKFLoopPreview() {
+  _kfLoopActive = !_kfLoopActive;
+  const btn = document.getElementById('btn-kf-loop');
+  if (btn) { btn.textContent = _kfLoopActive ? '⏹ 停止' : '▶ 再生'; btn.style.color = _kfLoopActive ? '#60d890' : '#4e6080'; }
+  document.getElementById('kf-loop-speed')?.addEventListener('input', function(){ document.getElementById('kf-loop-speed-v').textContent = parseFloat(this.value).toFixed(1); });
+  if (_kfLoopActive) {
+    _kfLoopLastNow = null;
+    _kfLoopRAF = requestAnimationFrame(_kfLoopStep);
+  } else {
+    if (_kfLoopRAF) { cancelAnimationFrame(_kfLoopRAF); _kfLoopRAF = null; }
+  }
+}
+
+function _kfLoopStep(now) {
+  if (!_kfLoopActive) return;
+  const dt = _kfLoopLastNow ? (now - _kfLoopLastNow) / 1000 : 0;
+  _kfLoopLastNow = now;
+  const speed = parseFloat(document.getElementById('kf-loop-speed')?.value || 1);
+  const pc = P[selParam];
+  if (!pc || !pc.k.length) { _kfLoopRAF = requestAnimationFrame(_kfLoopStep); return; }
+  const kfs = [...pc.k].sort((a,b)=>a-b);
+  const kMin = kfs[0], kMax = kfs[kfs.length - 1];
+  const range = kMax - kMin;
+  if (range < 0.001) { _kfLoopRAF = requestAnimationFrame(_kfLoopStep); return; }
+  _kfLoopT += dt * speed * _kfLoopDir;
+  if (_kfLoopT >= kMax) { _kfLoopT = kMax; _kfLoopDir = -1; }
+  if (_kfLoopT <= kMin) { _kfLoopT = kMin; _kfLoopDir = 1; }
+  // Snap to nearest KF
+  const vals = getParamVals();
+  vals[selParam] = _kfLoopT;
+  // Temporarily override slider
+  const ps = document.getElementById(`ps-${selParam}`);
+  if (ps) ps.value = _kfLoopT;
+  // Update curKF
+  const snap = kfs.reduce((best, k) => Math.abs(k - _kfLoopT) < Math.abs(best - _kfLoopT) ? k : best, kfs[0]);
+  curKF = snap;
+  buildKFUI();
+  render();
+  _kfLoopRAF = requestAnimationFrame(_kfLoopStep);
+}
+
+function batchRenameParts() {
+  const targetParts = selParts.size > 1
+    ? [...selParts].map(i => ({idx: i, pt: parts[i]}))
+    : parts.map((pt, i) => ({idx: i, pt}));
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#1a1e30;border:1px solid rgba(180,130,255,.4);border-radius:8px;padding:16px;min-width:340px;color:#c8d4f0;font-size:12px;">
+      <div style="font-size:13px;font-weight:600;color:#c0a0ff;margin-bottom:10px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;width:80px;color:#8090b0;">プレフィックス追加:</span>
+          <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;width:80px;color:#8090b0;">サフィックス追加:</span>
+          <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;width:80px;color:#8090b0;">検索:</span>
+          <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;width:80px;color:#8090b0;">置換:</span>
+          <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <label style="font-size:10px;color:#8090b0;display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" id="brn-number"> 連番追加
+          </label>
+          <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+          <span style="font-size:9px;color:#6878a0;">から開始 (例: _01, _02...)</span>
+        </div>
+        <div id="brn-preview" style="font-size:9px;color:#6878a0;background:#080a14;border-radius:3px;padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+        <button id="brn-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
+        <button id="brn-preview-btn" style="background:#1e1e30;border:1px solid rgba(160,100,255,.4);color:#c080ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
+        <button id="brn-ok" style="background:#1a2040;border:1px solid rgba(80,160,255,.5);color:#80b0ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  function computeNames() {
+    const prefix = document.getElementById('brn-prefix').value;
+    const suffix = document.getElementById('brn-suffix').value;
+    const find = document.getElementById('brn-find').value;
+    const replace = document.getElementById('brn-replace').value;
+    const doNum = document.getElementById('brn-number').checked;
+    const numStart = parseInt(document.getElementById('brn-number-start').value) || 0;
+    return targetParts.map(({pt}, i) => {
+      let name = pt.name;
+      if (find) name = name.replaceAll(find, replace);
+      name = prefix + name + suffix;
+      if (doNum) name += '_' + String(numStart + i).padStart(2, '0');
+      return name;
+    });
+  }
+
+  document.getElementById('brn-preview-btn').onclick = () => {
+    const names = computeNames();
+    document.getElementById('brn-preview').textContent = targetParts.map(({pt},i) => `${pt.name} → ${names[i]}`).join('\n');
+  };
+
+  document.getElementById('brn-ok').onclick = () => {
+    const names = computeNames();
+    saveState();
+    targetParts.forEach(({idx}, i) => { parts[idx].name = names[i]; });
+    updatePartsUI(); render(); modal.remove();
+    setStatus(`${targetParts.length}件のパーツ名を変更しました`);
+  };
+
+  document.getElementById('brn-cancel').onclick = () => modal.remove();
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 function toggleUVOverlay() {
