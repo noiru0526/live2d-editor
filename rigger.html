@@ -225,6 +225,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
     <button class="tbtn" onclick="importSVGAspart()" title="SVGファイルをインポート: 全体を1パーツとして追加、またはレイヤー別に複数パーツ分割">＋ SVG</button>
     <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
+    <button class="tbtn" onclick="generateColorVariants()" title="選択パーツを複数の色相シフトでバリエーション生成（服・目の色違い等）">🎨 カラーバリ</button>
     <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
     <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
@@ -3253,6 +3254,109 @@ function mirrorDupPart() {
   parts.push(np); selPart=parts.length-1; selParts.clear(); selParts.add(selPart);
   updatePartsUI(); render();
   setStatus(`「${np.name}」を水平ミラーコピーしました`);
+}
+
+// ===== COLOR VARIANTS =====
+function generateColorVariants() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const src = parts[selPart];
+  if (!src.img) { setStatus('画像が必要です'); return; }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
+  const inner = document.createElement('div');
+  inner.style.cssText = 'background:#1a1e30;border:1px solid rgba(180,100,255,.4);border-radius:8px;padding:16px;min-width:300px;color:#c8d4f0;font-size:12px;';
+  inner.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:#d0b0ff;margin-bottom:10px;">🎨 カラーバリエーション生成</div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:10px;">色相シフトを等間隔で適用した複数バリエーションを一括生成します。</div>
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:64px;">バリ数:</span>
+        <input id="cv-count" type="number" min="2" max="12" value="4" style="width:48px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <span style="font-size:9px;color:#6878a0;">個（元パーツ含まず）</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:64px;">色相範囲:</span>
+        <input id="cv-range" type="range" min="30" max="360" step="30" value="360" style="flex:1;accent-color:#c080ff;">
+        <span id="cv-range-v" style="font-size:9px;color:#c080ff;width:28px;">360°</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:64px;">彩度:</span>
+        <input id="cv-sat" type="range" min="50" max="200" step="10" value="110" style="flex:1;accent-color:#ff80c0;">
+        <span id="cv-sat-v" style="font-size:9px;color:#ff80c0;width:28px;">110%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:64px;">配置オフセ:</span>
+        <input id="cv-off" type="number" value="30" style="width:48px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <span style="font-size:9px;color:#6878a0;">px (X方向)</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button id="cv-ok" style="flex:1;background:#1e1038;border:1px solid rgba(180,100,255,.5);color:#c080ff;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
+        <button onclick="this.closest('[style]').remove()" style="flex:1;background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
+      </div>
+    </div>`;
+  modal.appendChild(inner);
+  document.body.appendChild(modal);
+
+  inner.querySelector('#cv-range').oninput = e => document.getElementById('cv-range-v').textContent = e.target.value + '°';
+  inner.querySelector('#cv-sat').oninput = e => document.getElementById('cv-sat-v').textContent = e.target.value + '%';
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  inner.querySelector('#cv-ok').onclick = async () => {
+    const count = Math.max(1, Math.min(12, parseInt(document.getElementById('cv-count').value)||4));
+    const range = parseInt(document.getElementById('cv-range').value)||360;
+    const satMul = parseInt(document.getElementById('cv-sat').value)||110;
+    const offX = parseInt(document.getElementById('cv-off').value)||30;
+    modal.remove();
+    saveState();
+
+    // Rasterize source to offscreen canvas to get pixel data
+    const oc = document.createElement('canvas'); oc.width = src.iw; oc.height = src.ih;
+    const octx = oc.getContext('2d'); octx.drawImage(src.img, 0, 0);
+    const srcData = octx.getImageData(0, 0, src.iw, src.ih);
+
+    for (let v = 0; v < count; v++) {
+      const hueShift = ((range / count) * (v + 1)) % 360;
+      // Clone source part JSON
+      const json = src.toJSON(true);
+      json.id = Date.now().toString(36) + Math.random().toString(36).slice(2) + v;
+      json.name = src.name + `_hue${Math.round(hueShift)}`;
+      json.x = src.x + offX * (v + 1);
+      json.y = src.y;
+      json.hue = Math.round(hueShift);
+      json.saturate = satMul;
+      // Apply hue shift to image using canvas
+      const vc = document.createElement('canvas'); vc.width = src.iw; vc.height = src.ih;
+      const vctx = vc.getContext('2d');
+      vctx.putImageData(srcData, 0, 0);
+      const vd = vctx.getImageData(0, 0, src.iw, src.ih);
+      for (let px = 0; px < vd.data.length; px += 4) {
+        if (vd.data[px+3] < 5) continue;
+        // Convert RGB → HSL, shift hue, convert back
+        const r=vd.data[px]/255, g=vd.data[px+1]/255, b=vd.data[px+2]/255;
+        const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+        let h=0, s=0, l=(max+min)/2;
+        if (d>0) { s=d/(1-Math.abs(2*l-1)); h=max===r?((g-b)/d+6)%6:max===g?(b-r)/d+2:(r-g)/d+4; h/=6; }
+        h=(h+(hueShift/360))%1; if(h<0)h+=1;
+        s=Math.min(1,s*(satMul/100));
+        const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+        const hq=(hue)=>{hue=(hue%1+1)%1;if(hue<1/6)return p+(q-p)*6*hue;if(hue<1/2)return q;if(hue<2/3)return p+(q-p)*(2/3-hue)*6;return p;};
+        vd.data[px]=Math.round(hq(h+1/3)*255); vd.data[px+1]=Math.round(hq(h)*255); vd.data[px+2]=Math.round(hq(h-1/3)*255);
+      }
+      vctx.putImageData(vd, 0, 0);
+      const varDataURL = vc.toDataURL('image/png');
+      await new Promise(resolve => {
+        const img = new Image(); img.onload = () => {
+          const np = Part.fromJSON(json);
+          np.img = img; np.iw = img.width; np.ih = img.height;
+          parts.push(np); resolve();
+        }; img.src = varDataURL;
+      });
+    }
+    selPart = parts.length - 1; selParts.clear();
+    buildPartsList(); render(); scheduleThumbUpdate();
+    setStatus(`カラーバリエーション ${count}個生成完了`);
+  };
 }
 
 function dupPart() {
