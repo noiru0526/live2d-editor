@@ -286,6 +286,13 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         style="flex:1;background:#0c0e18;border:1px solid #1a2030;color:#8898c0;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
       <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:10px;padding:0">×</button>
     </div>
+    <!-- Color label filter -->
+    <div style="padding:3px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
+      <span style="font-size:9px;color:#3a5060;flex-shrink:0">🏷</span>
+      ${['#f87171','#fb923c','#facc15','#4ade80','#22d3ee','#60a5fa','#c084fc','#f9a8d4'].map(c=>`<div class="pi-clr-swatch" id="cf-${c.slice(1)}" onclick="toggleColorFilter('${c}')" style="width:11px;height:11px;background:${c};cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="${c}でフィルター"></div>`).join('')}
+      <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:#6080a0;" title="ラベルなしのみ表示">∅</div>
+      <button onclick="partsColorFilter=null;document.querySelectorAll('[id^=cf-]').forEach(e=>e.style.boxShadow='');updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:9px;padding:0;margin-left:2px;" title="カラーフィルターをクリア">×</button>
+    </div>
     <div id="parts-list"></div>
 
     <!-- Live part preview -->
@@ -771,6 +778,7 @@ let parts = [];
 let selPart = -1, selParts = new Set(), selParam = 'headX', curKF = 0;
 let mode = 'parts';
 let partsFilter = '';
+let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
@@ -1981,6 +1989,17 @@ function togVis(i,e) { e.stopPropagation(); parts[i].visible=!parts[i].visible; 
 function togLockItem(i,e) { e.stopPropagation(); parts[i].locked=!parts[i].locked; updatePartsUI(); }
 
 let dragSrcIdx = -1;
+function toggleColorFilter(color) {
+  partsColorFilter = partsColorFilter === color ? null : color;
+  document.querySelectorAll('[id^=cf-]').forEach(el => el.style.boxShadow = '');
+  if (partsColorFilter) {
+    const key = partsColorFilter === '__none__' ? 'none' : partsColorFilter.slice(1);
+    const el = document.getElementById('cf-' + key);
+    if (el) el.style.boxShadow = '0 0 0 2px #fff';
+  }
+  updatePartsUI();
+}
+
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   const seenGroups = new Set();
@@ -2103,6 +2122,10 @@ function updatePartsUI() {
   parts.forEach((pt, i) => {
     // Apply search filter: skip parts that don't match (but always show selected)
     if (partsFilter && !pt.name.toLowerCase().includes(partsFilter) && i !== selPart && !selParts.has(i)) return;
+    // Apply color label filter
+    if (partsColorFilter && i !== selPart && !selParts.has(i)) {
+      if (partsColorFilter === '__none__' ? pt.colorLabel : pt.colorLabel !== partsColorFilter) return;
+    }
     // Deformer header
     if (pt.deformerId && !seenDeformers.has(pt.deformerId)) {
       const def = deformers.find(d => d.id === pt.deformerId);
