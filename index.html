@@ -1100,6 +1100,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
+    <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#a060d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#1e2830;border:1px solid rgba(80,200,160,.4);color:#60c8a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
   </div>
@@ -3892,6 +3893,12 @@ function applyAnimTracks(now){
     t=Math.min(animT,loopOut);
   }
   animT=t;
+  // BGM sync: keep audio position within 150ms of animation time
+  if (_bgmSyncEnabled && _bgmAudio && _bgmAudio.readyState >= 2) {
+    const drift = Math.abs(_bgmAudio.currentTime - t);
+    if (drift > 0.15) _bgmAudio.currentTime = Math.min(t, _bgmAudio.duration || 999);
+    if (_bgmAudio.paused && animPlaying) _bgmAudio.play().catch(()=>{});
+  }
   for(const[k,frames]of Object.entries(MD.animation.tracks)){
     if(!params[k]||!frames.length)continue;
     if(tlMutedTracks.has(k)) continue;
@@ -3919,11 +3926,26 @@ function applyAnimTracks(now){
   }
   _updateAnimProgress();
 }
+let _bgmSyncEnabled = false;
+function toggleBGMSync() {
+  _bgmSyncEnabled = !_bgmSyncEnabled;
+  const btn = document.getElementById('btn-bgm-sync');
+  if (btn) { btn.style.color = _bgmSyncEnabled ? '#e0c0ff' : '#a060d0'; btn.style.borderColor = _bgmSyncEnabled ? 'rgba(220,160,255,.9)' : 'rgba(180,120,255,.4)'; btn.textContent = _bgmSyncEnabled ? '🔊 同期ON' : '🔊 同期'; }
+  if (!_bgmSyncEnabled && _bgmAudio) _bgmAudio.pause();
+}
 function toggleExportAnim(){
   animPlaying=!animPlaying;
   const btn=document.getElementById('anim-btn');
   if(btn)btn.textContent=animPlaying?'⏸ Stop':'▶ Anim';
-  if(animPlaying)animLastNow=null;
+  if(animPlaying) {
+    animLastNow=null;
+    if (_bgmSyncEnabled && _bgmAudio) {
+      _bgmAudio.currentTime = Math.min(animT, _bgmAudio.duration || 999);
+      _bgmAudio.play().catch(()=>{});
+    }
+  } else {
+    if (_bgmAudio) _bgmAudio.pause();
+  }
 }
 function toggleAnimLoop(){
   if(!MD.animation)return;
@@ -8353,6 +8375,8 @@ let _soloSavedVals = null; // saved param values before solo
 let _tlDisplayedRows = []; // current displayed rows (with group headers) — shared by draw + click handlers
 let _bgmWaveform = null; // normalized amplitude array [0..1] for BGM waveform visualization
 let _bgmDuration = 0;    // BGM duration in seconds
+let _bgmBlobURL = null;  // object URL for audio playback
+let _bgmAudio = null;    // Audio element for BGM sync playback
 let _paramDrivers = []; // [{source, target, ratio, offset}] — when source changes, target = source*ratio + offset
 let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
 let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
@@ -9738,8 +9762,16 @@ function loadBGMWaveform() {
       }
       _bgmWaveform = waveform;
       ac.close();
+      // Store blob URL for playback sync
+      if (_bgmBlobURL) URL.revokeObjectURL(_bgmBlobURL);
+      _bgmBlobURL = URL.createObjectURL(file);
+      if (_bgmAudio) { _bgmAudio.pause(); _bgmAudio.src = ''; }
+      _bgmAudio = new Audio(_bgmBlobURL);
+      _bgmAudio.preload = 'auto';
       const btn = document.getElementById('btn-tl-bgm');
       if (btn) { btn.style.color='#d0a0ff'; btn.style.borderColor='rgba(180,120,255,.8)'; }
+      const btnSync = document.getElementById('btn-bgm-sync');
+      if (btnSync) btnSync.style.display = '';
       status.textContent = `BGM波形読込: ${file.name} (${decoded.duration.toFixed(2)}s)`;
       drawMultiTimeline();
     } catch(e) {
