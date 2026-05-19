@@ -2639,6 +2639,19 @@ function buildParamUI() {
     banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:bold;">解除</button>`;
     cont.appendChild(banner);
   }
+  // Recent params quick-access strip
+  const validRecent = _recentParams.filter(n => M.params[n] && !_favParams.has(n));
+  if (validRecent.length > 0) {
+    const recDiv = document.createElement('div');
+    recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:rgba(60,80,120,.12);border:1px solid rgba(80,120,200,.18);border-radius:4px;';
+    recDiv.innerHTML = `<div style="font-size:7px;color:rgba(128,160,200,.5);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
+      validRecent.map(n => {
+        const p = M.params[n]; const lbl = p?.lbl || n;
+        const isAP = n === ST.ap;
+        return `<button onclick="setAP('${n}')" title="${n}" style="background:${isAP?'rgba(100,140,255,.3)':'rgba(40,60,100,.4)'};border:1px solid rgba(80,120,200,${isAP?'.5':'.25'});color:${isAP?'#a0c0ff':'#7090b0'};border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${lbl}</button>`;
+      }).join('') + `</div>`;
+    cont.appendChild(recDiv);
+  }
   // Sort: favorites first, then others
   const allEntries = Object.entries(M.params);
   const sorted = [
@@ -2925,6 +2938,8 @@ function setAP(name) {
   document.querySelectorAll('.prow').forEach(r=>r.classList.remove('active'));
   document.getElementById(`pr-${name}`)?.classList.add('active');
   ST.ap=name;
+  // Track recent params
+  _recentParams = [name, ..._recentParams.filter(n=>n!==name)].slice(0,6);
   document.getElementById('ap-label').textContent=M.params[name]?.lbl??name;
   document.getElementById('tl-param-name').textContent=M.params[name]?.lbl??name;
   const delBtn=document.getElementById('btn-del-param');
@@ -8287,6 +8302,7 @@ const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
 const tlCustomTrackColors = new Map(); // user-defined track colors: paramName -> hsl string
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
+let _recentParams = []; // recently used parameters (max 6, most-recent first)
 let _collapsedParamGroups = new Set(); // collapsed parameter group names
 let _soloParam = null; // currently soloed parameter name (others zeroed)
 let _soloSavedVals = null; // saved param values before solo
