@@ -416,6 +416,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(2048,2048)" title="正方形 2K">2K□</button>
         </div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="applyCanvasSize()">サイズ適用</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:4px" onclick="showGlobalTransformModal()" title="全パーツを一括で移動・スケール（グローバル変換）">⊙ 全体変換</button>
       </div>
     </div>
   </div>
@@ -3491,6 +3492,72 @@ function generateShadowPart() {
   selParts.clear(); selParts.add(selPart);
   updatePartsUI(); scheduleThumbUpdate(); render();
   setStatus(`影パーツを生成: 「${shadow.name}」`);
+}
+
+function showGlobalTransformModal() {
+  const overlay = document.createElement('div');
+  overlay.id = 'gtf-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML = `
+    <div style="background:#131828;border:1px solid rgba(100,150,255,.3);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;color:#c0d8ff;margin-bottom:14px;font-weight:bold">⊙ 全体変換</div>
+      <div style="font-size:9px;color:#5a7090;margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#809090">
+        <span>X 移動 (px)</span>
+        <input id="gtf-dx" type="number" value="0" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>Y 移動 (px)</span>
+        <input id="gtf-dy" type="number" value="0" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>スケール</span>
+        <input id="gtf-sc" type="number" value="1" min="0.01" max="10" step="0.05" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px;width:80px">
+        <span>スケール原点</span>
+        <select id="gtf-origin" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px">
+          <option value="canvas">キャンバス中央</option>
+          <option value="zero">(0,0) 原点</option>
+        </select>
+        <span>対象</span>
+        <select id="gtf-target" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:3px 8px">
+          <option value="all">全パーツ</option>
+          <option value="selected">選択パーツのみ</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
+        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="applyGlobalTransform()" style="background:rgba(74,158,255,.2);border:1px solid rgba(74,158,255,.5);color:#80c0ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
+      </div>
+    </div>`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+function applyGlobalTransform() {
+  document.getElementById('gtf-overlay')?.remove();
+  const dx = parseFloat(document.getElementById('gtf-dx')?.value) || 0;
+  const dy = parseFloat(document.getElementById('gtf-dy')?.value) || 0;
+  const sc = parseFloat(document.getElementById('gtf-sc')?.value) || 1;
+  const originMode = document.getElementById('gtf-origin')?.value || 'canvas';
+  const targetMode = document.getElementById('gtf-target')?.value || 'all';
+  const originX = originMode === 'canvas' ? canvasW / 2 : 0;
+  const originY = originMode === 'canvas' ? canvasH / 2 : 0;
+  saveState();
+  const targets = targetMode === 'selected'
+    ? [...selParts].filter(i => i >= 0 && i < parts.length).map(i => parts[i])
+    : parts;
+  if (!targets.length) { setStatus('変換対象のパーツがありません'); return; }
+  for (const pt of targets) {
+    // Scale position around origin, then translate
+    pt.x = originX + (pt.x - originX) * sc + dx;
+    pt.y = originY + (pt.y - originY) * sc + dy;
+    // Scale deform displacements to match scale (mesh verts untouched to preserve UV)
+    if (sc !== 1 && pt.deforms) {
+      for (const kfMap of Object.values(pt.deforms)) {
+        for (const dArr of Object.values(kfMap)) {
+          for (const d of dArr) { d.dx *= sc; d.dy *= sc; }
+        }
+      }
+    }
+  }
+  render(); scheduleThumbUpdate();
+  setStatus(`全体変換: 移動(${dx}, ${dy}) スケール×${sc}`);
 }
 
 function rebuildMesh() {
