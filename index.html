@@ -278,6 +278,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-midi" onclick="toggleMidiPanel()" title="MIDIコントローラー: CC→パラメータ・ノート→ポーズのマッピング">🎹 MIDI</button>
   <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
   <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
+  <button class="tbtn" id="btn-osc" onclick="toggleOscilloscope()" title="パラメータ波形モニター: 全パラメータ値のリアルタイム波形表示">📈 波形</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="resetToNeutral()" title="全パラメータをゼロに戻す">ニュートラル</button>
   <div class="tsep"></div>
@@ -7147,6 +7148,129 @@ function _runMicSync() {
   }
   _micRaf = requestAnimationFrame(_runMicSync);
 }
+
+// ==================== PARAMETER OSCILLOSCOPE ====================
+const OSC_LEN = 240;   // samples (4 sec @ 60fps)
+const OSC_W = 320, OSC_H = 160;
+let _oscActive = false;
+let _oscHistory = {}; // {paramName: Float32Array(OSC_LEN)}
+let _oscHead = 0;     // ring-buffer write head
+let _oscPanel = null;
+let _oscCtx = null;
+let _oscRaf = null;
+let _oscWatchedParams = []; // which params to show (auto-selected)
+
+function toggleOscilloscope() {
+  const panel = document.getElementById('osc-panel');
+  if (panel) { panel.remove(); _oscActive = false; _oscRaf = null; document.getElementById('btn-osc').classList.remove('on'); return; }
+  _oscPanel = document.createElement('div');
+  _oscPanel.id = 'osc-panel';
+  _oscPanel.style.cssText = `position:fixed;left:12px;bottom:40px;background:#0d1020;border:1px solid rgba(100,200,100,.3);border-radius:8px;padding:8px;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,.5);user-select:none;`;
+  _oscPanel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:10px;color:#80e090;font-weight:600;">📈 波形モニター</span>
+      <select id="osc-param-sel" style="font-size:9px;background:#0e1120;border:1px solid #2a3450;color:#c8d4f0;border-radius:3px;padding:1px 4px;max-width:100px;" onchange="_oscUpdateWatch()">
+        <option value="__active">アクティブのみ</option>
+        <option value="__all">全パラメータ</option>
+      </select>
+      <span id="osc-fps" style="font-size:8px;color:#4a6040;margin-left:auto;">--</span>
+      <button onclick="document.getElementById('osc-panel').remove();document.getElementById('btn-osc').classList.remove('on');_oscActive=false;" style="background:none;border:none;color:#4a6060;cursor:pointer;font-size:12px;padding:0;">×</button>
+    </div>
+    <canvas id="osc-canvas" width="${OSC_W}" height="${OSC_H}" style="display:block;border-radius:4px;cursor:move;" title="ドラッグで移動"></canvas>
+    <div id="osc-legend" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;max-width:${OSC_W}px;"></div>`;
+  document.body.appendChild(_oscPanel);
+  document.getElementById('btn-osc').classList.add('on');
+  _oscActive = true;
+  _oscHistory = {};
+  _oscHead = 0;
+  const cv = document.getElementById('osc-canvas');
+  _oscCtx = cv.getContext('2d');
+  _oscPopulateParamSel();
+  _oscUpdateWatch();
+  _oscDrag(_oscPanel, cv);
+  _oscLoop();
+}
+
+function _oscPopulateParamSel() {
+  const sel = document.getElementById('osc-param-sel'); if (!sel) return;
+  // Remove old param options
+  while (sel.options.length > 2) sel.remove(2);
+  Object.keys(M.params).forEach(k => {
+    const o = document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
+  });
+}
+
+function _oscUpdateWatch() {
+  const sel = document.getElementById('osc-param-sel')?.value || '__active';
+  if (sel === '__all') { _oscWatchedParams = Object.keys(M.params); }
+  else if (sel === '__active') { _oscWatchedParams = null; } // null = auto
+  else { _oscWatchedParams = [sel]; }
+}
+
+let _oscLastT = 0, _oscFPS = 0, _oscFPSC = 0;
+function _oscLoop() {
+  if (!_oscActive || !document.getElementById('osc-panel')) return;
+  const now = performance.now();
+  _oscFPSC++; if (now - _oscLastT > 500) { _oscFPS = Math.round(_oscFPSC * 1000 / (now - _oscLastT)); _oscFPSC=0; _oscLastT=now; const fl=document.getElementById('osc-fps'); if(fl)fl.textContent=`${_oscFPS}fps`; }
+
+  // Determine which params to sample
+  let toWatch;
+  if (_oscWatchedParams) { toWatch = _oscWatchedParams; }
+  else { toWatch = Object.entries(M.params).filter(([,p])=>Math.abs(p.val)>0.005).map(([k])=>k).slice(0,12); }
+
+  // Write sample
+  toWatch.forEach(k => {
+    if (!_oscHistory[k]) _oscHistory[k] = new Float32Array(OSC_LEN);
+    _oscHistory[k][_oscHead] = M.params[k]?.val ?? 0;
+  });
+  _oscHead = (_oscHead + 1) % OSC_LEN;
+
+  // Draw
+  const ctx = _oscCtx; if (!ctx) return;
+  ctx.fillStyle = '#0d1020'; ctx.fillRect(0,0,OSC_W,OSC_H);
+  // Grid
+  ctx.strokeStyle = 'rgba(60,80,60,.5)'; ctx.lineWidth = 1;
+  [0.25,0.5,0.75].forEach(fy => { ctx.beginPath(); ctx.moveTo(0,fy*OSC_H); ctx.lineTo(OSC_W,fy*OSC_H); ctx.stroke(); });
+  [0.25,0.5,0.75].forEach(fx => { ctx.beginPath(); ctx.moveTo(fx*OSC_W,0); ctx.lineTo(fx*OSC_W,OSC_H); ctx.stroke(); });
+  // Zero line
+  ctx.strokeStyle='rgba(100,160,100,.6)'; ctx.beginPath(); ctx.moveTo(0,OSC_H/2); ctx.lineTo(OSC_W,OSC_H/2); ctx.stroke();
+
+  // Draw waveforms
+  const colors=['#60e090','#60b0ff','#ffa060','#ff80c0','#c080ff','#60f0d0','#ffdf60','#80ff80','#ff6060','#80c0ff','#e0a060','#a0a0ff'];
+  let ci=0;
+  const legend=document.getElementById('osc-legend');
+  if (legend) legend.innerHTML='';
+  const keys=Object.keys(_oscHistory);
+  keys.forEach(k => {
+    const buf=_oscHistory[k]; if(!buf) return;
+    const p=M.params[k]; if(!p) return;
+    const col=colors[ci%colors.length]; ci++;
+    const range=Math.max(0.01,Math.max(Math.abs(p.max),Math.abs(p.min)));
+    ctx.strokeStyle=col; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let i=0;i<OSC_LEN;i++){
+      const si=(i+_oscHead)%OSC_LEN;
+      const x=(i/OSC_LEN)*OSC_W;
+      const y=OSC_H/2-(buf[si]/range)*(OSC_H*0.45);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Legend
+    if(legend){ const d=document.createElement('div'); d.style.cssText=`font-size:8px;color:${col};white-space:nowrap;display:flex;align-items:center;gap:2px;`; d.innerHTML=`<span style="display:inline-block;width:12px;height:2px;background:${col};border-radius:1px;flex-shrink:0"></span>${k}`; legend.appendChild(d); }
+  });
+
+  _oscRaf = requestAnimationFrame(_oscLoop);
+}
+
+function _oscDrag(panel, handle) {
+  let ox=0,oy=0,pdx=0,pdy=0,drag=false;
+  handle.addEventListener('mousedown',e=>{drag=true;ox=e.clientX;oy=e.clientY;pdx=parseInt(panel.style.left||12);pdy=parseInt(panel.style.bottom||40);e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!drag)return;panel.style.left=(pdx+(e.clientX-ox))+'px';panel.style.bottom=(pdy-(e.clientY-oy))+'px';});
+  document.addEventListener('mouseup',()=>drag=false);
+}
+
+// Push current param sample when redraw is called (hook)
+const _oscOrigRedraw = typeof redraw !== 'undefined' ? null : null; // patched below at init
 
 // ==================== MIDI CONTROLLER ====================
 let _midiActive = false;
