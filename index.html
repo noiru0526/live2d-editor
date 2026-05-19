@@ -2725,6 +2725,7 @@ function renderParamRow(name, p, cont, _isFavArg) {
       <div class="phead">
         <span class="plabel">${isFav?'⭐ ':''}${p.lbl}</span>
         <span class="pval" id="pv-${name}" title="クリックで値を直接入力" style="cursor:text;" ondblclick="editParamVal('${name}',this)">${p.val.toFixed(2)}</span>
+        ${(()=>{const kf=M.animation?.tracks?.[name];const n=kf?.length||0;return n>0?`<span id="kfc-${name}" title="アニメーションKF: ${n}個" style="font-size:8px;color:#60c0a0;font-family:monospace;margin-left:2px;cursor:default;">${n}</span>`:''})()}
         <button id="lock-${name}" onclick="toggleParamLock('${name}',event)" title="ロック"
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
         <button id="solo-${name}" onclick="event.stopPropagation();toggleParamSolo('${name}')" title="このパラメータだけ表示（他は0に）"
