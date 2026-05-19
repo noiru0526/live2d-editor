@@ -1101,6 +1101,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
+    <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#1a2838;border:1px solid rgba(80,180,255,.4);color:#60c0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#80a0d0';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
     <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#80a0d0';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
@@ -3867,6 +3868,97 @@ const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1
 // Timeline animation playback
 let animT=0, animLastNow=null, animPlaying=false, animSpeedMult=1;
 let _reversePlay = false;
+let _clipChain = [];     // [{clipIdx, loops}]  clipIdx=-1=current, loops=0=infinite
+let _chainPos = 0;       // current position in chain
+let _chainPlaying = false;
+
+function _advanceClipChain() {
+  _chainPos = (_chainPos + 1) % _clipChain.length;
+  const entry = _clipChain[_chainPos];
+  switchClip(entry.clipIdx);
+  animPlaying = true;
+  const btn = document.getElementById('anim-btn');
+  if (btn) btn.textContent = '⏹ Stop';
+}
+
+function showClipChainDialog() {
+  document.getElementById('clip-chain-dialog')?.remove();
+  const clips = [-1, ...(M.animClips||[]).map((_,i)=>i)];
+  const names = ['現在のアニメ', ...(M.animClips||[]).map(c=>c.name)];
+  const d = document.createElement('div');
+  d.id = 'clip-chain-dialog';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#1a1e30;border:1px solid rgba(80,180,255,.4);border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  d.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:8px;">
+      <span style="font-size:11px;color:#60c0ff;font-weight:600;">🔗 クリップ連鎖再生</span>
+      <button onclick="document.getElementById('clip-chain-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:8px;">再生するクリップを順番に並べて連続再生します。</div>
+    <div id="chain-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:180px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:4px;margin-bottom:8px;">
+      <select id="chain-add-sel" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+        ${clips.map((ci,i)=>`<option value="${ci}">${names[i]}</option>`).join('')}
+      </select>
+      <button onclick="_chainAddEntry()" style="background:#1a2838;border:1px solid rgba(80,180,255,.4);color:#60c0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">＋追加</button>
+    </div>
+    <div style="display:flex;gap:4px;">
+      <button onclick="_chainStartPlay()" style="flex:1;background:#1a2818;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">▶ 連鎖再生</button>
+      <button onclick="_chainStop()" style="flex:1;background:#281a1a;border:1px solid rgba(255,100,80,.4);color:#ff8060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">⏹ 停止</button>
+    </div>`;
+  document.body.appendChild(d);
+  _renderChainList();
+}
+
+function _renderChainList() {
+  const list = document.getElementById('chain-list'); if (!list) return;
+  list.innerHTML = '';
+  if (!_clipChain.length) {
+    list.innerHTML = '<div style="font-size:9px;color:#3a4a6a;padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
+  }
+  const names = ['現在', ...(M.animClips||[]).map(c=>c.name)];
+  _clipChain.forEach((e, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;gap:4px;padding:2px 5px;background:${i===_chainPos&&_chainPlaying?'#1a2838':'#131828'};border:1px solid ${i===_chainPos&&_chainPlaying?'rgba(80,180,255,.4)':'rgba(40,60,100,.4)'};border-radius:3px;font-size:10px;`;
+    row.innerHTML = `<span style="color:${i===_chainPos&&_chainPlaying?'#60c0ff':'#6878a0'};min-width:14px;">${i+1}</span><span style="flex:1;color:#a0b8d0;">${names[e.clipIdx+1]||'?'}</span><button onclick="_chainRemoveEntry(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function _chainAddEntry() {
+  const sel = document.getElementById('chain-add-sel'); if (!sel) return;
+  _clipChain.push({clipIdx: parseInt(sel.value)});
+  _renderChainList();
+}
+
+function _chainRemoveEntry(i) { _clipChain.splice(i,1); _renderChainList(); }
+
+function _chainStartPlay() {
+  if (!_clipChain.length) { alert('クリップが追加されていません'); return; }
+  _chainPos = 0; _chainPlaying = true;
+  const entry = _clipChain[0];
+  switchClip(entry.clipIdx);
+  MD.animation.loop = false;
+  animPlaying = true; animT = 0; animLastNow = null;
+  const btn = document.getElementById('anim-btn');
+  if (btn) btn.textContent = '⏹ Stop';
+  _renderChainList();
+  requestAnimationFrame(_chainFrame);
+}
+
+function _chainFrame(now) {
+  if (!_chainPlaying || !animPlaying) return;
+  applyAnimTracks(now);
+  ST.cachedVerts = null; redraw();
+  requestAnimationFrame(_chainFrame);
+}
+
+function _chainStop() {
+  _chainPlaying = false; animPlaying = false;
+  const btn = document.getElementById('anim-btn');
+  if (btn) btn.textContent = '▶ Anim';
+  _renderChainList();
+}
+
 function toggleReversePlay() {
   _reversePlay = !_reversePlay;
   animSpeedMult = Math.abs(animSpeedMult) * (_reversePlay ? -1 : 1);
@@ -3917,7 +4009,12 @@ function applyAnimTracks(now){
       t=loopIn+((rawOff%loopLen+loopLen)%loopLen);
     }
   } else {
-    t=_reversePlay ? Math.max(animT, loopIn) : Math.min(animT, loopOut);
+    if (!_reversePlay && animT >= loopOut) {
+      t = loopOut;
+      if (_clipChain.length > 0) { _advanceClipChain(); return; }
+    } else {
+      t = _reversePlay ? Math.max(animT, loopIn) : Math.min(animT, loopOut);
+    }
   }
   animT=t;
   // BGM sync: keep audio position within 150ms of animation time
