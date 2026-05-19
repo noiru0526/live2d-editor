@@ -1078,7 +1078,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="shiftAllKFTimes()" title="KF時刻シフト: 全KF（または選択トラック）を指定秒数だけ前後にずらす" style="background:#2e3656;border:1px solid rgba(80,180,255,.4);color:#70c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇄ シフト</button>
     <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
     <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#2e3656;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
-    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでしきい値設定" oncontextmenu="event.preventDefault();const v=prompt('削除しきい値(ms)',5);if(v)cleanupAnimKFs(parseFloat(v)/1000);" style="background:#2e3656;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
+    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:#2e3656;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
@@ -10777,6 +10777,29 @@ function showSnapMenu(e) {
     { icon:'⬛', label:'0.1秒刻み', action:()=>{ tlSnapGrid=0.1; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.1秒'; }},
     { icon:'⬛', label:'0.5秒刻み', action:()=>{ tlSnapGrid=0.5; tlSnapEnabled=true; document.getElementById('lbl-status').textContent='スナップ: 0.5秒'; }},
   ]);
+}
+
+// Clamp all KF values to their parameter's min/max range
+// Useful after import, scaling, or copy operations that may produce out-of-range values
+function clampAllKFValues() {
+  const tracks = M.animation?.tracks;
+  if (!tracks) return;
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(tracks)) for (const kf of frms) kfToName.set(kf,nm);
+  const useSelected = tlSelectedKFs.size > 0;
+  const targetKFs = useSelected ? [...tlSelectedKFs] : Object.values(tracks).flat();
+  if (!targetKFs.length) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
+  pushAnimUndo();
+  let clamped = 0;
+  for (const kf of targetKFs) {
+    const name = kfToName.get(kf);
+    const p = M.params[name]; if (!p) continue;
+    const oldV = kf.v;
+    kf.v = Math.max(p.min, Math.min(p.max, kf.v));
+    if (Math.abs(kf.v - oldV) > 1e-6) clamped++;
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `KFクランプ: ${clamped}個の値を修正（パラメータ範囲内に）`;
 }
 
 // Quantize all KF times (or selected KFs only) to the nearest snap grid multiple
