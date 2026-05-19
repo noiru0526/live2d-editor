@@ -234,7 +234,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
   <div class="tgrp">
     <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
     <button class="tbtn" id="btn-ruler" onclick="showRuler=!showRuler;this.classList.toggle('active',showRuler);render()" title="ルーラー ON/OFF">📏 ルーラー</button>
-    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ ON/OFF">🧲 スナップ</button>
+    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ ON/OFF&#10;Alt+ドラッグ: 他パーツのエッジに自動吸着（赤ガイドライン表示）">🧲 スナップ</button>
     <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5" title="グリッド間隔(px)"
       style="width:38px;background:#0d1117;border:1px solid #2a3a5a;color:#6080a0;border-radius:3px;padding:1px 3px;font-size:9px;text-align:center"
       onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
@@ -744,6 +744,7 @@ for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
 let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
 let showDensityHeatmap = false;
+let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
 let dragging = false, dragMode = '', dragVI = -1;
@@ -1662,6 +1663,24 @@ function render() {
       }
       ctx.restore();
     });
+  }
+
+  // Snap guide lines (Alt+drag edge snap)
+  if (_snapGuideX !== null || _snapGuideY !== null) {
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 80, 80, 0.8)';
+    if (_snapGuideX !== null) {
+      const sx = m2s(_snapGuideX, 0).x;
+      ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, canvas.height); ctx.stroke();
+    }
+    if (_snapGuideY !== null) {
+      const sy = m2s(0, _snapGuideY).y;
+      ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(canvas.width, sy); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.restore();
   }
 
   // Position display
@@ -3214,6 +3233,7 @@ canvas.addEventListener('mousemove',e=>{
     const rawDX=mp.x-dragSX, rawDY=mp.y-dragSY;
     let nx=snapVal(dragPartOX+rawDX), ny=snapVal(dragPartOY+rawDY);
     // Alt key: snap to edges of other parts (within 12px in canvas coords)
+    _snapGuideX = null; _snapGuideY = null;
     if (e.altKey && selParts.size===1 && selPart>=0 && selPart<parts.length) {
       const pt=parts[selPart];
       const THRESH=12/zoom;
@@ -3226,14 +3246,14 @@ canvas.addEventListener('mousemove',e=>{
         const opEdges=[op.x, op.x+op.w, op.x+op.w/2];
         for(const pe of ptEdges) for(const oe of opEdges) {
           const d=Math.abs(pe-oe);
-          if(d<THRESH&&(bestDX===null||d<Math.abs(bestDX))) bestDX=oe-pe;
+          if(d<THRESH&&(bestDX===null||d<Math.abs(bestDX))) { bestDX=oe-pe; _snapGuideX=oe; }
         }
         // Vertical edges
         const ptVEdges=[ny, ny+pt.h, ny+pt.h/2];
         const opVEdges=[op.y, op.y+op.h, op.y+op.h/2];
         for(const pe of ptVEdges) for(const oe of opVEdges) {
           const d=Math.abs(pe-oe);
-          if(d<THRESH&&(bestDY===null||d<Math.abs(bestDY))) bestDY=oe-pe;
+          if(d<THRESH&&(bestDY===null||d<Math.abs(bestDY))) { bestDY=oe-pe; _snapGuideY=oe; }
         }
       }
       if(bestDX!==null) nx+=bestDX;
@@ -3401,6 +3421,7 @@ canvas.addEventListener('mouseleave',()=>{
 canvas.addEventListener('mouseup',()=>{
   if (dragMode!=='pan') { dragMode=''; dragVI=-1; }
   dragging=false; canvas.style.cursor='crosshair';
+  if (_snapGuideX!==null || _snapGuideY!==null) { _snapGuideX=null; _snapGuideY=null; render(); }
 });
 
 document.addEventListener('keydown',e=>{
