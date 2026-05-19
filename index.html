@@ -1037,6 +1037,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#2e3656;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#2e3656;border:1px solid rgba(60,180,255,.4);color:#70d0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#2e3656;border:1px solid rgba(100,220,160,.4);color:#60d0a0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
+    <button onclick="showKFRamp()" title="選択パラメータに等間隔KFのランプ（グラデーション）を生成" style="background:#2e3656;border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">∿ ランプ</button>
+    <button onclick="showAnimMerge()" title="別のアニメーションJSONをインポートして現在のトラックにマージ（時刻オフセット付き）" style="background:#2e3656;border:1px solid rgba(100,160,255,.4);color:#80b4ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⊕ マージ</button>
     <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:#1e2a1e;border:1px solid rgba(96,216,144,.35);color:#60d890;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
     <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:#2a1a1a;border:1px solid rgba(255,80,80,.35);color:#ff8080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
     <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2e3656;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
@@ -1077,6 +1079,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
     <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2e3656;border:1px solid var(--border);color:#c0a0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
+    <button onclick="showMultiPoseBlend()" title="マルチポーズブレンド: 複数ポーズを同時にスライダーでウェイト調整してリアルタイムブレンド" style="background:#2a1e38;border:1px solid rgba(200,120,255,.4);color:#d08aff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎚 ブレンダー</button>
     <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#1e2a38;border:1px solid rgba(80,200,200,.4);color:#60d0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
@@ -6047,6 +6050,73 @@ function showPoseMorphPanel() {
   applyMorph();
 }
 
+function showMultiPoseBlend() {
+  const poses = M.posePresets || [];
+  if (!poses.length) { document.getElementById('lbl-status').textContent = 'ポーズプリセットがありません（ポーズを保存してから使用してください）'; return; }
+  if (document.getElementById('multi-pose-blend-panel')) { document.getElementById('multi-pose-blend-panel').remove(); return; }
+  const panel = document.createElement('div');
+  panel.id = 'multi-pose-blend-panel';
+  panel.style.cssText = 'position:fixed;left:220px;top:80px;background:#1a1e30;border:1px solid rgba(200,120,255,.5);border-radius:8px;padding:10px 12px;z-index:900;width:260px;max-height:500px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  // Neutral values (current param state before any blending)
+  const neutralVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+  const weights = new Array(poses.length).fill(0);
+  const renderRows = () => {
+    const list = panel.querySelector('#mpb-list'); if(!list) return;
+    list.innerHTML = poses.map((p, i) => `
+      <div style="margin-bottom:6px;padding:4px 6px;background:#131828;border-radius:4px;">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
+          <span style="font-size:10px;color:#d08aff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.name}">${p.name}</span>
+          <span class="mpb-wv" id="mpbwv-${i}" style="font-size:9px;color:#a080d0;min-width:28px;text-align:right;">${Math.round(weights[i]*100)}%</span>
+        </div>
+        <input type="range" class="mpb-slider" data-idx="${i}" min="0" max="1" step="0.01" value="${weights[i]}" style="width:100%;accent-color:#d08aff;">
+      </div>`).join('');
+    list.querySelectorAll('.mpb-slider').forEach(sl => {
+      sl.addEventListener('input', () => {
+        const idx = parseInt(sl.dataset.idx);
+        weights[idx] = parseFloat(sl.value);
+        panel.querySelector(`#mpbwv-${idx}`).textContent = Math.round(weights[idx]*100)+'%';
+        applyBlend();
+      });
+    });
+  };
+  const applyBlend = () => {
+    for (const [k, p] of Object.entries(M.params)) {
+      let val = neutralVals[k] ?? 0;
+      for (let i=0;i<poses.length;i++) {
+        if (weights[i] <= 0) continue;
+        const pv = poses[i].vals?.[k] ?? neutralVals[k] ?? 0;
+        val += (pv - (neutralVals[k] ?? 0)) * weights[i];
+      }
+      p.val = Math.max(p.min, Math.min(p.max, val));
+      const s=document.getElementById(`ps-${k}`); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}
+      const pv2=document.getElementById(`pv-${k}`); if(pv2)pv2.textContent=p.val.toFixed(2);
+    }
+    ST.cachedVerts=null; redraw();
+  };
+  panel.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
+    <span style="font-size:11px;color:#d08aff;font-weight:600;">🎚 マルチポーズブレンダー</span>
+    <button onclick="document.getElementById('multi-pose-blend-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button>
+  </div>
+  <div style="font-size:9px;color:#6878a0;margin-bottom:8px;">スライダーで各ポーズの影響度を同時に調整できます。ニュートラル値からの差分を加算合成。</div>
+  <div id="mpb-list"></div>
+  <div style="display:flex;gap:6px;margin-top:8px;">
+    <button id="mpb-reset" style="flex:1;background:#1e1a2e;border:1px solid rgba(200,120,255,.3);color:#a080d0;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
+    <button id="mpb-update-neutral" style="flex:1;background:#1e1a2e;border:1px solid rgba(100,200,200,.3);color:#80c0c0;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;" title="現在値をニュートラルとして更新">ニュートラル更新</button>
+  </div>`;
+  document.body.appendChild(panel);
+  renderRows();
+  panel.querySelector('#mpb-reset').onclick = () => { weights.fill(0); renderRows(); applyBlend(); };
+  panel.querySelector('#mpb-update-neutral').onclick = () => {
+    for (const [k,p] of Object.entries(M.params)) neutralVals[k] = p.val;
+    document.getElementById('lbl-status').textContent = 'マルチブレンド: ニュートラル値を更新しました';
+  };
+  // Draggable
+  let pdx=0, pdy=0, pdDown=false;
+  panel.addEventListener('mousedown', e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON') return; pdDown=true;pdx=e.clientX-panel.offsetLeft;pdy=e.clientY-panel.offsetTop; });
+  document.addEventListener('mousemove', e=>{ if(!pdDown)return; panel.style.left=(e.clientX-pdx)+'px'; panel.style.top=(e.clientY-pdy)+'px'; });
+  document.addEventListener('mouseup', ()=>{ pdDown=false; });
+}
+
 function showDriverManager() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
@@ -10510,6 +10580,143 @@ function showRangeCopyPaste() {
     setStatus(`区間ペースト: t=${pasteAt.toFixed(2)}s (${cnt}KF)`);
   };
   mo.onclick = (e) => { if (e.target===mo) mo.remove(); };
+}
+
+function showKFRamp() {
+  const name = ST.ap;
+  const p = name ? M.params[name] : null;
+  const cur = p ? p.val : 0;
+  const t = ST.animPlayhead;
+  const dur = M.animation.duration || 3;
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:290px">
+    <h3 style="margin:0 0 8px;font-size:13px;color:#cdd6f4">∿ KF ランプ生成</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px">区間内に等間隔KFのグラデーションを生成します。</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:44px;">パラメータ</span>
+      <select id="ramp-param" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+        ${Object.entries(M.params).map(([k,v])=>`<option value="${k}" ${k===name?'selected':''}>${v.lbl||k}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:44px;">開始時刻</span>
+      <input id="ramp-t0" type="number" value="${t.toFixed(3)}" step="0.1" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888;min-width:44px;">終了時刻</span>
+      <input id="ramp-t1" type="number" value="${Math.min(dur,t+1).toFixed(3)}" step="0.1" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:44px;">開始値</span>
+      <input id="ramp-v0" type="number" value="${cur.toFixed(3)}" step="0.01" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888;min-width:44px;">終了値</span>
+      <input id="ramp-v1" type="number" value="0" step="0.01" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:44px;">KF数</span>
+      <input id="ramp-n" type="number" value="10" min="2" max="200" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888;min-width:44px;">補間</span>
+      <select id="ramp-interp" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+        <option value="linear">linear</option><option value="smooth">smooth</option><option value="easeIn">easeIn</option><option value="easeOut">easeOut</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button id="ramp-ok" style="flex:1;background:#1e2e1e;border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.onclick = e => { if(e.target===mo) mo.remove(); };
+  mo.querySelector('#ramp-ok').onclick = () => {
+    const pn = mo.querySelector('#ramp-param').value;
+    const t0 = parseFloat(mo.querySelector('#ramp-t0').value);
+    const t1 = parseFloat(mo.querySelector('#ramp-t1').value);
+    const v0 = parseFloat(mo.querySelector('#ramp-v0').value);
+    const v1 = parseFloat(mo.querySelector('#ramp-v1').value);
+    const n  = Math.max(2, parseInt(mo.querySelector('#ramp-n').value)||10);
+    const interp = mo.querySelector('#ramp-interp').value;
+    if (!isFinite(t0)||!isFinite(t1)||t1<=t0||!isFinite(v0)||!isFinite(v1)) { alert('有効な値を入力してください'); return; }
+    pushAnimUndo('ランプ生成');
+    if (!M.animation.tracks[pn]) M.animation.tracks[pn] = [];
+    for (let i=0;i<n;i++) {
+      const ratio = i/(n-1);
+      const t_i = Math.round((t0 + ratio*(t1-t0))*1000)/1000;
+      const v_i = v0 + ratio*(v1-v0);
+      M.animation.tracks[pn] = M.animation.tracks[pn].filter(kf=>Math.abs(kf.t-t_i)>0.002);
+      M.animation.tracks[pn].push({t:t_i, v:v_i, interp});
+    }
+    M.animation.tracks[pn].sort((a,b)=>a.t-b.t);
+    drawMultiTimeline(); mo.remove();
+    setStatus(`ランプ生成: ${M.params[pn]?.lbl||pn} — ${n}KF (${v0.toFixed(2)}→${v1.toFixed(2)})`);
+  };
+}
+
+function showAnimMerge() {
+  const mo = document.createElement('div');
+  mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:300px">
+    <h3 style="margin:0 0 8px;font-size:13px;color:#cdd6f4">⊕ アニメーションマージ</h3>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px">別のアニメーションJSONを読み込み、現在のトラックにマージします。</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:60px;">時刻オフセット</span>
+      <input id="merge-offset" type="number" value="${(M.animation.duration||3).toFixed(3)}" step="0.1" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <span style="font-size:9px;color:#888">秒</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:9px;color:#888;min-width:60px;">競合時</span>
+      <select id="merge-mode" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+        <option value="add">追記（既存KFを保持）</option><option value="replace">上書き（同時刻を置換）</option>
+      </select>
+    </div>
+    <label style="display:block;background:#1a1e2e;border:2px dashed #2a3a5a;border-radius:4px;padding:10px;text-align:center;cursor:pointer;margin-bottom:8px;font-size:10px;color:#5080a0;">
+      📂 クリックでJSONを選択
+      <input id="merge-file" type="file" accept=".json" style="display:none">
+    </label>
+    <div id="merge-info" style="font-size:9px;color:#60d890;min-height:16px;"></div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button id="merge-ok" disabled style="flex:1;background:#1e2438;border:1px solid rgba(100,160,255,.3);color:#608080;border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.onclick = e => { if(e.target===mo) mo.remove(); };
+  let _mergeTracks = null;
+  mo.querySelector('#merge-file').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        const tracks = data.animation?.tracks || data.tracks;
+        if (!tracks) { mo.querySelector('#merge-info').textContent = '⚠ アニメーションデータが見つかりません'; return; }
+        _mergeTracks = tracks;
+        const cnt = Object.keys(tracks).length, kfCnt = Object.values(tracks).reduce((a,v)=>a+(v?.length||0),0);
+        mo.querySelector('#merge-info').textContent = `✓ ${f.name} — ${cnt}トラック, ${kfCnt}KF`;
+        const btn = mo.querySelector('#merge-ok');
+        btn.disabled = false; btn.style.cursor='pointer'; btn.style.color='#80b4ff'; btn.style.borderColor='rgba(100,160,255,.6)';
+      } catch { mo.querySelector('#merge-info').textContent = '⚠ JSON解析エラー'; }
+    };
+    reader.readAsText(f);
+  };
+  mo.querySelector('#merge-ok').onclick = () => {
+    if (!_mergeTracks) return;
+    const off = parseFloat(mo.querySelector('#merge-offset').value)||0;
+    const mode = mo.querySelector('#merge-mode').value;
+    pushAnimUndo('アニメーションマージ');
+    let merged=0;
+    for (const [name, kfs] of Object.entries(_mergeTracks)) {
+      if (!M.params[name]||!Array.isArray(kfs)) continue;
+      if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
+      for (const kf of kfs) {
+        const t = Math.round((kf.t + off)*1000)/1000;
+        if (mode==='replace') M.animation.tracks[name]=M.animation.tracks[name].filter(k=>Math.abs(k.t-t)>0.002);
+        M.animation.tracks[name].push({t, v:kf.v, interp:kf.interp||'linear'});
+        merged++;
+      }
+      M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+    }
+    drawMultiTimeline(); mo.remove();
+    setStatus(`アニメーションマージ完了: ${merged}KF追加 (オフセット+${off.toFixed(2)}s)`);
+  };
 }
 
 function showAnimTemplates() {

@@ -345,6 +345,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <div class="lsec-body" id="mesh-body">
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成</button>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
+          <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
+        </div>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
@@ -4074,6 +4078,33 @@ function smoothDeform() {
   pt.deforms[selParam][curKF] = nd;
   render();
   setStatus(`スムーズ適用: ${P[selParam].l} KF=${curKF}`);
+}
+
+// ===== MESH FLIP =====
+function flipMesh(axis) {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const pt = parts[selPart];
+  if (!pt.mesh) { setStatus('メッシュが必要です'); return; }
+  saveState();
+  const verts = pt.mesh.verts;
+  // Center of mesh
+  const xs = verts.map(v=>v.x), ys = verts.map(v=>v.y);
+  const cx = (Math.min(...xs)+Math.max(...xs))/2;
+  const cy = (Math.min(...ys)+Math.max(...ys))/2;
+  for (const v of verts) {
+    if (axis==='h') v.x = cx*2 - v.x;
+    else v.y = cy*2 - v.y;
+  }
+  // Also flip deform data
+  for (const pn of Object.keys(pt.deforms)) {
+    for (const kf of Object.keys(pt.deforms[pn])) {
+      const d = pt.deforms[pn][kf];
+      if (!Array.isArray(d)) continue;
+      for (const dv of d) { if (axis==='h') dv.dx = -dv.dx; else dv.dy = -dv.dy; }
+    }
+  }
+  pt.resizeDeforms(); render();
+  setStatus(`メッシュ反転: ${axis==='h'?'水平':'垂直'} (${pt.name})`);
 }
 
 // ===== KF COPY / MIRROR =====
