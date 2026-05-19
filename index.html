@@ -8938,6 +8938,8 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
     { icon: isLocked?'🔓':'🔒', label: isLocked?'トラックのロックを解除':'トラックをロック（KF移動禁止）', action:()=>{ isLocked?tlLockedTracks.delete(srcName):tlLockedTracks.add(srcName); drawMultiTimeline(); }},
     { icon: tlPinnedTracks.has(srcName)?'📌':'📌', label: tlPinnedTracks.has(srcName)?'ピン留めを解除（常時表示OFF）':'トラックをピン留め（常時上部に固定）', action:()=>{ tlPinnedTracks.has(srcName)?tlPinnedTracks.delete(srcName):tlPinnedTracks.add(srcName); drawMultiTimeline(); }},
     null,
+    { icon:'🌊', label:'波形KFを自動生成...（sin/三角波/鋸歯波など）', action:()=>generateWaveKFs(srcName) },
+    null,
     { icon:'📋', label:`このトラックのKFをコピー...`, action:()=>{
       if (!srcFrames?.length) { document.getElementById('lbl-status').textContent='コピーするKFがありません'; return; }
       const opts = paramEntries.filter(([k])=>k!==srcName).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('');
@@ -9159,6 +9161,114 @@ function generateBlinkAnim() {
     document.getElementById('lbl-status').textContent = `まばたきKF生成: ${count}回 × ${targets.length}トラック`;
     overlay.remove();
   };
+}
+
+function generateWaveKFs(paramName) {
+  if (!ST.animMode) { document.getElementById('lbl-status').textContent = 'アニメモードで使用してください'; return; }
+  const p = M.params[paramName]; if (!p) return;
+  const dur = M.animation.duration || 4;
+  const pRange = p.max - p.min;
+  const pMid = p.min + pRange * 0.5;
+  showModal('🌊 波形KF自動生成', `
+    <div style="font-size:12px;display:grid;gap:10px;">
+      <div>パラメータ: <strong style="color:var(--accent)">${p.lbl||paramName}</strong>
+        <span style="color:var(--dim);font-size:10px;margin-left:6px;">範囲: ${p.min} 〜 ${p.max}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label style="font-size:10px;color:var(--dim)">波形</label>
+          <select id="wg-shape" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;">
+            <option value="sin">サイン波 (sin)</option>
+            <option value="cos">コサイン波 (cos)</option>
+            <option value="triangle">三角波</option>
+            <option value="sawtooth">鋸歯波 (上昇)</option>
+            <option value="sawtooth-down">鋸歯波 (下降)</option>
+            <option value="square">矩形波</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">周期 (秒)</label>
+          <input id="wg-period" type="number" value="${Math.min(dur, 2).toFixed(2)}" min="0.05" max="60" step="0.05"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">振幅 (パラメータ値)</label>
+          <input id="wg-amp" type="number" value="${(pRange * 0.4).toFixed(3)}" min="0" max="${pRange}" step="${(pRange*0.01).toFixed(3)}"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">中心値</label>
+          <input id="wg-center" type="number" value="${pMid.toFixed(3)}" min="${p.min}" max="${p.max}" step="${(pRange*0.01).toFixed(3)}"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">位相オフセット (度)</label>
+          <input id="wg-phase" type="number" value="0" min="-360" max="360" step="15"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">KF密度 (個/秒)</label>
+          <input id="wg-density" type="number" value="12" min="1" max="60" step="1"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">開始時刻 (秒)</label>
+          <input id="wg-start" type="number" value="0" min="0" max="${dur}" step="0.01"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+        <div>
+          <label style="font-size:10px;color:var(--dim)">終了時刻 (秒)</label>
+          <input id="wg-end" type="number" value="${dur.toFixed(2)}" min="0" max="${dur}" step="0.01"
+            style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--dim)">既存KFを</label>
+        <select id="wg-merge" style="background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-left:6px;font-size:11px;">
+          <option value="replace">上書き</option>
+          <option value="add">追加（マージ）</option>
+        </select>
+      </div>
+    </div>
+  `, () => {
+    const shape   = document.getElementById('wg-shape').value;
+    const period  = parseFloat(document.getElementById('wg-period').value) || 2;
+    const amp     = parseFloat(document.getElementById('wg-amp').value) ?? pRange * 0.4;
+    const center  = parseFloat(document.getElementById('wg-center').value) ?? pMid;
+    const phase   = (parseFloat(document.getElementById('wg-phase').value) || 0) * Math.PI / 180;
+    const density = Math.max(1, parseInt(document.getElementById('wg-density').value) || 12);
+    const tStart  = parseFloat(document.getElementById('wg-start').value) || 0;
+    const tEnd    = Math.min(dur, parseFloat(document.getElementById('wg-end').value) || dur);
+    const merge   = document.getElementById('wg-merge').value;
+
+    const waveFn = (t) => {
+      const ph = (t / period) * Math.PI * 2 + phase;
+      switch (shape) {
+        case 'sin':          return Math.sin(ph);
+        case 'cos':          return Math.cos(ph);
+        case 'triangle':     return 2 / Math.PI * Math.asin(Math.sin(ph));
+        case 'sawtooth':     return (((ph / (Math.PI * 2)) % 1) + 1) % 1 * 2 - 1;
+        case 'sawtooth-down':return 1 - (((ph / (Math.PI * 2)) % 1) + 1) % 1 * 2;
+        case 'square':       return Math.sin(ph) >= 0 ? 1 : -1;
+        default:             return Math.sin(ph);
+      }
+    };
+
+    pushAnimUndo('波形KF生成');
+    if (merge === 'replace') M.animation.tracks[paramName] = [];
+    if (!M.animation.tracks[paramName]) M.animation.tracks[paramName] = [];
+
+    const interval = 1 / density;
+    for (let t = tStart; t <= tEnd + 1e-9; t += interval) {
+      const tv = Math.min(tEnd, parseFloat(t.toFixed(5)));
+      const raw = center + amp * waveFn(tv);
+      const v = Math.max(p.min, Math.min(p.max, raw));
+      M.animation.tracks[paramName].push({ t: tv, v, e: 'linear' });
+    }
+    M.animation.tracks[paramName].sort((a, b) => a.t - b.t);
+    drawMultiTimeline();
+    document.getElementById('lbl-status').textContent = `波形KF生成: ${p.lbl||paramName} (${shape})`;
+  });
 }
 
 function generateIdleLoop() {
