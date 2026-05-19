@@ -667,6 +667,14 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
+          <!-- Texture switch by parameter -->
+          <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid #1a2030;padding-top:3px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
+              <button onclick="showTexSwitchModal()" style="background:#1a2030;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
+            </div>
+            <div id="texswitch-info" style="font-size:8px;color:#3a5060">未設定</div>
+          </div>
         </div>
         <!-- Part note/memo -->
         <div style="margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
@@ -1008,6 +1016,8 @@ class Part {
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
     this.altTextures = []; // [{name, dataURL, img}]
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
+    this.texSwitchParam = null; // parameter for auto texture switching
+    this.texSwitchRanges = []; // [{min, max, texIdx}] texIdx: -1=base, 0..=altTextures[n]
     this.colorLabel = null; // color hex string or null
     this.note = ''; // free-form memo text
     this.pinnedVerts = new Set(); // vertex indices that are locked from deform
@@ -1018,6 +1028,18 @@ class Part {
     if (this.activeTexIdx >= 0 && this.altTextures[this.activeTexIdx]?.img)
       return this.altTextures[this.activeTexIdx].img;
     return this.img;
+  }
+  getImgForVals(vals) {
+    if (this.texSwitchParam && this.texSwitchRanges?.length && vals) {
+      const v = vals[this.texSwitchParam] ?? 0;
+      for (const r of this.texSwitchRanges) {
+        if (v >= r.min && v <= r.max) {
+          if (r.texIdx < 0) return this.img || null;
+          return this.altTextures[r.texIdx]?.img || this.activeImg;
+        }
+      }
+    }
+    return this.activeImg;
   }
   setImage(img, dataURL) {
     this.img = img; this.imgDataURL = dataURL;
@@ -1186,6 +1208,8 @@ class Part {
       imageData: withImage ? this.imgDataURL : null,
       altTextures: withImage ? (this.altTextures||[]).map(t=>({name:t.name, dataURL:t.dataURL})) : [],
       activeTexIdx: this.activeTexIdx,
+      texSwitchParam: this.texSwitchParam || null,
+      texSwitchRanges: this.texSwitchRanges || [],
       colorLabel: this.colorLabel || null,
       note: this.note || '',
       pinnedVerts: this.pinnedVerts ? [...this.pinnedVerts] : []
@@ -1210,6 +1234,8 @@ class Part {
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
+    p.texSwitchParam = o.texSwitchParam || null;
+    p.texSwitchRanges = o.texSwitchRanges || [];
     p.colorLabel = o.colorLabel || null;
     p.note = o.note || '';
     p.pinnedVerts = new Set(Array.isArray(o.pinnedVerts) ? o.pinnedVerts : []);
@@ -1769,7 +1795,7 @@ function render() {
         const p0=wv[i0], p1=wv[i1], p2=wv[i2];
         const q0=pt.mesh.verts[i0], q1=pt.mesh.verts[i1], q2=pt.mesh.verts[i2];
         const s0=m2s(p0.x,p0.y), s1=m2s(p1.x,p1.y), s2=m2s(p2.x,p2.y);
-        drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.activeImg);
+        drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.getImgForVals(vals));
       }
     }
     ctx.restore();
@@ -2889,6 +2915,17 @@ function updatePartPropsUI() {
       mkRow('ベース', -1, pt.activeTexIdx === -1);
       (pt.altTextures||[]).forEach((t,i)=>mkRow(t.name, i, pt.activeTexIdx === i));
     }
+    // Update texture switch info
+    const tsi = document.getElementById('texswitch-info');
+    if (tsi) {
+      if (pt.texSwitchParam && pt.texSwitchRanges?.length) {
+        const paramName = P[pt.texSwitchParam]?.lbl || pt.texSwitchParam;
+        tsi.style.color = '#b09040';
+        tsi.textContent = `${paramName}: ${pt.texSwitchRanges.length}ルール`;
+      } else {
+        tsi.style.color = '#3a5060'; tsi.textContent = '未設定';
+      }
+    }
   } else if (selDeformer < 0) {
     pp.style.display = 'none'; nm.style.display = 'block';
     const tp=document.getElementById('tex-panel'); if(tp) tp.style.display='none';
@@ -3117,6 +3154,76 @@ function addAltTexture() {
   };
   inp.click();
 }
+function showTexSwitchModal() {
+  if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
+  const pt=parts[selPart];
+  if (!pt.img){setStatus('テクスチャが必要です');return;}
+  const paramOpts=Object.entries(P).map(([k,v])=>`<option value="${k}"${pt.texSwitchParam===k?' selected':''}>${v.lbl||k}</option>`).join('');
+  const texOpts=[{name:'ベース',idx:-1},...(pt.altTextures||[]).map((t,i)=>({name:t.name,idx:i}))];
+  const toTexOpt=(selected)=>texOpts.map(t=>`<option value="${t.idx}"${t.idx===selected?' selected':''}>${t.name}</option>`).join('');
+  const existingRules=(pt.texSwitchRanges||[]).map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px;align-items:center" id="tsr-${i}">
+      <input type="number" value="${r.min}" step="0.1" placeholder="min" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'min',+this.value)">
+      <input type="number" value="${r.max}" step="0.1" placeholder="max" style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'max',+this.value)">
+      <select style="background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:3px;padding:2px;font-size:10px" onchange="updateTexSwitchRule(${i},'texIdx',+this.value)">${toTexOpt(r.texIdx)}</select>
+      <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0">✕</button>
+    </div>`).join('');
+  const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
+  mo.innerHTML=`<div style="background:#131828;border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
+  <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:bold">⇄ テクスチャスイッチ設定</div>
+  <div style="font-size:9px;color:#6080a0;margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
+  <div style="font-size:10px;color:#6080a0;margin-bottom:4px">切替パラメータ</div>
+  <select id="tsp-param" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
+    <option value="">（なし）</option>${paramOpts}
+  </select>
+  <div style="font-size:10px;color:#6080a0;margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:8px;color:#4a5870"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
+  <div style="font-size:9px;color:#4a5060;display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px">
+    <span>最小値</span><span>最大値</span><span>テクスチャ</span><span></span>
+  </div>
+  <div id="tsr-list">${existingRules}</div>
+  <button onclick="addTexSwitchRule()" style="width:100%;background:#1a2030;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+    <button onclick="clearTexSwitch()" style="background:#1a1a10;border:1px solid #403020;color:#806040;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
+    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:#d0c060;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
+  </div>
+  </div>`;
+  mo.onclick=()=>mo.remove();document.body.appendChild(mo);
+}
+function addTexSwitchRule(){
+  if(selPart<0)return;
+  const pt=parts[selPart];
+  if(!pt.texSwitchRanges)pt.texSwitchRanges=[];
+  pt.texSwitchRanges.push({min:0,max:0.5,texIdx:-1});
+  document.getElementById('texswitch-mo')?.remove();
+  showTexSwitchModal();
+}
+function removeTexSwitchRule(i){
+  if(selPart<0)return;
+  const pt=parts[selPart];if(!pt.texSwitchRanges)return;
+  pt.texSwitchRanges.splice(i,1);
+  document.getElementById('texswitch-mo')?.remove();showTexSwitchModal();
+}
+function updateTexSwitchRule(i,field,val){
+  if(selPart<0)return;const pt=parts[selPart];
+  if(!pt.texSwitchRanges?.[i])return;
+  pt.texSwitchRanges[i][field]=val;
+}
+function clearTexSwitch(){
+  if(selPart<0)return;saveState();
+  const pt=parts[selPart];pt.texSwitchParam=null;pt.texSwitchRanges=[];
+  document.getElementById('texswitch-mo')?.remove();updatePartPropsUI();render();
+  setStatus('テクスチャスイッチをクリアしました');
+}
+function applyTexSwitch(){
+  if(selPart<0)return;saveState();
+  const pt=parts[selPart];
+  pt.texSwitchParam=document.getElementById('tsp-param')?.value||null;
+  if(!pt.texSwitchParam)pt.texSwitchRanges=[];
+  document.getElementById('texswitch-mo')?.remove();updatePartPropsUI();render();
+  setStatus(pt.texSwitchParam?`テクスチャスイッチ: ${pt.texSwitchParam} → ${pt.texSwitchRanges.length}ルール`:'テクスチャスイッチをクリアしました');
+}
+
 function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
@@ -6202,8 +6309,26 @@ function physStep(dt){
 let loadedCount=0,totalImg=MODEL.parts.filter(p=>p.imageData).length;
 MODEL.parts.forEach(pt=>{
   if(pt.imageData){const img=new Image();img.onload=()=>{pt._img=img;loadedCount++;if(loadedCount===totalImg)start();};img.src=pt.imageData;}
+  // Load alt textures for texture-switch support
+  if(pt.altTextures?.length){
+    pt._altImgs=[];
+    pt.altTextures.forEach((t,i)=>{if(t.dataURL){const ai=new Image();ai.onload=()=>{pt._altImgs[i]=ai;};ai.src=t.dataURL;}});
+  }
 });
 if(!totalImg)start();
+// Helper: get the correct image for a part based on current parameter values
+function _ptImg(pt,vals){
+  if(pt.texSwitchParam&&pt.texSwitchRanges?.length&&vals){
+    const v=vals[pt.texSwitchParam]??0;
+    for(const r of pt.texSwitchRanges){
+      if(v>=r.min&&v<=r.max){
+        if(r.texIdx>=0&&pt._altImgs?.[r.texIdx])return pt._altImgs[r.texIdx];
+        return pt._img;
+      }
+    }
+  }
+  return pt._img;
+}
 
 const DEFORMERS=MODEL.deformers||[];
 function interpRotDeform(def,vals){
@@ -6356,9 +6481,10 @@ function frame(ts){
     if(pt.shadowBlur>0){ctx.shadowBlur=pt.shadowBlur;ctx.shadowColor=pt.shadowColor||'#000';ctx.shadowOffsetX=pt.shadowOffsetX||0;ctx.shadowOffsetY=pt.shadowOffsetY||0;}
     const _ah=pt.hue||0,_as=pt.saturate!==undefined?pt.saturate:100,_ab=pt.brightness!==undefined?pt.brightness:100;
     if(_ah!==0||_as!==100||_ab!==100)ctx.filter='hue-rotate('+_ah+'deg) saturate('+(_as/100)+') brightness('+(_ab/100)+')';
+    const _img=_ptImg(pt,vals);
     for(const[i0,i1,i2] of pt.mesh.tris){
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
-      drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,pt._img);
+      drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,_img);
     }
     ctx.restore();
     if(clipPt&&clipPt._img)ctx.restore();
