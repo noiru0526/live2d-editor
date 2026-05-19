@@ -631,7 +631,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="ab pr" onclick="exportAvatarHTMLDirect()">🎭 アバターHTML出力</button>
         <div style="margin-top:4px;font-size:8px;color:#2e5060;line-height:1.4">OBSブラウザソースURL例:<br>
         <span style="color:#1e6080;font-family:monospace;word-break:break-all">file:///…/avatar.html?fps=30&obs=1</span><br>
-        <span style="color:#1e4050">fps=30|60 · obs=1(バッジ) · nostatus=1 · perf=1(FPSカウンター)</span></div>
+        <span style="color:#1e4050">fps=30|60 · obs=1(バッジ) · nostatus=1 · perf=1(FPSカウンター) · hotkeys=1(キー一覧表示)</span></div>
       </div>
     </div>
 
@@ -4630,8 +4630,10 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #expr-bar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;pointer-events:none;opacity:.7}
 .expr-btn{background:rgba(0,0,0,.6);color:#ccc;font-size:10px;padding:3px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.15);font-family:monospace}
 .expr-btn.on{background:rgba(124,58,237,.5);border-color:#8b5cf6;color:#e0d0ff}
+#hotkey-panel{position:fixed;top:12px;left:12px;background:rgba(10,12,24,.82);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:10px;font-family:monospace;color:#c0c0d0;pointer-events:none;line-height:1.7;backdrop-filter:blur(4px);transition:opacity .3s}
+#hotkey-panel kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:0 4px;color:#e0e0ff;font-size:9px;margin-right:4px}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -4656,6 +4658,20 @@ let _fpsCount=0,_fpsLast=0,_fpsVal=0;
 const _stEl=document.getElementById('st');
 if(!SHOW_STATUS&&!PERF_HUD)_stEl.style.display='none';
 if(OBS_MODE){document.getElementById('obs-badge').style.display='block';}
+// Hotkey overlay (?hotkeys=1 or press H to toggle)
+let _showHotkeys=_p.has('hotkeys');
+function _buildHotkeyPanel(){
+  const el=document.getElementById('hotkey-panel');if(!el)return;
+  el.style.display=_showHotkeys?'block':'none';
+  if(!_showHotkeys)return;
+  const rows=[['H','ホットキー一覧を閉じる'],['0','デフォルト表情にリセット']];
+  EXPRS.forEach((ex,i)=>{rows.push([String(i+1),ex.name]);});
+  rows.push(['---','--- 顔追跡 ---']);
+  rows.push(['T','顔追跡ON/OFF']);
+  el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
+}
+_buildHotkeyPanel();
+document.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}});
 document.addEventListener('visibilitychange',()=>{_minFrameMs=document.hidden?200:1000/TARGET_FPS;});
 let curExpr=-1;
 const physMap={};
