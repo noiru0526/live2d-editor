@@ -350,6 +350,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
       <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:#a0d0ff;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
       <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
+      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid rgba(160,120,255,.4);color:#c0a0ff;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -11307,6 +11308,74 @@ function showAllKfNotes() {
       <div style="margin-top:8px;color:var(--dim);font-size:9px;">行クリックでそのKFへジャンプ &amp; トラック選択</div>
     </div>`
   );
+}
+
+function showParamBatchEdit() {
+  const entries = Object.entries(M.params);
+  if (!entries.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
+  const rows = entries.map(([name, p]) => {
+    const lbl = (p.lbl || name).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    const isCustom = p.custom ? ' title="カスタムパラメータ"' : '';
+    const mark = p.custom ? '<span style="color:#c080ff;font-size:8px;margin-left:2px;">✦</span>' : '';
+    return `<tr data-name="${name}" style="border-bottom:1px solid rgba(255,255,255,.04);">
+      <td style="padding:2px 4px;font-size:9px;color:#506080;font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
+      <td style="padding:2px 4px;"><input class="pbe-lbl" type="text" value="${lbl}" data-name="${name}"
+        style="width:100%;background:#1a1e2e;border:1px solid rgba(80,100,180,.3);color:#cdd6f4;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+      <td style="padding:2px 4px;"><input class="pbe-min" type="number" value="${p.min}" data-name="${name}" step="0.1"
+        style="width:60px;background:#1a1e2e;border:1px solid rgba(80,100,180,.3);color:#90d090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+      <td style="padding:2px 4px;"><input class="pbe-max" type="number" value="${p.max}" data-name="${name}" step="0.1"
+        style="width:60px;background:#1a1e2e;border:1px solid rgba(80,100,180,.3);color:#d09090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+      <td style="padding:2px 4px;"><input class="pbe-step" type="number" value="${p.step||0.01}" data-name="${name}" step="0.01" min="0.001"
+        style="width:50px;background:#1a1e2e;border:1px solid rgba(80,100,180,.3);color:#a0b0d0;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+    </tr>`;
+  }).join('');
+  const mo = document.createElement('div');
+  mo.className = 'mo';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:14px;width:640px;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h3 style="font-size:13px;color:#cdd6f4;margin:0;">⚙ パラメータ一括編集</h3>
+      <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="font-size:9px;color:#506080;margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
+    <div style="overflow-y:auto;flex:1;border:1px solid rgba(40,60,100,.4);border-radius:4px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead style="position:sticky;top:0;background:#0d1117;z-index:1;">
+          <tr style="font-size:9px;color:#4a6080;text-transform:uppercase;letter-spacing:.5px;">
+            <th style="padding:4px 6px;text-align:left;min-width:100px;">パラメータID</th>
+            <th style="padding:4px 6px;text-align:left;">ラベル</th>
+            <th style="padding:4px 6px;text-align:left;">最小</th>
+            <th style="padding:4px 6px;text-align:left;">最大</th>
+            <th style="padding:4px 6px;text-align:left;">ステップ</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <button id="pbe-apply" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80a0ff;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✓ 変更を適用</button>
+      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.querySelector('#pbe-apply').onclick = () => {
+    let changed = 0;
+    for (const row of mo.querySelectorAll('tr[data-name]')) {
+      const name = row.dataset.name;
+      const p = M.params[name]; if (!p) continue;
+      const newLbl = row.querySelector('.pbe-lbl').value.trim();
+      const newMin = parseFloat(row.querySelector('.pbe-min').value);
+      const newMax = parseFloat(row.querySelector('.pbe-max').value);
+      const newStep = parseFloat(row.querySelector('.pbe-step').value);
+      if (isNaN(newMin)||isNaN(newMax)||newMin>=newMax) continue;
+      if (newLbl && newLbl !== (p.lbl||name)) { p.lbl = newLbl; changed++; }
+      if (newMin !== p.min || newMax !== p.max) { p.min = newMin; p.max = newMax; p.val = Math.max(newMin, Math.min(newMax, p.val)); changed++; }
+      if (!isNaN(newStep) && newStep > 0 && newStep !== p.step) { p.step = newStep; changed++; }
+    }
+    buildParamUI(); ST.cachedVerts = null; redraw();
+    document.getElementById('lbl-status').textContent = `パラメータ一括編集: ${changed}件変更`;
+    mo.remove();
+  };
+  mo.onclick = e => { if (e.target === mo) mo.remove(); };
 }
 
 function showParamStats() {
