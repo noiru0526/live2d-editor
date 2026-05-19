@@ -346,6 +346,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
         </div>
+        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:#c0e0ff;border-color:rgba(100,180,255,.4)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
       </div>
     </div>
 
@@ -4630,6 +4631,82 @@ function kfScaleDeform() {
   });
   setStatus(`デフォームスケール×${scale}: ${P[selParam].l}[${curKF}] (${count}パーツ)`);
   render();
+}
+
+// ===== KF BLEND TOOL =====
+function showKFBlendTool() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const kfKeys = (P[selParam]?.k || []).slice().sort((a,b)=>a-b);
+  if (kfKeys.length < 2) { setStatus('ブレンドには2つ以上のKFが必要です'); return; }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:flex;align-items:center;justify-content:center;';
+  const inner = document.createElement('div');
+  inner.style.cssText = 'background:#1a1e30;border:1px solid rgba(100,180,255,.4);border-radius:8px;padding:16px;min-width:280px;color:#c8d4f0;font-size:12px;';
+  inner.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:#c0e0ff;margin-bottom:12px;">⇌ KFブレンド</div>
+    <div style="font-size:10px;color:#6878a0;margin-bottom:10px;">2つのKFデフォームをブレンドして新しいKFを生成します。</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:36px;">KF A:</span>
+        <select id="kfb-kfa" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.min(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:36px;">KF B:</span>
+        <select id="kfb-kfb" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.max(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:36px;">比率 t:</span>
+        <input id="kfb-t" type="range" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:#60b0ff;" oninput="document.getElementById('kfb-tv').textContent=parseFloat(this.value).toFixed(2);">
+        <span id="kfb-tv" style="font-size:10px;color:#60b0ff;width:28px;">0.50</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:10px;width:36px;">保存先:</span>
+        <input id="kfb-dst" type="number" step="0.1" value="0.5" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;" placeholder="新KF値（例: 0.5）">
+        <span style="font-size:9px;color:#6878a0;">KF値</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button id="kfb-preview" style="flex:1;background:#1e3050;border:1px solid rgba(100,160,255,.5);color:#80b0ff;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
+        <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:#80d890;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
+        <button id="kfb-cancel" style="flex:1;background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
+      </div>
+    </div>`;
+  modal.appendChild(inner);
+  document.body.appendChild(modal);
+
+  const blendKFs = (preview) => {
+    const kfA = parseFloat(document.getElementById('kfb-kfa').value);
+    const kfB = parseFloat(document.getElementById('kfb-kfb').value);
+    const t = parseFloat(document.getElementById('kfb-t').value);
+    const dst = parseFloat(document.getElementById('kfb-dst').value);
+    if (!preview) saveState();
+    parts.forEach(pt => {
+      const srcA = pt.deforms[selParam]?.[kfA] || [];
+      const srcB = pt.deforms[selParam]?.[kfB] || [];
+      const n = Math.max(srcA.length, srcB.length);
+      if (!n) return;
+      const blended = Array.from({length:n}, (_,i) => ({
+        dx: ((srcA[i]?.dx||0) * (1-t)) + ((srcB[i]?.dx||0) * t),
+        dy: ((srcA[i]?.dy||0) * (1-t)) + ((srcB[i]?.dy||0) * t),
+      }));
+      if (preview) {
+        if (!pt.deforms[selParam]) pt.deforms[selParam] = {};
+        pt.deforms[selParam]['__blend_preview'] = blended;
+      } else {
+        if (!pt.deforms[selParam]) pt.deforms[selParam] = {};
+        pt.deforms[selParam][dst] = blended;
+        if (!P[selParam].k.includes(dst)) P[selParam].k.push(dst);
+        P[selParam].k.sort((a,b)=>a-b);
+      }
+    });
+    if (preview) { const prev = parseFloat(curKF); selParam=selParam; curKF='__blend_preview'; render(); setTimeout(()=>{ parts.forEach(pt=>{if(pt.deforms[selParam]) delete pt.deforms[selParam]['__blend_preview'];}); curKF=prev; render(); }, 1500); }
+    else { curKF=dst; buildKFUI(); render(); setStatus(`KFブレンド t=${t}: KF${dst}に保存`); modal.remove(); }
+  };
+
+  document.getElementById('kfb-preview').onclick = () => blendKFs(true);
+  document.getElementById('kfb-ok').onclick = () => blendKFs(false);
+  document.getElementById('kfb-cancel').onclick = () => modal.remove();
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 // ===== CANVAS INTERACTION =====
