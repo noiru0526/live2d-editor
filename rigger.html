@@ -251,6 +251,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 出力</button>
     <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
     <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存 (右クリックで透過PNG)&#10;" oncontextmenu="event.preventDefault();screenshotCanvas(true)">📷 SS</button>
+    <button class="tbtn" onclick="showPartNoteList()" title="メモが書かれたパーツの一覧（行クリックで選択）">📝 ノート</button>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -2576,6 +2577,34 @@ function trimMeshByAlpha() {
   const removed = origLen - pt.mesh.tris.length;
   render();
   setStatus(`アルファトリム: ${removed}三角形を削除 (残${pt.mesh.tris.length})`);
+}
+
+function showPartNoteList() {
+  const noted = parts.map((pt, i) => ({pt, i})).filter(({pt}) => pt.note && pt.note.trim());
+  if (!noted.length) {
+    const m = document.createElement('div'); m.className='modal'; m.id='rig-modal-overlay';
+    m.innerHTML=`<div class="modal-box"><div class="modal-header"><span>パーツメモ一覧</span><button onclick="document.getElementById('rig-modal-overlay').remove()" class="modal-close">×</button></div><div style="color:#506080;padding:16px;text-align:center;font-size:11px;">メモが書かれたパーツがありません。<br><small style="font-size:9px;">PRPSタブのメモ欄から記録できます。</small></div></div>`;
+    document.body.appendChild(m); return;
+  }
+  const rows = noted.map(({pt, i}) => {
+    const clrDot = pt.colorLabel ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${pt.colorLabel};margin-right:3px;flex-shrink:0"></span>` : '';
+    const note = pt.note.replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
+      <td style="padding:4px 6px;font-size:9px;color:#3a5060;font-family:monospace;">${i}</td>
+      <td style="padding:4px 6px;font-size:10px;color:#80a8c0;white-space:nowrap;">${clrDot}${pt.name.replace(/</g,'&lt;')}</td>
+      <td style="padding:4px 6px;font-size:10px;color:#a0c080;">${note}</td>
+    </tr>`;
+  }).join('');
+  const m = document.createElement('div'); m.className='modal'; m.id='rig-modal-overlay';
+  m.innerHTML=`<div class="modal-box" style="width:460px;max-height:80vh;display:flex;flex-direction:column;"><div class="modal-header"><span>パーツメモ一覧 (${noted.length}件)</span><button onclick="document.getElementById('rig-modal-overlay').remove()" class="modal-close">×</button></div>
+    <div style="overflow-y:auto;flex:1;font-size:11px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead style="position:sticky;top:0;background:#1a1e30;"><tr style="font-size:9px;color:#3a5060;text-transform:uppercase;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">パーツ名</th><th style="padding:4px 6px;text-align:left;">メモ</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="padding:6px 8px;color:#3a5060;font-size:8px;">行クリックでパーツを選択</div>
+    </div></div>`;
+  document.body.appendChild(m);
 }
 
 function batchEditPartProps() {
