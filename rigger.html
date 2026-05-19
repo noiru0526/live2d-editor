@@ -530,6 +530,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div class="prop-row" style="gap:4px;margin-top:2px">
           <button class="tbtn" onclick="flipPartMesh('h')" style="flex:1;font-size:8px" title="メッシュを水平反転">↔ 反転H</button>
           <button class="tbtn" onclick="flipPartMesh('v')" style="flex:1;font-size:8px" title="メッシュを垂直反転">↕ 反転V</button>
+          <button class="tbtn" onclick="scalePartMesh()" style="flex:1;font-size:8px" title="メッシュ頂点座標にスケール倍率を適用">⤢ スケール</button>
         </div>
         <!-- Texture swap panel -->
         <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
@@ -2419,6 +2420,40 @@ function flipPartMesh(axis) {
   render();
   setStatus(`「${pt.name}」を${axis==='h'?'水平':'垂直'}反転`);
 }
+function scalePartMesh() {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt = parts[selPart];
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点座標とデフォームデルタに倍率を適用します。<br><small style="font-size:9px;color:#506080;">元の原点(0,0)からの距離がスケールされます。</small></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <label style="font-size:11px;color:var(--dim);min-width:60px;">X 倍率</label>
+      <input id="sc-x" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+      <label style="font-size:11px;color:var(--dim);min-width:60px;">Y 倍率</label>
+      <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
+    </div>
+    <div style="display:flex;gap:6px;margin-top:6px;">
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
+    </div>`;
+  showModal(`メッシュスケール: ${pt.name}`, body, () => {
+    const sx = parseFloat(document.getElementById('sc-x').value);
+    const sy = parseFloat(document.getElementById('sc-y').value);
+    if (!isFinite(sx)||!isFinite(sy)||sx<=0||sy<=0) { alert('有効な倍率を入力してください'); return; }
+    saveState();
+    for (const v of pt.mesh.verts) { v.x *= sx; v.y *= sy; }
+    for (const deformsByKF of Object.values(pt.deforms))
+      for (const arr of Object.values(deformsByKF))
+        for (const d of arr) { d.dx *= sx; d.dy *= sy; }
+    render(); scheduleThumbUpdate();
+    setStatus(`「${pt.name}」メッシュをスケール ×${sx}, ×${sy}`);
+  });
+  setTimeout(()=>{ document.getElementById('sc-x')?.focus(); document.getElementById('sc-x')?.select(); },50);
+}
+
 function toggleGrid() { showGrid=!showGrid; document.getElementById('btn-grid').classList.toggle('active',showGrid); render(); }
 function toggleSnapGrid() {
   snapToGrid=!snapToGrid; document.getElementById('btn-snap').classList.toggle('active',snapToGrid);
