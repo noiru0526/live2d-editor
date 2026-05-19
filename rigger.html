@@ -540,6 +540,9 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <button class="tbtn" onclick="distributeParts('h')" style="font-size:8px;padding:2px 0" title="水平等間隔">↔ 等間隔</button>
             <button class="tbtn" onclick="distributeParts('v')" style="font-size:8px;padding:2px 0" title="垂直等間隔">↕ 等間隔</button>
           </div>
+          <div style="margin-top:4px;">
+            <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:#c0a0ff;border-color:rgba(160,80,255,.4)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
+          </div>
         </div>
       </div>
 
@@ -2448,6 +2451,65 @@ function trimMeshByAlpha() {
   const removed = origLen - pt.mesh.tris.length;
   render();
   setStatus(`アルファトリム: ${removed}三角形を削除 (残${pt.mesh.tris.length})`);
+}
+
+function batchEditPartProps() {
+  const targets = selParts.size >= 2 ? [...selParts] : (selPart >= 0 ? [selPart] : []);
+  if (targets.length < 2) { setStatus('2つ以上のパーツを選択してください (Shift+クリック)'); return; }
+  const sample = parts[targets[0]];
+  const blendOptions = ['source-over','multiply','screen','overlay','darken','lighten','color-dodge','color-burn','hard-light','soft-light','difference','exclusion']
+    .map(v=>`<option value="${v}"${(sample?.blendMode||'source-over')===v?' selected':''}>${v}</option>`).join('');
+  showModal(`一括プロパティ適用 (${targets.length}パーツ)`, `
+    <div style="font-size:12px;display:grid;gap:10px;">
+      <div style="color:var(--dim);font-size:10px;">チェックした項目を選択中の全パーツに適用します</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bp-opacity-on">
+        <label for="bp-opacity-on" style="font-size:11px;color:var(--dim);width:80px;">不透明度</label>
+        <input id="bp-opacity" type="number" value="${Math.round((sample?.opacity||1)*100)}" min="0" max="100" step="5"
+          style="width:70px;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;font-family:monospace;">
+        <span style="color:var(--dim);font-size:10px;">%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bp-blend-on">
+        <label for="bp-blend-on" style="font-size:11px;color:var(--dim);width:80px;">ブレンドモード</label>
+        <select id="bp-blend" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">${blendOptions}</select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bp-visible-on">
+        <label for="bp-visible-on" style="font-size:11px;color:var(--dim);width:80px;">表示状態</label>
+        <select id="bp-visible" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
+          <option value="1">表示</option><option value="0">非表示</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bp-locked-on">
+        <label for="bp-locked-on" style="font-size:11px;color:var(--dim);width:80px;">ロック</label>
+        <select id="bp-locked" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
+          <option value="0">解除</option><option value="1">ロック</option>
+        </select>
+      </div>
+    </div>
+  `, () => {
+    const applyOpacity = document.getElementById('bp-opacity-on').checked;
+    const applyBlend   = document.getElementById('bp-blend-on').checked;
+    const applyVisible = document.getElementById('bp-visible-on').checked;
+    const applyLocked  = document.getElementById('bp-locked-on').checked;
+    if (!applyOpacity && !applyBlend && !applyVisible && !applyLocked) return;
+    saveState();
+    const opacity = parseFloat(document.getElementById('bp-opacity').value) / 100;
+    const blend   = document.getElementById('bp-blend').value;
+    const visible = document.getElementById('bp-visible').value === '1';
+    const locked  = document.getElementById('bp-locked').value === '1';
+    for (const i of targets) {
+      if (!parts[i]) continue;
+      if (applyOpacity) parts[i].opacity = Math.max(0, Math.min(1, opacity));
+      if (applyBlend)   parts[i].blendMode = blend;
+      if (applyVisible) parts[i].visible = visible;
+      if (applyLocked)  parts[i].locked = locked;
+    }
+    updatePartsUI(); render();
+    setStatus(`一括適用: ${targets.length}パーツ`);
+  });
 }
 
 const PHYS_PRESETS = {
