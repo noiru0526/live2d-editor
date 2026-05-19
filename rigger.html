@@ -346,6 +346,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
@@ -3923,6 +3924,37 @@ function symmetrizeDeform(mode) {
   render();
   const modeLabel = mode==='left'?'左→右ミラー':mode==='right'?'右→左ミラー':'平均対称化';
   setStatus(`デフォーム${modeLabel}: ${P[selParam].l} KF=${curKF}`);
+}
+
+// Copy deform data (all parameters, all KFs) from selPart to another target part
+// Only works if both parts have the same mesh dimensions
+function copyDeformToAnotherPart() {
+  if (selPart < 0) { setStatus('パーツを選択してください'); return; }
+  const src = parts[selPart];
+  if (!src.mesh) { setStatus('メッシュが必要です'); return; }
+  const options = parts
+    .map((p, i) => [i, p])
+    .filter(([i, p]) => i !== selPart && p.mesh && p.mesh.cols === src.mesh.cols && p.mesh.rows === src.mesh.rows);
+  if (!options.length) {
+    setStatus(`同じメッシュ解像度（${src.mesh.cols}×${src.mesh.rows}）のパーツがありません`);
+    return;
+  }
+  const items = [
+    { icon:'ℹ', label:`${src.name} のデフォームを転送先へコピー`, disabled:true },
+    null,
+    ...options.map(([idx, pt]) => ({
+      icon:'→',
+      label:`→ ${pt.name} (${pt.mesh.cols}×${pt.mesh.rows})`,
+      action: () => {
+        saveState();
+        pt.deforms = JSON.parse(JSON.stringify(src.deforms));
+        render();
+        setStatus(`デフォームコピー: ${src.name} → ${pt.name}`);
+      }
+    }))
+  ];
+  showRigCtxMenu(window.innerWidth/2, window.innerHeight/2, items);
+  setStatus('転送先パーツを選択してください...');
 }
 
 function smoothDeform() {
