@@ -676,6 +676,20 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <input id="export-particle-density" type="range" min="5" max="60" value="20" style="width:50px;accent-color:var(--accent);">
         </label>
       </div>
+      <div class="mcfg-row" style="align-items:center;gap:6px;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;">
+          <input type="checkbox" id="export-click-effect" style="accent-color:var(--accent);">
+          クリックエフェクト（絵文字スポーン）
+        </label>
+        <select id="export-click-effect-type" style="flex:1;background:#1a1e2e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+          <option value="hearts">💗 ハート</option>
+          <option value="stars">✨ 星</option>
+          <option value="sparkles">🌟 スパークル</option>
+          <option value="notes">🎵 音符</option>
+          <option value="flowers">🌸 花</option>
+          <option value="bubbles">💫 泡</option>
+        </select>
+      </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">クレジット表示テキスト（空=非表示）</label>
         <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
@@ -3814,6 +3828,8 @@ function genAvatarHTML() {
   const creditColor=document.getElementById('export-credit-color')?.value||'#ffffff40';
   const particleType=document.getElementById('export-particle')?.value||'';
   const particleDensity=parseInt(document.getElementById('export-particle-density')?.value||'20');
+  const clickEffect=document.getElementById('export-click-effect')?.checked||false;
+  const clickEffectType=document.getElementById('export-click-effect-type')?.value||'hearts';
   // Build pose hotkey map: key → pose index (-1 = default)
   const poseHotkeyMap = {};
   const defKey = _exportHotkeys['__default__'] ?? '0';
@@ -5104,6 +5120,52 @@ ${clickPoseCycle && M.poses.length > 0 ? `<script>
     if(typeof redraw==='function') redraw();
     if(typeof _exprHUDShow==='function') _exprHUDShow(label, 1200);
     else { const h=document.getElementById('expr-hud'); if(h){h.textContent=label;h.style.display='block';setTimeout(()=>h.style.display='none',1200);} }
+  });
+})();
+<\/script>` : ''}
+${clickEffect ? `<script>
+(function(){
+  const _CE_TYPE = ${JSON.stringify(clickEffectType)};
+  const _CE_EMOJIS = {
+    hearts: ['💗','💖','💕','💓','❤️','🩷'],
+    stars:  ['✨','⭐','🌟','💫','⚡'],
+    sparkles: ['🌟','✨','💥','🔆','🌠'],
+    notes:  ['🎵','🎶','🎼','🎹','🎸'],
+    flowers: ['🌸','🌺','🌻','🌹','💐','🌷'],
+    bubbles: ['💫','🔵','⚪','🟣','🫧']
+  };
+  const emojis = _CE_EMOJIS[_CE_TYPE] || _CE_EMOJIS.hearts;
+  const container = document.body;
+  document.addEventListener('click', function(e){
+    const count = 6 + Math.floor(Math.random() * 5);
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      const angle = (Math.random() * 360) * Math.PI / 180;
+      const dist = 40 + Math.random() * 80;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist - 60;
+      const size = 16 + Math.floor(Math.random() * 14);
+      el.style.cssText = [
+        'position:fixed',
+        'pointer-events:none',
+        'z-index:99999',
+        'font-size:' + size + 'px',
+        'left:' + e.clientX + 'px',
+        'top:' + e.clientY + 'px',
+        'transform:translate(-50%,-50%)',
+        'transition:transform 0.7s ease-out, opacity 0.7s ease-out',
+        'will-change:transform,opacity'
+      ].join(';');
+      container.appendChild(el);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          el.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px)) scale(0.3)';
+          el.style.opacity = '0';
+        });
+      });
+      setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 800);
+    }
   });
 })();
 <\/script>` : ''}
