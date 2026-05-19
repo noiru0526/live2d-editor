@@ -4037,6 +4037,8 @@ function frame(ts){
       ctx.clip();
     }
     ctx.save();ctx.globalAlpha=interpOpacity(pt,vals);ctx.globalCompositeOperation=pt.blendMode||'source-over';
+    const _ah=pt.hue||0,_as=pt.saturate!==undefined?pt.saturate:100,_ab=pt.brightness!==undefined?pt.brightness:100;
+    if(_ah!==0||_as!==100||_ab!==100)ctx.filter='hue-rotate('+_ah+'deg) saturate('+(_as/100)+') brightness('+(_ab/100)+')';
     for(const[i0,i1,i2] of pt.mesh.tris){
       const p0=wv[i0],p1=wv[i1],p2=wv[i2];const q0=pt.mesh.verts[i0],q1=pt.mesh.verts[i1],q2=pt.mesh.verts[i2];
       drawTri(p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,q0.x,q0.y,q1.x,q1.y,q2.x,q2.y,pt._img);
