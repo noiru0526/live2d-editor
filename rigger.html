@@ -5239,6 +5239,15 @@ document.addEventListener('keydown',e=>{
     if(n-1<expressions.length) applyExpr(n-1);
   }
   if(e.key==='0'&&onBody&&!e.ctrlKey) resetAllParams();
+  // , / . = prev/next KF of current parameter (deform/mesh mode)
+  if((e.key===','||e.key==='.')&&onBody&&!e.ctrlKey&&!e.metaKey&&selParam&&P[selParam]) {
+    const ks=(P[selParam].k||[]).slice().sort((a,b)=>a-b);
+    if(ks.length>1){
+      const ci=ks.indexOf(curKF);
+      const ni=e.key===','?Math.max(0,ci-1):Math.min(ks.length-1,ci+1);
+      if(ni!==ci){curKF=ks[ni];buildKFUI();render();e.preventDefault();}
+    }
+  }
   if(mode==='parts'&&selPart>=0&&selPart<parts.length&&onBody) {
     const step=snapToGrid?gridSize:(e.shiftKey?10:1); let dx=0, dy=0, moved=false;
     if(e.key==='ArrowLeft'){dx=-step;moved=true;} if(e.key==='ArrowRight'){dx=step;moved=true;}
@@ -5269,6 +5278,7 @@ function showShortcutsOverlay() {
     ['Ctrl+ホイール','ブラシ半径変更'],
     ['S','シメトリモード切替 (メッシュ/デフォームモード)'],
     ['Alt+ドラッグ','パーツ移動のエッジスナップ'],
+    [', / .','前/次のKFに移動（現在パラメータ）'],
   ];
   const rows = shortcuts.map(([k, v])=> v ?
     `<tr><td style="padding:3px 12px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 12px;color:#a0b8d0;font-size:11px;">${v}</td></tr>` :
