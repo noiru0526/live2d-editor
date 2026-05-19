@@ -1082,6 +1082,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2e3656;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
     <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2e3656;border:1px solid var(--border);color:#c0a0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
+    <button onclick="showPoseTweenDialog()" title="ポーズトゥイーン: 2ポーズ間を補間するKFを自動生成（開始時刻・継続時間・イージングを設定）" style="background:#2a1e38;border:1px solid rgba(200,140,255,.4);color:#d090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔀 トゥイーン</button>
     <button onclick="showMultiPoseBlend()" title="マルチポーズブレンド: 複数ポーズを同時にスライダーでウェイト調整してリアルタイムブレンド" style="background:#2a1e38;border:1px solid rgba(200,120,255,.4);color:#d08aff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎚 ブレンダー</button>
     <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#1e2a38;border:1px solid rgba(80,200,200,.4);color:#60d0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
@@ -3769,7 +3770,8 @@ ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object
     <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
     <button id="anim-loop-btn" onclick="toggleAnimLoop()" title="ループ切替" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:4px;padding:4px 7px;color:#ffd060;font-size:10px;font-family:monospace;cursor:pointer;">🔁</button>
     <button onclick="animT=0;animLastNow=null;" title="先頭に戻す" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:4px;padding:4px 7px;color:#a0d0ff;font-size:10px;font-family:monospace;cursor:pointer;">⏮</button>
-    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=parseFloat(this.value)" style="background:rgba(14,17,32,.9);border:1px solid #3a4470;color:#a0d0ff;border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
+    <button id="anim-rev-btn" onclick="toggleReversePlay()" title="逆再生切替" style="background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:4px;padding:4px 7px;color:#c0a0ff;font-size:10px;font-family:monospace;cursor:pointer;">⏪</button>
+    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=Math.abs(parseFloat(this.value))*(_reversePlay?-1:1)" style="background:rgba(14,17,32,.9);border:1px solid #3a4470;color:#a0d0ff;border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
       <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option>
       <option value="1.5">1.5x</option><option value="2">2x</option>
     </select>
@@ -3864,6 +3866,16 @@ const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1
 
 // Timeline animation playback
 let animT=0, animLastNow=null, animPlaying=false, animSpeedMult=1;
+let _reversePlay = false;
+function toggleReversePlay() {
+  _reversePlay = !_reversePlay;
+  animSpeedMult = Math.abs(animSpeedMult) * (_reversePlay ? -1 : 1);
+  const btn = document.getElementById('anim-rev-btn');
+  if (btn) {
+    btn.style.color = _reversePlay ? '#ff8080' : '#c0a0ff';
+    btn.style.borderColor = _reversePlay ? 'rgba(255,100,80,.6)' : '#3a4470';
+  }
+}
 function evalAnimTrackExport(frames,p,t){
   const sorted=[...frames].sort((a,b)=>a.t-b.t);
   let i=sorted.findIndex(f=>f.t>t);
@@ -3905,7 +3917,7 @@ function applyAnimTracks(now){
       t=loopIn+((rawOff%loopLen+loopLen)%loopLen);
     }
   } else {
-    t=Math.min(animT,loopOut);
+    t=_reversePlay ? Math.max(animT, loopIn) : Math.min(animT, loopOut);
   }
   animT=t;
   // BGM sync: keep audio position within 150ms of animation time
@@ -6203,6 +6215,76 @@ function loadPosePreset(i) {
   } else {
     document.getElementById('lbl-status').textContent = `ポーズ「${preset.name}」を適用しました`;
   }
+}
+
+// ==================== POSE TWEEN ====================
+function showPoseTweenDialog() {
+  document.getElementById('pose-tween-dialog')?.remove();
+  if (!M.posePresets?.length) { alert('ポーズプリセットが登録されていません。先にポーズを保存してください。'); return; }
+  const d = document.createElement('div');
+  d.id = 'pose-tween-dialog';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#1a1e30;border:1px solid rgba(160,100,255,.5);border-radius:8px;padding:12px 14px;z-index:910;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  const poseOpts = M.posePresets.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('');
+  const easingOpts = ['linear','smooth','ease-in','ease-out','ease-in-cubic','ease-out-cubic','elastic','back-out'].map(e=>`<option value="${e}">${e}</option>`).join('');
+  d.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:10px;">
+      <span style="font-size:11px;color:#c080ff;font-weight:600;">🔀 ポーズトゥイーン</span>
+      <button onclick="document.getElementById('pose-tween-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:8px;">2つのポーズ間を補間するKFを自動生成します。</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin-bottom:8px;">
+      <span style="font-size:9px;color:var(--dim)">開始ポーズ</span>
+      <select id="pt-from" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
+      <span style="font-size:9px;color:var(--dim)">終了ポーズ</span>
+      <select id="pt-to" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
+      <span style="font-size:9px;color:var(--dim)">開始時刻 (s)</span>
+      <input id="pt-t0" type="number" value="${ST.animPlayhead.toFixed(2)}" step="0.1" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <span style="font-size:9px;color:var(--dim)">継続時間 (s)</span>
+      <input id="pt-dur" type="number" value="0.5" min="0.05" step="0.05" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <span style="font-size:9px;color:var(--dim)">ステップ数</span>
+      <input id="pt-steps" type="number" value="1" min="1" max="20" step="1" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <span style="font-size:9px;color:var(--dim)">イージング</span>
+      <select id="pt-ease" style="background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
+    </div>
+    <div style="font-size:8px;color:#3a4a6a;margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
+    <button onclick="applyPoseTween()" style="width:100%;background:#2a1e48;border:1px solid rgba(160,100,255,.5);color:#c080ff;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
+  document.body.appendChild(d);
+  // Default: to = 1 (second option) if available
+  if (M.posePresets.length > 1) document.getElementById('pt-to').selectedIndex = 1;
+}
+
+function applyPoseTween() {
+  const fromIdx = parseInt(document.getElementById('pt-from').value);
+  const toIdx   = parseInt(document.getElementById('pt-to').value);
+  const t0      = parseFloat(document.getElementById('pt-t0').value);
+  const dur     = parseFloat(document.getElementById('pt-dur').value);
+  const steps   = Math.max(1, parseInt(document.getElementById('pt-steps').value));
+  const ease    = document.getElementById('pt-ease').value;
+  if (isNaN(t0)||isNaN(dur)||dur<=0) { alert('無効な値です'); return; }
+  const pFrom = M.posePresets[fromIdx]; const pTo = M.posePresets[toIdx];
+  if (!pFrom||!pTo) return;
+  pushAnimUndo('ポーズトゥイーン');
+  const easeFn = IFN[ease] || IFN.linear;
+  // Gather all param keys from both poses
+  const keys = new Set([...Object.keys(pFrom.vals), ...Object.keys(pTo.vals)]);
+  const times = [];
+  for (let s=0; s<=steps; s++) times.push(t0 + (s/steps)*dur);
+  for (const k of keys) {
+    if (!M.params[k]) continue;
+    if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+    const vFrom = pFrom.vals[k] ?? M.params[k].val;
+    const vTo   = pTo.vals[k]   ?? M.params[k].val;
+    times.forEach((t, si) => {
+      const frac = easeFn(si/steps);
+      const v = vFrom + (vTo - vFrom) * frac;
+      M.animation.tracks[k] = M.animation.tracks[k].filter(kf=>Math.abs(kf.t-t)>0.001);
+      M.animation.tracks[k].push({t, v, interp: ease});
+      M.animation.tracks[k].sort((a,b)=>a.t-b.t);
+    });
+  }
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `トゥイーン: "${pFrom.name}"→"${pTo.name}" ${t0.toFixed(2)}s〜${(t0+dur).toFixed(2)}s (${steps+1}KF)`;
+  document.getElementById('pose-tween-dialog')?.remove();
 }
 
 function filterParams(q) {

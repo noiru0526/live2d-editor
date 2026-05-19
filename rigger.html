@@ -247,6 +247,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
+    <button class="tbtn" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.classList.toggle('active',showOnionSkin);render()" title="オニオンスキン: 前KF（シアン）・次KF（オレンジ）のデフォームゴーストを重ねて表示（デフォームモードで有効）">👻 オニオン</button>
     <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
@@ -337,6 +338,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div style="display:flex;gap:3px;margin-top:3px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#60d8c0;border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80c0ff;border-color:rgba(80,150,255,.4)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
+        </div>
+        <div style="display:flex;gap:3px;margin-top:3px">
+          <button id="btn-param-sweep" class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ffd060;border-color:rgba(255,200,60,.4)" onclick="toggleParamSweep()" title="パラメータを自動スイープ: KF全範囲を往復再生してデフォームを確認">▷ スイープ</button>
+          <select id="sweep-speed-sel" style="flex:0 0 auto;background:#0e1120;border:1px solid rgba(255,200,60,.3);color:#c0a050;border-radius:3px;padding:1px 3px;font-size:8px;" title="スイープ速度（サイクル/秒）">
+            <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
+          </select>
         </div>
       </div>
     </div>
@@ -856,6 +863,7 @@ let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
 let showDeformVectors = false; // show deform displacement arrows for current KF
+let showOnionSkin = false; // show adjacent KF ghost wireframes (onion skinning)
 let showZDepth = false; // show Z-depth color overlay (blue=back → red=front)
 let meshSymmetry = false; // mirror vertex edits across center X axis of part
 let globalCoordMode = false; // show part position as center offset from canvas center
@@ -1796,6 +1804,22 @@ function render() {
             ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.stroke();
           }
           ctx.setLineDash([]); ctx.restore();
+          // Onion skin: show adjacent KF ghosts (prev=cyan, next=orange)
+          if (showOnionSkin && selParam && P[selParam]) {
+            const kfs = P[selParam].k;
+            const ci = kfs.indexOf(curKF);
+            [[ci-1,'rgba(0,200,255,.30)'], [ci+1,'rgba(255,140,40,.30)']].forEach(([ki, col])=>{
+              if (ki<0||ki>=kfs.length) return;
+              const ghostVals = {...getParamVals(), [selParam]: kfs[ki]};
+              const gv = pt.getWorldVerts(ghostVals);
+              ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=1; ctx.setLineDash([2,2]);
+              for (const [i0,i1,i2] of pt.mesh.tris) {
+                const s0=m2s(gv[i0].x,gv[i0].y), s1=m2s(gv[i1].x,gv[i1].y), s2=m2s(gv[i2].x,gv[i2].y);
+                ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.stroke();
+              }
+              ctx.setLineDash([]); ctx.restore();
+            });
+          }
         }
         const kd = mode==='deform' ? (pt.deforms[selParam]?.[curKF]||[]) : [];
         const _symMirrorI = (meshSymmetry && dragVI>=0) ? getMirrorVertIdx(dragVI, pt.mesh) : -1;
@@ -4214,6 +4238,42 @@ function smoothDeform() {
   pt.deforms[selParam][curKF] = nd;
   render();
   setStatus(`スムーズ適用: ${P[selParam].l} KF=${curKF}`);
+}
+
+// ===== PARAM SWEEP =====
+let _sweepActive = false, _sweepRAF = null, _sweepT = 0, _sweepSavedKF = 0, _sweepPrevNow = null;
+function toggleParamSweep() {
+  if (_sweepActive) {
+    _sweepActive = false;
+    if (_sweepRAF) { cancelAnimationFrame(_sweepRAF); _sweepRAF = null; }
+    curKF = _sweepSavedKF;
+    const btn = document.getElementById('btn-param-sweep');
+    if (btn) { btn.textContent = '▷ スイープ'; btn.classList.remove('active'); }
+    render(); return;
+  }
+  if (!selParam || !P[selParam]) { setStatus('パラメータを選択してください'); return; }
+  const kfKeys = [...(P[selParam].k || [])].sort((a,b)=>a-b);
+  if (kfKeys.length < 2) { setStatus('KFが2つ以上必要です'); return; }
+  _sweepActive = true; _sweepSavedKF = curKF; _sweepT = kfKeys[0]; _sweepPrevNow = null;
+  const btn = document.getElementById('btn-param-sweep');
+  if (btn) { btn.textContent = '⏹ 停止'; btn.classList.add('active'); }
+  let dir = 1;
+  function frame(now) {
+    if (!_sweepActive) return;
+    const spd = parseFloat(document.getElementById('sweep-speed-sel')?.value || 0.7);
+    if (_sweepPrevNow !== null) {
+      const range = kfKeys[kfKeys.length-1] - kfKeys[0];
+      const dt = (now - _sweepPrevNow) / 1000 * range * spd * 2;
+      _sweepT += dt * dir;
+      if (_sweepT >= kfKeys[kfKeys.length-1]) { _sweepT = kfKeys[kfKeys.length-1]; dir = -1; }
+      if (_sweepT <= kfKeys[0]) { _sweepT = kfKeys[0]; dir = 1; }
+    }
+    _sweepPrevNow = now;
+    curKF = _sweepT;
+    render();
+    _sweepRAF = requestAnimationFrame(frame);
+  }
+  _sweepRAF = requestAnimationFrame(frame);
 }
 
 // ===== BRUSH DEFORM UTILS =====
