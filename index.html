@@ -884,6 +884,45 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <input type="range" id="wc-smooth" min="0" max="0.95" step="0.05" value="0.5" style="flex:1;accent-color:var(--accent);">
     <span id="wc-smooth-val" style="font-size:9px;color:var(--accent);width:28px;">0.50</span>
   </div>
+  <!-- Gain / Sensitivity controls -->
+  <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:5px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;" onclick="const p=document.getElementById('wc-gain-panel');p.style.display=p.style.display==='none'?'block':'none';">
+      <span style="font-size:9px;color:var(--dim);">感度調整</span>
+      <span style="font-size:9px;color:var(--dim);">▼</span>
+    </div>
+    <div id="wc-gain-panel" style="display:none;margin-top:4px;">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="font-size:8px;color:#80b0ff;width:36px;">頭X/Y</span>
+        <input type="range" id="wc-gain-head" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#80b0ff;" oninput="document.getElementById('wc-gain-head-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-head-val" style="font-size:8px;color:#80b0ff;width:24px;">1.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="font-size:8px;color:#d0b0ff;width:36px;">頭Z</span>
+        <input type="range" id="wc-gain-hz" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#d0b0ff;" oninput="document.getElementById('wc-gain-hz-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-hz-val" style="font-size:8px;color:#d0b0ff;width:24px;">1.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="font-size:8px;color:#a0ffd0;width:36px;">口</span>
+        <input type="range" id="wc-gain-mouth" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#a0ffd0;" oninput="document.getElementById('wc-gain-mouth-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-mouth-val" style="font-size:8px;color:#a0ffd0;width:24px;">1.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="font-size:8px;color:#a0e0ff;width:36px;">瞬き</span>
+        <input type="range" id="wc-gain-blink" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#a0e0ff;" oninput="document.getElementById('wc-gain-blink-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-blink-val" style="font-size:8px;color:#a0e0ff;width:24px;">1.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="font-size:8px;color:#ffd0a0;width:36px;">視線</span>
+        <input type="range" id="wc-gain-gaze" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#ffd0a0;" oninput="document.getElementById('wc-gain-gaze-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-gaze-val" style="font-size:8px;color:#ffd0a0;width:24px;">1.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:8px;color:#c0e0a0;width:36px;">眉</span>
+        <input type="range" id="wc-gain-brow" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:#c0e0a0;" oninput="document.getElementById('wc-gain-brow-val').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="wc-gain-brow-val" style="font-size:8px;color:#c0e0a0;width:24px;">1.0</span>
+      </div>
+    </div>
+  </div>
   <!-- 2D Face Controller -->
   <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -6615,27 +6654,33 @@ function toggleWebcamTest() {
       if (!r.multiFaceLandmarks?.length) { document.getElementById('webcam-status').textContent='顔を検出中...'; return; }
       const lm=r.multiFaceLandmarks[0];
       const alpha = parseFloat(document.getElementById('wc-smooth')?.value ?? 0.5);
+      const gHead = parseFloat(document.getElementById('wc-gain-head')?.value ?? 1);
+      const gHz = parseFloat(document.getElementById('wc-gain-hz')?.value ?? 1);
+      const gMouth = parseFloat(document.getElementById('wc-gain-mouth')?.value ?? 1);
+      const gBlink = parseFloat(document.getElementById('wc-gain-blink')?.value ?? 1);
+      const gGaze = parseFloat(document.getElementById('wc-gain-gaze')?.value ?? 1);
+      const gBrow = parseFloat(document.getElementById('wc-gain-brow')?.value ?? 1);
 
-      // Raw values
-      const rhx=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2));
-      const rhy=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2));
+      // Raw values with adjustable gain
+      const rhx=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2*gHead));
+      const rhy=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2*gHead));
       // Head Z (roll): angle of line between eye outer corners
       const eyeAngle=Math.atan2(lm[263].y-lm[33].y, lm[263].x-lm[33].x);
-      const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5));
+      const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5*gHz));
       const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
-      const rbl=Math.max(0,Math.min(1,(0.27-ear(362,385,387,263,373,380))/(0.08)));
-      const rmo=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*28));
+      const rbl=Math.max(0,Math.min(1,(0.27-ear(362,385,387,263,373,380))/(0.08)*gBlink));
+      const rmo=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*28*gMouth));
       // Eyebrow raise: distance from brow to eye top, normalized by eye height
       const browDistL=(lm[105].y-lm[159].y)*100, browDistR=(lm[334].y-lm[386].y)*100;
-      const rbrL=Math.max(-1,Math.min(1,-(browDistL-2.5)*0.4));
-      const rbrR=Math.max(-1,Math.min(1,-(browDistR-2.5)*0.4));
+      const rbrL=Math.max(-1,Math.min(1,-(browDistL-2.5)*0.4*gBrow));
+      const rbrR=Math.max(-1,Math.min(1,-(browDistR-2.5)*0.4*gBrow));
       let rex=0, rey=0;
       if (lm.length>473) {
         const ri=lm[468],li=lm[473];
         const rW=lm[33].x-lm[133].x, lW=lm[362].x-lm[263].x;
-        rex=((rW>0.001?(ri.x-(lm[133].x+lm[33].x)/2)/rW*2:0)+(lW>0.001?(li.x-(lm[263].x+lm[362].x)/2)/lW*2:0))/2*-1.5;
+        rex=((rW>0.001?(ri.x-(lm[133].x+lm[33].x)/2)/rW*2:0)+(lW>0.001?(li.x-(lm[263].x+lm[362].x)/2)/lW*2:0))/2*-1.5*gGaze;
         const rH=(lm[159].y-lm[145].y), lH=(lm[386].y-lm[374].y);
-        rey=((rH>0.001?(ri.y-(lm[159].y+lm[145].y)/2)/rH*2:0)+(lH>0.001?(li.y-(lm[386].y+lm[374].y)/2)/lH*2:0))/2*-2;
+        rey=((rH>0.001?(ri.y-(lm[159].y+lm[145].y)/2)/rH*2:0)+(lH>0.001?(li.y-(lm[386].y+lm[374].y)/2)/lH*2:0))/2*-2*gGaze;
         rey=Math.max(-1,Math.min(1,rey));
       }
       // Low-pass smooth
