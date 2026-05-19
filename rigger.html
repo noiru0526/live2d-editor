@@ -346,6 +346,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
+        <button id="btn-mesh-sym" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleMeshSymmetry()" title="シメトリ編集: 頂点移動をX軸に対称反映（メッシュ/デフォームモードで有効）(S)">⇄ シメトリ</button>
       </div>
     </div>
 
@@ -792,6 +793,7 @@ let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
 let showDeformVectors = false; // show deform displacement arrows for current KF
+let meshSymmetry = false; // mirror vertex edits across center X axis of part
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
@@ -1632,12 +1634,15 @@ function render() {
           ctx.setLineDash([]); ctx.restore();
         }
         const kd = mode==='deform' ? (pt.deforms[selParam]?.[curKF]||[]) : [];
+        const _symMirrorI = (meshSymmetry && dragVI>=0) ? getMirrorVertIdx(dragVI, pt.mesh) : -1;
         for (let i=0; i<wv.length; i++) {
           const s = m2s(wv[i].x, wv[i].y);
           const hd = kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
-          ctx.beginPath(); ctx.arc(s.x, s.y, i===dragVI?4.5:(hd?3.5:2.5), 0, Math.PI*2);
-          ctx.fillStyle = i===dragVI ? '#fff' : hd?'#cba6f7':'rgba(139,92,246,.8)';
+          const isMirror = i === _symMirrorI;
+          ctx.beginPath(); ctx.arc(s.x, s.y, i===dragVI?4.5:(isMirror?4:(hd?3.5:2.5)), 0, Math.PI*2);
+          ctx.fillStyle = i===dragVI ? '#fff' : isMirror ? '#f472b6' : hd?'#cba6f7':'rgba(139,92,246,.8)';
           ctx.fill();
+          if (isMirror) { ctx.strokeStyle='rgba(244,114,182,.8)'; ctx.lineWidth=1.5; ctx.stroke(); }
         }
       }
     }
@@ -2748,6 +2753,24 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+function toggleMeshSymmetry() {
+  meshSymmetry = !meshSymmetry;
+  const btn = document.getElementById('btn-mesh-sym');
+  if (btn) { btn.style.background = meshSymmetry ? 'rgba(78,124,255,.35)' : ''; btn.style.borderColor = meshSymmetry ? '#4e7cff' : ''; }
+  setStatus(meshSymmetry ? 'シメトリ編集 ON: 頂点移動がX軸に対称反映されます' : 'シメトリ編集 OFF');
+}
+
+// Returns the index of the X-mirrored vertex in a grid mesh, or -1 if no mirror (e.g. center column)
+function getMirrorVertIdx(vi, mesh) {
+  if (!mesh || !mesh.cols || !mesh.rows) return -1;
+  const stride = mesh.cols + 1;
+  const c = vi % stride;
+  const r = Math.floor(vi / stride);
+  const mc = mesh.cols - c;
+  if (mc === c) return -1; // center column, no distinct mirror
+  return r * stride + mc;
 }
 
 function subdivideMesh() {
@@ -3909,10 +3932,22 @@ canvas.addEventListener('mousemove',e=>{
   if (dragMode==='vert'&&dragVI>=0&&selPart>=0) {
     const ddx=mp.x-dragSX, ddy=mp.y-dragSY; dragSX=mp.x; dragSY=mp.y;
     const pt=parts[selPart];
-    if (mode==='mesh'){pt.mesh.verts[dragVI].x+=ddx;pt.mesh.verts[dragVI].y+=ddy;pt.resizeDeforms();}
-    else if(mode==='deform'&&pt.deforms[selParam]?.[curKF]){
+    if (mode==='mesh'){
+      pt.mesh.verts[dragVI].x+=ddx; pt.mesh.verts[dragVI].y+=ddy; pt.resizeDeforms();
+      if (meshSymmetry) {
+        const mi=getMirrorVertIdx(dragVI,pt.mesh);
+        if (mi>=0) { pt.mesh.verts[mi].x-=ddx; pt.mesh.verts[mi].y+=ddy; }
+      }
+    } else if(mode==='deform'&&pt.deforms[selParam]?.[curKF]){
       pt.deforms[selParam][curKF][dragVI].dx+=ddx;
       pt.deforms[selParam][curKF][dragVI].dy+=ddy;
+      if (meshSymmetry) {
+        const mi=getMirrorVertIdx(dragVI,pt.mesh);
+        if (mi>=0&&pt.deforms[selParam][curKF][mi]) {
+          pt.deforms[selParam][curKF][mi].dx-=ddx;
+          pt.deforms[selParam][curKF][mi].dy+=ddy;
+        }
+      }
     }
     render();
   }
@@ -4082,6 +4117,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F') fitView();
   if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;document.getElementById('btn-focus').classList.toggle('active',focusMode);render();}
   if(e.key==='S'&&e.shiftKey&&onBody&&!e.ctrlKey){e.preventDefault();togglePartSolo();}
+  if(e.key==='s'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&onBody&&(mode==='mesh'||mode==='deform')){e.preventDefault();toggleMeshSymmetry();}
   if(e.key==='h'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].visible=!parts[selPart].visible;updatePartsUI();render();}
   if(e.key==='l'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].locked=!parts[selPart].locked;updatePartsUI();setStatus(`${parts[selPart].name}: ${parts[selPart].locked?'ロック':'ロック解除'}`);}
   // Number keys 1-9 to apply expressions
