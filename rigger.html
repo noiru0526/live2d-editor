@@ -661,7 +661,10 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
-            <button onclick="addAltTexture()" style="background:#1a2030;border:1px solid rgba(80,160,200,.3);color:#60a0c0;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+            <div style="display:flex;gap:3px">
+              <button onclick="showGenerateTextureModal()" style="background:#1a2030;border:1px solid rgba(160,80,220,.3);color:#a060d0;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="addAltTexture()" style="background:#1a2030;border:1px solid rgba(80,160,200,.3);color:#60a0c0;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+            </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
         </div>
@@ -3114,6 +3117,116 @@ function addAltTexture() {
   };
   inp.click();
 }
+function showGenerateTextureModal() {
+  if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
+  const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
+  mo.innerHTML=`<div style="background:#131828;border:1px solid rgba(160,80,220,.4);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
+  <div style="font-size:13px;color:#c0b8ff;margin-bottom:12px;font-weight:bold">∇ テクスチャ生成</div>
+  <div style="font-size:10px;color:#6080a0;margin-bottom:4px">タイプ</div>
+  <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
+    <option value="solid">ソリッド（単色）</option>
+    <option value="linear" selected>リニアグラデーション</option>
+    <option value="radial">ラジアルグラデーション</option>
+    <option value="checker">チェッカーボード</option>
+  </select>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <div>
+      <div style="font-size:10px;color:#6080a0;margin-bottom:3px">幅</div>
+      <input id="gt-w" type="number" value="${parts[selPart].w||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 6px;font-size:11px">
+    </div>
+    <div>
+      <div style="font-size:10px;color:#6080a0;margin-bottom:3px">高さ</div>
+      <input id="gt-h" type="number" value="${parts[selPart].h||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 6px;font-size:11px">
+    </div>
+  </div>
+  <div id="gt-colors" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+    <div><div style="font-size:10px;color:#6080a0;margin-bottom:3px">色 1</div><input id="gt-c1" type="color" value="#ffffff" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
+    <div id="gt-c2-wrap"><div style="font-size:10px;color:#6080a0;margin-bottom:3px">色 2</div><input id="gt-c2" type="color" value="#000000" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
+  </div>
+  <div id="gt-dir-wrap" style="margin-bottom:8px">
+    <div style="font-size:10px;color:#6080a0;margin-bottom:3px">方向</div>
+    <select id="gt-dir" onchange="updateGentexPreview()" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px;font-size:11px">
+      <option value="horizontal">水平（左→右）</option><option value="vertical">垂直（上→下）</option>
+      <option value="diagonal">斜め（左上→右下）</option><option value="diagonal2">斜め（左下→右上）</option>
+    </select>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <div style="font-size:10px;color:#6080a0">不透明度</div>
+    <input id="gt-alpha" type="range" min="0" max="100" value="100" oninput="document.getElementById('gt-alpha-v').textContent=this.value+'%';updateGentexPreview()" style="flex:1;accent-color:#8060d0">
+    <span id="gt-alpha-v" style="font-size:10px;color:#8090a0;min-width:32px">100%</span>
+  </div>
+  <div style="text-align:center;margin-bottom:10px">
+    <canvas id="gt-preview" width="120" height="120" style="border:1px solid #2a3a5a;border-radius:4px;image-rendering:pixelated"></canvas>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button onclick="document.getElementById('gentex-mo').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="applyGeneratedTexture()" style="background:rgba(160,80,220,.3);border:1px solid rgba(160,80,220,.6);color:#d0b0ff;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">∇ 生成・適用</button>
+  </div>
+  </div>`;
+  mo.onclick=()=>mo.remove();document.body.appendChild(mo);
+  updateGentexPreview();
+}
+function _buildGentexCanvas(w,h,type,c1,c2,dir,alpha){
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const cx=cv.getContext('2d');
+  if(type==='solid'){cx.fillStyle=c1;cx.fillRect(0,0,w,h);}
+  else if(type==='linear'){
+    let grd;
+    if(dir==='horizontal')grd=cx.createLinearGradient(0,0,w,0);
+    else if(dir==='vertical')grd=cx.createLinearGradient(0,0,0,h);
+    else if(dir==='diagonal')grd=cx.createLinearGradient(0,0,w,h);
+    else grd=cx.createLinearGradient(0,h,w,0);
+    grd.addColorStop(0,c1);grd.addColorStop(1,c2);cx.fillStyle=grd;cx.fillRect(0,0,w,h);
+  }else if(type==='radial'){
+    const grd=cx.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.min(w,h)/2);
+    grd.addColorStop(0,c1);grd.addColorStop(1,c2);cx.fillStyle=grd;cx.fillRect(0,0,w,h);
+  }else if(type==='checker'){
+    const cs=Math.max(8,Math.min(w,h)/8);
+    for(let y=0;y<h;y+=cs)for(let x=0;x<w;x+=cs){cx.fillStyle=((x/cs+y/cs)%2<1)?c1:c2;cx.fillRect(x,y,cs,cs);}
+  }
+  if(alpha<100){const d=cx.getImageData(0,0,w,h);for(let i=3;i<d.data.length;i+=4)d.data[i]=Math.round(d.data[i]*alpha/100);cx.putImageData(d,0,0);}
+  return cv;
+}
+function updateGentexPreview(){
+  const type=document.getElementById('gt-type')?.value||'linear';
+  const c1=document.getElementById('gt-c1')?.value||'#fff';
+  const c2=document.getElementById('gt-c2')?.value||'#000';
+  const dir=document.getElementById('gt-dir')?.value||'horizontal';
+  const alpha=parseInt(document.getElementById('gt-alpha')?.value||'100');
+  const cv=document.getElementById('gt-preview');if(!cv)return;
+  const pv=_buildGentexCanvas(120,120,type,c1,c2,dir,alpha);
+  cv.getContext('2d').clearRect(0,0,120,120);
+  cv.getContext('2d').drawImage(pv,0,0);
+  // Show/hide c2 and dir based on type
+  const noC2=type==='solid';
+  const noDir=type!=='linear';
+  const c2wrap=document.getElementById('gt-c2-wrap');if(c2wrap)c2wrap.style.opacity=noC2?.3:1;
+  const dirwrap=document.getElementById('gt-dir-wrap');if(dirwrap)dirwrap.style.display=noDir?'none':'block';
+}
+function applyGeneratedTexture(){
+  if(selPart<0||selPart>=parts.length)return;
+  const type=document.getElementById('gt-type').value;
+  const w=Math.max(8,Math.min(2048,parseInt(document.getElementById('gt-w').value)||256));
+  const h=Math.max(8,Math.min(2048,parseInt(document.getElementById('gt-h').value)||256));
+  const c1=document.getElementById('gt-c1').value;
+  const c2=document.getElementById('gt-c2').value;
+  const dir=document.getElementById('gt-dir').value;
+  const alpha=parseInt(document.getElementById('gt-alpha').value||'100');
+  const cv=_buildGentexCanvas(w,h,type,c1,c2,dir,alpha);
+  const dataURL=cv.toDataURL('image/png');
+  const img=new Image();
+  img.onload=()=>{
+    saveState();
+    const pt=parts[selPart];
+    pt.img=img;pt.imgDataURL=dataURL;pt.activeImg=img;
+    if(!pt.mesh||pt.mesh.verts.length===0){pt.w=w;pt.h=h;pt.buildMesh(pt.mesh?.cols||4,pt.mesh?.rows||4);}
+    scheduleThumbUpdate(selPart);updatePartsUI();updatePartPropsUI();render();
+    setStatus(`テクスチャを生成しました (${w}×${h}, ${type})`);
+    document.getElementById('gentex-mo')?.remove();
+  };
+  img.src=dataURL;
+}
+
 function switchPartTexture(idx) {
   if (selPart<0||selPart>=parts.length) return;
   saveState();
@@ -5826,6 +5939,19 @@ function showAvatarExportDialog() {
         <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px">
       </div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#9060d0"> 🎭 自動表情ランダム</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
+      </div>
+      <div id="av-chat-opts" style="display:none;background:#0e1120;border:1px solid #1a2a3a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
+        <div style="color:#6090a0;font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
+        <input id="av-chat-channel" type="text" placeholder="チャンネル名..." style="width:100%;background:#080c18;border:1px solid #1a2a3a;color:#c0e0ff;border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
+        <div style="color:#6090a0;font-size:9px;margin-top:4px;margin-bottom:2px">コマンドプレフィックス（任意・例: !ex）</div>
+        <input id="av-chat-cmd" type="text" placeholder="空白=全メッセージで反応..." style="width:100%;background:#080c18;border:1px solid #1a2a3a;color:#c0e0ff;border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
+        <div style="color:#4a6080;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
+      </div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
       <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
@@ -5856,10 +5982,22 @@ function showAvatarExportDialog() {
     const g = document.getElementById('av-wg-game')?.value?.trim();
     if (g) wgP.push('game=' + encodeURIComponent(g));
     if (wgP.length) params.push('widget=' + wgP.join(','));
+    if (document.getElementById('av-autoidle')?.checked) params.push('autoidle=1');
+    if (document.getElementById('av-chat')?.checked) {
+      const ch = document.getElementById('av-chat-channel')?.value?.trim();
+      if (ch) { params.push('chat=twitch'); params.push('channel=' + encodeURIComponent(ch)); }
+      const cmd = document.getElementById('av-chat-cmd')?.value?.trim();
+      if (cmd) params.push('chatcmd=' + encodeURIComponent(cmd));
+    }
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
   overlay.querySelectorAll('input[type="text"]').forEach(el => el.addEventListener('input', updatePreview));
+  // Toggle chat options visibility
+  overlay.querySelector('#av-chat')?.addEventListener('change', function() {
+    const opts = document.getElementById('av-chat-opts');
+    if (opts) opts.style.display = this.checked ? 'block' : 'none';
+  });
   updatePreview();
 }
 
@@ -5891,6 +6029,16 @@ async function doExportAvatar() {
   if (wgTimer) wgParts.push('timer');
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
+  const autoIdle = document.getElementById('av-autoidle')?.checked;
+  const chatEnabled = document.getElementById('av-chat')?.checked;
+  const chatChannel = document.getElementById('av-chat-channel')?.value?.trim() || '';
+  const chatCmd = document.getElementById('av-chat-cmd')?.value?.trim() || '';
+  if (autoIdle) defaultParams.push('autoidle=1');
+  if (chatEnabled && chatChannel) {
+    defaultParams.push('chat=twitch');
+    defaultParams.push('channel=' + encodeURIComponent(chatChannel));
+    if (chatCmd) defaultParams.push('chatcmd=' + encodeURIComponent(chatCmd));
+  }
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -6011,6 +6159,27 @@ document.addEventListener('keydown',e=>{
     Object.assign(T,EXPRS[curExpr].values);
   }
 });
+
+// postMessage API — receive commands from multi-avatar.html parent
+window.addEventListener('message',ev=>{
+  const d=ev.data;if(!d||typeof d!=='object')return;
+  if(d.type==='expr'){
+    const n=d.idx;
+    document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===n));
+    if(n===0){curExpr=-1;for(const k of Object.keys(T))T[k]=0;}
+    else if(n>=1&&n<=EXPRS.length){curExpr=n-1;Object.assign(T,EXPRS[curExpr].values);}
+  }else if(d.type==='params'){Object.assign(T,d.values);}
+  else if(d.type==='reset'){curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+  else if(d.type==='shake'){
+    // Camera shake: brief random camera jitter
+    const amp=d.amp||8,dur=d.dur||400;
+    const t0=Date.now();
+    const tick=()=>{const e=(Date.now()-t0)/dur;if(e>=1){S.headX=T.headX||0;S.headY=T.headY||0;return;}
+      const f=(1-e)*amp;S.headX=(T.headX||0)+(Math.random()*2-1)*f*.05;S.headY=(T.headY||0)+(Math.random()*2-1)*f*.05;requestAnimationFrame(tick);};tick();
+  }
+});
+// Send expressions list to parent (for multi-avatar UI)
+if(window.parent!==window){window.parent.postMessage({type:'exprs-ready',exprs:EXPRS.map(e=>e.name)},'*');}
 
 // Physics step
 function physStep(dt){
@@ -6244,6 +6413,60 @@ function initCam(){
   if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;}
   const textW=widgets.find(w=>w.startsWith('text='));
   if(textW){const txt=decodeURIComponent(textW.slice(5));makeWg('','wg-text');const el=document.getElementById('wg-text');if(el){el.style.fontSize='12px';el.textContent=txt;}}
+})();
+// ===== TWITCH CHAT EXPRESSION TRIGGERS =====
+// Usage: ?chat=twitch&channel=channelname[&chatdur=5][&chatcmd=!cmd]
+(function(){
+  if(!_p.has('chat')||!_p.has('channel')||!EXPRS.length)return;
+  const channel=(_p.get('channel')||'').toLowerCase().replace(/^#/,'');
+  if(!channel)return;
+  const DUR=Math.max(1,parseInt(_p.get('chatdur')||'5'))*1000;
+  const CMD_PREFIX=_p.get('chatcmd')||'';
+  let _chatTimer=null;
+  function applyExpr(idx){
+    if(_chatTimer)clearTimeout(_chatTimer);
+    curExpr=idx;
+    if(idx<0){for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+    else{Object.assign(T,EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));}
+    if(idx>=0){_chatTimer=setTimeout(()=>{curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));},DUR);}
+  }
+  function connect(){
+    const ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    ws.onopen=()=>{ws.send('NICK justinfan12345');ws.send('JOIN #'+channel);};
+    ws.onmessage=ev=>{
+      const line=ev.data.trim();
+      if(line.startsWith('PING')){ws.send('PONG :tmi.twitch.tv');return;}
+      const m=line.match(/PRIVMSG #\S+ :(.+)/);if(!m)return;
+      let msg=m[1].trim().toLowerCase();
+      if(CMD_PREFIX&&!msg.startsWith(CMD_PREFIX.toLowerCase()))return;
+      if(CMD_PREFIX)msg=msg.slice(CMD_PREFIX.length).trim();
+      const idx=EXPRS.findIndex(e=>e.name&&msg.includes(e.name.toLowerCase()));
+      if(idx>=0)applyExpr(idx);
+      else if(msg==='0'||msg==='reset')applyExpr(-1);
+    };
+    ws.onclose=()=>setTimeout(connect,5000);
+  }
+  connect();
+})();
+// ===== AUTO-IDLE EXPRESSION VARIATION =====
+// Usage: ?autoidle=1[&idle-min=20][&idle-max=60][&idle-dur=3]
+(function(){
+  if(!_p.has('autoidle')||!EXPRS.length)return;
+  const MIN=Math.max(5,parseInt(_p.get('idle-min')||'30'))*1000;
+  const MAX=Math.max(MIN+5000,parseInt(_p.get('idle-max')||'90')*1000);
+  const DUR=Math.max(1,parseInt(_p.get('idle-dur')||'3'))*1000;
+  function doIdle(){
+    if(curExpr>=0){sched();return;}
+    const idx=Math.floor(Math.random()*EXPRS.length);
+    curExpr=idx;Object.assign(T,EXPRS[idx].values);
+    document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));
+    setTimeout(()=>{
+      if(curExpr===idx){curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+      sched();
+    },DUR);
+  }
+  function sched(){setTimeout(doIdle,MIN+Math.random()*(MAX-MIN));}
+  sched();
 })();
 <\/script></body></html>`;
 }

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live2D Multi-Avatar Scene</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:100vw;height:100vh;background:transparent;overflow:hidden;font-family:monospace}
+#scene{position:relative;width:100%;height:100%}
+.av-slot{position:absolute;overflow:hidden;transition:none}
+.av-slot iframe{width:100%;height:100%;border:none;background:transparent}
+/* Control panel */
+#ctrl{
+  position:fixed;top:0;left:0;background:rgba(8,10,20,.93);border:1px solid rgba(124,58,237,.35);
+  border-radius:0 0 10px 0;padding:10px 14px;z-index:999;width:270px;
+  backdrop-filter:blur(8px);display:none;max-height:100vh;overflow-y:auto
+}
+#ctrl::-webkit-scrollbar{width:4px}
+#ctrl::-webkit-scrollbar-track{background:transparent}
+#ctrl::-webkit-scrollbar-thumb{background:rgba(100,80,200,.4);border-radius:2px}
+#ctrl.open{display:block}
+.ctitle{color:#cba6f7;font-size:12px;letter-spacing:1.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.csec{color:#4a6080;font-size:9px;letter-spacing:.7px;text-transform:uppercase;margin:10px 0 5px;border-top:1px solid rgba(255,255,255,.06);padding-top:6px}
+.csec:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.crow{display:flex;gap:4px;align-items:center;margin-bottom:5px}
+.clbl{color:#7090b0;font-size:10px;min-width:48px;flex-shrink:0}
+.crange{flex:1;accent-color:#7c3aed;cursor:pointer}
+.cval{font-size:9px;color:#8090a0;min-width:34px;text-align:right;flex-shrink:0}
+.cbtn{background:rgba(20,30,60,.8);border:1px solid rgba(60,90,150,.4);color:#90a8c8;font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;font-family:monospace;white-space:nowrap}
+.cbtn:hover{background:rgba(40,60,120,.8);border-color:rgba(100,140,230,.5);color:#c0d8ff}
+.cinput{background:rgba(10,14,28,.9);border:1px solid rgba(40,60,100,.5);color:#a0b8d8;font-family:monospace;font-size:10px;padding:3px 6px;border-radius:3px;flex:1;min-width:0}
+.cinput:focus{outline:none;border-color:#7c3aed}
+.slot-hdr{font-size:11px;font-weight:bold;margin-bottom:6px;letter-spacing:.5px}
+.slot-a-hdr{color:#60d8a0}
+.slot-b-hdr{color:#c080ff}
+.expr-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:2px}
+.expr-btn-a{padding:3px 2px;font-size:10px;text-align:center;cursor:pointer;border-radius:3px;border:1px solid rgba(50,120,80,.3);background:rgba(10,30,20,.6);color:#608070}
+.expr-btn-b{padding:3px 2px;font-size:10px;text-align:center;cursor:pointer;border-radius:3px;border:1px solid rgba(100,40,130,.3);background:rgba(20,10,30,.6);color:#806090}
+.expr-btn-a:hover{background:rgba(20,80,50,.6);border-color:#40b070;color:#70e0a0}
+.expr-btn-b:hover{background:rgba(80,20,100,.6);border-color:#9050d0;color:#c080f0}
+.expr-btn-a.on{background:rgba(20,100,60,.6);border-color:#40d090;color:#80ffb0;font-weight:bold}
+.expr-btn-b.on{background:rgba(100,20,130,.6);border-color:#b060e0;color:#e090ff;font-weight:bold}
+#toggle-ctrl{
+  position:fixed;top:6px;left:6px;background:rgba(15,20,40,.88);border:1px solid rgba(124,58,237,.45);
+  color:#9080d0;font-size:10px;padding:4px 12px;border-radius:5px;cursor:pointer;z-index:1000;
+  font-family:monospace;backdrop-filter:blur(4px);user-select:none
+}
+#toggle-ctrl:hover{background:rgba(30,40,90,.88);color:#c0a8ff;border-color:rgba(180,100,255,.6)}
+.preset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.shake-btns{display:flex;gap:4px;margin-top:2px}
+</style>
+</head>
+<body>
+<div id="scene">
+  <div class="av-slot" id="slot-a">
+    <iframe id="iframe-a" src="about:blank" allow="camera;microphone" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+  </div>
+  <div class="av-slot" id="slot-b">
+    <iframe id="iframe-b" src="about:blank" allow="camera" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+  </div>
+</div>
+
+<button id="toggle-ctrl" onclick="toggleCtrl()">⚙ Multi-Avatar</button>
+
+<div id="ctrl">
+  <div class="ctitle">
+    <span>🎭 MULTI AVATAR</span>
+    <span style="cursor:pointer;color:#504060;font-size:16px" onclick="toggleCtrl()">✕</span>
+  </div>
+
+  <!-- Slot A -->
+  <div class="csec">アバター A（メイン）</div>
+  <div class="slot-hdr slot-a-hdr">🟢 A スロット</div>
+  <div class="crow">
+    <input type="file" id="file-a" accept=".html" style="display:none" onchange="loadFileSlot('a',this)">
+    <button class="cbtn" onclick="document.getElementById('file-a').click()" style="flex:1">📂 HTMLを開く</button>
+    <button class="cbtn" onclick="clearSlot('a')" title="クリア" style="color:#e08080">✕</button>
+  </div>
+  <div class="crow">
+    <input class="cinput" id="url-a" placeholder="ファイルパスまたはURL..." onkeydown="if(event.key==='Enter')applyURLSlot('a')">
+    <button class="cbtn" onclick="applyURLSlot('a')">→</button>
+  </div>
+  <div class="crow">
+    <span class="clbl">位置X</span>
+    <input type="range" class="crange" id="ax" min="-50" max="50" value="0" oninput="updateSlot('a')">
+    <span class="cval" id="ax-v">0%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">位置Y</span>
+    <input type="range" class="crange" id="ay" min="-50" max="50" value="0" oninput="updateSlot('a')">
+    <span class="cval" id="ay-v">0%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">サイズ</span>
+    <input type="range" class="crange" id="as" min="20" max="150" value="50" oninput="updateSlot('a')">
+    <span class="cval" id="as-v">50%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">Z順序</span>
+    <input type="range" class="crange" id="az" min="0" max="10" value="1" step="1" oninput="updateSlot('a')">
+    <span class="cval" id="az-v">1</span>
+    <label style="font-size:10px;color:#7090b0;cursor:pointer;display:flex;align-items:center;gap:3px;margin-left:4px">
+      <input type="checkbox" id="af" onchange="updateSlot('a')">反転
+    </label>
+  </div>
+
+  <!-- Slot B -->
+  <div class="csec">アバター B（サブ）</div>
+  <div class="slot-hdr slot-b-hdr">🟣 B スロット</div>
+  <div class="crow">
+    <input type="file" id="file-b" accept=".html" style="display:none" onchange="loadFileSlot('b',this)">
+    <button class="cbtn" onclick="document.getElementById('file-b').click()" style="flex:1">📂 HTMLを開く</button>
+    <button class="cbtn" onclick="clearSlot('b')" title="クリア" style="color:#e08080">✕</button>
+  </div>
+  <div class="crow">
+    <input class="cinput" id="url-b" placeholder="ファイルパスまたはURL..." onkeydown="if(event.key==='Enter')applyURLSlot('b')">
+    <button class="cbtn" onclick="applyURLSlot('b')">→</button>
+  </div>
+  <div class="crow">
+    <span class="clbl">位置X</span>
+    <input type="range" class="crange" id="bx" min="-50" max="50" value="0" oninput="updateSlot('b')">
+    <span class="cval" id="bx-v">0%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">位置Y</span>
+    <input type="range" class="crange" id="by" min="-50" max="50" value="0" oninput="updateSlot('b')">
+    <span class="cval" id="by-v">0%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">サイズ</span>
+    <input type="range" class="crange" id="bs" min="20" max="150" value="50" oninput="updateSlot('b')">
+    <span class="cval" id="bs-v">50%</span>
+  </div>
+  <div class="crow">
+    <span class="clbl">Z順序</span>
+    <input type="range" class="crange" id="bz" min="0" max="10" value="2" step="1" oninput="updateSlot('b')">
+    <span class="cval" id="bz-v">2</span>
+    <label style="font-size:10px;color:#7090b0;cursor:pointer;display:flex;align-items:center;gap:3px;margin-left:4px">
+      <input type="checkbox" id="bf" onchange="updateSlot('b')">反転
+    </label>
+  </div>
+
+  <!-- Layout presets -->
+  <div class="csec">レイアウトプリセット</div>
+  <div class="preset-grid">
+    <button class="cbtn" onclick="applyPreset('side-by-side')">◫ 左右並び</button>
+    <button class="cbtn" onclick="applyPreset('face-to-face')">⇌ 向き合い</button>
+    <button class="cbtn" onclick="applyPreset('pip-br')">◳ PiP 右下</button>
+    <button class="cbtn" onclick="applyPreset('pip-bl')">◲ PiP 左下</button>
+    <button class="cbtn" onclick="applyPreset('pip-tr')">◱ PiP 右上</button>
+    <button class="cbtn" onclick="applyPreset('stack')">⊟ 上下配置</button>
+  </div>
+
+  <!-- Expression control A -->
+  <div class="csec">表情コントロール A <span style="color:#405040;font-size:9px">(キー: 1〜9)</span></div>
+  <div class="expr-grid" id="expr-a-grid">
+    <button class="expr-btn-a on" onclick="sendExpr('a',0)" title="デフォルト">0</button>
+  </div>
+
+  <!-- Expression control B -->
+  <div class="csec">表情コントロール B <span style="color:#403050;font-size:9px">(Alt+1〜9)</span></div>
+  <div class="expr-grid" id="expr-b-grid">
+    <button class="expr-btn-b on" onclick="sendExpr('b',0)" title="デフォルト">0</button>
+  </div>
+
+  <!-- Camera shake -->
+  <div class="csec">カメラシェイク</div>
+  <div class="shake-btns">
+    <button class="cbtn" onclick="sendShake('a',5,300)" style="flex:1">A 小</button>
+    <button class="cbtn" onclick="sendShake('a',14,500)" style="flex:1">A 大</button>
+    <button class="cbtn" onclick="sendShake('b',5,300)" style="flex:1">B 小</button>
+    <button class="cbtn" onclick="sendShake('b',14,500)" style="flex:1">B 大</button>
+    <button class="cbtn" onclick="sendShake('both',10,400)" style="flex:1">両方</button>
+  </div>
+
+  <!-- Scene save/load -->
+  <div class="csec">シーン設定</div>
+  <div class="crow">
+    <button class="cbtn" style="flex:1" onclick="saveScene()">💾 保存</button>
+    <button class="cbtn" style="flex:1" onclick="loadScene()">📂 読込</button>
+  </div>
+  <div style="font-size:9px;color:#3a5060;margin-top:4px;line-height:1.5">
+    OBSブラウザソース: ?a=URL&amp;b=URL&amp;layout=side-by-side&amp;obs=1<br>
+    Alt+1〜9: Bの表情 / 1〜9: Aの表情
+  </div>
+</div>
+
+<script>
+const _p = new URLSearchParams(location.search);
+const OBS_MODE = _p.has('obs');
+
+if (OBS_MODE) {
+  document.getElementById('toggle-ctrl').style.display = 'none';
+}
+
+function toggleCtrl() {
+  const el = document.getElementById('ctrl');
+  el.classList.toggle('open');
+  document.getElementById('toggle-ctrl').textContent = el.classList.contains('open') ? '✕ 閉じる' : '⚙ Multi-Avatar';
+}
+
+const SLOTS = {
+  a: { x: 0, y: 0, s: 50, z: 1, flip: false, blobUrl: null },
+  b: { x: 0, y: 0, s: 50, z: 2, flip: false, blobUrl: null }
+};
+
+function updateSlot(s) {
+  const sl = SLOTS[s];
+  sl.x = parseInt(document.getElementById(s + 'x').value);
+  sl.y = parseInt(document.getElementById(s + 'y').value);
+  sl.s = parseInt(document.getElementById(s + 's').value);
+  sl.z = parseInt(document.getElementById(s + 'z').value);
+  sl.flip = document.getElementById(s + 'f').checked;
+
+  document.getElementById(s + 'x-v').textContent = sl.x + '%';
+  document.getElementById(s + 'y-v').textContent = sl.y + '%';
+  document.getElementById(s + 's-v').textContent = sl.s + '%';
+  document.getElementById(s + 'z-v').textContent = sl.z;
+
+  const el = document.getElementById('slot-' + s);
+  el.style.left   = (50 + sl.x - sl.s / 2) + 'vw';
+  el.style.top    = (50 + sl.y - sl.s / 2) + 'vh';
+  el.style.width  = sl.s + 'vw';
+  el.style.height = sl.s + 'vh';
+  el.style.zIndex = sl.z;
+
+  const iframe = document.getElementById('iframe-' + s);
+  iframe.style.transform = sl.flip ? 'scaleX(-1)' : 'none';
+}
+
+function loadFileSlot(s, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const sl = SLOTS[s];
+  if (sl.blobUrl) URL.revokeObjectURL(sl.blobUrl);
+  sl.blobUrl = URL.createObjectURL(file);
+  document.getElementById('iframe-' + s).src = sl.blobUrl;
+  document.getElementById('url-' + s).value = file.name;
+}
+
+function applyURLSlot(s) {
+  const url = document.getElementById('url-' + s).value.trim();
+  if (!url) return;
+  document.getElementById('iframe-' + s).src = url;
+}
+
+function clearSlot(s) {
+  document.getElementById('iframe-' + s).src = 'about:blank';
+  document.getElementById('url-' + s).value = '';
+  const sl = SLOTS[s];
+  if (sl.blobUrl) { URL.revokeObjectURL(sl.blobUrl); sl.blobUrl = null; }
+  // Clear expression buttons back to defaults
+  const grid = document.getElementById('expr-' + s + '-grid');
+  grid.innerHTML = `<button class="expr-btn-${s} on" onclick="sendExpr('${s}',0)" title="デフォルト">0</button>`;
+}
+
+// Expression sending
+const _exprState = { a: 0, b: 0 };
+function sendExpr(s, idx) {
+  _exprState[s] = idx;
+  const iframe = document.getElementById('iframe-' + s);
+  if (iframe.contentWindow) iframe.contentWindow.postMessage({ type: 'expr', idx }, '*');
+  const cls = 'expr-btn-' + s;
+  document.querySelectorAll('.' + cls).forEach((btn, i) => btn.classList.toggle('on', i === idx));
+}
+
+function sendShake(target, amp, dur) {
+  const msg = { type: 'shake', amp, dur };
+  if (target === 'a' || target === 'both') document.getElementById('iframe-a').contentWindow?.postMessage(msg, '*');
+  if (target === 'b' || target === 'both') document.getElementById('iframe-b').contentWindow?.postMessage(msg, '*');
+}
+
+// Receive expression list from avatar iframes
+window.addEventListener('message', ev => {
+  const d = ev.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type === 'exprs-ready') {
+    // Determine which slot sent this
+    const iframeA = document.getElementById('iframe-a');
+    const iframeB = document.getElementById('iframe-b');
+    const s = ev.source === iframeA.contentWindow ? 'a' : ev.source === iframeB.contentWindow ? 'b' : null;
+    if (!s) return;
+    buildExprGrid(s, d.exprs || []);
+  }
+});
+
+function buildExprGrid(s, exprs) {
+  const grid = document.getElementById('expr-' + s + '-grid');
+  grid.innerHTML = `<button class="expr-btn-${s} on" onclick="sendExpr('${s}',0)" title="デフォルト">0</button>`;
+  exprs.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'expr-btn-' + s;
+    btn.textContent = i + 1;
+    btn.title = name;
+    btn.onclick = () => sendExpr(s, i + 1);
+    grid.appendChild(btn);
+  });
+}
+
+// Layout presets
+const PRESETS = {
+  'side-by-side': { a: {x:-25,y:0,s:50,z:1,flip:false}, b: {x:25,y:0,s:50,z:2,flip:false} },
+  'face-to-face': { a: {x:-25,y:0,s:50,z:1,flip:false}, b: {x:25,y:0,s:50,z:2,flip:true}  },
+  'pip-br':       { a: {x:0,y:0,s:100,z:1,flip:false}, b: {x:33,y:33,s:34,z:2,flip:false} },
+  'pip-bl':       { a: {x:0,y:0,s:100,z:1,flip:false}, b: {x:-33,y:33,s:34,z:2,flip:false} },
+  'pip-tr':       { a: {x:0,y:0,s:100,z:1,flip:false}, b: {x:33,y:-33,s:34,z:2,flip:false} },
+  'stack':        { a: {x:0,y:-25,s:50,z:1,flip:false}, b: {x:0,y:25,s:50,z:2,flip:false} }
+};
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  for (const s of ['a', 'b']) {
+    const sp = p[s];
+    Object.assign(SLOTS[s], sp);
+    document.getElementById(s + 'x').value = sp.x;
+    document.getElementById(s + 'y').value = sp.y;
+    document.getElementById(s + 's').value = sp.s;
+    document.getElementById(s + 'z').value = sp.z;
+    document.getElementById(s + 'f').checked = sp.flip;
+    updateSlot(s);
+  }
+}
+
+function saveScene() {
+  const scene = {
+    version: 1,
+    slots: {
+      a: { ...SLOTS.a, blobUrl: undefined, url: document.getElementById('url-a').value },
+      b: { ...SLOTS.b, blobUrl: undefined, url: document.getElementById('url-b').value }
+    }
+  };
+  const blob = new Blob([JSON.stringify(scene, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'multi-avatar-scene.json';
+  a.click();
+}
+
+function loadScene() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    file.text().then(txt => {
+      const scene = JSON.parse(txt);
+      if (!scene.slots) return;
+      for (const s of ['a', 'b']) {
+        const sp = scene.slots[s];
+        if (!sp) continue;
+        Object.assign(SLOTS[s], { x: sp.x ?? 0, y: sp.y ?? 0, s: sp.s ?? 50, z: sp.z ?? (s === 'a' ? 1 : 2), flip: sp.flip ?? false });
+        document.getElementById(s + 'x').value = SLOTS[s].x;
+        document.getElementById(s + 'y').value = SLOTS[s].y;
+        document.getElementById(s + 's').value = SLOTS[s].s;
+        document.getElementById(s + 'z').value = SLOTS[s].z;
+        document.getElementById(s + 'f').checked = SLOTS[s].flip;
+        if (sp.url) document.getElementById('url-' + s).value = sp.url;
+        updateSlot(s);
+      }
+    });
+  };
+  input.click();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.altKey) {
+    if (e.key === '0') { sendExpr('b', 0); e.preventDefault(); }
+    else if (e.key >= '1' && e.key <= '9') { sendExpr('b', parseInt(e.key)); e.preventDefault(); }
+  } else {
+    if (e.key === '0') sendExpr('a', 0);
+    else if (e.key >= '1' && e.key <= '9') sendExpr('a', parseInt(e.key));
+  }
+});
+
+// Init from URL params
+if (_p.has('layout')) applyPreset(_p.get('layout'));
+else applyPreset('side-by-side');
+
+if (_p.has('a')) {
+  document.getElementById('iframe-a').src = _p.get('a');
+  document.getElementById('url-a').value = _p.get('a');
+}
+if (_p.has('b')) {
+  document.getElementById('iframe-b').src = _p.get('b');
+  document.getElementById('url-b').value = _p.get('b');
+}
+</script>
+</body>
+</html>
