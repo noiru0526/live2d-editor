@@ -272,6 +272,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-lasso" onclick="toggleLasso()" title="投げ縄選択 (L)">投げ縄<span class="sk">L</span></button>
   <button class="tbtn" id="btn-weight-paint" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">ウェイト<span class="sk">W</span></button>
   <button class="tbtn" onclick="showMiniPreview()" title="ミニプレビュー">▣ プレビュー</button>
+  <button class="tbtn" id="btn-bc" onclick="toggleBroadcastChannel()" title="BroadcastChannel API: 他タブからパラメータ制御&#10;送信: new BroadcastChannel('noiru-live2d').postMessage({cmd:'setParam',name:'headX',value:0.5})">📡 BC</button>
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
   <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
@@ -7682,6 +7683,68 @@ function drawRulers() {
     }
   }
   drawHorizontal(); drawVertical();
+}
+
+// ==================== BROADCAST CHANNEL: external parameter control ====================
+// Send messages from another tab: new BroadcastChannel('noiru-live2d').postMessage({cmd:'setParam',name:'headX',value:0.5})
+// Supported cmds: setParam | setPose | playClip | reset | ping
+let _bcChannel = null;
+let _bcEnabled = false;
+
+function toggleBroadcastChannel() {
+  if (_bcEnabled) {
+    _bcChannel?.close(); _bcChannel = null; _bcEnabled = false;
+    document.getElementById('btn-bc')?.classList.remove('on');
+    document.getElementById('lbl-status').textContent = 'BroadcastChannel: OFF';
+    return;
+  }
+  if (typeof BroadcastChannel === 'undefined') {
+    document.getElementById('lbl-status').textContent = 'BroadcastChannelは未対応のブラウザです';
+    return;
+  }
+  _bcChannel = new BroadcastChannel('noiru-live2d');
+  _bcChannel.onmessage = ev => {
+    const d = ev.data; if (!d || typeof d !== 'object') return;
+    switch (d.cmd) {
+      case 'setParam': {
+        const p = M.params[d.name]; if (!p) break;
+        const v = Math.max(p.min, Math.min(p.max, parseFloat(d.value)||0));
+        p.val = v;
+        const sl = document.getElementById('sl-' + d.name);
+        if (sl) sl.value = v;
+        redraw();
+        break;
+      }
+      case 'setParams': {
+        // {cmd:'setParams', params:{headX:0.5, headY:-0.3}}
+        if (d.params && typeof d.params === 'object') {
+          for (const [name, val] of Object.entries(d.params)) {
+            const p = M.params[name]; if (!p) continue;
+            p.val = Math.max(p.min, Math.min(p.max, parseFloat(val)||0));
+          }
+          redraw();
+        }
+        break;
+      }
+      case 'setPose': {
+        const preset = M.posePresets?.find(p => p.name === d.name); if (!preset) break;
+        pushUndo('ポーズ適用 (BC)');
+        for (const [k, v] of Object.entries(preset.vals || {})) { if (M.params[k]) M.params[k].val = v; }
+        redraw();
+        break;
+      }
+      case 'reset':
+        for (const p of Object.values(M.params)) p.val = 0;
+        redraw();
+        break;
+      case 'ping':
+        _bcChannel.postMessage({ type: 'noiru-reply', pong: true, params: Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val])) });
+        break;
+    }
+  };
+  _bcEnabled = true;
+  document.getElementById('btn-bc')?.classList.add('on');
+  document.getElementById('lbl-status').textContent = "BroadcastChannel ON: 'noiru-live2d'";
 }
 
 // ==================== TIMELINE ====================
