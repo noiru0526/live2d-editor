@@ -244,6 +244,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-bounds" onclick="showBounds=!showBounds;this.classList.toggle('active',showBounds);render()" title="バウンディングボックス: 全パーツのAABBを表示">⬚ バウンド</button>
     <button class="tbtn" id="btn-solo" onclick="togglePartSolo()" title="ソロ表示: 選択パーツだけを表示（Shift+Sでも切替）">⊙ ソロ</button>
     <button class="tbtn" onclick="showGuideManager()" title="カスタムガイドライン: 参照線を追加・管理">⊞ ガイド</button>
+    <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
@@ -2137,6 +2138,30 @@ function addGuideAtPos(wx, wy) {
   setStatus(`ガイド追加: ${axis.toUpperCase()}=${pos}`);
 }
 
+// Add selected part's bounding box edges as 4 custom guidelines (left/right/top/bottom)
+function addPartBoundsAsGuides() {
+  const targets = selParts.size > 0 ? [...selParts] : (selPart >= 0 ? [selPart] : []);
+  if (!targets.length) { setStatus('パーツを選択してください'); return; }
+  let count = 0;
+  for (const i of targets) {
+    const pt = parts[i]; if (!pt) continue;
+    let minX = pt.x, maxX = pt.x + pt.w, minY = pt.y, maxY = pt.y + pt.h;
+    if (pt.mesh && pt.mesh.verts.length) {
+      minX=Infinity; maxX=-Infinity; minY=Infinity; maxY=-Infinity;
+      const wv = pt.getWorldVerts(getParamVals());
+      for (const v of wv) { if(v.x<minX)minX=v.x; if(v.x>maxX)maxX=v.x; if(v.y<minY)minY=v.y; if(v.y>maxY)maxY=v.y; }
+    }
+    const color = 'rgba(80,200,255,0.7)';
+    _customGuides.push({axis:'x', pos:Math.round(minX), color});
+    _customGuides.push({axis:'x', pos:Math.round(maxX), color});
+    _customGuides.push({axis:'y', pos:Math.round(minY), color});
+    _customGuides.push({axis:'y', pos:Math.round(maxY), color});
+    count += 4;
+  }
+  render();
+  setStatus(`バウンドガイド追加: ${count}本 (${targets.length}パーツ)`);
+}
+
 function setAllPartsVisible(v) {
   saveState(); parts.forEach(p => p.visible = v); updatePartsUI(); render();
   setStatus(v ? '全パーツを表示' : '全パーツを非表示');
@@ -3866,6 +3891,7 @@ canvas.addEventListener('contextmenu', e => {
     items.push({ icon:'🗑', label:'削除', danger:true, action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); delPart(); }});
     items.push(null);
     items.push({ icon:'💾', label:'このパーツをJSONに書き出す', action:()=>exportSinglePart(hitIdx) });
+    items.push({ icon:'⊡', label:'境界をガイドに追加', action:()=>{ selPart=hitIdx; selParts.clear(); selParts.add(hitIdx); addPartBoundsAsGuides(); }});
   } else {
     items.push({ icon:'📋', label:'パーツを貼り付け (Ctrl+V)', action:()=>pastePartFromClipboard() });
     items.push({ icon:'📥', label:'パーツJSONをインポート', action:()=>importSinglePart() });
@@ -3920,6 +3946,22 @@ canvas.addEventListener('mousemove',e=>{
       }
       if(bestDX!==null) nx+=bestDX;
       if(bestDY!==null) ny+=bestDY;
+      // Also snap to custom guidelines
+      for (const g of _customGuides) {
+        if (g.axis==='x') {
+          const ptEdges=[nx, nx+pt.w, nx+pt.w/2];
+          for (const pe of ptEdges) {
+            const d=Math.abs(pe-g.pos);
+            if(d<THRESH&&(bestDX===null||d<Math.abs(bestDX))) { bestDX=g.pos-pe; nx+=bestDX; _snapGuideX=g.pos; break; }
+          }
+        } else {
+          const ptVEdges=[ny, ny+pt.h, ny+pt.h/2];
+          for (const pe of ptVEdges) {
+            const d=Math.abs(pe-g.pos);
+            if(d<THRESH&&(bestDY===null||d<Math.abs(bestDY))) { bestDY=g.pos-pe; ny+=bestDY; _snapGuideY=g.pos; break; }
+          }
+        }
+      }
     }
     const dx=nx-dragPartOX, dy=ny-dragPartOY;
     selParts.forEach(i=>{
