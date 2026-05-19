@@ -14819,23 +14819,34 @@ document.addEventListener('DOMContentLoaded', () => {
     else geDeleteKF();
   });
 
-  // Scroll to zoom time range
+  // Scroll to zoom time range (X); Ctrl+scroll to zoom value range (Y)
   canvas.addEventListener('wheel', (e) => {
     if (!GE.visible) return;
     e.preventDefault();
     const rect = canvas.getBoundingClientRect();
     const dpr = devicePixelRatio;
     const mx = (e.clientX - rect.left) * dpr;
+    const my = (e.clientY - rect.top) * dpr;
     const ge = canvas._ge;
     if (!ge) return;
-    const pivot = ge.xToT(mx);
     const zoom = e.deltaY > 0 ? 1.2 : 1/1.2;
-    const tRange = GE.viewMaxT - GE.viewMinT;
-    const newRange = Math.max(10, Math.min(M.totalFrames * 3, tRange * zoom));
-    const ratio = (pivot - GE.viewMinT) / tRange;
-    GE.viewMinT = pivot - ratio * newRange;
-    GE.viewMaxT = GE.viewMinT + newRange;
-    GE.viewMinT = Math.max(-10, GE.viewMinT);
+    if (e.ctrlKey) {
+      // Y-axis zoom (value range)
+      const pivot = ge.yToV(my);
+      const vRange = GE.viewMaxV - GE.viewMinV;
+      const newRange = Math.max(0.02, Math.min(4, vRange * zoom));
+      const ratio = (GE.viewMaxV - pivot) / vRange;
+      GE.viewMaxV = pivot + ratio * newRange;
+      GE.viewMinV = GE.viewMaxV - newRange;
+    } else {
+      const pivot = ge.xToT(mx);
+      const tRange = GE.viewMaxT - GE.viewMinT;
+      const newRange = Math.max(10, Math.min(M.totalFrames * 3, tRange * zoom));
+      const ratio = (pivot - GE.viewMinT) / tRange;
+      GE.viewMinT = pivot - ratio * newRange;
+      GE.viewMaxT = GE.viewMinT + newRange;
+      GE.viewMinT = Math.max(-10, GE.viewMinT);
+    }
     geRender();
   }, { passive: false });
 
@@ -14848,8 +14859,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const ge = canvas._ge;
       if (!ge) return;
       const dpr = devicePixelRatio;
-      const mx = (e.clientX) * dpr;
-      _gePan = { startMX: mx, startMinT: GE.viewMinT, startMaxT: GE.viewMaxT };
+      const mx = (e.clientX) * dpr, my = (e.clientY) * dpr;
+      _gePan = { startMX: mx, startMY: my, startMinT: GE.viewMinT, startMaxT: GE.viewMaxT, startMinV: GE.viewMinV, startMaxV: GE.viewMaxV };
     }
   });
   canvas.addEventListener('mousemove', (e) => {
@@ -14858,10 +14869,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!ge) return;
     const dpr = devicePixelRatio;
     const dx = (e.clientX * dpr - _gePan.startMX);
+    const dy = (e.clientY * dpr - _gePan.startMY);
     const tRange = _gePan.startMaxT - _gePan.startMinT;
     const dt = -dx / (ge.plotW || 1) * tRange;
     GE.viewMinT = _gePan.startMinT + dt;
     GE.viewMaxT = _gePan.startMaxT + dt;
+    // Also pan Y axis
+    const vRange = _gePan.startMaxV - _gePan.startMinV;
+    const dv = dy / (ge.plotH || 1) * vRange;
+    GE.viewMinV = _gePan.startMinV + dv;
+    GE.viewMaxV = _gePan.startMaxV + dv;
     geRender();
   });
   canvas.addEventListener('mouseup', (e) => {
