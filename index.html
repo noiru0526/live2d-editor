@@ -1075,6 +1075,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#1e2a38;border:1px solid rgba(80,200,200,.4);color:#60d0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
+    <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
+    <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#2e3656;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
@@ -12120,6 +12122,69 @@ function timeStretchAnim() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `タイムストレッチ: ×${factor.toFixed(3)} (${useRange?'選択範囲':'全体'})`;
+}
+
+function scaleParamValues() {
+  const input = prompt('KF値スケール倍率を入力\n(例: 0.5=振れ幅を半分, 2.0=2倍, -1=上下反転)\n選択トラックのみ、なければ全トラックに適用:', '0.5');
+  if (!input) return;
+  const factor = parseFloat(input);
+  if (isNaN(factor)) { alert('有効な数値を入力してください'); return; }
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks||{})) for (const kf of frms) kfToName.set(kf,nm);
+  const selectedNames = tlSelectedKFs.size > 0
+    ? new Set([...tlSelectedKFs].map(kf=>kfToName.get(kf)).filter(Boolean))
+    : null;
+  pushAnimUndo();
+  let count = 0;
+  for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!frames) continue;
+    if (selectedNames && !selectedNames.has(name)) continue;
+    const param = (M.params||[]).find(p=>p.name===name);
+    const mid = param ? (param.min + param.max) / 2 : 0;
+    for (const kf of frames) {
+      kf.v = mid + (kf.v - mid) * factor;
+      count++;
+    }
+  }
+  drawMultiTimeline(); drawCurveEditor();
+  document.getElementById('lbl-status').textContent = `KF値スケール ×${factor.toFixed(3)}: ${count}KF`;
+}
+
+function batchSetInterpolation() {
+  const INTERP_LIST = ['linear','step','ease','ease-in','ease-out','ease-in-out','bounce','elastic','cubic'];
+  const html = INTERP_LIST.map(i=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 0;font-size:11px;"><input type="radio" name="bi-interp" value="${i}"> ${i}</label>`).join('');
+  showModal('補間方式を一括変更', `
+    <div style="font-size:12px;">
+      <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">選択KFがあればそのトラックのみ、なければ全トラックのKFに適用</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${html}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;font-size:10px;color:var(--dim);">
+        <input type="checkbox" id="bi-selected-only"> <label for="bi-selected-only">選択KFのみ</label>
+      </div>
+    </div>
+  `, () => {
+    const chosen = document.querySelector('input[name="bi-interp"]:checked');
+    if (!chosen) return;
+    const interp = chosen.value;
+    const selectedOnly = document.getElementById('bi-selected-only').checked;
+    const kfToName = new Map();
+    for (const [nm,frms] of Object.entries(M.animation.tracks||{})) for (const kf of frms) kfToName.set(kf,nm);
+    const selectedNames = tlSelectedKFs.size > 0
+      ? new Set([...tlSelectedKFs].map(kf=>kfToName.get(kf)).filter(Boolean))
+      : null;
+    pushAnimUndo();
+    let count = 0;
+    for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+      if (!frames) continue;
+      if (selectedNames && !selectedNames.has(name)) continue;
+      for (const kf of frames) {
+        if (selectedOnly && !tlSelectedKFs.has(kf)) continue;
+        kf.interp = interp;
+        count++;
+      }
+    }
+    drawMultiTimeline(); drawCurveEditor();
+    document.getElementById('lbl-status').textContent = `補間一括変更: ${interp} × ${count}KF`;
+  });
 }
 
 function smoothAnimKFValues() {
