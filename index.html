@@ -3894,6 +3894,8 @@ function applyAnimTracks(now){
   animT=t;
   for(const[k,frames]of Object.entries(MD.animation.tracks)){
     if(!params[k]||!frames.length)continue;
+    if(tlMutedTracks.has(k)) continue;
+    if(tlSoloTrack && k !== tlSoloTrack) continue;
     params[k].val=evalAnimTrackExport(frames,params[k],t);
   }
   // Loop fade in/out
@@ -8340,6 +8342,8 @@ let tlZoomOff = 0;  // time offset for zoom pan (seconds)
 const tlHiddenTracks = new Set(); // hidden param names
 const tlLockedTracks = new Set(); // locked tracks (KFs can't be dragged)
 const tlPinnedTracks = new Set(); // pinned tracks (always at top)
+const tlMutedTracks = new Set(); // muted tracks (excluded from animation playback)
+let tlSoloTrack = null; // soloed track name (all others muted during playback)
 const tlCustomTrackColors = new Map(); // user-defined track colors: paramName -> hsl string
 let _favParams = new Set(); // favorite parameters (shown first with ⭐)
 let _recentParams = []; // recently used parameters (max 6, most-recent first)
@@ -8741,10 +8745,12 @@ function drawMultiTimeline() {
       tlLabelCtx.fillStyle = dotColor;
       tlLabelCtx.beginPath(); tlLabelCtx.arc(LW-6, lry+rh/2, 3, 0, Math.PI*2); tlLabelCtx.fill();
       const isLocked = tlLockedTracks.has(name);
-      tlLabelCtx.fillStyle = isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
+      const isMuted = tlMutedTracks.has(name);
+      const isSoloed = tlSoloTrack === name;
+      tlLabelCtx.fillStyle = isMuted ? '#3a4060' : isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
-      const shortLbl = (isHidden?'○ ':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
+      const shortLbl = (isHidden?'○ ':'') + (isMuted?'🔇':'') + (isSoloed?'🔊':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
       tlLabelCtx.fillText(shortLbl, 3, lry+rh/2+4);
       // Current value at playhead
       const phFrames = M.animation.tracks[name];
@@ -9076,6 +9082,8 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
   showCtxMenu(e.clientX, e.clientY, [
     { icon:'🎯', label:`${srcParam.lbl} をアクティブに`, action:()=>setAP(srcName) },
     { icon: isLocked?'🔓':'🔒', label: isLocked?'トラックのロックを解除':'トラックをロック（KF移動禁止）', action:()=>{ isLocked?tlLockedTracks.delete(srcName):tlLockedTracks.add(srcName); drawMultiTimeline(); }},
+    { icon: tlMutedTracks.has(srcName)?'🔊':'🔇', label: tlMutedTracks.has(srcName)?'ミュート解除（再生に反映）':'トラックをミュート（再生から除外）', action:()=>{ tlMutedTracks.has(srcName)?tlMutedTracks.delete(srcName):tlMutedTracks.add(srcName); drawMultiTimeline(); }},
+    { icon: tlSoloTrack===srcName?'🔉':'🔊', label: tlSoloTrack===srcName?'ソロ解除':'このトラックをソロ（他をミュート）', action:()=>{ tlSoloTrack=tlSoloTrack===srcName?null:srcName; drawMultiTimeline(); }},
     { icon: tlPinnedTracks.has(srcName)?'📌':'📌', label: tlPinnedTracks.has(srcName)?'ピン留めを解除（常時表示OFF）':'トラックをピン留め（常時上部に固定）', action:()=>{ tlPinnedTracks.has(srcName)?tlPinnedTracks.delete(srcName):tlPinnedTracks.add(srcName); drawMultiTimeline(); }},
     null,
     { icon:'🌊', label:'波形KFを自動生成...（sin/三角波/鋸歯波など）', action:()=>generateWaveKFs(srcName) },
