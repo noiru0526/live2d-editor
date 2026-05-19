@@ -275,6 +275,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-bc" onclick="toggleBroadcastChannel()" title="BroadcastChannel API: 他タブからパラメータ制御&#10;送信: new BroadcastChannel('noiru-live2d').postMessage({cmd:'setParam',name:'headX',value:0.5})">📡 BC</button>
   <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
   <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
+  <button class="tbtn" id="btn-midi" onclick="toggleMidiPanel()" title="MIDIコントローラー: CC→パラメータ・ノート→ポーズのマッピング">🎹 MIDI</button>
   <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
   <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
   <div class="tsep"></div>
@@ -3315,6 +3316,7 @@ function modelJSON() {
     posePresets:M.posePresets||[],
     animClips:M.animClips||[],
     chatTriggers:M.chatTriggers||[],
+    midiMappings:M.midiMappings||{cc:{},notes:{}},
     profile:M.profile||null,
   },null,2);
 }
@@ -3385,6 +3387,7 @@ function loadJSON(json, filePath) {
     if (d.posePresets) M.posePresets=d.posePresets;
     if (d.animClips) { M.animClips=d.animClips; _activeClipIdx=-1; }
     if (d.chatTriggers) M.chatTriggers=d.chatTriggers;
+    if (d.midiMappings) M.midiMappings=d.midiMappings;
     if (d.profile) M.profile=Object.assign(M.profile||{}, d.profile);
     M.file=filePath??null;
 
@@ -3702,6 +3705,8 @@ function genAvatarHTML() {
     chatTriggers: M.chatTriggers||[],
     // Pose presets for chat trigger resolution
     posePresets: M.posePresets||[],
+    // MIDI mappings
+    midiMappings: M.midiMappings||{cc:{},notes:{}},
   };
   const imgSrc=M.img.src;
   let sizeStr=document.getElementById('export-size').value;
@@ -4870,6 +4875,31 @@ function initChatTriggers(){
   for(const b of builtins){ if(!presetNames.has(b.keyword)) _chatTriggers.push(b); }
 }
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
+
+// MIDI control for avatar (uses MD.midiMappings from editor export)
+window.addEventListener('load',()=>{
+  if(!navigator.requestMIDIAccess||!MD.midiMappings) return;
+  const mm=MD.midiMappings;
+  if(!Object.keys(mm.cc||{}).length&&!Object.keys(mm.notes||{}).length) return;
+  navigator.requestMIDIAccess().then(access=>{
+    const handle=e=>{
+      const[status,d1,d2]=e.data;
+      const type=status&0xF0;
+      if(type===0xB0){
+        const pn=mm.cc?.[String(d1)]; if(!pn||!params[pn]) return;
+        const p=params[pn];
+        p.val=p.min+(d2/127)*(p.max-p.min);
+      }else if(type===0x90&&d2>0){
+        const tgt=mm.notes?.[String(d1)]; if(!tgt) return;
+        const preset=MD.posePresets?.find(x=>x.name===tgt);
+        if(preset){for(const[k,v] of Object.entries(preset.vals)){if(params[k])params[k].val=v;}}
+      }
+    };
+    access.inputs.forEach(inp=>inp.onmidimessage=handle);
+    access.onstatechange=e=>{if(e.port.type==='input'&&e.port.state==='connected')e.port.onmidimessage=handle;};
+  }).catch(()=>{});
+});
+
 window.addEventListener('message',ev2=>{
   const d2=ev2.data;
   if(typeof d2!=='object'||d2.type!=='noiru-chat') return;
@@ -7116,6 +7146,183 @@ function _runMicSync() {
     redraw();
   }
   _micRaf = requestAnimationFrame(_runMicSync);
+}
+
+// ==================== MIDI CONTROLLER ====================
+let _midiActive = false;
+let _midiAccess = null;
+let _midiPanel = null;
+let _midiLastCC = {}; // {channel+cc: value} for display
+if (!M.midiMappings) M.midiMappings = { cc: {}, notes: {} };
+
+function toggleMidiPanel() {
+  const existing = document.getElementById('midi-panel');
+  if (existing) { existing.remove(); _midiActive = false; document.getElementById('btn-midi').classList.remove('on'); return; }
+  _buildMidiPanel();
+}
+
+function _buildMidiPanel() {
+  const panel = document.createElement('div');
+  panel.id = 'midi-panel';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#1a1e30;border:1px solid rgba(120,60,200,.5);border-radius:8px;padding:10px 12px;z-index:900;width:310px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
+      <span style="font-size:11px;color:#c080ff;font-weight:600;">🎹 MIDIコントロール</span>
+      <div id="midi-status-dot" style="width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;"></div>
+      <span id="midi-status-txt" style="font-size:9px;color:var(--dim);">未接続</span>
+      <button onclick="document.getElementById('midi-panel').remove();document.getElementById('btn-midi').classList.remove('on');" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6878a0;margin-bottom:8px;line-height:1.5;">MIDIデバイスのCC(ノブ/スライダー)→パラメータ、ノート→ポーズ/表情のマッピング。</div>
+    <button onclick="_midiConnect()" style="width:100%;background:#1e1838;border:1px solid rgba(120,60,200,.5);color:#c080ff;border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:8px;">🔌 MIDIデバイスに接続</button>
+    <!-- CC Monitor -->
+    <div style="background:#0e1120;border-radius:4px;padding:6px;margin-bottom:8px;">
+      <div style="font-size:9px;color:#8060b0;margin-bottom:4px;letter-spacing:.5px;">▶ 受信CC（最新8件）</div>
+      <div id="midi-cc-monitor" style="font-family:monospace;font-size:9px;color:#a0b0d0;min-height:16px;"></div>
+    </div>
+    <!-- CC Mappings -->
+    <div style="margin-bottom:8px;">
+      <div style="font-size:9px;color:#c080ff;margin-bottom:4px;font-weight:600;">CC → パラメータ</div>
+      <div id="midi-cc-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="midi-cc-param" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <button onclick="_midiAddCCMap()" style="background:#1e1838;border:1px solid rgba(120,60,200,.5);color:#c080ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+      </div>
+    </div>
+    <!-- Note Mappings -->
+    <div>
+      <div style="font-size:9px;color:#ff80c0;margin-bottom:4px;font-weight:600;">ノート → ポーズ/表情</div>
+      <div id="midi-note-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="midi-note-target" style="flex:1;background:#0e1120;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <button onclick="_midiAddNoteMap()" style="background:#1e1838;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+      </div>
+    </div>`;
+  document.body.appendChild(panel);
+  document.getElementById('btn-midi').classList.add('on');
+  _midiRenderCCList();
+  _midiRenderNoteList();
+  _midiPopulateParams();
+  _midiPopulateNoteTargets();
+}
+
+function _midiConnect() {
+  if (!navigator.requestMIDIAccess) {
+    document.getElementById('midi-status-txt').textContent = 'Web MIDI API非対応ブラウザです';
+    return;
+  }
+  navigator.requestMIDIAccess().then(access => {
+    _midiAccess = access;
+    _midiActive = true;
+    document.getElementById('midi-status-dot').style.background = '#40e080';
+    document.getElementById('midi-status-txt').textContent = `接続 (${access.inputs.size}入力)`;
+    access.inputs.forEach(inp => { inp.onmidimessage = _onMidiMsg; });
+    access.onstatechange = e => {
+      const inp = e.port;
+      if (inp.type === 'input') inp.onmidimessage = inp.state === 'connected' ? _onMidiMsg : null;
+      const el = document.getElementById('midi-status-txt');
+      if (el) el.textContent = `接続 (${access.inputs.size}入力)`;
+    };
+  }).catch(err => {
+    const el = document.getElementById('midi-status-txt');
+    if (el) el.textContent = 'アクセス拒否: ' + err.message;
+  });
+}
+
+function _onMidiMsg(e) {
+  const [status, d1, d2] = e.data;
+  const type = status & 0xF0;
+  const ch = status & 0x0F;
+  if (type === 0xB0) { // Control Change
+    const key = `ch${ch}:${d1}`;
+    _midiLastCC[key] = d2;
+    // Keep last 8
+    const keys = Object.keys(_midiLastCC);
+    if (keys.length > 8) delete _midiLastCC[keys[0]];
+    // Update monitor
+    const mon = document.getElementById('midi-cc-monitor');
+    if (mon) mon.textContent = Object.entries(_midiLastCC).map(([k,v])=>`${k}=${v}`).join('  ');
+    // Apply CC mappings
+    const ccStr = String(d1);
+    if (M.midiMappings.cc[ccStr]) {
+      const pname = M.midiMappings.cc[ccStr];
+      const p = M.params[pname]; if (!p) return;
+      const val = p.min + (d2 / 127) * (p.max - p.min);
+      p.val = Math.max(p.min, Math.min(p.max, val));
+      const sl = document.getElementById(`ps-${pname}`);
+      const vl = document.getElementById(`pv-${pname}`);
+      if (sl) { sl.value = p.val; updateSliderFill(sl, p.val, p.min, p.max); }
+      if (vl) vl.textContent = p.val.toFixed(2);
+      ST.cachedVerts = null; redraw();
+    }
+  } else if (type === 0x90 && d2 > 0) { // Note On
+    const noteStr = String(d1);
+    if (M.midiMappings.notes[noteStr]) {
+      const target = M.midiMappings.notes[noteStr];
+      const pose = (M.posePresets||[]).find(p => p.name === target);
+      if (pose) { applyPosePreset(pose); return; }
+      const expr = (M.expressions||[]).find(ex => ex.name === target);
+      if (expr) { applyExpression(expr); }
+    }
+  }
+}
+
+function _midiPopulateParams() {
+  const sel = document.getElementById('midi-cc-param'); if (!sel) return;
+  sel.innerHTML = '';
+  Object.keys(M.params).forEach(k => { const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+}
+
+function _midiPopulateNoteTargets() {
+  const sel = document.getElementById('midi-note-target'); if (!sel) return;
+  sel.innerHTML = '';
+  (M.posePresets||[]).forEach(p => { const o=document.createElement('option'); o.value=p.name; o.textContent='📐 '+p.name; sel.appendChild(o); });
+  (M.expressions||[]).forEach(ex => { const o=document.createElement('option'); o.value=ex.name; o.textContent='😊 '+ex.name; sel.appendChild(o); });
+}
+
+function _midiAddCCMap() {
+  const cc = document.getElementById('midi-cc-num')?.value;
+  const param = document.getElementById('midi-cc-param')?.value;
+  if (!cc || !param) return;
+  if (!M.midiMappings) M.midiMappings = {cc:{},notes:{}};
+  M.midiMappings.cc[String(cc)] = param;
+  _midiRenderCCList();
+}
+
+function _midiAddNoteMap() {
+  const note = document.getElementById('midi-note-num')?.value;
+  const target = document.getElementById('midi-note-target')?.value;
+  if (!note || !target) return;
+  if (!M.midiMappings) M.midiMappings = {cc:{},notes:{}};
+  M.midiMappings.notes[String(note)] = target;
+  _midiRenderNoteList();
+}
+
+function _midiRenderCCList() {
+  const list = document.getElementById('midi-cc-list'); if (!list) return;
+  list.innerHTML = '';
+  if (!M.midiMappings?.cc) return;
+  Object.entries(M.midiMappings.cc).forEach(([cc, param]) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:#131828;border-radius:3px;font-size:9px;';
+    row.innerHTML = `<code style="color:#c080ff;background:#1e1038;padding:1px 4px;border-radius:2px;">CC${cc}</code><span style="flex:1;color:#8090b0;">→ ${param}</span><button onclick="delete M.midiMappings.cc['${cc}'];_midiRenderCCList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function _midiRenderNoteList() {
+  const list = document.getElementById('midi-note-list'); if (!list) return;
+  list.innerHTML = '';
+  if (!M.midiMappings?.notes) return;
+  Object.entries(M.midiMappings.notes).forEach(([note, target]) => {
+    const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const nn = noteNames[parseInt(note) % 12] + Math.floor(parseInt(note) / 12 - 1);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:#131828;border-radius:3px;font-size:9px;';
+    row.innerHTML = `<code style="color:#ff80c0;background:#1e0828;padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:#8090b0;">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    list.appendChild(row);
+  });
 }
 
 // ==================== PARAM AUTO-SCAN ====================
