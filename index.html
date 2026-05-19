@@ -1075,6 +1075,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#1e2a38;border:1px solid rgba(80,200,200,.4);color:#60d0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
     <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2e3656;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
     <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2e3656;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
+    <button onclick="shiftAllKFTimes()" title="KF時刻シフト: 全KF（または選択トラック）を指定秒数だけ前後にずらす" style="background:#2e3656;border:1px solid rgba(80,180,255,.4);color:#70c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇄ シフト</button>
     <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
     <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#2e3656;border:1px solid rgba(180,120,255,.4);color:#c090ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
@@ -12122,6 +12123,28 @@ function timeStretchAnim() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `タイムストレッチ: ×${factor.toFixed(3)} (${useRange?'選択範囲':'全体'})`;
+}
+
+function shiftAllKFTimes() {
+  const input = prompt('KF時刻シフト量を入力 (秒, 例: 0.5=0.5秒後ろへ, -0.2=前へ)\n選択トラックのみ、なければ全トラックに適用:', '0.5');
+  if (!input) return;
+  const offset = parseFloat(input);
+  if (isNaN(offset) || offset === 0) return;
+  const kfToName = new Map();
+  for (const [nm,frms] of Object.entries(M.animation.tracks||{})) for (const kf of frms) kfToName.set(kf,nm);
+  const selectedNames = tlSelectedKFs.size > 0
+    ? new Set([...tlSelectedKFs].map(kf=>kfToName.get(kf)).filter(Boolean))
+    : null;
+  pushAnimUndo();
+  let count = 0;
+  for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
+    if (!frames) continue;
+    if (selectedNames && !selectedNames.has(name)) continue;
+    for (const kf of frames) { kf.t = Math.max(0, Math.round((kf.t + offset) * 10000) / 10000); count++; }
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  drawMultiTimeline(); drawCurveEditor();
+  document.getElementById('lbl-status').textContent = `KF時刻シフト: ${offset>=0?'+':''}${offset.toFixed(3)}s × ${count}KF`;
 }
 
 function scaleParamValues() {
