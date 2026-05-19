@@ -553,6 +553,28 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           </div>
           <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(200,80,255,.07);border:1px dashed rgba(200,80,255,.25);color:#a060cc;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
         </div>
+        <!-- Scale KF -->
+        <div id="pp-scalekf-row" style="display:none;background:rgba(80,200,255,.06);border:1px solid rgba(80,200,255,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <span style="font-size:7px;color:#50c8ff;letter-spacing:.5px;text-transform:uppercase">KF スケール</span>
+            <span id="pp-scalekf-label" style="font-size:8px;color:#80d8ff;font-family:monospace"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+            <span style="font-size:8px;color:#50a8cc">sX</span>
+            <input type="range" id="pp-scalex" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:#50c8ff">
+            <span id="pp-scalex-v" style="font-size:9px;color:#80d8ff;font-family:monospace;min-width:34px;text-align:right">100%</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+            <span style="font-size:8px;color:#50a8cc">sY</span>
+            <input type="range" id="pp-scaley" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:#50c8ff">
+            <span id="pp-scaley-v" style="font-size:9px;color:#80d8ff;font-family:monospace;min-width:34px;text-align:right">100%</span>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:2px">
+            <button onclick="setScaleKFHere()" style="flex:1;background:#1a2535;border:1px solid rgba(80,200,255,.4);color:#80d8ff;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
+            <button onclick="clearScaleKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+          </div>
+        </div>
+        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(80,200,255,.07);border:1px dashed rgba(80,200,255,.25);color:#50a8cc;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         <div class="prop-row">
           <span class="prop-lbl">クリップ</span>
           <select class="prop-sel" id="pp-clip" onchange="applyPartClip(this.value)">
@@ -904,6 +926,8 @@ class Part {
     this.hueKFs = {};    // {paramKey: {kfValue: degrees(-180..180)}}
     this.satKFs = {};    // {paramKey: {kfValue: percent(0..200)}}
     this.briKFs = {};    // {paramKey: {kfValue: percent(0..200)}}
+    this.scaleXKFs = {}; // {paramKey: {kfValue: scale_factor (1.0=100%)}}
+    this.scaleYKFs = {}; // {paramKey: {kfValue: scale_factor (1.0=100%)}}
     this.clipTo = null;
     this.groupId = null;
     this.deformerId = null;
@@ -980,6 +1004,15 @@ class Part {
       }
     }
     for (let i = 0; i < n; i++) { r[i].x += this.x; r[i].y += this.y; }
+    // Apply scale KF if defined
+    const _hasScaleKF = Object.keys(this.scaleXKFs||{}).length > 0 || Object.keys(this.scaleYKFs||{}).length > 0;
+    if (_hasScaleKF) {
+      const {sx, sy} = this.getScaleKF(vals);
+      if (sx !== 1 || sy !== 1) {
+        const cx = this.x + this.w/2, cy = this.y + this.h/2;
+        for (let i=0;i<n;i++) { r[i].x = cx + (r[i].x-cx)*sx; r[i].y = cy + (r[i].y-cy)*sy; }
+      }
+    }
     return r;
   }
   getOpacity(vals) {
@@ -1033,6 +1066,32 @@ class Part {
       bri: _interp(this.briKFs, this.brightness!==undefined?this.brightness:100),
     };
   }
+  getScaleKF(vals) {
+    const _interp = (kfMap, base) => {
+      let val = base;
+      for (const [pn, kfs] of Object.entries(kfMap)) {
+        const pc = P[pn]; if (!pc) continue;
+        const pval = vals[pn] ?? 0;
+        const keys = Object.keys(kfs).map(Number).sort((a,b)=>a-b);
+        if (!keys.length) continue;
+        if (pval <= keys[0]) { val = kfs[keys[0]]; }
+        else if (pval >= keys[keys.length-1]) { val = kfs[keys[keys.length-1]]; }
+        else {
+          for (let i=0;i<keys.length-1;i++) {
+            if (pval >= keys[i] && pval <= keys[i+1]) {
+              const t=(pval-keys[i])/(keys[i+1]-keys[i]);
+              val=kfs[keys[i]]*(1-t)+kfs[keys[i+1]]*t; break;
+            }
+          }
+        }
+      }
+      return val;
+    };
+    return {
+      sx: _interp(this.scaleXKFs, 1),
+      sy: _interp(this.scaleYKFs, 1)
+    };
+  }
   toJSON(withImage = true) {
     return {
       id: this.id, name: this.name, x: this.x, y: this.y,
@@ -1045,6 +1104,7 @@ class Part {
       physics: {...this.physics},
       opacityKFs: this.opacityKFs,
       hueKFs: this.hueKFs, satKFs: this.satKFs, briKFs: this.briKFs,
+      scaleXKFs: this.scaleXKFs, scaleYKFs: this.scaleYKFs,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
       imageData: withImage ? this.imgDataURL : null,
@@ -1068,6 +1128,7 @@ class Part {
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.opacityKFs = o.opacityKFs || {};
     p.hueKFs = o.hueKFs || {}; p.satKFs = o.satKFs || {}; p.briKFs = o.briKFs || {};
+    p.scaleXKFs = o.scaleXKFs || {}; p.scaleYKFs = o.scaleYKFs || {};
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
@@ -2620,7 +2681,7 @@ function toggleHSBKFMode() {
   _hsbKFMode = !_hsbKFMode;
   const btn=document.getElementById('btn-hsbkf-toggle');
   if(btn){btn.textContent=_hsbKFMode?'✓ HSBキーフレーム ON':'⊕ HSBキーフレーム';btn.style.borderColor=_hsbKFMode?'rgba(200,80,255,.6)':'rgba(200,80,255,.25)';btn.style.color=_hsbKFMode?'#e070ff':'#a060cc';}
-  updateHSBKFUI();
+  updateHSBKFUI(); updateScaleKFUI();
   setStatus(_hsbKFMode?'HSBキーフレームモード ON: H/S/Bを変更後「KF設定」で記録':'HSBキーフレームモード OFF');
 }
 function setHSBKFHere() {
@@ -2633,7 +2694,7 @@ function setHSBKFHere() {
   pt.hueKFs[selParam][curKF] = pt.hue||0;
   pt.satKFs[selParam][curKF] = pt.saturate!==undefined?pt.saturate:100;
   pt.briKFs[selParam][curKF] = pt.brightness!==undefined?pt.brightness:100;
-  render(); updateHSBKFUI();
+  render(); updateHSBKFUI(); updateScaleKFUI();
   setStatus(`HSBキーフレーム記録: ${P[selParam].l} = ${curKF} (H=${pt.hue||0}° S=${pt.saturate||100}% B=${pt.brightness||100}%)`);
 }
 function clearHSBKF() {
@@ -2643,7 +2704,7 @@ function clearHSBKF() {
   if(pt.hueKFs[selParam]) delete pt.hueKFs[selParam][curKF];
   if(pt.satKFs[selParam]) delete pt.satKFs[selParam][curKF];
   if(pt.briKFs[selParam]) delete pt.briKFs[selParam][curKF];
-  render(); updateHSBKFUI(); setStatus('HSBキーフレームをクリア');
+  render(); updateHSBKFUI(); updateScaleKFUI(); setStatus('HSBキーフレームをクリア');
 }
 function updateHSBKFUI() {
   const row=document.getElementById('pp-hsbkf-row'); if(!row) return;
@@ -2652,6 +2713,51 @@ function updateHSBKFUI() {
     const pt=parts[selPart];
     const hasKF=pt.hueKFs[selParam]?.[curKF]!==undefined||pt.satKFs[selParam]?.[curKF]!==undefined;
     document.getElementById('pp-hsbkf-label').textContent=(hasKF?'★ ':'')+(P[selParam]?.l||selParam)+' = '+curKF;
+  } else { row.style.display='none'; }
+}
+
+// ===== SCALE KF =====
+let _scaleKFMode = false;
+function toggleScaleKFMode() {
+  _scaleKFMode = !_scaleKFMode;
+  const btn=document.getElementById('btn-scalekf-toggle');
+  if(btn){btn.style.background=_scaleKFMode?'rgba(80,200,255,.2)':'rgba(80,200,255,.07)';btn.style.borderColor=_scaleKFMode?'rgba(80,200,255,.6)':'rgba(80,200,255,.25)';btn.style.color=_scaleKFMode?'#80d8ff':'#50a8cc';}
+  updateScaleKFUI();
+}
+function applyScaleKF() {
+  if(selPart<0) return; const pt=parts[selPart];
+  const sx=parseFloat(document.getElementById('pp-scalex')?.value)||1;
+  const sy=parseFloat(document.getElementById('pp-scaley')?.value)||1;
+  document.getElementById('pp-scalex-v').textContent=Math.round(sx*100)+'%';
+  document.getElementById('pp-scaley-v').textContent=Math.round(sy*100)+'%';
+  render();
+}
+function setScaleKFHere() {
+  if(selPart<0) return; saveState(); const pt=parts[selPart];
+  const sx=parseFloat(document.getElementById('pp-scalex')?.value)||1;
+  const sy=parseFloat(document.getElementById('pp-scaley')?.value)||1;
+  if(!pt.scaleXKFs[selParam]) pt.scaleXKFs[selParam]={};
+  if(!pt.scaleYKFs[selParam]) pt.scaleYKFs[selParam]={};
+  pt.scaleXKFs[selParam][curKF]=sx; pt.scaleYKFs[selParam][curKF]=sy;
+  render(); updateScaleKFUI(); setStatus(`スケールKF設定: ${P[selParam]?.l||selParam} KF=${curKF} → sX:${(sx*100).toFixed(0)}% sY:${(sy*100).toFixed(0)}%`);
+}
+function clearScaleKF() {
+  if(selPart<0) return; saveState(); const pt=parts[selPart];
+  if(pt.scaleXKFs[selParam]) delete pt.scaleXKFs[selParam][curKF];
+  if(pt.scaleYKFs[selParam]) delete pt.scaleYKFs[selParam][curKF];
+  render(); updateScaleKFUI(); setStatus('スケールKFをクリア');
+}
+function updateScaleKFUI() {
+  const row=document.getElementById('pp-scalekf-row'); if(!row) return;
+  if(_scaleKFMode && selPart>=0 && selPart<parts.length) {
+    row.style.display='block'; const pt=parts[selPart];
+    const {sx,sy} = pt.getScaleKF(getParamVals());
+    document.getElementById('pp-scalex').value=sx;
+    document.getElementById('pp-scalex-v').textContent=Math.round(sx*100)+'%';
+    document.getElementById('pp-scaley').value=sy;
+    document.getElementById('pp-scaley-v').textContent=Math.round(sy*100)+'%';
+    const hasKF=pt.scaleXKFs[selParam]?.[curKF]!==undefined||pt.scaleYKFs[selParam]?.[curKF]!==undefined;
+    document.getElementById('pp-scalekf-label').textContent=(hasKF?'★ ':'')+(P[selParam]?.l||selParam)+' = '+curKF;
   } else { row.style.display='none'; }
 }
 
@@ -3617,7 +3723,7 @@ function setMode(m) {
     deform:'変形リグ — KF × パラメータで変形',
     preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中'
   };
-  updatePartPropsUI(); updateOpacityKFUI(); updateHSBKFUI(); setHint(hints[m]||''); render();
+  updatePartPropsUI(); updateOpacityKFUI(); updateHSBKFUI(); updateScaleKFUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
 
@@ -3828,7 +3934,7 @@ function buildKFUI() {
   if (!pc.k.includes(curKF)) curKF=pc.k[0];
   document.getElementById('kf-param-label').textContent=P[selParam]?.l||selParam;
   document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
-  updateOpacityKFUI(); updateHSBKFUI();
+  updateOpacityKFUI(); updateHSBKFUI(); updateScaleKFUI();
 }
 
 function addKFPosition() {
@@ -4800,6 +4906,13 @@ function getWorldVerts(pt,vals){
     for(let i=0;i<n;i++){r[i].x+=(d0[i]?.dx||0)*(1-t)+(d1[i]?.dx||0)*t;r[i].y+=(d0[i]?.dy||0)*(1-t)+(d1[i]?.dy||0)*t;}
   }
   for(let i=0;i<n;i++){r[i].x+=pt.x||0;r[i].y+=pt.y||0;}
+  // Apply scale KF if defined
+  if((Object.keys(pt.scaleXKFs||{}).length||Object.keys(pt.scaleYKFs||{}).length)){
+    let sx=1,sy=1;
+    const _interpKF=(kfMap,base)=>{let v=base;for(const[pn,kfs]of Object.entries(kfMap)){const pc=PD[pn];if(!pc)continue;const pval=vals[pn]??0;const ks=Object.keys(kfs).map(Number).sort((a,b)=>a-b);if(!ks.length)continue;if(pval<=ks[0])v=kfs[ks[0]];else if(pval>=ks[ks.length-1])v=kfs[ks[ks.length-1]];else for(let i=0;i<ks.length-1;i++)if(pval>=ks[i]&&pval<=ks[i+1]){v=kfs[ks[i]]*(1-(pval-ks[i])/(ks[i+1]-ks[i]))+kfs[ks[i+1]]*((pval-ks[i])/(ks[i+1]-ks[i]));break;}}return v;};
+    sx=_interpKF(pt.scaleXKFs||{},1);sy=_interpKF(pt.scaleYKFs||{},1);
+    if(sx!==1||sy!==1){const cx=(pt.x||0)+(pt.w||0)/2,cy=(pt.y||0)+(pt.h||0)/2;for(let i=0;i<n;i++){r[i].x=cx+(r[i].x-cx)*sx;r[i].y=cy+(r[i].y-cy)*sy;}}
+  }
   // Apply deformer (bone, rotation, or warp)
   if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){
     if(def.type==='bone'){
