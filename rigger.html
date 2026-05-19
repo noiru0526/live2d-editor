@@ -374,6 +374,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button id="btn-pin-mode" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="togglePinMode()" title="ピンモード: Alt+クリックで頂点をピン固定（固定頂点はデフォーム/ブラシの影響を受けない）">📌 ピン</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="clearAllPins()" title="全ピンを解除">× 全解除</button>
         </div>
+        <button id="btn-uv-overlay" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleUVOverlay()" title="UVオーバーレイ: 現在のメッシュをUV座標空間で表示（テクスチャのどの部分がどのポリゴンに対応するか可視化）">🗺 UV表示</button>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="exportDeformCSV()" title="全デフォームデータをCSVでエクスポート">↓ CSV</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="document.getElementById('csv-import-in').click()" title="CSVからデフォームデータをインポート">↑ CSV</button>
@@ -886,7 +887,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -2129,6 +2130,54 @@ function render() {
       }
     });
     ctx.restore();
+  }
+
+  // UV Overlay: show UV coordinate grid mapped onto the canvas
+  if (showUVOverlay && selPart >= 0 && selPart < parts.length) {
+    const pt = parts[selPart];
+    if (pt.mesh && pt.activeImg) {
+      const vals = getParamVals();
+      const wv = pt.getWorldVerts(vals);
+      ctx.save();
+      // Semi-transparent textured triangles using UV coords as screen coords scaled to texture
+      const uW = pt.activeImg.width, uH = pt.activeImg.height;
+      const uvScale = Math.min(150 / uW, 150 / uH);
+      const uvOX = canvas.width - uW * uvScale - 8;
+      const uvOY = 8;
+      // Draw texture preview
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(pt.activeImg, uvOX, uvOY, uW * uvScale, uH * uvScale);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(80,220,255,.7)'; ctx.lineWidth = 0.5;
+      // Draw UV grid lines
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const u0=pt.mesh.verts[i0], u1=pt.mesh.verts[i1], u2=pt.mesh.verts[i2];
+        const ux0=uvOX+u0.x*uvScale/uW*uW*uvScale, uy0=uvOY+u0.y*uvScale/uH*uH*uvScale;
+        const ux1=uvOX+u1.x/uW*uW*uvScale, uy1=uvOY+u1.y/uH*uH*uvScale;
+        const ux2=uvOX+u2.x/uW*uW*uvScale, uy2=uvOY+u2.y/uH*uH*uvScale;
+        ctx.beginPath(); ctx.moveTo(uvOX+u0.x*uvScale, uvOY+u0.y*uvScale);
+        ctx.lineTo(uvOX+u1.x*uvScale, uvOY+u1.y*uvScale);
+        ctx.lineTo(uvOX+u2.x*uvScale, uvOY+u2.y*uvScale); ctx.closePath(); ctx.stroke();
+      }
+      // Label
+      ctx.fillStyle='rgba(80,220,255,.9)'; ctx.font='8px monospace';
+      ctx.fillText('UV', uvOX+2, uvOY+uH*uvScale+10);
+      // Deform magnitude as color in main canvas
+      if (pt.deforms[selParam]?.[curKF]) {
+        const d = pt.deforms[selParam][curKF];
+        ctx.globalAlpha = 0.35;
+        for (const [i0,i1,i2] of pt.mesh.tris) {
+          const avd = ((Math.abs(d[i0]?.dx||0)+Math.abs(d[i0]?.dy||0))+(Math.abs(d[i1]?.dx||0)+Math.abs(d[i1]?.dy||0))+(Math.abs(d[i2]?.dx||0)+Math.abs(d[i2]?.dy||0)))/6;
+          if (avd < 0.5) continue;
+          const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+          const hue = Math.max(0, 180 - avd * 2); // blue→red as deform increases
+          ctx.fillStyle = `hsl(${hue},90%,55%)`;
+          ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
   }
 
   // Ruler overlay
@@ -3406,6 +3455,14 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+function toggleUVOverlay() {
+  showUVOverlay = !showUVOverlay;
+  const btn = document.getElementById('btn-uv-overlay');
+  if (btn) { btn.style.background = showUVOverlay ? 'rgba(80,220,255,.25)' : ''; btn.style.borderColor = showUVOverlay ? '#50dcff' : ''; }
+  setStatus(showUVOverlay ? 'UVオーバーレイ ON: テクスチャ上のUV座標マッピングを表示' : 'UVオーバーレイ OFF');
+  render();
 }
 
 function togglePinMode() {
