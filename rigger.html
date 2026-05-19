@@ -242,6 +242,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
     <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
+    <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -744,6 +745,7 @@ for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
 let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
 let showDensityHeatmap = false;
+let showDeformVectors = false; // show deform displacement arrows for current KF
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
 let VS = 1, VOX = 0, VOY = 0;
@@ -1519,6 +1521,40 @@ function render() {
           ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.fill();
         });
         ctx.restore();
+      }
+      // Deform vector arrows: show per-vertex displacement for current KF
+      if (showDeformVectors && selParam && curKF !== undefined) {
+        const deformArr = pt.deforms[selParam]?.[curKF];
+        if (deformArr?.length) {
+          const neutralVals = Object.fromEntries(Object.keys(getParamVals()).map(k=>[k, P[k]?.k?.[0]??0]));
+          const nv = pt.getWorldVerts(neutralVals);
+          ctx.save();
+          for (let i = 0; i < nv.length; i++) {
+            const d = deformArr[i];
+            if (!d || (Math.abs(d.dx) < 0.3 && Math.abs(d.dy) < 0.3)) continue;
+            const mag = Math.hypot(d.dx, d.dy);
+            const maxMag = 60;
+            const t = Math.min(mag / maxMag, 1);
+            const r = Math.round(255 * t), g = Math.round(255 * (1 - t)), b = 80;
+            const from = m2s(nv[i].x, nv[i].y);
+            const to = m2s(nv[i].x + d.dx, nv[i].y + d.dy);
+            ctx.strokeStyle = `rgba(${r},${g},${b},0.85)`;
+            ctx.fillStyle = `rgba(${r},${g},${b},0.85)`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+            // Arrowhead
+            const angle = Math.atan2(to.y - from.y, to.x - from.x);
+            const asz = Math.min(6, Math.hypot(to.x-from.x, to.y-from.y) * 0.4);
+            if (asz > 1) {
+              ctx.beginPath();
+              ctx.moveTo(to.x, to.y);
+              ctx.lineTo(to.x - asz*Math.cos(angle-0.4), to.y - asz*Math.sin(angle-0.4));
+              ctx.lineTo(to.x - asz*Math.cos(angle+0.4), to.y - asz*Math.sin(angle+0.4));
+              ctx.closePath(); ctx.fill();
+            }
+          }
+          ctx.restore();
+        }
       }
       ctx.strokeStyle = isSel ? 'rgba(139,92,246,.6)' : 'rgba(80,110,180,.15)';
       ctx.lineWidth = isSel ? .8 : .4;
