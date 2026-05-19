@@ -7575,6 +7575,8 @@ function renderPoseList() {
         }},
         null,
         { icon:'✏', label:'名前を変更', action:()=>{ const nm=prompt('新しいポーズ名:',pose.name); if(nm){pose.name=nm;renderPoseList();} }},
+        { icon:'📷', label:'サムネイルを現在の画面で更新', action:()=>{ pose.thumbnail=_capturePoseThumbnail(); renderPoseList(); document.getElementById('lbl-status').textContent=`「${pose.name}」サムネイル更新`; }},
+        { icon:'💾', label:'現在値でポーズデータを上書き', action:()=>{ if(!confirm(`「${pose.name}」の値を現在のスライダー値で上書きしますか？`)) return; pose.values=Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val])); pose.thumbnail=_capturePoseThumbnail(); renderPoseList(); document.getElementById('lbl-status').textContent=`「${pose.name}」上書き保存`; }},
         { icon:'🗑', label:'削除', action:()=>deletePose(idx) },
       ]);
     });
