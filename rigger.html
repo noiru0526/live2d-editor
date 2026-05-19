@@ -536,6 +536,26 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <option value="difference">差の絶対値</option>
           </select>
         </div>
+        <!-- Shadow/Glow Effect -->
+        <div style="margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:7px;color:#3a5060;letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
+            <button onclick="resetPartShadow()" style="background:none;border:1px solid rgba(100,120,180,.3);color:#607090;border-radius:2px;padding:0 4px;cursor:pointer;font-size:7px" title="影をリセット">↺</button>
+          </div>
+          <div class="prop-row" style="gap:3px">
+            <span class="prop-lbl" title="ぼかし強度 (0=なし, 大=グロー)">ぼかし</span>
+            <input type="range" id="pp-shblur" min="0" max="80" value="0" step="1" oninput="applyPartShadow()" style="flex:1;accent-color:#80c0ff">
+            <span id="pp-shblur-v" style="font-size:9px;color:#80c0ff;font-family:monospace;min-width:20px;text-align:right">0</span>
+          </div>
+          <div class="prop-row" style="gap:3px">
+            <span class="prop-lbl">色</span>
+            <input type="color" id="pp-shcolor" value="#000000" oninput="applyPartShadow()" style="width:36px;height:18px;border:1px solid #1a3040;border-radius:2px;background:none;cursor:pointer;padding:0;">
+            <span class="prop-lbl" style="font-size:8px" title="X方向オフセット（右=正）">+X</span>
+            <input type="number" id="pp-shox" value="0" step="1" oninput="applyPartShadow()" style="width:34px;background:#0e1120;border:1px solid #1a3040;color:#aac;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+            <span class="prop-lbl" style="font-size:8px" title="Y方向オフセット（下=正）">+Y</span>
+            <input type="number" id="pp-shoy" value="0" step="1" oninput="applyPartShadow()" style="width:34px;background:#0e1120;border:1px solid #1a3040;color:#aac;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+          </div>
+        </div>
         <!-- Color adjustment (HSB) -->
         <div style="margin-top:4px;border-top:1px solid #1a2030;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
@@ -939,6 +959,7 @@ class Part {
     this.x = 0; this.y = 0;
     this.opacity = 1; this.blendMode = 'source-over';
     this.hue = 0; this.saturate = 100; this.brightness = 100;
+    this.shadowBlur = 0; this.shadowColor = '#000000'; this.shadowOffsetX = 0; this.shadowOffsetY = 0;
     this.locked = false; this.visible = true; this.zIndex = parts.length;
     this.mesh = null; this.deforms = {};
     this.opacityKFs = {}; // {paramKey: {kfValue: 0-1}}
@@ -1116,6 +1137,7 @@ class Part {
       id: this.id, name: this.name, x: this.x, y: this.y,
       opacity: this.opacity, blendMode: this.blendMode,
       hue: this.hue||0, saturate: this.saturate!==undefined?this.saturate:100, brightness: this.brightness!==undefined?this.brightness:100,
+      shadowBlur: this.shadowBlur||0, shadowColor: this.shadowColor||'#000000', shadowOffsetX: this.shadowOffsetX||0, shadowOffsetY: this.shadowOffsetY||0,
       locked: this.locked, visible: this.visible, zIndex: this.zIndex,
       clipTo: this.clipTo,
       groupId: this.groupId,
@@ -1139,6 +1161,7 @@ class Part {
     p.opacity = o.opacity !== undefined ? o.opacity : 1;
     p.blendMode = o.blendMode || 'source-over';
     p.hue = o.hue || 0; p.saturate = o.saturate !== undefined ? o.saturate : 100; p.brightness = o.brightness !== undefined ? o.brightness : 100;
+    p.shadowBlur = o.shadowBlur || 0; p.shadowColor = o.shadowColor || '#000000'; p.shadowOffsetX = o.shadowOffsetX || 0; p.shadowOffsetY = o.shadowOffsetY || 0;
     p.locked = o.locked || false;
     p.visible = o.visible !== false; p.zIndex = o.zIndex||0;
     p.clipTo = o.clipTo || null;
@@ -1422,6 +1445,7 @@ function screenshotCanvas(transparent) {
     octx.save();
     octx.globalAlpha = baseAlpha;
     octx.globalCompositeOperation = pt.blendMode||'source-over';
+    if (pt.shadowBlur>0) { octx.shadowBlur=pt.shadowBlur; octx.shadowColor=pt.shadowColor||'#000'; octx.shadowOffsetX=pt.shadowOffsetX||0; octx.shadowOffsetY=pt.shadowOffsetY||0; }
     const _sh=pt.hue||0,_ss=pt.saturate!==undefined?pt.saturate:100,_sb=pt.brightness!==undefined?pt.brightness:100;
     if (_sh!==0||_ss!==100||_sb!==100) octx.filter=`hue-rotate(${_sh}deg) saturate(${_ss/100}) brightness(${_sb/100})`;
     for (const [i0,i1,i2] of pt.mesh.tris) {
@@ -1683,6 +1707,10 @@ function render() {
     const dimmed = focusMode && (mode==='mesh'||mode==='deform') && pidx !== selPart && !selParts.has(pidx);
     ctx.globalAlpha = dimmed ? baseAlpha * 0.18 : baseAlpha;
     ctx.globalCompositeOperation = pt.blendMode || 'source-over';
+    if (pt.shadowBlur > 0) {
+      ctx.shadowBlur = pt.shadowBlur * VS; ctx.shadowColor = pt.shadowColor || '#000000';
+      ctx.shadowOffsetX = (pt.shadowOffsetX||0) * VS; ctx.shadowOffsetY = (pt.shadowOffsetY||0) * VS;
+    }
     const _hasHSBKF = Object.keys(pt.hueKFs||{}).length||Object.keys(pt.satKFs||{}).length||Object.keys(pt.briKFs||{}).length;
     const _hsb = _hasHSBKF ? pt.getHSBKF(vals) : {hue:pt.hue||0, sat:pt.saturate!==undefined?pt.saturate:100, bri:pt.brightness!==undefined?pt.brightness:100};
     const _hue = _hsb.hue, _sat = _hsb.sat, _bri = _hsb.bri;
@@ -2579,6 +2607,12 @@ function updatePartPropsUI() {
     document.getElementById('pp-op').value = op;
     document.getElementById('pp-op-v').textContent = op+'%';
     document.getElementById('pp-blend').value = pt.blendMode||'source-over';
+    // Shadow/Glow
+    const shBlur = pt.shadowBlur||0;
+    document.getElementById('pp-shblur').value = shBlur; document.getElementById('pp-shblur-v').textContent = Math.round(shBlur);
+    document.getElementById('pp-shcolor').value = pt.shadowColor||'#000000';
+    document.getElementById('pp-shox').value = pt.shadowOffsetX||0;
+    document.getElementById('pp-shoy').value = pt.shadowOffsetY||0;
     // HSB color adjustment
     const hue = pt.hue||0, sat = pt.saturate!==undefined?pt.saturate:100, bri = pt.brightness!==undefined?pt.brightness:100;
     document.getElementById('pp-hue').value = hue; document.getElementById('pp-hue-v').textContent = hue+'°';
@@ -2672,6 +2706,25 @@ function applyPartOpacity(v) {
   document.getElementById('pp-op-v').textContent=v+'%'; render();
 }
 function applyPartBlend(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].blendMode=v; render(); }
+function applyPartShadow() {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt=parts[selPart];
+  pt.shadowBlur = parseFloat(document.getElementById('pp-shblur').value)||0;
+  pt.shadowColor = document.getElementById('pp-shcolor').value||'#000000';
+  pt.shadowOffsetX = parseFloat(document.getElementById('pp-shox').value)||0;
+  pt.shadowOffsetY = parseFloat(document.getElementById('pp-shoy').value)||0;
+  document.getElementById('pp-shblur-v').textContent = Math.round(pt.shadowBlur);
+  render();
+}
+function resetPartShadow() {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt=parts[selPart];
+  pt.shadowBlur=0; pt.shadowColor='#000000'; pt.shadowOffsetX=0; pt.shadowOffsetY=0;
+  document.getElementById('pp-shblur').value=0; document.getElementById('pp-shblur-v').textContent=0;
+  document.getElementById('pp-shcolor').value='#000000';
+  document.getElementById('pp-shox').value=0; document.getElementById('pp-shoy').value=0;
+  render();
+}
 function applyPartHSB() {
   if (selPart<0||selPart>=parts.length) return;
   const pt = parts[selPart];
@@ -5158,6 +5211,7 @@ function frame(ts){
       ctx.clip();
     }
     ctx.save();ctx.globalAlpha=interpOpacity(pt,vals);ctx.globalCompositeOperation=pt.blendMode||'source-over';
+    if(pt.shadowBlur>0){ctx.shadowBlur=pt.shadowBlur;ctx.shadowColor=pt.shadowColor||'#000';ctx.shadowOffsetX=pt.shadowOffsetX||0;ctx.shadowOffsetY=pt.shadowOffsetY||0;}
     const _ah=pt.hue||0,_as=pt.saturate!==undefined?pt.saturate:100,_ab=pt.brightness!==undefined?pt.brightness:100;
     if(_ah!==0||_as!==100||_ab!==100)ctx.filter='hue-rotate('+_ah+'deg) saturate('+(_as/100)+') brightness('+(_ab/100)+')';
     for(const[i0,i1,i2] of pt.mesh.tris){
