@@ -2412,7 +2412,8 @@ function updatePartsUI() {
         const collapsed = collapsedGroups.has(pt.groupId);
         const count = parts.filter(p => p.groupId === pt.groupId).length;
         const gh = document.createElement('div'); gh.className = 'pgroup';
-        gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-del" title="グループを削除">✕</button>`;
+        gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-dup" title="グループを複製（全パーツをコピー）" style="background:none;border:none;color:#60a0d0;cursor:pointer;font-size:9px;padding:0 2px;">⧉</button><button class="pgroup-del" title="グループを削除">✕</button>`;
+        gh.querySelector('.pgroup-dup').onclick = (e) => { e.stopPropagation(); duplicateGroup(grp.id); };
         gh.querySelector('.pgroup-del').onclick = (e) => { e.stopPropagation(); deleteGroup(grp.id); };
         gh.onclick = () => toggleGroup(grp.id);
         list.appendChild(gh);
@@ -3444,6 +3445,33 @@ function toggleGroup(gid) {
   if (collapsedGroups.has(gid)) collapsedGroups.delete(gid);
   else collapsedGroups.add(gid);
   updatePartsUI();
+}
+// Duplicate all parts in a group, creating a new group with offset copies
+function duplicateGroup(gid) {
+  const grp = groups.find(g => g.id === gid); if (!grp) return;
+  const groupParts = parts.filter(p => p.groupId === gid);
+  if (!groupParts.length) { setStatus('グループにパーツがありません'); return; }
+  saveState();
+  const newGid = 'grp-' + Date.now();
+  const newGrpName = grp.name + '_コピー';
+  groups.push({ id: newGid, name: newGrpName });
+  const newParts = groupParts.map(pt => {
+    const json = pt.toJSON(true);
+    json.id = 'p-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+    json.name = pt.name + '_コピー';
+    json.x += 20; json.y += 20;
+    json.zIndex = parts.length + groupParts.indexOf(pt);
+    json.groupId = newGid;
+    const np = Part.fromJSON(json);
+    if (pt.img) { np.img = pt.img; np.imgDataURL = pt.imgDataURL; }
+    return np;
+  });
+  parts.push(...newParts);
+  parts.forEach((p, i) => p.zIndex = i);
+  selPart = parts.indexOf(newParts[0]);
+  selParts = new Set(newParts.map(p => parts.indexOf(p)));
+  updatePartsUI(); render();
+  setStatus(`グループ「${grp.name}」を複製 → 「${newGrpName}」(${newParts.length}パーツ)`);
 }
 function applyPartGroup(gid) {
   if (selPart < 0 || selPart >= parts.length) return;
