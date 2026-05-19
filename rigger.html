@@ -247,6 +247,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
+    <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -794,6 +795,7 @@ let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
 let showDeformVectors = false; // show deform displacement arrows for current KF
+let showZDepth = false; // show Z-depth color overlay (blue=back → red=front)
 let meshSymmetry = false; // mirror vertex edits across center X axis of part
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
 let hoveredPartIdx = -1;
@@ -1548,6 +1550,29 @@ function render() {
     ctx.restore();
 
     if (clipPt && clipPt.activeImg) ctx.restore();
+
+    // Z-Depth overlay: color each part by its render order (back=blue → front=red)
+    if (showZDepth && pt.mesh) {
+      const total = sorted.filter(p=>p.visible&&p.activeImg).length;
+      const rank = sorted.filter(p=>p.visible&&p.activeImg).indexOf(pt);
+      const norm = total > 1 ? rank / (total - 1) : 0.5; // 0=back, 1=front
+      const hue = Math.round(240 - norm * 240); // 240=blue(back) → 0=red(front)
+      ctx.save();
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+        ctx.fillStyle = `hsla(${hue},90%,55%,0.40)`;
+        ctx.beginPath(); ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath(); ctx.fill();
+      }
+      // Label rank index at part center
+      const cxs = wv.reduce((s,v)=>s+m2s(v.x,v.y).x,0)/wv.length;
+      const cys = wv.reduce((s,v)=>s+m2s(v.x,v.y).y,0)/wv.length;
+      ctx.fillStyle='rgba(0,0,0,.6)'; ctx.font='bold 9px monospace';
+      const lbl = `${rank}`;
+      const tw = ctx.measureText(lbl).width;
+      ctx.fillRect(cxs-tw/2-2, cys-8, tw+4, 11);
+      ctx.fillStyle=`hsl(${hue},80%,85%)`; ctx.textAlign='center'; ctx.fillText(lbl, cxs, cys); ctx.textAlign='left';
+      ctx.restore();
+    }
 
     // Hover highlight (parts mode only, unselected hovered part)
     if (mode==='parts' && pidx===hoveredPartIdx && pidx!==selPart && !selParts.has(pidx)) {
