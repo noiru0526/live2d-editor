@@ -241,6 +241,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-edge-hint" style="color:#4a8060;cursor:default" title="ドラッグ中にAltキー: 他パーツのエッジに吸着">Alt=エッジ</button>
     <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
     <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
+    <button class="tbtn" id="btn-bounds" onclick="showBounds=!showBounds;this.classList.toggle('active',showBounds);render()" title="バウンディングボックス: 全パーツのAABBを表示">⬚ バウンド</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
@@ -772,7 +773,7 @@ let partsFilter = '';
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false;
 let showDensityHeatmap = false;
 let showDeformVectors = false; // show deform displacement arrows for current KF
 let _snapGuideX = null, _snapGuideY = null; // canvas-space positions for snap guide lines
@@ -1794,6 +1795,39 @@ function render() {
   // Request next frame in preview mode for physics
   if (mode === 'preview' && parts.some(p => p.physics?.enabled)) {
     requestAnimationFrame(() => render());
+  }
+
+  // Bounding box overlay
+  if (showBounds && parts.length) {
+    ctx.save();
+    parts.forEach((pt, pidx) => {
+      if (!pt.visible) return;
+      const isSel = pidx === selPart || selParts.has(pidx);
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      if (pt.mesh && pt.mesh.verts.length) {
+        for (const v of pt.mesh.verts) {
+          const sp = m2s(pt.x + v.x, pt.y + v.y);
+          if (sp.x < minX) minX = sp.x; if (sp.x > maxX) maxX = sp.x;
+          if (sp.y < minY) minY = sp.y; if (sp.y > maxY) maxY = sp.y;
+        }
+      } else {
+        const tl = m2s(pt.x - pt.w/2, pt.y - pt.h/2);
+        const br = m2s(pt.x + pt.w/2, pt.y + pt.h/2);
+        minX = tl.x; minY = tl.y; maxX = br.x; maxY = br.y;
+      }
+      if (!isFinite(minX)) return;
+      const col = isSel ? 'rgba(120,180,255,0.9)' : (pt.colorLabel || 'rgba(80,120,180,0.4)');
+      ctx.strokeStyle = col; ctx.lineWidth = isSel ? 1.5 : 1;
+      ctx.setLineDash(isSel ? [] : [3, 3]);
+      ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+      if (isSel) {
+        ctx.fillStyle = 'rgba(120,180,255,0.08)';
+        ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
+        ctx.fillStyle = 'rgba(120,180,255,0.9)'; ctx.font = '8px monospace'; ctx.setLineDash([]);
+        ctx.fillText(`${Math.round((maxX-minX)/zoom)}×${Math.round((maxY-minY)/zoom)}`, minX + 2, minY - 2);
+      }
+    });
+    ctx.restore();
   }
 
   // Ruler overlay
