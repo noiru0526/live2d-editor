@@ -690,6 +690,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <option value="bubbles">💫 泡</option>
         </select>
       </div>
+      <div class="mcfg-row">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="export-hotkey-help" checked style="accent-color:var(--accent);">
+          ⌨ ホットキーヘルプ（?キーで表示）
+        </label>
+      </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">クレジット表示テキスト（空=非表示）</label>
         <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
@@ -3830,6 +3836,7 @@ function genAvatarHTML() {
   const particleDensity=parseInt(document.getElementById('export-particle-density')?.value||'20');
   const clickEffect=document.getElementById('export-click-effect')?.checked||false;
   const clickEffectType=document.getElementById('export-click-effect-type')?.value||'hearts';
+  const hotkeyHelp=document.getElementById('export-hotkey-help')?.checked!==false;
   // Build pose hotkey map: key → pose index (-1 = default)
   const poseHotkeyMap = {};
   const defKey = _exportHotkeys['__default__'] ?? '0';
@@ -3941,6 +3948,33 @@ ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
 ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#6878a0">0キー = デフォルトに戻す</span>`:''}
 </div>
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
+${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:rgba(14,17,32,.97);border:1px solid #3a4470;border-radius:10px;padding:18px 24px;color:#c8d4f0;font-family:monospace;font-size:11px;min-width:260px;max-width:360px;line-height:1.9;">
+    <div style="font-size:13px;font-weight:700;color:#4e7cff;margin-bottom:10px;border-bottom:1px solid #2a3060;padding-bottom:6px;">⌨ ホットキー一覧</div>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;white-space:nowrap;">1 〜 9</td><td>表情・ポーズ切替</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">0</td><td>デフォルト表情に戻す</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">スペース</td><td>アニメーション 再生/停止</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">R</td><td>アニメーション 先頭に戻す</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">← / →</td><td>KF ±0.1秒移動</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">T</td><td>顔追跡 ON/OFF</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">C</td><td>コントロールパネル</td></tr>
+      ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
+      ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
+    </table>
+    <div style="margin-top:10px;text-align:center;color:#6878a0;font-size:10px;">? または Esc キーで閉じる</div>
+  </div>
+</div>
+<script>
+(function(){
+  const ol=document.getElementById('hk-help-overlay');
+  document.addEventListener('keydown',function(e){
+    if(e.key==='?'||e.key=='/'){ol.style.display=ol.style.display==='flex'?'none':'flex';e.preventDefault();}
+    if(e.key==='Escape'&&ol.style.display==='flex'){ol.style.display='none';}
+  });
+  ol.addEventListener('click',function(ev){if(ev.target===ol)ol.style.display='none';});
+})();
+<\/script>` : ''}
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
