@@ -351,6 +351,11 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           </select>
         </div>
         <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:#c0e0ff;border-color:rgba(100,180,255,.4)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
+        <div style="display:flex;gap:3px;margin-top:3px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
+          <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:#60d8a0;border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
+          <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:#d080ff;border-color:rgba(180,80,255,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:#80c0ff;border-color:rgba(80,160,255,.4)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
+        </div>
       </div>
     </div>
 
@@ -5145,6 +5150,51 @@ function showKFBlendTool() {
   document.getElementById('kfb-ok').onclick = () => blendKFs(false);
   document.getElementById('kfb-cancel').onclick = () => modal.remove();
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+// ===== SNAPSHOT A/B COMPARE =====
+let _snapA = null, _snapB = null;
+
+function captureSnapshotAB(slot) {
+  const canvas = document.getElementById('c');
+  if (!canvas) { setStatus('キャンバスが見つかりません'); return; }
+  const off = document.createElement('canvas');
+  off.width = canvas.width; off.height = canvas.height;
+  off.getContext('2d').drawImage(canvas, 0, 0);
+  const dataURL = off.toDataURL('image/png');
+  if (slot === 'a') {
+    _snapA = dataURL;
+    const btn = document.getElementById('btn-snap-a');
+    if (btn) { btn.style.background='rgba(80,200,150,.25)'; btn.textContent='📷 A ✓'; }
+    setStatus('スナップA撮影完了');
+  } else {
+    _snapB = dataURL;
+    const btn = document.getElementById('btn-snap-b');
+    if (btn) { btn.style.background='rgba(180,80,255,.25)'; btn.textContent='📷 B ✓'; }
+    setStatus('スナップB撮影完了');
+  }
+}
+
+function showSnapshotCompare() {
+  if (!_snapA && !_snapB) { setStatus('📷 A / 📷 B ボタンでスナップショットを撮影してください'); return; }
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999';
+  const header = `<div style="color:#c0d8ff;font-size:14px;font-weight:bold;margin-bottom:12px">📸 スナップショット比較</div>`;
+  const imgStyle = 'max-width:46vw;max-height:70vh;border-radius:4px;object-fit:contain;';
+  const aHTML = _snapA
+    ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:bold">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #2a5040;border-radius:4px;color:#3a6050;font-size:11px">未撮影</div>`;
+  const bHTML = _snapB
+    ? `<div style="text-align:center"><div style="font-size:10px;color:#d080ff;margin-bottom:4px;font-weight:bold">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #d080ff;"></div>`
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #40205a;border-radius:4px;color:#60408a;font-size:11px">未撮影</div>`;
+  overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
+      <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(180,80,255,.2);border:1px solid rgba(180,80,255,.5);color:#d080ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
+      <button onclick="this.closest('[style]').remove()" style="background:#1a2040;border:1px solid rgba(100,120,180,.4);color:#809090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
+    </div>`;
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
 }
 
 // ===== CANVAS INTERACTION =====
