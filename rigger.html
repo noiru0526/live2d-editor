@@ -527,6 +527,17 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <input type="range" id="pp-bri" min="0" max="200" value="100" oninput="applyPartHSB()" style="flex:1;accent-color:#ffd060">
             <span id="pp-bri-v" style="font-size:9px;color:#ffd060;font-family:monospace;min-width:28px;text-align:right">100%</span>
           </div>
+          <div id="pp-hsbkf-row" style="display:none;background:rgba(200,80,255,.06);border:1px solid rgba(200,80,255,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+              <span style="font-size:7px;color:#c050ff;letter-spacing:.5px;text-transform:uppercase">KF 色調整</span>
+              <span id="pp-hsbkf-label" style="font-size:8px;color:#c880ff;font-family:monospace"></span>
+            </div>
+            <div style="display:flex;gap:3px;margin-top:2px">
+              <button onclick="setHSBKFHere()" style="flex:1;background:#1a1535;border:1px solid rgba(200,80,255,.4);color:#c880ff;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
+              <button onclick="clearHSBKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            </div>
+          </div>
+          <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(200,80,255,.07);border:1px dashed rgba(200,80,255,.25);color:#a060cc;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
         </div>
         <div class="prop-row">
           <span class="prop-lbl">クリップ</span>
@@ -875,6 +886,9 @@ class Part {
     this.locked = false; this.visible = true; this.zIndex = parts.length;
     this.mesh = null; this.deforms = {};
     this.opacityKFs = {}; // {paramKey: {kfValue: 0-1}}
+    this.hueKFs = {};    // {paramKey: {kfValue: degrees(-180..180)}}
+    this.satKFs = {};    // {paramKey: {kfValue: percent(0..200)}}
+    this.briKFs = {};    // {paramKey: {kfValue: percent(0..200)}}
     this.clipTo = null;
     this.groupId = null;
     this.deformerId = null;
@@ -976,6 +990,34 @@ class Part {
     }
     return Math.max(0, Math.min(1, opacity));
   }
+  // Returns {hue, sat, bri} for current param values, blending from static base + KF overrides
+  getHSBKF(vals) {
+    const _interp = (kfMap, base) => {
+      let val = base;
+      for (const [pn, kfs] of Object.entries(kfMap)) {
+        const pc = P[pn]; if (!pc) continue;
+        const pval = vals[pn] ?? 0;
+        const keys = Object.keys(kfs).map(Number).sort((a,b)=>a-b);
+        if (!keys.length) continue;
+        if (pval <= keys[0]) { val = kfs[keys[0]]; }
+        else if (pval >= keys[keys.length-1]) { val = kfs[keys[keys.length-1]]; }
+        else {
+          for (let i=0;i<keys.length-1;i++) {
+            if (pval >= keys[i] && pval <= keys[i+1]) {
+              const t=(pval-keys[i])/(keys[i+1]-keys[i]);
+              val=kfs[keys[i]]*(1-t)+kfs[keys[i+1]]*t; break;
+            }
+          }
+        }
+      }
+      return val;
+    };
+    return {
+      hue: _interp(this.hueKFs, this.hue||0),
+      sat: _interp(this.satKFs, this.saturate!==undefined?this.saturate:100),
+      bri: _interp(this.briKFs, this.brightness!==undefined?this.brightness:100),
+    };
+  }
   toJSON(withImage = true) {
     return {
       id: this.id, name: this.name, x: this.x, y: this.y,
@@ -987,6 +1029,7 @@ class Part {
       deformerId: this.deformerId,
       physics: {...this.physics},
       opacityKFs: this.opacityKFs,
+      hueKFs: this.hueKFs, satKFs: this.satKFs, briKFs: this.briKFs,
       mesh: {verts:this.mesh.verts, tris:this.mesh.tris, cols:this.mesh.cols, rows:this.mesh.rows},
       deforms: this.deforms,
       imageData: withImage ? this.imgDataURL : null,
@@ -1009,6 +1052,7 @@ class Part {
     p.deformerId = o.deformerId || null;
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.opacityKFs = o.opacityKFs || {};
+    p.hueKFs = o.hueKFs || {}; p.satKFs = o.satKFs || {}; p.briKFs = o.briKFs || {};
     p.mesh = {verts:o.mesh.verts, tris:o.mesh.tris, cols:o.mesh.cols||8, rows:o.mesh.rows||8};
     p.deforms = o.deforms||{};
     p.activeTexIdx = o.activeTexIdx !== undefined ? o.activeTexIdx : -1;
@@ -1544,7 +1588,9 @@ function render() {
     const dimmed = focusMode && (mode==='mesh'||mode==='deform') && pidx !== selPart && !selParts.has(pidx);
     ctx.globalAlpha = dimmed ? baseAlpha * 0.18 : baseAlpha;
     ctx.globalCompositeOperation = pt.blendMode || 'source-over';
-    const _hue = pt.hue||0, _sat = pt.saturate!==undefined?pt.saturate:100, _bri = pt.brightness!==undefined?pt.brightness:100;
+    const _hasHSBKF = Object.keys(pt.hueKFs||{}).length||Object.keys(pt.satKFs||{}).length||Object.keys(pt.briKFs||{}).length;
+    const _hsb = _hasHSBKF ? pt.getHSBKF(vals) : {hue:pt.hue||0, sat:pt.saturate!==undefined?pt.saturate:100, bri:pt.brightness!==undefined?pt.brightness:100};
+    const _hue = _hsb.hue, _sat = _hsb.sat, _bri = _hsb.bri;
     if (_hue !== 0 || _sat !== 100 || _bri !== 100) ctx.filter = `hue-rotate(${_hue}deg) saturate(${_sat/100}) brightness(${_bri/100})`;
     for (const [i0,i1,i2] of pt.mesh.tris) {
       const p0=wv[i0], p1=wv[i1], p2=wv[i2];
@@ -2526,6 +2572,46 @@ function updateOpacityKFUI() {
     row.style.display='none';
   }
 }
+let _hsbKFMode = false; // whether HSB KF recording is active
+function toggleHSBKFMode() {
+  _hsbKFMode = !_hsbKFMode;
+  const btn=document.getElementById('btn-hsbkf-toggle');
+  if(btn){btn.textContent=_hsbKFMode?'✓ HSBキーフレーム ON':'⊕ HSBキーフレーム';btn.style.borderColor=_hsbKFMode?'rgba(200,80,255,.6)':'rgba(200,80,255,.25)';btn.style.color=_hsbKFMode?'#e070ff':'#a060cc';}
+  updateHSBKFUI();
+  setStatus(_hsbKFMode?'HSBキーフレームモード ON: H/S/Bを変更後「KF設定」で記録':'HSBキーフレームモード OFF');
+}
+function setHSBKFHere() {
+  if(selPart<0||!_hsbKFMode) return;
+  saveState();
+  const pt=parts[selPart];
+  if(!pt.hueKFs[selParam]) pt.hueKFs[selParam]={};
+  if(!pt.satKFs[selParam]) pt.satKFs[selParam]={};
+  if(!pt.briKFs[selParam]) pt.briKFs[selParam]={};
+  pt.hueKFs[selParam][curKF] = pt.hue||0;
+  pt.satKFs[selParam][curKF] = pt.saturate!==undefined?pt.saturate:100;
+  pt.briKFs[selParam][curKF] = pt.brightness!==undefined?pt.brightness:100;
+  render(); updateHSBKFUI();
+  setStatus(`HSBキーフレーム記録: ${P[selParam].l} = ${curKF} (H=${pt.hue||0}° S=${pt.saturate||100}% B=${pt.brightness||100}%)`);
+}
+function clearHSBKF() {
+  if(selPart<0) return;
+  saveState();
+  const pt=parts[selPart];
+  if(pt.hueKFs[selParam]) delete pt.hueKFs[selParam][curKF];
+  if(pt.satKFs[selParam]) delete pt.satKFs[selParam][curKF];
+  if(pt.briKFs[selParam]) delete pt.briKFs[selParam][curKF];
+  render(); updateHSBKFUI(); setStatus('HSBキーフレームをクリア');
+}
+function updateHSBKFUI() {
+  const row=document.getElementById('pp-hsbkf-row'); if(!row) return;
+  if(_hsbKFMode && selPart>=0 && selPart<parts.length) {
+    row.style.display='block';
+    const pt=parts[selPart];
+    const hasKF=pt.hueKFs[selParam]?.[curKF]!==undefined||pt.satKFs[selParam]?.[curKF]!==undefined;
+    document.getElementById('pp-hsbkf-label').textContent=(hasKF?'★ ':'')+(P[selParam]?.l||selParam)+' = '+curKF;
+  } else { row.style.display='none'; }
+}
+
 function applyPartClip(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].clipTo=v||null; updatePartsUI(); render(); }
 function addAltTexture() {
   if (selPart<0||selPart>=parts.length) return;
@@ -3442,7 +3528,7 @@ function setMode(m) {
     deform:'変形リグ — KF × パラメータで変形',
     preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中'
   };
-  updatePartPropsUI(); updateOpacityKFUI(); setHint(hints[m]||''); render();
+  updatePartPropsUI(); updateOpacityKFUI(); updateHSBKFUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
 
@@ -3653,7 +3739,7 @@ function buildKFUI() {
   if (!pc.k.includes(curKF)) curKF=pc.k[0];
   document.getElementById('kf-param-label').textContent=P[selParam]?.l||selParam;
   document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
-  updateOpacityKFUI();
+  updateOpacityKFUI(); updateHSBKFUI();
 }
 
 function addKFPosition() {
