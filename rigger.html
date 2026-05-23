@@ -759,6 +759,14 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         </div>
       </div>
       <div id="params-list"></div>
+      <!-- PARAM BINDINGS -->
+      <div style="padding:4px 6px;border-top:1px solid #0e1820;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:7px;color:#2a5060;text-transform:uppercase;letter-spacing:.8px">バインド</span>
+          <button class="ih" onclick="showAddBindingModal()" title="選択パラメータにバインドを追加" style="font-size:9px;color:#3a6070">＋</button>
+        </div>
+        <div id="bindings-list" style="font-size:8px;color:#2a4060;min-height:12px"></div>
+      </div>
     </div>
 
     <!-- PHYSICS tab -->
@@ -869,6 +877,29 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
 </div>
 
 <!-- Custom param modal -->
+<div id="bind-mod" class="mo" style="display:none">
+  <div class="mb" style="min-width:280px">
+    <h3 id="bind-mod-title">バインドを追加</h3>
+    <div class="mb-grid">
+      <div class="mb-field"><label>ソース 最小</label><input type="number" id="bind-src-min" value="-1" step="0.1"></div>
+      <div class="mb-field"><label>ソース 最大</label><input type="number" id="bind-src-max" value="1" step="0.1"></div>
+    </div>
+    <div class="mb-field" style="margin-bottom:6px">
+      <label>ターゲットパラメータ</label>
+      <select id="bind-target" style="width:100%;background:#0d1117;border:1px solid #1a2a3a;color:#cdd6f4;padding:3px 6px;border-radius:3px;font-size:11px;" onchange="updateBindTargetRange()"></select>
+    </div>
+    <div class="mb-grid">
+      <div class="mb-field"><label>出力 最小</label><input type="number" id="bind-dst-min" value="0" step="0.1"></div>
+      <div class="mb-field"><label>出力 最大</label><input type="number" id="bind-dst-max" value="1" step="0.1"></div>
+    </div>
+    <p style="font-size:8px;color:#3a6080;">例: 頭Y(-1→1) → 目開き(1→0) = 頭上向きで目が細くなる</p>
+    <div class="ma">
+      <button class="mbn" onclick="document.getElementById('bind-mod').style.display='none'">キャンセル</button>
+      <button class="mbn ok" onclick="confirmAddBinding()">追加</button>
+    </div>
+  </div>
+</div>
+
 <div id="cpmod" class="mo" style="display:none">
   <div class="mb">
     <h3>カスタムパラメータを追加</h3>
@@ -943,6 +974,7 @@ let groups = [], customParams = {};
 const collapsedGroups = new Set();
 let deformers = [], selDeformer = -1;
 const collapsedDeformers = new Set();
+let paramBindings = {}; // { srcParam: [{target, srcMin, srcMax, dstMin, dstMax}] }
 const physState = new Map();
 let physLastTs = 0;
 
@@ -2451,6 +2483,7 @@ function loadModelFromJSON(json) {
     expressions = data.expressions || [];
     groups = data.groups || [];
     deformers = (data.deformers || []).map(o => o.type === 'rotation' ? RotationDeformer.fromJSON(o) : o.type === 'bone' ? BoneDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
+    paramBindings = data.paramBindings || {};
     collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
@@ -4656,19 +4689,101 @@ function deleteCustomParam(key) {
   buildParamsUI(); buildKFUI();
   setStatus(`カスタムパラメータ「${lbl}」を削除`);
 }
+
+// ===== PARAM BINDINGS UI =====
+function buildBindingsUI() {
+  const list = document.getElementById('bindings-list');
+  if (!list) return;
+  if (!selParam) { list.innerHTML = '<span style="color:#1e3040">パラメータを選択</span>'; return; }
+  const bindings = paramBindings[selParam] || [];
+  if (bindings.length === 0) {
+    list.innerHTML = `<span style="color:#1e3040">バインドなし</span>`;
+    return;
+  }
+  list.innerHTML = bindings.map((b, i) => {
+    const tl = P[b.target]?.l || b.target;
+    return `<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;padding:2px 4px;background:#060c14;border-radius:3px;border:1px solid #122030;">
+      <span style="flex:1;font-size:8px;color:#4080a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${tl}">→ ${tl}</span>
+      <span style="font-size:7px;color:#2a5060;white-space:nowrap;">[${b.srcMin.toFixed(1)},${b.srcMax.toFixed(1)}]→[${b.dstMin.toFixed(1)},${b.dstMax.toFixed(1)}]</span>
+      <button onclick="removeBinding('${selParam}',${i})" style="background:none;border:none;color:#1e3a50;cursor:pointer;font-size:9px;padding:0 2px;flex-shrink:0;" title="削除">✕</button>
+    </div>`;
+  }).join('');
+}
+function removeBinding(srcParam, idx) {
+  if (!paramBindings[srcParam]) return;
+  paramBindings[srcParam].splice(idx, 1);
+  if (paramBindings[srcParam].length === 0) delete paramBindings[srcParam];
+  buildBindingsUI();
+  setStatus(`バインド削除`);
+}
+function showAddBindingModal() {
+  if (!selParam) { setStatus('パラメータを先に選択してください'); return; }
+  const srcPc = P[selParam];
+  if (!srcPc) return;
+  const [srmin, srmax] = srcPc.r;
+  const otherParams = Object.entries(P).filter(([k]) => k !== selParam);
+  const sel = document.getElementById('bind-target');
+  sel.innerHTML = otherParams.map(([k,pc]) => `<option value="${k}">${pc.l}</option>`).join('');
+  document.getElementById('bind-mod-title').textContent = `バインド追加 — ${srcPc.l}`;
+  document.getElementById('bind-src-min').value = srmin.toFixed(2);
+  document.getElementById('bind-src-max').value = srmax.toFixed(2);
+  updateBindTargetRange();
+  document.getElementById('bind-mod').style.display = 'flex';
+}
+function updateBindTargetRange() {
+  const sel = document.getElementById('bind-target');
+  if (!sel) return;
+  const tPc = P[sel.value];
+  if (!tPc) return;
+  const [trmin, trmax] = tPc.r;
+  document.getElementById('bind-dst-min').value = trmin.toFixed(2);
+  document.getElementById('bind-dst-max').value = trmax.toFixed(2);
+}
+function confirmAddBinding() {
+  const srcMin = parseFloat(document.getElementById('bind-src-min').value);
+  const srcMax = parseFloat(document.getElementById('bind-src-max').value);
+  const target = document.getElementById('bind-target').value;
+  const dstMin = parseFloat(document.getElementById('bind-dst-min').value);
+  const dstMax = parseFloat(document.getElementById('bind-dst-max').value);
+  if (isNaN(srcMin)||isNaN(srcMax)||isNaN(dstMin)||isNaN(dstMax)||!target) return;
+  if (srcMin >= srcMax) { alert('ソース最小値 < 最大値にしてください'); return; }
+  if (!paramBindings[selParam]) paramBindings[selParam] = [];
+  paramBindings[selParam].push({ target, srcMin, srcMax, dstMin, dstMax });
+  document.getElementById('bind-mod').style.display = 'none';
+  buildBindingsUI();
+  setStatus(`バインド追加: ${P[selParam]?.l||selParam} → ${P[target]?.l||target}`);
+}
 function selPrm(pn) {
   selParam=pn;
   document.querySelectorAll('.pitem').forEach(el=>el.classList.remove('spa'));
   const el=document.getElementById('pi-'+pn); if(el) el.classList.add('spa');
   document.getElementById('spn').textContent=P[pn]?.l||pn;
-  buildKFUI(); render();
+  buildKFUI(); buildBindingsUI(); render();
 }
 function updPrm(pn, raw) {
   const pc=P[pn], [rmin,rmax]=pc.r;
   const val=rmin+(raw/100)*(rmax-rmin); pv[pn]=val;
   const el=document.getElementById('pv-'+pn); if(el) el.textContent=val.toFixed(2);
+  applyParamBindings(pn, val, new Set([pn]));
   drawXYGrid();
   render();
+}
+function applyParamBindings(srcParam, srcVal, visited) {
+  const bindings = paramBindings[srcParam];
+  if (!bindings || bindings.length === 0) return;
+  for (const b of bindings) {
+    if (!P[b.target] || visited.has(b.target)) continue;
+    const t = (b.srcMax !== b.srcMin) ? Math.max(0, Math.min(1, (srcVal - b.srcMin) / (b.srcMax - b.srcMin))) : 0;
+    const [drmin, drmax] = P[b.target].r;
+    const dstVal = Math.max(drmin, Math.min(drmax, b.dstMin + t * (b.dstMax - b.dstMin)));
+    pv[b.target] = dstVal;
+    const pvEl = document.getElementById('pv-'+b.target); if(pvEl) pvEl.textContent = dstVal.toFixed(2);
+    const rawPct = ((dstVal - drmin) / (drmax - drmin) * 100);
+    const slider = document.querySelector(`input[oninput="updPrm('${b.target}',this.value)"]`);
+    if (slider) slider.value = rawPct.toFixed(0);
+    visited.add(b.target);
+    applyParamBindings(b.target, dstVal, visited);
+  }
 }
 
 // ===== 2D XY GRID =====
@@ -5999,7 +6114,7 @@ if (isElectron) {
 
 // ===== EXPORT =====
 async function saveModelOnly() {
-  const model={version:3, canvasW, canvasH, expressions, groups, customParams, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
   const json=JSON.stringify(model,null,2);
   if (isElectron) {
     const ok=await window.rigger.saveModel(json); if(ok) setStatus(`モデル保存完了 (${parts.length}パーツ, ${expressions.length}表情)`);
@@ -6120,7 +6235,7 @@ async function doExportAvatar() {
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   document.getElementById('av-export-overlay')?.remove();
 
-  const model = { version: 3, canvasW, canvasH, expressions, parts: parts.map(p => p.toJSON(true)) };
+  const model = { version: 3, canvasW, canvasH, expressions, paramBindings, parts: parts.map(p => p.toJSON(true)) };
   let html = buildAvatarHTML(model);
 
   // Inject default params via meta tag so avatar auto-applies them on load
@@ -6179,7 +6294,7 @@ async function doExportAvatar() {
 
 async function exportAvatarHTMLDirect() {
   if (parts.length===0) { setStatus('パーツがありません'); return; }
-  const model={version:3, canvasW, canvasH, expressions, parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, paramBindings, parts:parts.map(p=>p.toJSON(true))};
   const html=buildAvatarHTML(model);
   if (isElectron) {
     const ok=await window.rigger.exportAvatar(html); if(ok) setStatus('アバターHTMLを保存しました');
@@ -6331,6 +6446,23 @@ function _ptImg(pt,vals){
 }
 
 const DEFORMERS=MODEL.deformers||[];
+const PARAM_BINDINGS=MODEL.paramBindings||{};
+function applyAvatarBindings(vals){
+  const visited=new Set();
+  function apply(src){
+    if(visited.has(src))return;visited.add(src);
+    const bs=PARAM_BINDINGS[src];if(!bs)return;
+    const sv=vals[src]??0;
+    for(const b of bs){
+      if(!PD[b.target])continue;
+      const t=b.srcMax!==b.srcMin?Math.max(0,Math.min(1,(sv-b.srcMin)/(b.srcMax-b.srcMin))):0;
+      const[dr,dx]=PD[b.target].r;
+      vals[b.target]=Math.max(dr,Math.min(dx,b.dstMin+t*(b.dstMax-b.dstMin)));
+      apply(b.target);
+    }
+  }
+  for(const k of Object.keys(PARAM_BINDINGS))apply(k);
+}
 function interpRotDeform(def,vals){
   let angle=0,scaleX=1,scaleY=1;
   for(const[pn,pval]of Object.entries(vals)){const pc=PD[pn];if(!pc||!def.deforms?.[pn])continue;
@@ -6458,6 +6590,7 @@ function frame(ts){
   const breathVal=Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09;
   S.breath=breathVal*.5+.5;
   const vals={...S,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
+  applyAvatarBindings(vals);
   const cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
   const hx=S.headX*18+S.bodyX*6+Math.sin(breathT*.6)*.6;
@@ -6607,7 +6740,7 @@ let _riggerAutoSaveTimer = null;
 function riggerAutoSave() {
   if (!parts.some(p => p.img)) return;
   try {
-    const model = {version:3, canvasW, canvasH, expressions, groups, customParams,
+    const model = {version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings,
                    deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(false))};
     const json = JSON.stringify(model);
     localStorage.setItem(RIGGER_AS_KEY, json);
