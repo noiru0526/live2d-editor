@@ -373,6 +373,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
         </div>
+        <button id="btn-deform-heat" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleDeformHeat()" title="変形量ヒートマップ: 頂点の変形量を青(0)→赤(大)で色表示">🌡 熱マップ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="showDeformWaveModal()" title="サインウェーブパターンを頂点デフォームに適用（波紋・揺れ・うねり効果）">〜 Wave</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
@@ -986,7 +987,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -2016,6 +2017,9 @@ function render() {
         }
         const kd = mode==='deform' ? (pt.deforms[selParam]?.[curKF]||[]) : [];
         const _symMirrorI = (meshSymmetry && dragVI>=0) ? getMirrorVertIdx(dragVI, pt.mesh) : -1;
+        // Compute max displacement for heat map normalization
+        let _heatMax = 0;
+        if (showDeformHeat && mode==='deform') { for (const d of kd) { if (d) { const m=Math.sqrt(d.dx*d.dx+d.dy*d.dy); if(m>_heatMax)_heatMax=m; } } _heatMax = Math.max(_heatMax, 1); }
         for (let i=0; i<wv.length; i++) {
           const s = m2s(wv[i].x, wv[i].y);
           const isPinned = pt.pinnedVerts && pt.pinnedVerts.has(i);
@@ -2029,8 +2033,16 @@ function render() {
           }
           const hd = kd[i] && (Math.abs(kd[i].dx)>.5 || Math.abs(kd[i].dy)>.5);
           const isMirror = i === _symMirrorI;
+          let fillColor;
+          if (showDeformHeat && mode==='deform' && !isMirror && i!==dragVI) {
+            const mag = kd[i] ? Math.sqrt(kd[i].dx*kd[i].dx+kd[i].dy*kd[i].dy)/_heatMax : 0;
+            const r2=Math.round(Math.min(255,mag*2*255)), g2=Math.round(Math.min(255,Math.min(mag,1-mag)*2*255)), b2=Math.round(Math.max(0,255-mag*2*255));
+            fillColor = `rgba(${r2},${g2},${b2},0.95)`;
+          } else {
+            fillColor = i===dragVI ? '#fff' : isMirror ? '#f472b6' : hd?'#cba6f7':'rgba(139,92,246,.8)';
+          }
           ctx.beginPath(); ctx.arc(s.x, s.y, i===dragVI?4.5:(isMirror?4:(hd?3.5:2.5)), 0, Math.PI*2);
-          ctx.fillStyle = i===dragVI ? '#fff' : isMirror ? '#f472b6' : hd?'#cba6f7':'rgba(139,92,246,.8)';
+          ctx.fillStyle = fillColor;
           ctx.fill();
           if (isMirror) { ctx.strokeStyle='rgba(244,114,182,.8)'; ctx.lineWidth=1.5; ctx.stroke(); }
         }
@@ -4037,6 +4049,13 @@ function toggleUVOverlay() {
   setStatus(showUVOverlay ? 'UVオーバーレイ ON: テクスチャ上のUV座標マッピングを表示' : 'UVオーバーレイ OFF');
   render();
 }
+function toggleDeformHeat() {
+  showDeformHeat = !showDeformHeat;
+  const btn = document.getElementById('btn-deform-heat');
+  if (btn) { btn.style.background = showDeformHeat ? 'rgba(255,100,60,.25)' : ''; btn.style.borderColor = showDeformHeat ? '#ff643c' : ''; }
+  setStatus(showDeformHeat ? '変形量ヒートマップ ON: 頂点色が変形量(青→緑→赤)を表示' : '変形量ヒートマップ OFF');
+  render();
+}
 
 function togglePinMode() {
   pinMode = !pinMode;
@@ -5994,7 +6013,13 @@ canvas.addEventListener('mousemove',e=>{
     const pt=parts[selPart];
     if (pt.pinnedVerts.has(dragVI)) { render(); return; } // skip pinned vertex
     if (mode==='mesh'){
-      pt.mesh.verts[dragVI].x+=ddx; pt.mesh.verts[dragVI].y+=ddy; pt.resizeDeforms();
+      pt.mesh.verts[dragVI].x+=ddx; pt.mesh.verts[dragVI].y+=ddy;
+      if (e.ctrlKey && gridSize > 0) {
+        const wX = pt.mesh.verts[dragVI].x + pt.x, wY = pt.mesh.verts[dragVI].y + pt.y;
+        pt.mesh.verts[dragVI].x = Math.round(wX/gridSize)*gridSize - pt.x;
+        pt.mesh.verts[dragVI].y = Math.round(wY/gridSize)*gridSize - pt.y;
+      }
+      pt.resizeDeforms();
       if (meshSymmetry) {
         const mi=getMirrorVertIdx(dragVI,pt.mesh);
         if (mi>=0) { pt.mesh.verts[mi].x-=ddx; pt.mesh.verts[mi].y+=ddy; }
