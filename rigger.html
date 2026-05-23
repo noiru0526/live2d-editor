@@ -6478,6 +6478,37 @@ window.addEventListener('message',ev=>{
 // Send expressions list to parent (for multi-avatar UI)
 if(window.parent!==window){window.parent.postMessage({type:'exprs-ready',exprs:EXPRS.map(e=>e.name)},'*');}
 
+// Gamepad support (?gamepad=1 to enable, or press G key to toggle)
+let _gpEnabled=_p.has('gamepad');
+const _GP_DZ=0.12;
+function _gp(v){return Math.abs(v)<_GP_DZ?0:v;}
+function _gpv(b){return b?(typeof b==='object'?b.value:1):0;}
+function _gpb(b){return b?(typeof b==='object'?b.pressed:true):false;}
+function gpStep(){
+  if(!_gpEnabled)return;
+  const gps=navigator.getGamepads?navigator.getGamepads():[];
+  const gp=[...gps].find(g=>g?.connected);
+  if(!gp)return;
+  const lx=_gp(gp.axes[0]),ly=_gp(gp.axes[1]);
+  const rx=_gp(gp.axes[2]),ry=_gp(gp.axes[3]);
+  const lt=_gpv(gp.buttons[6]),rt=_gpv(gp.buttons[7]);
+  const du=_gpb(gp.buttons[12]),dd=_gpb(gp.buttons[13]),dl=_gpb(gp.buttons[14]),dr=_gpb(gp.buttons[15]);
+  if(lx!==0||ly!==0){T.headX=lx;T.headY=-ly;}
+  if(rx!==0||ry!==0){T.eyeBallX=rx;T.eyeBallY=-ry;}
+  if(lt>0)T.eyeOpenL=1-lt;
+  if(rt>0)T.eyeOpenR=1-rt;
+  if(du||dd||dl||dr){T.bodyX=(dr?0.5:0)-(dl?0.5:0);T.bodyY=(dd?0.5:0)-(du?0.5:0);}
+  // Face buttons → expressions (X=0,○=1,□=2,△=3 / A=0,B=1,X=2,Y=3)
+  [0,1,2,3].forEach((bi,i)=>{
+    if(_gpb(gp.buttons[bi])&&i<EXPRS.length){curExpr=i;Object.assign(T,EXPRS[i].values);document.querySelectorAll('.expr-btn').forEach((b,j)=>b.classList.toggle('on',j===i+1));}
+  });
+  if(_gpb(gp.buttons[8])||_gpb(gp.buttons[9])){curExpr=-1;for(const k of Object.keys(T))if(k!=='headX'&&k!=='headY')T[k]=0;}
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='g'||e.key==='G'){_gpEnabled=!_gpEnabled;_stEl&&(_stEl.textContent=_gpEnabled?'🎮 Gamepad ON':'Gamepad OFF');setTimeout(()=>{if(SHOW_STATUS)_stEl&&(_stEl.textContent='');},2000);}
+});
+window.addEventListener('gamepadconnected',()=>{if(!_gpEnabled){_gpEnabled=true;_stEl&&(_stEl.textContent='🎮 Gamepad connected');setTimeout(()=>{if(SHOW_STATUS)_stEl&&(_stEl.textContent='');},2000);}});
+
 // Physics step
 function physStep(dt){
   for(const pt of MODEL.parts){
@@ -6650,6 +6681,7 @@ function frame(ts){
   if(ts-last<_minFrameMs-1){requestAnimationFrame(frame);return;}
   const dt=Math.min((ts-last)/1000,.05);last=ts;
   _fpsCount++;if(ts-_fpsLast>=1000){_fpsVal=Math.round(_fpsCount*1000/(ts-_fpsLast));_fpsCount=0;_fpsLast=ts;}
+  gpStep();
   const sm=.12;
   S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,.09);
   S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,.35);S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,.35);
