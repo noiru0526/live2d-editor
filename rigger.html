@@ -6601,6 +6601,17 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:#406050;margin-bottom:12px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0b0d0;white-space:nowrap;font-size:10px">OBS WS:</span>
+        <input id="av-obs-ws" type="text" placeholder="ws://localhost:4455（空白=無効）" style="flex:1;background:#0e1120;border:1px solid #2a2a3a;color:#c0c0ff;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+        <span style="color:#a0b0d0;white-space:nowrap;font-size:10px">パスワード:</span>
+        <input id="av-obs-pass" type="password" placeholder="（空白=なし）" style="width:80px;background:#0e1120;border:1px solid #2a2a3a;color:#c0c0ff;border-radius:4px;padding:4px 8px;font-size:10px">
+      </div>
+      <div style="font-size:9px;color:#404060;margin-bottom:4px">シーン名↔表情インデックスのマッピング（JSON形式）</div>
+      <textarea id="av-obs-map" rows="3" placeholder='{"ゲーム": 0, "雑談": 1, "BRB": 2}' style="width:100%;background:#080c18;border:1px solid #2a2a3a;color:#c0c0ff;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
+      <div style="font-size:9px;color:#404060;margin-bottom:12px">OBS WebSocket v5（obs-websocket 5.x）に対応。シーン切替で自動表情発動。</div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
       <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
@@ -6642,6 +6653,12 @@ function showAvatarExportDialog() {
     }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
     if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
+    const obsWsUrl = document.getElementById('av-obs-ws')?.value?.trim();
+    if (obsWsUrl) params.push('obsws=' + encodeURIComponent(obsWsUrl));
+    const obsPass = document.getElementById('av-obs-pass')?.value?.trim();
+    if (obsPass) params.push('obspass=' + encodeURIComponent(obsPass));
+    const obsMap = document.getElementById('av-obs-map')?.value?.trim();
+    if (obsMap) params.push('obsmap=' + encodeURIComponent(obsMap));
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
@@ -6987,6 +7004,61 @@ document.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F')triggerFlash();
   if(e.key==='b'||e.key==='B')toggleBlur();
 });
+
+// OBS WebSocket v5 integration (?obsws=ws://localhost:4455&obspass=...&obsmap={...})
+(function(){
+  const obsWsUrl=_p.get('obsws');
+  if(!obsWsUrl)return;
+  const obsPass=_p.get('obspass')||'';
+  let obsSceneMap={};
+  try{ obsSceneMap=JSON.parse(decodeURIComponent(_p.get('obsmap')||'{}')); }catch(e){}
+  let _obsWs, _obsReqId=1, _obsIdentified=false;
+  function _obsSend(type, data={}){ if(!_obsWs||_obsWs.readyState!==1)return; _obsWs.send(JSON.stringify({op:6,d:{requestType:type,requestId:'r'+(++_obsReqId),...data}})); }
+  function _obsConnect(){
+    try{ _obsWs=new WebSocket(obsWsUrl); }catch(e){ return; }
+    _obsWs.onopen=()=>{};
+    _obsWs.onclose=()=>{ _obsIdentified=false; setTimeout(_obsConnect,5000); };
+    _obsWs.onerror=()=>{};
+    _obsWs.onmessage=(ev)=>{
+      let msg; try{ msg=JSON.parse(ev.data); }catch(e){ return; }
+      const op=msg.op, d=msg.d||{};
+      if(op===0){ // Hello
+        const auth=d.authentication;
+        const ident={op:1,d:{rpcVersion:1}};
+        if(auth&&obsPass){
+          // OBS auth: SHA256(password + salt) → base64 → SHA256(result + challenge) → base64
+          const te=new TextEncoder();
+          async function _sha256b64(buf){ const h=await crypto.subtle.digest('SHA-256',buf); return btoa(String.fromCharCode(...new Uint8Array(h))); }
+          (async()=>{
+            const s1=await _sha256b64(te.encode(obsPass+auth.salt));
+            const s2=await _sha256b64(te.encode(s1+auth.challenge));
+            ident.d.authentication=s2;
+            _obsWs.send(JSON.stringify(ident));
+          })();
+        } else { _obsWs.send(JSON.stringify(ident)); }
+      } else if(op===2){ // Identified
+        _obsIdentified=true;
+        if(_stEl)_stEl.textContent='OBS接続済み';
+        _obsSend('GetCurrentProgramScene');
+      } else if(op===5){ // Event
+        const evType=d.eventType, ed=d.eventData||{};
+        if(evType==='CurrentProgramSceneChanged'){
+          const sceneName=ed.sceneName||'';
+          const idx=Object.prototype.hasOwnProperty.call(obsSceneMap,sceneName)?obsSceneMap[sceneName]:-1;
+          if(idx>=0&&typeof applyExpr==='function') applyExpr(idx);
+          if(_stEl)_stEl.textContent='シーン: '+sceneName+(idx>=0?` → 表情${idx}`:'');
+        }
+      } else if(op===7){ // RequestResponse
+        const res=d.responseData||{};
+        if(d.requestType==='GetCurrentProgramScene'&&res.currentProgramSceneName){
+          const idx=obsSceneMap[res.currentProgramSceneName]??-1;
+          if(idx>=0&&typeof applyExpr==='function') applyExpr(idx);
+        }
+      }
+    };
+  }
+  _obsConnect();
+})();
 
 // WebSocket game event integration (?ws=ws://localhost:8765)
 // Supported events: { type: "kill"|"death"|"hit"|"win"|"lose"|"custom", ... }
