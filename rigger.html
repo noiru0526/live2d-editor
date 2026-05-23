@@ -255,6 +255,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
     <button class="tbtn" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.classList.toggle('active',showOnionSkin);render()" title="オニオンスキン: 前KF（シアン）・次KF（オレンジ）のデフォームゴーストを重ねて表示（デフォームモードで有効）">👻 オニオン</button>
     <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
+    <button class="tbtn" id="btn-refimg" onclick="toggleRefImagePanel()" title="参考画像オーバーレイ: トレース・アライメント用に背景参照画像を表示">🖼 参考</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -431,6 +432,22 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <div id="zoom-hud">100%</div>
     <div id="coord-hud">0, 0</div>
     <div id="mode-badge">PARTS</div>
+    <!-- Reference Image Panel -->
+    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(8,12,20,.94);border:1px solid rgba(100,160,255,.25);border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#5080a0">
+      <div style="font-weight:700;color:#818cf8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
+      <button onclick="loadRefImage()" style="width:100%;background:#1a2030;border:1px solid rgba(100,140,255,.3);color:#80a0d0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
+        <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#818cf8" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
+      </label>
+      <label style="display:block;margin-bottom:3px">スケール <span id="ref-scl-v">1.00</span><br>
+        <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#f59e0b" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
+      </label>
+      <div style="display:flex;gap:4px;margin-bottom:3px">
+        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#0a1020;border:1px solid #1a3040;color:#8090c0;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
+        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:#0a1020;border:1px solid #1a3040;color:#8090c0;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
+      </div>
+      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
+    </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(8,12,20,.92);border:1px solid rgba(100,160,255,.3);border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#6090b0;z-index:200">
       <span style="color:#818cf8;font-weight:700;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
@@ -1016,6 +1033,8 @@ const physState = new Map();
 let physLastTs = 0;
 // Weight paint state
 let _wpBrushR = 40, _wpBrushStr = 0.05, _wpBrushVal = 1.0, _wpPainting = false;
+// Reference image overlay
+let _refImg = null, _refOpacity = 0.3, _refScale = 1.0, _refX = 0, _refY = 0;
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -1785,6 +1804,16 @@ function render() {
     ctx.beginPath(); ctx.moveTo(cx.x,cx.y); ctx.lineTo(cxe.x,cxe.y); ctx.stroke();
     const cy=m2s(0,canvasH/2), cye=m2s(canvasW,canvasH/2);
     ctx.beginPath(); ctx.moveTo(cy.x,cy.y); ctx.lineTo(cye.x,cye.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Reference image overlay (before parts)
+  if (_refImg) {
+    ctx.save();
+    ctx.globalAlpha = _refOpacity;
+    const rs = m2s(_refX, _refY);
+    ctx.drawImage(_refImg, rs.x, rs.y, _refImg.width * _refScale * VS, _refImg.height * _refScale * VS);
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
 
@@ -4055,6 +4084,27 @@ function toggleDeformHeat() {
   if (btn) { btn.style.background = showDeformHeat ? 'rgba(255,100,60,.25)' : ''; btn.style.borderColor = showDeformHeat ? '#ff643c' : ''; }
   setStatus(showDeformHeat ? '変形量ヒートマップ ON: 頂点色が変形量(青→緑→赤)を表示' : '変形量ヒートマップ OFF');
   render();
+}
+function toggleRefImagePanel() {
+  const panel = document.getElementById('ref-panel');
+  const btn = document.getElementById('btn-refimg');
+  const shown = panel.style.display !== 'none';
+  panel.style.display = shown ? 'none' : 'block';
+  if (btn) btn.classList.toggle('active', !shown);
+}
+function loadRefImage() {
+  const fi = document.createElement('input'); fi.type='file'; fi.accept='image/*';
+  fi.onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = ev => {
+      const img = new Image();
+      img.onload = () => { _refImg = img; render(); setStatus('参考画像を読み込みました'); };
+      img.src = ev.target.result;
+    };
+    rd.readAsDataURL(f);
+  };
+  fi.click();
 }
 
 function togglePinMode() {
