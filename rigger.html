@@ -6595,6 +6595,12 @@ function showAvatarExportDialog() {
         <div style="color:#4a6080;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
       </div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
+        <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#0e1120;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+      </div>
+      <div style="font-size:9px;color:#406050;margin-bottom:12px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
       <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
@@ -6634,6 +6640,8 @@ function showAvatarExportDialog() {
       const cmd = document.getElementById('av-chat-cmd')?.value?.trim();
       if (cmd) params.push('chatcmd=' + encodeURIComponent(cmd));
     }
+    const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
+    if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
@@ -6804,7 +6812,8 @@ function _buildHotkeyPanel(){
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
   rows.push(['B','ブラーON/OFF']);
-  el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
+  if(_p.get('ws')){rows.push(['---','--- WebSocket ---']);rows.push(['WS',_p.get('ws')]);}
+  el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#4080a0;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
 document.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}});
@@ -6978,6 +6987,45 @@ document.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F')triggerFlash();
   if(e.key==='b'||e.key==='B')toggleBlur();
 });
+
+// WebSocket game event integration (?ws=ws://localhost:8765)
+// Supported events: { type: "kill"|"death"|"hit"|"win"|"lose"|"custom", ... }
+(function(){
+  const wsUrl=_p.get('ws');
+  if(!wsUrl)return;
+  let _wsReconnT=null;
+  function _wsConnect(){
+    let ws;
+    try { ws=new WebSocket(wsUrl); } catch(e){ return; }
+    ws.onopen=()=>{ if(_stEl)_stEl.textContent='WS 接続済み'; };
+    ws.onclose=()=>{ _wsReconnT=setTimeout(_wsConnect,3000); };
+    ws.onerror=()=>{};
+    ws.onmessage=(ev)=>{
+      let msg;
+      try { msg=JSON.parse(ev.data); } catch(e){ return; }
+      const t=msg.type||msg.event||'';
+      switch(t.toLowerCase()){
+        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); break;
+        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); break;
+        case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); break;
+        case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); break;
+        case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); break;
+        case 'shake':  triggerShake(msg.amp??8, msg.dur??0.3); break;
+        case 'flash':  triggerFlash(msg.color||'rgba(255,255,255,0.7)', msg.dur??120); break;
+        case 'blur':   toggleBlur(); break;
+        case 'expr':   if(msg.index>=0&&typeof applyExpr==='function') applyExpr(msg.index); break;
+        case 'param':
+          if(msg.name&&typeof msg.value==='number')S[msg.name]=Math.max(-1,Math.min(1,msg.value));
+          break;
+        case 'custom':
+          if(msg.shake) triggerShake(msg.shake.amp??8, msg.shake.dur??0.3);
+          if(msg.flash) triggerFlash(msg.flash.color||'rgba(255,255,255,0.7)', msg.flash.dur??120);
+          break;
+      }
+    };
+  }
+  _wsConnect();
+})();
 
 // Physics step
 function physStep(dt){
