@@ -391,6 +391,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="clearAllPins()" title="全ピンを解除">× 全解除</button>
         </div>
         <button id="btn-uv-overlay" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleUVOverlay()" title="UVオーバーレイ: 現在のメッシュをUV座標空間で表示（テクスチャのどの部分がどのポリゴンに対応するか可視化）">🗺 UV表示</button>
+        <button id="btn-topo-edit" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleTopoEditMode()" title="手動トポロジー: 頂点をクリックして三角形を手動で作成・削除。3頂点選択で三角形追加、既存三角形クリックで削除">▽ トポロジー編集</button>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="exportDeformCSV()" title="全デフォームデータをCSVでエクスポート">↓ CSV</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="document.getElementById('csv-import-in').click()" title="CSVからデフォームデータをインポート">↑ CSV</button>
@@ -1020,7 +1021,8 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false, showSkeleton = false, showMotionPath = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false, showSkeleton = false, showMotionPath = false, topoEditMode = false;
+let _topoSelVerts = [];
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -2053,6 +2055,22 @@ function render() {
           ctx.fillStyle = fillColor;
           ctx.fill();
           if (isMirror) { ctx.strokeStyle='rgba(244,114,182,.8)'; ctx.lineWidth=1.5; ctx.stroke(); }
+        }
+        // Topology edit overlay: highlight pending verts and show in-progress triangle
+        if (topoEditMode && isSel && mode === 'mesh') {
+          for (const vi of _topoSelVerts) {
+            const sv = m2s(wv[vi].x, wv[vi].y);
+            ctx.beginPath(); ctx.arc(sv.x, sv.y, 8, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(255,200,60,.35)'; ctx.fill();
+            ctx.strokeStyle = '#ffd060'; ctx.lineWidth = 1.5; ctx.stroke();
+          }
+          if (_topoSelVerts.length === 2) {
+            const sv0 = m2s(wv[_topoSelVerts[0]].x, wv[_topoSelVerts[0]].y);
+            const sv1 = m2s(wv[_topoSelVerts[1]].x, wv[_topoSelVerts[1]].y);
+            ctx.strokeStyle = 'rgba(255,200,60,.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+            ctx.beginPath(); ctx.moveTo(sv0.x, sv0.y); ctx.lineTo(sv1.x, sv1.y); ctx.stroke();
+            ctx.setLineDash([]);
+          }
         }
       }
     }
@@ -4352,6 +4370,61 @@ function toggleUVOverlay() {
   setStatus(showUVOverlay ? 'UVオーバーレイ ON: テクスチャ上のUV座標マッピングを表示' : 'UVオーバーレイ OFF');
   render();
 }
+
+function toggleTopoEditMode() {
+  topoEditMode = !topoEditMode;
+  _topoSelVerts = [];
+  const btn = document.getElementById('btn-topo-edit');
+  if (btn) { btn.classList.toggle('active', topoEditMode); }
+  if (topoEditMode) {
+    if (mode !== 'mesh') setMode('mesh');
+    setStatus('▽ トポロジー編集 ON: 頂点クリックで選択 → 3頂点で三角形追加。既存三角形の中心クリックで削除。Escでキャンセル');
+  } else {
+    setStatus('▽ トポロジー編集 OFF');
+  }
+  render();
+}
+
+function _topoClickVert(vi) {
+  if (_topoSelVerts.includes(vi)) {
+    _topoSelVerts = _topoSelVerts.filter(x => x !== vi);
+    render(); return;
+  }
+  _topoSelVerts.push(vi);
+  if (_topoSelVerts.length === 3) {
+    const [a, b, c] = _topoSelVerts;
+    const pt = parts[selPart];
+    const exists = pt.mesh.tris.some(([t0,t1,t2]) => {
+      const s = new Set([t0,t1,t2]);
+      return s.has(a) && s.has(b) && s.has(c);
+    });
+    if (!exists) {
+      pt.mesh.tris.push([a, b, c]);
+      saveState(); setStatus(`▽ 三角形追加 (${a},${b},${c})`);
+    } else {
+      setStatus('▽ その三角形は既に存在します');
+    }
+    _topoSelVerts = [];
+  }
+  render();
+}
+
+function _topoDeleteTriNear(wx, wy) {
+  const pt = parts[selPart]; if (!pt) return;
+  const wv = pt.getWorldVerts(getParamVals());
+  let bestTi = -1, bestDist = Infinity;
+  pt.mesh.tris.forEach(([i0,i1,i2], ti) => {
+    const cx = (wv[i0].x + wv[i1].x + wv[i2].x) / 3;
+    const cy = (wv[i0].y + wv[i1].y + wv[i2].y) / 3;
+    const d = Math.hypot(wx - cx, wy - cy);
+    if (d < bestDist) { bestDist = d; bestTi = ti; }
+  });
+  if (bestTi >= 0 && bestDist < 60) {
+    pt.mesh.tris.splice(bestTi, 1);
+    saveState(); setStatus(`▽ 三角形削除 (インデックス${bestTi})`);
+    render();
+  }
+}
 function toggleDeformHeat() {
   showDeformHeat = !showDeformHeat;
   const btn = document.getElementById('btn-deform-heat');
@@ -6510,6 +6583,17 @@ canvas.addEventListener('mousemove',e=>{
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
   const mp=s2m(sx,sy);
+  // Topology edit mode: click vertex to select (3 → add tri), Ctrl+click to delete near tri
+  if (e.button===0 && topoEditMode && mode==='mesh' && selPart>=0) {
+    const pt=parts[selPart]; if (!pt?.mesh) return;
+    const wv=pt.getWorldVerts(getParamVals());
+    if (e.ctrlKey) {
+      _topoDeleteTriNear(mp.x, mp.y); return;
+    }
+    const thresh=(18/VS)*(18/VS); let bi=-1, bd=thresh;
+    for (let i=0;i<wv.length;i++) { const dx=wv[i].x-mp.x, dy=wv[i].y-mp.y; const d2=dx*dx+dy*dy; if(d2<bd){bd=d2;bi=i;} }
+    if (bi>=0) { _topoClickVert(bi); } return;
+  }
   // Alt+click in mesh/deform mode with pin mode active: toggle vertex pin
   if (e.button===0 && e.altKey && pinMode && (mode==='mesh'||mode==='deform') && selPart>=0) {
     const pt=parts[selPart];
@@ -6709,7 +6793,10 @@ canvas.addEventListener('dblclick', e => {
 });
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){pendingImg=null;pendingDataURL=null;render();setHint(''); document.getElementById('shortcuts-overlay')?.remove();}
+  if(e.key==='Escape'){
+    pendingImg=null;pendingDataURL=null;render();setHint(''); document.getElementById('shortcuts-overlay')?.remove();
+    if (topoEditMode && _topoSelVerts.length > 0) { _topoSelVerts=[]; render(); setStatus('▽ トポロジー: 選択リセット'); return; }
+  }
   if(e.key==='?') { e.preventDefault(); showShortcutsOverlay(); return; }
   const onBody=document.activeElement===document.body||document.activeElement===canvas;
   if(e.key==='Delete'&&onBody) delPart();

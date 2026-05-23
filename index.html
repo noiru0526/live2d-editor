@@ -1285,6 +1285,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#1a0a30;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
     <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#0a1a2a;border:1px solid rgba(80,200,255,.4);color:#50c8ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
+    <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1a1e20;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -13500,6 +13501,162 @@ ${modePrompts[mode] || modePrompts.overall}
       resultEl.textContent = text; resultEl.style.display = 'block';
     } catch (err) { statusEl.textContent = `❌ ${err.message}`; }
   };
+}
+
+// ─── Animation Comparison Mode ────────────────────────────────────────────────
+function showAnimCompareDialog() {
+  const clips = M.animClips || [];
+  if (clips.length < 2) {
+    document.getElementById('lbl-status').textContent = '比較には2つ以上のクリップが必要です';
+    return;
+  }
+  const W = Math.min(window.innerWidth - 80, 750);
+  const H = 240;
+  const COLORS = ['#4e7cff', '#ff6060', '#60d890', '#ffd060', '#c080ff', '#ff80c0'];
+
+  const mo = document.createElement('div');
+  mo.className = 'mo';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:14px;width:${W+60}px;max-height:90vh;display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h3 style="font-size:13px;color:#cdd6f4;margin:0;">📊 アニメーション比較グラフ</h3>
+      <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:10px;color:#4a6080;">クリップA:</span>
+      <select id="cmp-clip-a" style="background:#131828;border:1px solid #2a3a5a;color:#4e7cff;font-size:10px;border-radius:3px;padding:2px 5px;">
+        ${clips.map((c,i)=>`<option value="${i}">${c.name||`Clip ${i+1}`}</option>`).join('')}
+      </select>
+      <span style="font-size:10px;color:#4a6080;">クリップB:</span>
+      <select id="cmp-clip-b" style="background:#131828;border:1px solid #2a3a5a;color:#ff6060;font-size:10px;border-radius:3px;padding:2px 5px;">
+        ${clips.map((c,i)=>`<option value="${i}" ${i===1?'selected':''}>${c.name||`Clip ${i+1}`}</option>`).join('')}
+      </select>
+      <span style="font-size:10px;color:#4a6080;">パラメータ:</span>
+      <select id="cmp-param" style="background:#131828;border:1px solid #2a3a5a;color:#cdd6f4;font-size:10px;border-radius:3px;padding:2px 5px;flex:1;min-width:120px;">
+        <option value="__all__">全パラメータ（重ね表示）</option>
+        ${Object.entries(M.params).map(([k,p])=>`<option value="${k}">${p.lbl||k}</option>`).join('')}
+      </select>
+      <button onclick="_drawAnimCompare()" style="background:#1a2040;border:1px solid rgba(80,160,255,.5);color:#80b0ff;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">▶ 比較</button>
+    </div>
+    <canvas id="cmp-canvas" width="${W}" height="${H}" style="display:block;border-radius:4px;border:1px solid #2a3a5a;background:#0a0e1e;cursor:crosshair;"></canvas>
+    <div id="cmp-legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:9px;color:#6080a0;"></div>
+    <div id="cmp-info" style="font-size:9px;color:#4a6080;min-height:16px;"></div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.addEventListener('click', e => { if (e.target === mo) mo.remove(); });
+
+  window._drawAnimCompare = function() {
+    const idxA = parseInt(document.getElementById('cmp-clip-a').value);
+    const idxB = parseInt(document.getElementById('cmp-clip-b').value);
+    const paramKey = document.getElementById('cmp-param').value;
+    const cvs = document.getElementById('cmp-canvas');
+    const ctx2 = cvs.getContext('2d');
+    const W2 = cvs.width, H2 = cvs.height;
+    ctx2.fillStyle = '#0a0e1e'; ctx2.fillRect(0, 0, W2, H2);
+
+    const clipA = clips[idxA], clipB = clips[idxB];
+    if (!clipA || !clipB) return;
+    const durA = clipA.animation?.duration || 3;
+    const durB = clipB.animation?.duration || 3;
+    const maxDur = Math.max(durA, durB);
+
+    // Grid
+    ctx2.strokeStyle = 'rgba(255,255,255,.04)'; ctx2.lineWidth = 1;
+    for (let i = 0; i <= 8; i++) {
+      const x = i / 8 * W2;
+      ctx2.beginPath(); ctx2.moveTo(x, 0); ctx2.lineTo(x, H2); ctx2.stroke();
+    }
+    for (let i = 0; i <= 4; i++) {
+      const y = i / 4 * H2;
+      ctx2.beginPath(); ctx2.moveTo(0, y); ctx2.lineTo(W2, y); ctx2.stroke();
+    }
+
+    // Ruler
+    ctx2.fillStyle = 'rgba(100,130,180,.5)'; ctx2.font = '8px monospace';
+    for (let i = 0; i <= 4; i++) {
+      const t = i / 4 * maxDur;
+      ctx2.fillText(`${t.toFixed(1)}s`, i / 4 * W2 + 2, H2 - 3);
+    }
+
+    // Normalize helpers
+    const evalTrack = (frames, t, dur) => {
+      if (!frames?.length) return 0;
+      const T = t % dur;
+      if (T <= frames[0].t) return frames[0].v;
+      if (T >= frames[frames.length-1].t) return frames[frames.length-1].v;
+      for (let i = 0; i < frames.length - 1; i++) {
+        const f0 = frames[i], f1 = frames[i+1];
+        if (T >= f0.t && T <= f1.t) {
+          const u = (T - f0.t) / (f1.t - f0.t);
+          return f0.v + (f1.v - f0.v) * u;
+        }
+      }
+      return 0;
+    };
+    const STEPS = Math.min(W2, 300);
+    const legend = document.getElementById('cmp-legend');
+    legend.innerHTML = '';
+
+    const drawTrackPair = (key, colorA, colorB, yMin, yMax) => {
+      const p = M.params[key]; if (!p) return;
+      const pMin = p.min, pMax = p.max, pRange = pMax - pMin || 1;
+      const toY = v => H2 - 4 - ((v - pMin) / pRange) * (H2 - 8);
+      const framesA = clipA.animation?.tracks?.[key] || [];
+      const framesB = clipB.animation?.tracks?.[key] || [];
+      if (!framesA.length && !framesB.length) return;
+
+      [{ frames: framesA, color: colorA, dur: durA, label: `A: ${clipA.name||'Clip A'}` },
+       { frames: framesB, color: colorB, dur: durB, label: `B: ${clipB.name||'Clip B'}` }].forEach(({ frames, color, dur, label }) => {
+        if (!frames.length) return;
+        ctx2.strokeStyle = color; ctx2.lineWidth = 1.5;
+        ctx2.beginPath();
+        for (let s = 0; s <= STEPS; s++) {
+          const t = (s / STEPS) * maxDur;
+          const v = evalTrack(frames, t, dur);
+          const x = (t / maxDur) * W2;
+          const y = toY(v);
+          s === 0 ? ctx2.moveTo(x, y) : ctx2.lineTo(x, y);
+        }
+        ctx2.stroke();
+        // KF dots
+        for (const kf of frames) {
+          const x = (kf.t / maxDur) * W2;
+          const y = toY(kf.v);
+          ctx2.fillStyle = color;
+          ctx2.beginPath(); ctx2.arc(x, y, 3, 0, Math.PI*2); ctx2.fill();
+        }
+      });
+
+      const span = document.createElement('span');
+      span.innerHTML = `<span style="color:${colorA}">━</span> A  <span style="color:${colorB}">━</span> B  ${p.lbl||key}`;
+      legend.appendChild(span);
+    };
+
+    if (paramKey === '__all__') {
+      const allKeys = new Set([...Object.keys(clipA.animation?.tracks||{}), ...Object.keys(clipB.animation?.tracks||{})]);
+      let ci = 0;
+      for (const k of allKeys) {
+        drawTrackPair(k, COLORS[ci*2 % COLORS.length], COLORS[(ci*2+1) % COLORS.length]);
+        ci++;
+        if (ci > 5) break;
+      }
+    } else {
+      drawTrackPair(paramKey, COLORS[0], COLORS[1]);
+    }
+
+    // Duration markers
+    ctx2.strokeStyle = 'rgba(78,124,255,.3)'; ctx2.lineWidth = 1; ctx2.setLineDash([4,4]);
+    const xA = (durA / maxDur) * W2;
+    ctx2.beginPath(); ctx2.moveTo(xA, 0); ctx2.lineTo(xA, H2); ctx2.stroke();
+    const xB = (durB / maxDur) * W2;
+    ctx2.strokeStyle = 'rgba(255,96,96,.3)';
+    ctx2.beginPath(); ctx2.moveTo(xB, 0); ctx2.lineTo(xB, H2); ctx2.stroke();
+    ctx2.setLineDash([]);
+
+    const infoEl = document.getElementById('cmp-info');
+    if (infoEl) infoEl.textContent = `A: ${clipA.name||'Clip A'} (${durA.toFixed(2)}s) vs B: ${clipB.name||'Clip B'} (${durB.toFixed(2)}s) | 縦点線=クリップ終端`;
+  };
+
+  setTimeout(() => window._drawAnimCompare(), 50);
 }
 
 function showParamBatchEdit() {
