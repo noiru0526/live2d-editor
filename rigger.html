@@ -6663,6 +6663,17 @@ function showAvatarExportDialog() {
         <div style="color:#4a6080;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
       </div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0b0d0;font-size:10px;white-space:nowrap">チャンネル名:</span>
+        <input id="av-sync-ch" type="text" placeholder="avatar1（空白=無効）" style="flex:1;background:#0e1120;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+        <select id="av-sync-role" style="background:#0e1120;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:3px 6px;font-size:10px">
+          <option value="follower">フォロワー（受信）</option>
+          <option value="leader">リーダー（送信）</option>
+        </select>
+      </div>
+      <div style="font-size:9px;color:#406040;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#0e1120;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -6720,6 +6731,8 @@ function showAvatarExportDialog() {
       const cmd = document.getElementById('av-chat-cmd')?.value?.trim();
       if (cmd) params.push('chatcmd=' + encodeURIComponent(cmd));
     }
+    const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
+    if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
     if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
     const obsWsUrl = document.getElementById('av-obs-ws')?.value?.trim();
@@ -7208,6 +7221,35 @@ if(_p.has('tts')){
     };
   }
   _wsConnect();
+})();
+
+// BroadcastChannel multi-avatar sync (?sync=<channel-name>)
+// Broadcast T state to other tabs on same channel; receive and apply their T state
+(function(){
+  const syncCh=_p.get('sync');
+  if(!syncCh||!('BroadcastChannel' in window))return;
+  const _role=_p.get('syncrole')||'follower'; // 'leader' broadcasts; 'follower' receives
+  let _bc;
+  try{ _bc=new BroadcastChannel('live2d-sync-'+syncCh); }catch(e){ return; }
+  if(_stEl)_stEl.textContent='同期チャンネル: '+syncCh+' ('+_role+')';
+  if(_role==='leader'){
+    // Broadcast T state at reduced rate (~15fps)
+    setInterval(()=>{
+      _bc.postMessage({type:'state',T:{...T},expr:curExpr});
+    },67);
+  } else {
+    // Receive and apply state
+    _bc.onmessage=(ev)=>{
+      const msg=ev.data;
+      if(msg.type==='state'&&msg.T){
+        Object.assign(T,msg.T);
+        if(msg.expr!==undefined&&msg.expr>=0&&typeof applyExpr==='function') applyExpr(msg.expr);
+      } else if(msg.type==='shake') triggerShake(msg.amp??8,msg.dur??0.3);
+      else if(msg.type==='flash') triggerFlash(msg.color||'rgba(255,255,255,.7)',msg.dur??120);
+      else if(msg.type==='expr'&&typeof applyExpr==='function') applyExpr(msg.index??0);
+      else if(msg.type==='speak'&&msg.text) speak(msg.text,msg.voice||0,msg.rate||1,msg.pitch||1);
+    };
+  }
 })();
 
 // Physics step
