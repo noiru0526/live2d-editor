@@ -5589,6 +5589,16 @@ document.addEventListener('keydown',e=>{
     const n=parseInt(e.key);
     if (n>=1&&n<=pnames.length) setAP(pnames[n-1]);
   }
+  // Ctrl+1-9: switch animation clip (0 = main animation)
+  if (e.ctrlKey && !e.altKey && !e.shiftKey && e.code>='Digit0' && e.code<='Digit9' && document.activeElement===document.body) {
+    const clipNum = parseInt(e.key);
+    if (e.key === '0') { switchClip(-1); document.getElementById('lbl-status').textContent = 'クリップ: メインアニメーション'; }
+    else if (clipNum >= 1 && M.animClips && M.animClips[clipNum-1]) {
+      switchClip(clipNum - 1);
+      document.getElementById('lbl-status').textContent = `クリップ: ${M.animClips[clipNum-1].name}`;
+    }
+    e.preventDefault();
+  }
 });
 document.addEventListener('keyup',e=>{
   if (e.key===' ') { ST.spaceDown=false; canvas.style.cursor='crosshair'; }
