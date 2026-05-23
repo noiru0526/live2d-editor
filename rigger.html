@@ -6396,8 +6396,14 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .wg-item{background:rgba(8,10,20,.78);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:#c0d0e0;backdrop-filter:blur(4px);white-space:nowrap}
 .wg-label{font-size:8px;color:#5a7a9a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
 .wg-val{font-size:13px;color:#e0f0ff;font-weight:bold}
+#ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(8,10,20,.88);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0c0d8;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
+#ctrl-panel h4{font-size:9px;color:#5080a0;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px}
+.cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.cp-lbl{font-size:8px;color:#4a6080;min-width:52px;text-align:right}
+.cp-sl{flex:1;accent-color:#6090d0;height:3px}
+.cp-val{font-size:7px;color:#3a6090;min-width:28px;text-align:left}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -6508,6 +6514,47 @@ document.addEventListener('keydown',e=>{
   if(e.key==='g'||e.key==='G'){_gpEnabled=!_gpEnabled;_stEl&&(_stEl.textContent=_gpEnabled?'🎮 Gamepad ON':'Gamepad OFF');setTimeout(()=>{if(SHOW_STATUS)_stEl&&(_stEl.textContent='');},2000);}
 });
 window.addEventListener('gamepadconnected',()=>{if(!_gpEnabled){_gpEnabled=true;_stEl&&(_stEl.textContent='🎮 Gamepad connected');setTimeout(()=>{if(SHOW_STATUS)_stEl&&(_stEl.textContent='');},2000);}});
+
+// Manual control panel (P key to toggle, ?controls=1 to show by default)
+let _ctrlVisible=_p.has('controls');
+const _ctrlEl=document.getElementById('ctrl-panel');
+const _CTRL_PARAMS=[
+  {key:'headX',label:'頭 X',min:-1,max:1},
+  {key:'headY',label:'頭 Y',min:-1,max:1},
+  {key:'headZ',label:'頭 Z',min:-1,max:1},
+  {key:'eyeOpenL',label:'目開 L',min:0,max:1},
+  {key:'eyeOpenR',label:'目開 R',min:0,max:1},
+  {key:'eyeBallX',label:'眼球 X',min:-1,max:1},
+  {key:'eyeBallY',label:'眼球 Y',min:-1,max:1},
+  {key:'mouthOpen',label:'口開き',min:0,max:1},
+  {key:'mouthForm',label:'口形状',min:-1,max:1},
+  {key:'browL',label:'眉毛 L',min:-1,max:1},
+  {key:'browR',label:'眉毛 R',min:-1,max:1},
+  {key:'cheek',label:'頬',min:0,max:1},
+];
+_CTRL_PARAMS.forEach(cp=>{
+  const row=document.createElement('div');row.className='cp-row';
+  const id='cp-sl-'+cp.key;
+  const steps=200;const norm=(T[cp.key]??0-cp.min)/(cp.max-cp.min);
+  row.innerHTML=\`<span class="cp-lbl">\${cp.label}</span><input type="range" class="cp-sl" id="\${id}" min="0" max="\${steps}" value="\${Math.round(norm*steps)}" style="pointer-events:auto"><span class="cp-val" id="cp-v-\${cp.key}">0.00</span>\`;
+  _ctrlEl.appendChild(row);
+  const sl=row.querySelector(\`#\${id}\`);
+  sl.addEventListener('input',()=>{
+    const v=cp.min+(sl.value/steps)*(cp.max-cp.min);
+    T[cp.key]=v;const el=document.getElementById('cp-v-'+cp.key);if(el)el.textContent=v.toFixed(2);
+  });
+});
+function _updateCtrlSliders(){
+  _CTRL_PARAMS.forEach(cp=>{
+    const sl=document.getElementById('cp-sl-'+cp.key); if(!sl)return;
+    const v=T[cp.key]??0;const steps=200;
+    sl.value=Math.round(((v-cp.min)/(cp.max-cp.min))*steps);
+    const el=document.getElementById('cp-v-'+cp.key);if(el)el.textContent=v.toFixed(2);
+  });
+}
+function _toggleCtrl(){_ctrlVisible=!_ctrlVisible;_ctrlEl.style.display=_ctrlVisible?'block':'none';if(_ctrlVisible)_updateCtrlSliders();}
+if(_ctrlVisible)_ctrlEl.style.display='block';
+document.addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P')_toggleCtrl();});
 
 // Physics step
 function physStep(dt){
