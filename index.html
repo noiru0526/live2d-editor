@@ -1282,6 +1282,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#0a1a20;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
+    <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#1a0a30;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -13134,6 +13135,100 @@ Only include parameter names from the list above. Values must stay within each p
     } catch (err) {
       if (statusEl) statusEl.textContent = `❌ エラー: ${err.message}`;
       document.getElementById('lbl-status').textContent = `AI補間エラー: ${err.message}`;
+    }
+  });
+}
+
+async function showAIDanceMotionDialog() {
+  const tracks = Object.keys(M.params);
+  if (!tracks.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
+  showModal('💃 AIダンスモーション生成', `
+    <div style="font-size:12px;display:grid;gap:10px">
+      <div style="font-size:10px;color:#6080a0">BPMとダンスタイプを指定すると、Gemini AIが<br>リズムに合ったキャラクターモーションKFを自動生成します。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label>BPM<br><input id="ai-dance-bpm" type="number" min="60" max="200" value="128" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+        <label>小節数<br><input id="ai-dance-bars" type="number" min="1" max="8" value="2" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+      </div>
+      <label>ダンスタイプ<br>
+        <select id="ai-dance-style" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">
+          <option value="pop">ポップ（軽快・弾む）</option>
+          <option value="anison">アニソン（元気・大げさ）</option>
+          <option value="edm">EDM（反復・シンコペ）</option>
+          <option value="cute">かわいい（ゆっくり・可愛い）</option>
+          <option value="cool">クール（シャープ・モダン）</option>
+          <option value="ballad">バラード（ゆったり・感情豊か）</option>
+        </select>
+      </label>
+      <label style="font-size:10px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="ai-dance-merge" checked>
+        現在のアニメーションに上書きせず追加（マージ）
+      </label>
+      <div id="ai-dance-status" style="font-size:10px;color:#6080a0;min-height:16px"></div>
+    </div>
+  `, async () => {
+    const bpm = parseFloat(document.getElementById('ai-dance-bpm').value) || 128;
+    const bars = parseInt(document.getElementById('ai-dance-bars').value) || 2;
+    const style = document.getElementById('ai-dance-style').value;
+    const merge = document.getElementById('ai-dance-merge').checked;
+    const statusEl = document.getElementById('ai-dance-status');
+    const beatDur = 60 / bpm;
+    const totalDur = beatDur * 4 * bars;
+    const availParams = Object.entries(M.params).map(([k, p]) => `${k}(${p.lbl||k},range:[${p.min},${p.max}])`).slice(0, 20).join(', ');
+    const prompt = `Generate a ${style} dance motion for a Live2D VTuber avatar.
+BPM: ${bpm}, 1 beat = ${beatDur.toFixed(3)}s, ${bars} bars = ${totalDur.toFixed(3)}s total.
+Available parameters: ${availParams}
+
+Create natural, rhythmic keyframe motion that:
+1. Matches the ${style} dance style and BPM
+2. Uses head movement (headX, headY, headZ), body movement (bodyX, bodyY), breath
+3. Optionally includes eye/brow/mouth expressions for personality
+4. Loops cleanly (first and last values match or connect smoothly)
+5. Has organic timing variation, not just on every beat
+
+Return JSON in this exact format:
+{
+  "duration": ${totalDur.toFixed(3)},
+  "description": "one-line description of the motion",
+  "tracks": {
+    "paramName": [
+      {"t": 0.000, "v": 0.0, "e": "smooth"},
+      ...
+    ]
+  }
+}
+Only include parameters from the available list. Values must be within each parameter's range. Include at least 3 different parameters.`;
+    if (statusEl) statusEl.textContent = '💃 Gemini AIにモーション生成を依頼中...';
+    try {
+      const result = await callGemini(prompt);
+      if (!result.tracks || !Object.keys(result.tracks).length) throw new Error('トラックデータがありません');
+      pushAnimUndo('AIダンスモーション生成');
+      if (!merge) {
+        for (const k of Object.keys(M.animation.tracks)) M.animation.tracks[k] = [];
+      }
+      let kfInserted = 0;
+      for (const [k, kfs] of Object.entries(result.tracks)) {
+        if (!M.params[k]) continue;
+        const p = M.params[k];
+        if (!M.animation.tracks[k]) M.animation.tracks[k] = [];
+        for (const kf of kfs) {
+          const t = Math.round((kf.t ?? 0) * 10000) / 10000;
+          const v = Math.max(p.min, Math.min(p.max, kf.v ?? 0));
+          if (t < 0 || t > result.duration + 0.01) continue;
+          M.animation.tracks[k].push({ t, v, e: kf.e || 'smooth' });
+          kfInserted++;
+        }
+        M.animation.tracks[k].sort((a, b) => a.t - b.t);
+      }
+      if (result.duration > 0) {
+        M.animation.duration = Math.max(M.animation.duration || 3, result.duration);
+        M.animation.loopOut = result.duration;
+      }
+      if (statusEl) statusEl.textContent = `✅ ${Object.keys(result.tracks).length}トラック・${kfInserted}KF生成: ${result.description || ''}`;
+      drawMultiTimeline();
+      renderParamPanel();
+      document.getElementById('lbl-status').textContent = `💃 AIダンスモーション: ${kfInserted}KF生成完了`;
+    } catch (err) {
+      if (statusEl) statusEl.textContent = `❌ エラー: ${err.message}`;
     }
   });
 }
