@@ -1268,6 +1268,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'#a0e0ff':'#80a0d0';this.style.borderColor=tlColorByGroup?'rgba(96,200,255,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
     <button onclick="autoGroupByPrefix()" title="パラメータ名のプレフィックス（head/eye/mouth等）で自動グループ化" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 自動G</button>
     <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
+    <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#80a0d0';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
     <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2e3656;border:1px solid var(--border);color:#a0b0d0;border-radius:3px;padding:1px 3px;font-size:9px;cursor:pointer;">
       <option value="default">↕ デフォルト</option>
       <option value="alpha">🔤 アルファベット順</option>
@@ -9600,6 +9601,7 @@ let tlSnapEnabled = false; // KF snap to grid
 let tlTrackFilter = ''; // Track search filter string
 let tlSnapGrid = 1/30; // snap grid size in seconds (30fps default)
 let tlHideEmpty = false; // hide tracks with no KFs
+const tlCollapsedGroups = new Set(); // collapsed track group prefixes
 let tlShowOnlyFav = false; // show only favorited tracks
 let tlAutoKF = false; // auto-insert KF on slider change in anim mode
 let tlSmpteMode = false; // SMPTE timecode display (HH:MM:SS:FF at 30fps)
@@ -9935,6 +9937,35 @@ function drawMultiTimeline() {
     }
     filteredRows = withGroups;
   }
+
+  // Prefix-based group collapse (e.g., "eye_open", "eye_blink" → group "eye")
+  if (tlCollapsedGroups.size > 0) {
+    const withPfxGroups = [];
+    const seenPfxHeaders = new Set();
+    for (const row of filteredRows) {
+      const [name] = row;
+      if (name.startsWith('__')) { withPfxGroups.push(row); continue; }
+      const pfx = name.includes('_') ? name.split('_')[0] : null;
+      if (pfx && tlCollapsedGroups.has(pfx)) {
+        if (!seenPfxHeaders.has(pfx)) {
+          seenPfxHeaders.add(pfx);
+          const memberCount = filteredRows.filter(([n]) => !n.startsWith('__') && n.split('_')[0]===pfx).length;
+          withPfxGroups.push([`__pfx:${pfx}`, {__isPfxGroup:true, pfx, memberCount}]);
+        }
+        // skip member tracks (collapsed)
+      } else {
+        // Inject prefix header if not yet shown (but NOT collapsed)
+        if (pfx && !seenPfxHeaders.has(pfx)) {
+          seenPfxHeaders.add(pfx);
+          const memberCount = filteredRows.filter(([n]) => !n.startsWith('__') && n.split('_')[0]===pfx).length;
+          if (memberCount >= 2) withPfxGroups.push([`__pfx:${pfx}`, {__isPfxGroup:true, pfx, memberCount}]);
+        }
+        withPfxGroups.push(row);
+      }
+    }
+    filteredRows = withPfxGroups;
+  }
+
   _tlDisplayedRows = filteredRows;
 
   // Clamp scroll (after group headers injected)
@@ -9962,6 +9993,24 @@ function drawMultiTimeline() {
         tlLabelCtx.fillStyle = '#8898ee';
         tlLabelCtx.font = 'bold 9px Segoe UI';
         tlLabelCtx.fillText((isCollapsed ? '▶ ' : '▼ ') + grp.name, 4, ry + rh/2 + 3);
+      }
+      return;
+    }
+
+    // === PREFIX GROUP HEADER ===
+    if (name.startsWith('__pfx:')) {
+      const pfx = p.pfx;
+      const isCollapsed = tlCollapsedGroups.has(pfx);
+      tlMultiCtx.fillStyle = 'rgba(80,180,120,.10)';
+      tlMultiCtx.fillRect(0, ry, W, rh);
+      tlMultiCtx.fillStyle = 'rgba(80,180,120,.3)';
+      tlMultiCtx.fillRect(0, ry+rh-1, W, 1);
+      if (tlLabelCtx) {
+        tlLabelCtx.fillStyle = 'rgba(80,180,120,.18)';
+        tlLabelCtx.fillRect(0, ry, LW, rh);
+        tlLabelCtx.fillStyle = '#60c890';
+        tlLabelCtx.font = 'bold 9px Segoe UI';
+        tlLabelCtx.fillText((isCollapsed ? '▶ ' : '▼ ') + pfx + `_ (${p.memberCount})`, 4, ry + rh/2 + 3);
       }
       return;
     }
@@ -10283,6 +10332,14 @@ tlLabelCanvas.addEventListener('click', e=>{
     const grpId = p.grp.id;
     if (_collapsedParamGroups.has(grpId)) _collapsedParamGroups.delete(grpId);
     else _collapsedParamGroups.add(grpId);
+    drawMultiTimeline();
+    return;
+  }
+  // Prefix group header: toggle collapse
+  if (name.startsWith('__pfx:')) {
+    const pfx = p.pfx;
+    if (tlCollapsedGroups.has(pfx)) tlCollapsedGroups.delete(pfx);
+    else tlCollapsedGroups.add(pfx);
     drawMultiTimeline();
     return;
   }
