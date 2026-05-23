@@ -6410,8 +6410,14 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cp-lbl{font-size:8px;color:#4a6080;min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:#6090d0;height:3px}
 .cp-val{font-size:7px;color:#3a6090;min-width:28px;text-align:left}
+#calib-panel{position:fixed;top:12px;left:12px;background:rgba(8,10,20,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0c0d8;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
+#calib-panel h4{font-size:9px;color:#a07050;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
+.cb-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.cb-lbl{font-size:8px;color:#605040;min-width:70px;text-align:right}
+.cb-sl{flex:1;accent-color:#d08040}
+.cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -6449,6 +6455,7 @@ function _buildHotkeyPanel(){
   rows.push(['---','--- コントロール ---']);
   rows.push(['P','パラメータパネル表示切替']);
   rows.push(['G','ゲームパッド ON/OFF']);
+  rows.push(['C','顔追跡キャリブレーション']);
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
@@ -6566,6 +6573,43 @@ function _updateCtrlSliders(){
 function _toggleCtrl(){_ctrlVisible=!_ctrlVisible;_ctrlEl.style.display=_ctrlVisible?'block':'none';if(_ctrlVisible)_updateCtrlSliders();}
 if(_ctrlVisible)_ctrlEl.style.display='block';
 document.addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P')_toggleCtrl();});
+
+// Face tracking calibration (C key to toggle)
+const _CALIB_KEY='avatar-calib-v1';
+const _CALIB=JSON.parse(localStorage.getItem(_CALIB_KEY)||'null')||{headX:2.2,headY:2.0,headYOfs:0.45,eyeTh1:0.20,eyeTh2:0.30,mouth:6.0,eyeBall:5.0,dz:0.04};
+function _saveCalib(){localStorage.setItem(_CALIB_KEY,JSON.stringify(_CALIB));}
+let _calibVisible=false;
+const _calibEl=document.getElementById('calib-panel');
+const _calibDefs=[
+  {key:'headX',label:'頭 X 感度',min:0.5,max:5,step:0.1,fmt:v=>v.toFixed(1)},
+  {key:'headY',label:'頭 Y 感度',min:0.5,max:5,step:0.1,fmt:v=>v.toFixed(1)},
+  {key:'headYOfs',label:'顔Y中心',min:0.3,max:0.7,step:0.01,fmt:v=>v.toFixed(2)},
+  {key:'eyeTh1',label:'目閉じ開始',min:0.05,max:0.4,step:0.01,fmt:v=>v.toFixed(2)},
+  {key:'eyeTh2',label:'目閉じ完了',min:0.1,max:0.5,step:0.01,fmt:v=>v.toFixed(2)},
+  {key:'mouth',label:'口感度',min:1,max:15,step:0.5,fmt:v=>v.toFixed(1)},
+  {key:'eyeBall',label:'眼球感度',min:1,max:10,step:0.5,fmt:v=>v.toFixed(1)},
+  {key:'dz',label:'デッドゾーン',min:0,max:0.15,step:0.005,fmt:v=>v.toFixed(3)},
+];
+_calibDefs.forEach(cd=>{
+  const steps=Math.round((cd.max-cd.min)/cd.step);
+  const val=_CALIB[cd.key];const pos=Math.round((val-cd.min)/cd.step);
+  const row=document.createElement('div');row.className='cb-row';
+  const id='cb-sl-'+cd.key;
+  row.innerHTML=\`<span class="cb-lbl">\${cd.label}</span><input type="range" class="cb-sl" id="\${id}" min="0" max="\${steps}" value="\${pos}" style="pointer-events:auto"><span class="cb-val" id="cb-v-\${cd.key}">\${cd.fmt(val)}</span>\`;
+  _calibEl.appendChild(row);
+  row.querySelector(\`#\${id}\`).addEventListener('input',function(){
+    const v=cd.min+parseInt(this.value)*cd.step;_CALIB[cd.key]=parseFloat(v.toFixed(4));
+    const el=document.getElementById('cb-v-'+cd.key);if(el)el.textContent=cd.fmt(v);
+    _saveCalib();
+  });
+});
+const cbReset=document.createElement('button');
+cbReset.style.cssText='width:100%;margin-top:6px;background:rgba(60,30,10,.4);border:1px solid rgba(160,80,40,.3);color:#a07050;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;pointer-events:auto;';
+cbReset.textContent='リセット';
+cbReset.onclick=()=>{localStorage.removeItem(_CALIB_KEY);location.reload();};
+_calibEl.appendChild(cbReset);
+function _toggleCalib(){_calibVisible=!_calibVisible;_calibEl.style.display=_calibVisible?'block':'none';}
+document.addEventListener('keydown',e=>{if(e.key==='c'||e.key==='C')_toggleCalib();});
 
 // Physics step
 function physStep(dt){
@@ -6795,23 +6839,22 @@ function initCam(){
   const v=document.createElement('video');v.style.display='none';document.body.appendChild(v);
   const fm=new FaceMesh({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'+f});
   fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
-  const dz=0.04;
-  function dzone(v){return Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz);}
+  function dzone(v){const dz=_CALIB.dz;return Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz);}
   fm.onResults(r=>{
     if(!r.multiFaceLandmarks?.length){tracking=false;return;}
     const lm=r.multiFaceLandmarks[0];tracking=true;
-    T.headX=Math.max(-1,Math.min(1,dzone((lm[1].x-.5)*-2.2)));
-    T.headY=Math.max(-1,Math.min(1,dzone((lm[1].y-.45)*-2)));
+    T.headX=Math.max(-1,Math.min(1,dzone((lm[1].x-.5)*-_CALIB.headX)));
+    T.headY=Math.max(-1,Math.min(1,dzone((lm[1].y-_CALIB.headYOfs)*-_CALIB.headY)));
     const le=lm[234],re=lm[454];T.headZ=Math.atan2(re.y-le.y,re.x-le.x)*1.1;
     const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
     const eL=ear(362,385,387,263,373,380),eR=ear(33,160,158,133,153,144);
-    const th1=.20,th2=.30;
+    const th1=_CALIB.eyeTh1,th2=_CALIB.eyeTh2;
     T.eyeOpenL=eL<th1?1:eL>th2?0:1-(eL-th1)/(th2-th1);
     T.eyeOpenR=eR<th1?1:eR>th2?0:1-(eR-th1)/(th2-th1);
     const mh=lm[14].y-lm[13].y,mw=lm[308].x-lm[78].x;
-    T.mouthOpen=Math.max(0,Math.min(1,mh/mw*6));
+    T.mouthOpen=Math.max(0,Math.min(1,mh/mw*_CALIB.mouth));
     T.mouthForm=Math.max(-1,Math.min(1,((lm[291].x-lm[61].x)/mw-.5)*4));
-    if(lm[468]){T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*5));T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.38)*5));}
+    if(lm[468]){T.eyeBallX=Math.max(-1,Math.min(1,(lm[468].x-.5)*_CALIB.eyeBall));T.eyeBallY=Math.max(-1,Math.min(1,(lm[468].y-.38)*_CALIB.eyeBall));}
   });
   const cam=new Camera(v,{onFrame:async()=>{if(v.readyState>=2)await fm.send({image:v})},width:320,height:240});
   cam.start().then(()=>{
