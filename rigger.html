@@ -263,6 +263,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
     <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存 (右クリックで透過PNG)&#10;" oncontextmenu="event.preventDefault();screenshotCanvas(true)">📷 SS</button>
     <button class="tbtn" onclick="showPartNoteList()" title="メモが書かれたパーツの一覧（行クリックで選択）">📝 ノート</button>
+    <button class="tbtn" id="btn-gpad" onclick="toggleRiggerGamepad()" title="ゲームパッド: 左スティック=頭X/Y, 右スティック=眼球, L2/R2=目開閉, ×△□○=表情1-4">🎮 GPad</button>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -6841,6 +6842,59 @@ function checkRiggerAutoSave() {
 function startRiggerAutoSave() {
   if (_riggerAutoSaveTimer) clearInterval(_riggerAutoSaveTimer);
   _riggerAutoSaveTimer = setInterval(riggerAutoSave, 120000); // 2 minutes
+}
+
+// ===== GAMEPAD SUPPORT (RIGGER) =====
+let _gpActive = false, _gpRAF = null;
+const _GPAD_DEADZONE = 0.12;
+function _gpAxis(gp, idx) {
+  const v = gp.axes[idx] || 0;
+  return Math.abs(v) < _GPAD_DEADZONE ? 0 : v;
+}
+function _gpTrigger(gp, btnIdx) {
+  const b = gp.buttons[btnIdx];
+  return b ? (typeof b === 'object' ? b.value : (b ? 1 : 0)) : 0;
+}
+function _riggerGpadLoop() {
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = [...gps].find(g => g?.connected);
+  if (gp) {
+    const lx = _gpAxis(gp, 0), ly = _gpAxis(gp, 1);
+    const rx = _gpAxis(gp, 2), ry = _gpAxis(gp, 3);
+    const lt = _gpTrigger(gp, 6), rt = _gpTrigger(gp, 7);
+    let changed = false;
+    function setP(pn, v) {
+      if (!P[pn]) return;
+      const [rmin,rmax]=P[pn].r; const clamped=Math.max(rmin,Math.min(rmax,v)); if(Math.abs(pv[pn]-clamped)<0.005) return;
+      pv[pn]=clamped; changed=true;
+      const el=document.getElementById('pv-'+pn); if(el) el.textContent=clamped.toFixed(2);
+      const slider=document.querySelector(`input[oninput="updPrm('${pn}',this.value)"]`);
+      if(slider) slider.value=((clamped-rmin)/(rmax-rmin)*100).toFixed(0);
+      applyParamBindings(pn, clamped, new Set([pn]));
+    }
+    if (lx!==0||ly!==0) { setP('headX',lx); setP('headY',-ly); }
+    if (rx!==0||ry!==0) { setP('eyeBallX',rx); setP('eyeBallY',-ry); }
+    if (lt>0) { setP('eyeOpenL', 1-lt); }
+    if (rt>0) { setP('eyeOpenR', 1-rt); }
+    // Face buttons → expressions 1-4 (×=0, ○=1, □=2, △=3 on PS; A=0,B=1,X=2,Y=3 on Xbox)
+    [0,1,2,3].forEach((bi,i) => { const b=gp.buttons[bi]; if(b&&(typeof b==='object'?b.pressed:b)&&i<expressions.length) applyExpr(i); });
+    if (changed) render();
+  }
+  if (_gpActive) _gpRAF = requestAnimationFrame(_riggerGpadLoop);
+}
+function toggleRiggerGamepad() {
+  const btn = document.getElementById('btn-gpad');
+  if (!navigator.getGamepads) { setStatus('このブラウザはGamepad APIに非対応です'); return; }
+  _gpActive = !_gpActive;
+  btn.classList.toggle('active', _gpActive);
+  if (_gpActive) {
+    setStatus('🎮 ゲームパッド: 左スティック=頭, 右スティック=眼球, L2/R2=目開閉, ×○□△=表情1-4');
+    _gpRAF = requestAnimationFrame(_riggerGpadLoop);
+    window.addEventListener('gamepadconnected', () => setStatus('🎮 ゲームパッド接続'), {once:true});
+  } else {
+    if (_gpRAF) { cancelAnimationFrame(_gpRAF); _gpRAF=null; }
+    setStatus('ゲームパッド: OFF');
+  }
 }
 
 setupCanvas(); buildParamsUI(); buildKFUI(); setMode('parts'); fitView();
