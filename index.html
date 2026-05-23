@@ -4141,6 +4141,8 @@ let _reversePlay = false;
 let _clipChain = [];     // [{clipIdx, loops}]  clipIdx=-1=current, loops=0=infinite
 let _chainPos = 0;       // current position in chain
 let _chainPlaying = false;
+let _overlayClipIdx = -1, _overlayWeight = 1.0, _overlayAdditive = false;
+let _overlayT = 0, _overlayLastNow = null;
 
 function _advanceClipChain() {
   _chainPos = (_chainPos + 1) % _clipChain.length;
@@ -4315,6 +4317,38 @@ function applyAnimTracks(now){
       const ease=frac*frac*(3-2*frac); // smoothstep
       for(const k of Object.keys(_prevParamSnap)){
         if(params[k]!==undefined) params[k].val=_prevParamSnap[k]*(1-ease)+params[k].val*ease;
+      }
+    }
+  }
+  // Overlay clip blend
+  if (_overlayClipIdx >= 0 && M.animClips && M.animClips[_overlayClipIdx]) {
+    const oc = M.animClips[_overlayClipIdx];
+    const ocAnim = oc.animation;
+    if (ocAnim && ocAnim.tracks) {
+      const ocDur = ocAnim.duration || 3;
+      if (_overlayLastNow != null) {
+        const dt2 = (now - _overlayLastNow) / 1000 * (animSpeedMult || 1);
+        _overlayT += dt2;
+      }
+      _overlayLastNow = now;
+      const ocLoopIn = ocAnim.loopIn ?? 0;
+      const ocLoopOut = ocAnim.loopOut ?? ocDur;
+      const ocLoopLen = Math.max(ocLoopOut - ocLoopIn, 0.01);
+      const rawOv = _overlayT - ocLoopIn;
+      const ovT = rawOv >= 0
+        ? ocLoopIn + (rawOv % ocLoopLen)
+        : ocLoopIn + ((rawOv % ocLoopLen + ocLoopLen) % ocLoopLen);
+      const w = _overlayWeight;
+      for (const [k, frames] of Object.entries(ocAnim.tracks)) {
+        if (!params[k] || !frames.length) continue;
+        const ovVal = evalAnimTrackExport(frames, params[k], ovT);
+        if (_overlayAdditive) {
+          const neutral = Math.max(params[k].min, Math.min(params[k].max, 0));
+          params[k].val += (ovVal - neutral) * w;
+          params[k].val = Math.max(params[k].min, Math.min(params[k].max, params[k].val));
+        } else {
+          params[k].val = params[k].val * (1 - w) + ovVal * w;
+        }
       }
     }
   }
@@ -12514,6 +12548,52 @@ function renderClipTabs() {
     mergeBtn.style.cssText = 'background:#1e1e30;border:1px solid rgba(160,100,255,.4);color:#c080ff;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     mergeBtn.onclick = () => mergeAllClips();
     document.getElementById('tl-clips-bar').appendChild(mergeBtn);
+    // Overlay button
+    const overlayBtn = document.createElement('button');
+    overlayBtn.id = 'btn-overlay-clip';
+    overlayBtn.textContent = '⊞ Overlay';
+    overlayBtn.title = 'リアルタイムクリップオーバーレイ: 2つのクリップを同時再生してブレンド';
+    overlayBtn.style.cssText = 'background:#1a1e30;border:1px solid rgba(255,160,80,.4);color:#ff9040;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    overlayBtn.onclick = () => showOverlayClipDialog();
+    document.getElementById('tl-clips-bar').appendChild(overlayBtn);
+  }
+}
+
+function showOverlayClipDialog() {
+  const clips = M.animClips || [];
+  if (clips.length < 1) { document.getElementById('lbl-status').textContent = 'オーバーレイには1つ以上のクリップが必要です'; return; }
+  const opts = clips.map((c,i)=>`<option value="${i}"${_overlayClipIdx===i?' selected':''}>${c.name}</option>`).join('');
+  showModal('⊞ クリップオーバーレイ', `
+    <div style="font-size:12px;display:grid;gap:10px">
+      <div style="font-size:10px;color:#6080a0">2つのクリップを同時再生してブレンドします。<br>オーバーレイクリップは独立してループ再生されます。</div>
+      <label>オーバーレイクリップ<br><select id="ov-clip" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">${opts}</select></label>
+      <label>ブレンド重み <span id="ov-w-v">${(_overlayWeight*100).toFixed(0)}%</span><br>
+        <input type="range" id="ov-w" min="0" max="100" value="${Math.round(_overlayWeight*100)}" style="width:100%;margin-top:4px" oninput="document.getElementById('ov-w-v').textContent=this.value+'%'">
+      </label>
+      <label style="font-size:10px;display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="checkbox" id="ov-add" ${_overlayAdditive?'checked':''}>
+        加算ブレンド（ニュートラル位置からのデルタを加算）
+      </label>
+    </div>
+  `, ()=>{
+    _overlayClipIdx = parseInt(document.getElementById('ov-clip').value);
+    _overlayWeight = parseInt(document.getElementById('ov-w').value) / 100;
+    _overlayAdditive = document.getElementById('ov-add').checked;
+    _overlayT = 0; _overlayLastNow = null;
+    const btn = document.getElementById('btn-overlay-clip');
+    if (btn) { btn.style.color = '#ffa040'; btn.style.borderColor = 'rgba(255,160,64,.8)'; btn.style.background = '#2a1a08'; }
+    document.getElementById('lbl-status').textContent = `オーバーレイ ON: ${M.animClips[_overlayClipIdx]?.name} × ${Math.round(_overlayWeight*100)}%`;
+  }, ()=>{
+    if (document.getElementById('ov-stop-btn')?.clicked) { _overlayClipIdx = -1; const btn=document.getElementById('btn-overlay-clip'); if(btn){btn.style.color='#ff9040';btn.style.borderColor='rgba(255,160,80,.4)';btn.style.background='#1a1e30';} }
+  });
+  const mo = document.querySelector('.modal-overlay');
+  if (mo) {
+    const footer = mo.querySelector('.modal-footer') || mo.querySelector('div:last-child');
+    const stopBtn = document.createElement('button');
+    stopBtn.textContent = '⏹ 停止';
+    stopBtn.style.cssText = 'background:#2a1010;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;margin-right:8px;';
+    stopBtn.onclick = () => { _overlayClipIdx = -1; const btn=document.getElementById('btn-overlay-clip'); if(btn){btn.style.color='#ff9040';btn.style.borderColor='rgba(255,160,80,.4)';btn.style.background='#1a1e30';} mo.remove(); document.getElementById('lbl-status').textContent='オーバーレイ停止'; };
+    if (footer) footer.prepend(stopBtn);
   }
 }
 
