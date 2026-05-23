@@ -16988,12 +16988,16 @@ function showPNGSequenceDialog() {
       </div>
     </div>
     <div style="margin-bottom:8px;">
-      <div style="font-size:8px;color:#4a6080;margin-bottom:4px">プレビュー (開始 / 中間 / 終了)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:8px;color:#4a6080;">プレビュー (開始 / 中間 / 終了)</span>
+        <button id="ps-play-btn" style="background:#1a2a3a;border:1px solid #2a4060;color:#60a0d0;border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
+      </div>
       <div id="ps-thumb-row" style="display:flex;gap:6px;">
         <canvas id="ps-thumb-0" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
         <canvas id="ps-thumb-1" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
         <canvas id="ps-thumb-2" width="90" height="90" style="border:1px solid #2a3a5a;border-radius:3px;background:#0d1117;flex:1;max-width:90px;"></canvas>
       </div>
+      <canvas id="ps-anim-preview" width="300" height="90" style="display:none;width:100%;border:1px solid #1a3a5a;border-radius:3px;background:#0d1117;margin-top:4px;"></canvas>
     </div>
     <div id="ps-preview" style="font-size:9px;color:#60a0d0;margin-bottom:8px;"></div>
     <div id="ps-progress" style="display:none;font-size:10px;color:#ffd060;margin-bottom:6px;text-align:center;"></div>
@@ -17019,6 +17023,52 @@ function showPNGSequenceDialog() {
   mo.querySelectorAll('#ps-start,#ps-end,#ps-fps').forEach(el=>el.oninput=updatePreview);
   updatePreview();
   generateExportThumbnails(mo);
+  // Mini animation preview
+  let _psAnimRAF = null, _psPlaying = false;
+  const playBtn = mo.querySelector('#ps-play-btn');
+  const animCanvas = mo.querySelector('#ps-anim-preview');
+  const thumbRow = mo.querySelector('#ps-thumb-row');
+  playBtn.onclick = async () => {
+    if (_psPlaying) {
+      _psPlaying = false; if(_psAnimRAF){cancelAnimationFrame(_psAnimRAF);_psAnimRAF=null;}
+      playBtn.textContent='▶ 再生'; animCanvas.style.display='none'; thumbRow.style.display='flex'; return;
+    }
+    _psPlaying = true; playBtn.textContent='⏹ 停止';
+    thumbRow.style.display='none'; animCanvas.style.display='block';
+    const savedT = ST.animPlayhead;
+    const savedVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+    const s = parseFloat(mo.querySelector('#ps-start').value)||0;
+    const e = parseFloat(mo.querySelector('#ps-end').value)||(M.animation?.duration||3);
+    let t = s, lastTs = null;
+    const fps = parseInt(mo.querySelector('#ps-fps').value)||24;
+    const act = animCanvas.getContext('2d');
+    const cw = animCanvas.width, ch = animCanvas.height;
+    const mainCanvas = document.getElementById('c');
+    function psFrame(ts) {
+      if (!_psPlaying || !mo.isConnected) {
+        ST.animPlayhead=savedT; for(const [k,v] of Object.entries(savedVals)) M.params[k].val=v;
+        ST.cachedVerts=null; redraw(); drawMultiTimeline(); return;
+      }
+      if (lastTs !== null) t += (ts-lastTs)/1000;
+      if (t > e) t = s;
+      lastTs = ts;
+      ST.animPlayhead = t; applyPlayheadToParams();
+      ST.cachedVerts = null; redraw();
+      const aspect = mainCanvas.width/(mainCanvas.height||1);
+      const sw = aspect>=1?cw:Math.round(ch*aspect), sh=aspect>=1?Math.round(cw/aspect):ch;
+      const ox=Math.round((cw-sw)/2), oy=Math.round((ch-sh)/2);
+      act.fillStyle='#0d1117'; act.fillRect(0,0,cw,ch);
+      act.drawImage(mainCanvas,ox,oy,sw,sh);
+      // time bar
+      act.fillStyle='rgba(0,0,0,.5)'; act.fillRect(0,ch-12,cw,12);
+      act.fillStyle='rgba(60,120,200,.8)'; act.fillRect(0,ch-12,Math.round(cw*(t-s)/(e-s||1)),12);
+      act.fillStyle='#60a0d0'; act.font='8px monospace'; act.textAlign='center';
+      act.fillText(`t=${t.toFixed(2)}s / ${fps}fps`, cw/2, ch-3);
+      _psAnimRAF = requestAnimationFrame(psFrame);
+    }
+    _psAnimRAF = requestAnimationFrame(psFrame);
+  };
+  mo.addEventListener('remove', ()=>{ _psPlaying=false; if(_psAnimRAF){cancelAnimationFrame(_psAnimRAF);_psAnimRAF=null;} });
   mo.querySelector('#ps-start-btn').onclick = async () => {
     const startT = parseFloat(mo.querySelector('#ps-start').value)||0;
     const endT = parseFloat(mo.querySelector('#ps-end').value)||dur;
