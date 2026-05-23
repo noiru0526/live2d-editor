@@ -256,6 +256,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.classList.toggle('active',showOnionSkin);render()" title="オニオンスキン: 前KF（シアン）・次KF（オレンジ）のデフォームゴーストを重ねて表示（デフォームモードで有効）">👻 オニオン</button>
     <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
     <button class="tbtn" id="btn-refimg" onclick="toggleRefImagePanel()" title="参考画像オーバーレイ: トレース・アライメント用に背景参照画像を表示">🖼 参考</button>
+    <button class="tbtn" id="btn-skeleton" onclick="toggleSkeletonView()" title="スケルトン表示: パーツ→デフォーマーの親子関係を矢印で可視化">🦴 スケル</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -1004,7 +1005,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false, showSkeleton = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -2306,6 +2307,100 @@ function render() {
         ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
         ctx.fillStyle = 'rgba(120,180,255,0.9)'; ctx.font = '8px monospace'; ctx.setLineDash([]);
         ctx.fillText(`${Math.round((maxX-minX)/zoom)}×${Math.round((maxY-minY)/zoom)}`, minX + 2, minY - 2);
+      }
+    });
+    ctx.restore();
+  }
+
+  // Skeleton view: draw part → deformer relationship arrows
+  if (showSkeleton && deformers.length) {
+    ctx.save();
+    const vals = getParamVals();
+    // Helper: get screen center of a part (average of world verts or part origin)
+    function _skelPartCenter(pt) {
+      if (pt.mesh && pt.mesh.verts.length) {
+        const wv = pt.getWorldVerts(vals);
+        let sx = 0, sy = 0;
+        for (const v of wv) { sx += v.x; sy += v.y; }
+        const sp = m2s(sx / wv.length, sy / wv.length);
+        return sp;
+      }
+      return m2s(pt.x, pt.y);
+    }
+    // Helper: get screen center of a deformer
+    function _skelDefCenter(def) {
+      if (def.type === 'warp') {
+        return m2s((def.x || 0) + (def.w || 0) / 2, (def.y || 0) + (def.h || 0) / 2);
+      } else if (def.type === 'rotation') {
+        return m2s(def.px || 0, def.py || 0);
+      } else if (def.type === 'bone') {
+        return m2s(def.px || 0, def.py || 0);
+      }
+      return m2s(def.px || def.x || 0, def.py || def.y || 0);
+    }
+    // Draw arrow from src to dst screen coords
+    function _drawArrow(sx, sy, ex, ey, col, dashed) {
+      const dx = ex - sx, dy = ey - sy;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      if (len < 4) return;
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+      ctx.setLineDash(dashed ? [4, 3] : []);
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      // arrowhead
+      const ang = Math.atan2(dy, dx);
+      const ah = 8;
+      ctx.fillStyle = col; ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - ah * Math.cos(ang - 0.4), ey - ah * Math.sin(ang - 0.4));
+      ctx.lineTo(ex - ah * Math.cos(ang + 0.4), ey - ah * Math.sin(ang + 0.4));
+      ctx.closePath(); ctx.fill();
+    }
+    // Draw deformer nodes
+    deformers.forEach((def, di) => {
+      const dc = _skelDefCenter(def);
+      const isSel = di === selDeformer;
+      const nodeCol = def.type === 'warp' ? '#a0c0ff' : def.type === 'rotation' ? '#ffa0c0' : '#a0ffb0';
+      ctx.fillStyle = isSel ? 'rgba(255,220,80,0.9)' : nodeCol.replace(')', ',0.8)').replace('rgb','rgba').replace('#','');
+      // Use circle for deformer node
+      ctx.save();
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = isSel ? 'rgba(255,220,80,0.9)' : nodeCol + 'cc';
+      ctx.strokeStyle = isSel ? '#ffe040' : nodeCol;
+      ctx.lineWidth = 1.5; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(dc.x, dc.y, isSel ? 7 : 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      // Label
+      ctx.fillStyle = '#ffffff'; ctx.font = '9px monospace'; ctx.globalAlpha = 0.9;
+      ctx.fillText(def.name || `Def${di}`, dc.x + 8, dc.y + 3);
+      ctx.restore();
+      // Bone parent → child arrows (bone type)
+      if (def.type === 'bone' && def.parentId !== undefined) {
+        const parent = deformers.find(d => d.id === def.parentId);
+        if (parent) {
+          const pc = _skelDefCenter(parent);
+          _drawArrow(pc.x, pc.y, dc.x, dc.y, '#a0ffb0', false);
+        }
+      }
+    });
+    // Draw part → deformer arrows
+    parts.forEach((pt, pi) => {
+      if (!pt.visible) return;
+      if (!pt.deformerId) return;
+      const pc = _skelPartCenter(pt);
+      const isSel = pi === selPart || selParts.has(pi);
+      // Part dot
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = isSel ? 'rgba(255,220,80,0.9)' : 'rgba(160,200,255,0.7)';
+      ctx.strokeStyle = isSel ? '#ffe040' : 'rgba(120,160,220,0.8)';
+      ctx.lineWidth = 1; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(pc.x, pc.y, isSel ? 5 : 3, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      const def = deformers.find(d => d.id === pt.deformerId);
+      if (def) {
+        const dc = _skelDefCenter(def);
+        const col = isSel ? 'rgba(255,220,80,0.9)' : 'rgba(160,200,255,0.6)';
+        _drawArrow(pc.x, pc.y, dc.x, dc.y, col, true);
       }
     });
     ctx.restore();
@@ -4083,6 +4178,13 @@ function toggleDeformHeat() {
   const btn = document.getElementById('btn-deform-heat');
   if (btn) { btn.style.background = showDeformHeat ? 'rgba(255,100,60,.25)' : ''; btn.style.borderColor = showDeformHeat ? '#ff643c' : ''; }
   setStatus(showDeformHeat ? '変形量ヒートマップ ON: 頂点色が変形量(青→緑→赤)を表示' : '変形量ヒートマップ OFF');
+  render();
+}
+function toggleSkeletonView() {
+  showSkeleton = !showSkeleton;
+  const btn = document.getElementById('btn-skeleton');
+  if (btn) { btn.classList.toggle('active', showSkeleton); }
+  setStatus(showSkeleton ? '🦴 スケルトン表示 ON: パーツ→デフォーマーの親子関係を矢印で可視化' : '🦴 スケルトン表示 OFF');
   render();
 }
 function toggleRefImagePanel() {
