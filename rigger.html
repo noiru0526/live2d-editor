@@ -6659,7 +6659,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-sl{flex:1;accent-color:#d08040}
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -6698,6 +6698,10 @@ function _buildHotkeyPanel(){
   rows.push(['P','パラメータパネル表示切替']);
   rows.push(['G','ゲームパッド ON/OFF']);
   rows.push(['C','顔追跡キャリブレーション']);
+  rows.push(['---','--- 画面エフェクト ---']);
+  rows.push(['J','スクリーンシェイク']);
+  rows.push(['F','フラッシュ']);
+  rows.push(['B','ブラーON/OFF']);
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
@@ -6852,6 +6856,26 @@ cbReset.onclick=()=>{localStorage.removeItem(_CALIB_KEY);location.reload();};
 _calibEl.appendChild(cbReset);
 function _toggleCalib(){_calibVisible=!_calibVisible;_calibEl.style.display=_calibVisible?'block':'none';}
 document.addEventListener('keydown',e=>{if(e.key==='c'||e.key==='C')_toggleCalib();});
+
+// Screen effects (shake/flash/blur)
+let _shakeT=0,_shakeAmp=0;
+function triggerShake(amp=8,dur=0.4){_shakeAmp=amp;_shakeT=dur;}
+function triggerFlash(col='rgba(255,255,255,0.7)',dur=120){
+  const el=document.getElementById('fx-flash');
+  if(!el)return;
+  el.style.background=col; el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',dur);
+}
+let _blurOn=false;
+function toggleBlur(){
+  _blurOn=!_blurOn;
+  document.body.style.filter=_blurOn?'blur(4px)':'';
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='j'||e.key==='J')triggerShake(10,0.3);
+  if(e.key==='f'||e.key==='F')triggerFlash();
+  if(e.key==='b'||e.key==='B')toggleBlur();
+});
 
 // Physics step
 function physStep(dt){
@@ -7044,8 +7068,11 @@ function frame(ts){
   applyAvatarBindings(vals);
   const cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
-  const hx=S.headX*18+S.bodyX*6+Math.sin(breathT*.6)*.6;
-  const hy=S.headY*12+S.bodyY*5+Math.sin(breathT)*2;
+  // Screen shake
+  let _sx=0,_sy=0;
+  if(_shakeT>0){_shakeT-=dt;const a=_shakeAmp*(_shakeT>0?1:0);_sx=(Math.random()-.5)*a;_sy=(Math.random()-.5)*a;}
+  const hx=S.headX*18+S.bodyX*6+Math.sin(breathT*.6)*.6+_sx;
+  const hy=S.headY*12+S.bodyY*5+Math.sin(breathT)*2+_sy;
   ctx.save();ctx.translate(cx+hx,cy+hy);ctx.rotate(S.headZ*.15);ctx.translate(-cx,-cy);
   const sorted=[...MODEL.parts].sort((a,b)=>a.zIndex-b.zIndex);
   for(const pt of sorted){
