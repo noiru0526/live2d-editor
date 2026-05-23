@@ -1281,6 +1281,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#1e2830;border:1px solid rgba(80,200,160,.4);color:#60c8a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
+    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#0a1a20;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -13135,6 +13136,72 @@ Only include parameter names from the list above. Values must stay within each p
       document.getElementById('lbl-status').textContent = `AI補間エラー: ${err.message}`;
     }
   });
+}
+
+async function showAIAnimCritiqueDialog() {
+  const anim = M.animation;
+  if (!anim?.tracks || !Object.keys(anim.tracks).length) {
+    document.getElementById('lbl-status').textContent = 'アニメーションデータがありません';
+    return;
+  }
+  showModal('🔬 AIアニメーション批評', `
+    <div style="font-size:12px;display:grid;gap:10px">
+      <div style="font-size:10px;color:#6080a0">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
+      <div id="ai-crit-status" style="font-size:11px;color:#6090a0;min-height:20px">準備中...</div>
+      <div id="ai-crit-result" style="font-size:11px;color:#c0d0e0;max-height:55vh;overflow-y:auto;display:none;background:#0a0e1e;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
+    </div>
+  `, null, null);
+  const statusEl = document.getElementById('ai-crit-status');
+  const resultEl = document.getElementById('ai-crit-result');
+  // Build animation summary for Gemini
+  const dur = anim.duration || 3;
+  const trackSummaries = [];
+  for (const [k, frames] of Object.entries(anim.tracks)) {
+    if (!frames?.length) continue;
+    const p = M.params[k];
+    if (!p) continue;
+    const lbl = p.lbl || k;
+    const kfTimes = frames.map(f => f.t.toFixed(3));
+    const kfVals = frames.map(f => f.v.toFixed(3));
+    const minV = Math.min(...frames.map(f => f.v));
+    const maxV = Math.max(...frames.map(f => f.v));
+    const easings = [...new Set(frames.map(f => f.e || 'linear'))].join('/');
+    trackSummaries.push(`${lbl} (${k}): ${frames.length}KF, range=[${minV.toFixed(2)},${maxV.toFixed(2)}], paramRange=[${p.min},${p.max}], easings=${easings}`);
+    if (frames.length <= 8) trackSummaries[trackSummaries.length-1] += `, times=[${kfTimes.join(',')}], values=[${kfVals.join(',')}]`;
+  }
+  const loopMode = anim.loop ? 'ループ' : '一回再生';
+  const loopIn = anim.loopIn ?? 0, loopOut = anim.loopOut ?? dur;
+  const prompt = `You are a Live2D animation expert reviewing an animation for a VTuber avatar.
+Animation details:
+- Duration: ${dur}s, Mode: ${loopMode}, Loop region: ${loopIn.toFixed(2)}s - ${loopOut.toFixed(2)}s
+- Total tracks: ${trackSummaries.length}
+- Parameter tracks:
+${trackSummaries.slice(0, 25).join('\n')}
+
+Please analyze this animation and provide a detailed critique in Japanese. Cover:
+1. 全体的な印象と品質評価（5点満点）
+2. 問題点や不自然な動き（具体的なパラメータ名を使って）
+3. イージングの適切さ
+4. KF密度（多すぎ・少なすぎ）
+5. ループのつながりの自然さ（ループモードの場合）
+6. 具体的な改善アクション（箇条書き3〜5点）
+
+Format your response as a structured report with clear headers. Be specific and actionable.`;
+  if (statusEl) statusEl.textContent = '🤖 Gemini AIに分析を依頼中...';
+  try {
+    // Use text mode for critique (not JSON)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const body = { contents: [{ parts: [{ text: prompt }] }] };
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '結果なし';
+    if (statusEl) statusEl.textContent = '✅ 分析完了';
+    if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = text; }
+    document.getElementById('lbl-status').textContent = '🔬 AIアニメ批評完了';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = `❌ エラー: ${err.message}`;
+  }
 }
 
 function showParamBatchEdit() {
