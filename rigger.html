@@ -257,6 +257,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
     <button class="tbtn" id="btn-refimg" onclick="toggleRefImagePanel()" title="参考画像オーバーレイ: トレース・アライメント用に背景参照画像を表示">🖼 参考</button>
     <button class="tbtn" id="btn-skeleton" onclick="toggleSkeletonView()" title="スケルトン表示: パーツ→デフォーマーの親子関係を矢印で可視化">🦴 スケル</button>
+    <button class="tbtn" id="btn-motionpath" onclick="toggleMotionPath()" title="モーションパス: 選択パーツのパラメータ変化による位置軌跡を表示">🔵 軌跡</button>
     <button class="tbtn" onclick="fitView()">⊡ フィット</button>
   </div>
   <div class="sep"></div>
@@ -1005,7 +1006,7 @@ let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
 let canvasW = 1000, canvasH = 1000;
-let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false, showSkeleton = false;
+let showGrid = false, gridSize = 50, snapToGrid = false, showChecker = false, showRuler = false, focusMode = false, showBounds = false, silhouetteMode = false, pinMode = false, showUVOverlay = false, showDeformHeat = false, showSkeleton = false, showMotionPath = false;
 let _customGuides = []; // [{axis:'x'|'y', pos:number, color:string}]
 let _soloPartIdx = -1; // index of soloed part (-1 = none); all other parts are hidden during render
 let showDensityHeatmap = false;
@@ -2404,6 +2405,65 @@ function render() {
       }
     });
     ctx.restore();
+  }
+
+  // Motion path: show part center trajectory as selParam sweeps its range
+  if (showMotionPath && selPart >= 0 && selPart < parts.length && P[selParam]) {
+    const pathParts = selParts.size > 0 ? [...selParts] : [selPart];
+    const pc = P[selParam];
+    const kfs = [...pc.k].sort((a,b)=>a-b);
+    if (kfs.length >= 2) {
+      const baseVals = getParamVals();
+      const STEPS = 48;
+      const kMin = kfs[0], kMax = kfs[kfs.length-1];
+      ctx.save();
+      for (const pi of pathParts) {
+        const pt = parts[pi];
+        if (!pt || !pt.visible) continue;
+        const pathPts = [];
+        for (let i = 0; i <= STEPS; i++) {
+          const kv = kMin + (kMax - kMin) * (i / STEPS);
+          const sampleVals = { ...baseVals, [selParam]: kv };
+          const wv = pt.getWorldVerts(sampleVals);
+          if (!wv || !wv.length) continue;
+          let sx = 0, sy = 0;
+          for (const v of wv) { sx += v.x; sy += v.y; }
+          const sp = m2s(sx / wv.length, sy / wv.length);
+          pathPts.push({ sp, kv, frac: (kv - kMin) / (kMax - kMin) });
+        }
+        if (pathPts.length < 2) continue;
+        // Draw gradient path
+        for (let i = 1; i < pathPts.length; i++) {
+          const t = pathPts[i].frac;
+          const r = Math.round(40 + t * 215), g = Math.round(100 + t * 60), b = Math.round(220 - t * 160);
+          ctx.strokeStyle = `rgb(${r},${g},${b})`;
+          ctx.lineWidth = 2.5; ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(pathPts[i-1].sp.x, pathPts[i-1].sp.y);
+          ctx.lineTo(pathPts[i].sp.x, pathPts[i].sp.y);
+          ctx.stroke();
+        }
+        // Mark KF positions on path
+        for (const kv of kfs) {
+          const sampleVals = { ...baseVals, [selParam]: kv };
+          const wv = pt.getWorldVerts(sampleVals);
+          if (!wv?.length) continue;
+          let sx = 0, sy = 0;
+          for (const v of wv) { sx += v.x; sy += v.y; }
+          const sp = m2s(sx / wv.length, sy / wv.length);
+          const isCur = Math.abs(kv - curKF) < 0.001;
+          ctx.fillStyle = isCur ? '#ffe040' : 'rgba(255,255,255,0.85)';
+          ctx.strokeStyle = isCur ? '#ffb800' : 'rgba(80,140,255,0.8)';
+          ctx.lineWidth = 1.5; ctx.setLineDash([]);
+          ctx.beginPath(); ctx.arc(sp.x, sp.y, isCur ? 6 : 4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = isCur ? '#ffe040' : 'rgba(200,220,255,0.8)';
+          ctx.font = '9px monospace'; ctx.globalAlpha = 0.9;
+          ctx.fillText(kv.toFixed(2), sp.x + 7, sp.y + 3);
+          ctx.globalAlpha = 1;
+        }
+      }
+      ctx.restore();
+    }
   }
 
   // UV Overlay: show UV coordinate grid mapped onto the canvas
@@ -4185,6 +4245,13 @@ function toggleSkeletonView() {
   const btn = document.getElementById('btn-skeleton');
   if (btn) { btn.classList.toggle('active', showSkeleton); }
   setStatus(showSkeleton ? '🦴 スケルトン表示 ON: パーツ→デフォーマーの親子関係を矢印で可視化' : '🦴 スケルトン表示 OFF');
+  render();
+}
+function toggleMotionPath() {
+  showMotionPath = !showMotionPath;
+  const btn = document.getElementById('btn-motionpath');
+  if (btn) { btn.classList.toggle('active', showMotionPath); }
+  setStatus(showMotionPath ? '🔵 モーションパス ON: 選択パーツのパラメータ変化による中心位置の軌跡（青→赤）を表示' : '🔵 モーションパス OFF');
   render();
 }
 function toggleRefImagePanel() {
