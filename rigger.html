@@ -232,6 +232,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
     <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
     <button class="tbtn" onclick="batchRenameParts()" title="パーツをまとめてリネーム: プレフィックス追加・検索置換など">✏ 一括名前変更</button>
+    <button class="tbtn" onclick="aiAutoNameParts()" title="AIパーツ自動命名: Gemini Visionがパーツ画像を分析してLive2D命名規則に沿った名前を提案">🤖 AI命名</button>
     <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
     <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
   </div>
@@ -497,6 +498,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px" oninput="applyDeformerFalloff(this.value)">
             <span id="dp-falloff-val" style="font-size:9px;color:#818cf8;min-width:24px">0%</span>
           </div>
+          <div class="prop-row">
+            <span class="prop-lbl">親デフォーマー</span>
+            <select class="prop-sel" id="dp-parent" onchange="applyWarpParent(this.value)" style="flex:1;font-size:9px;background:#111827;border:1px solid #2a3a5a;color:#d0d8f0;border-radius:3px;padding:2px">
+              <option value="">なし（ルート）</option>
+            </select>
+          </div>
         </div>
         <!-- Rotation deformer props -->
         <div id="def-rot-props" style="display:none">
@@ -516,6 +523,12 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="rp-sy" type="number" step="0.01" min="0.01" max="5" oninput="applyRotScale()">
           </div>
           <div style="font-size:8px;color:#4e6080;margin:2px 4px">※ 角度・拡縮は選択中パラメータのキーフレーム値</div>
+          <div class="prop-row">
+            <span class="prop-lbl">親デフォーマー</span>
+            <select class="prop-sel" id="rp-parent" onchange="applyRotParent(this.value)" style="flex:1;font-size:9px;background:#111827;border:1px solid #2a3a5a;color:#d0d8f0;border-radius:3px;padding:2px">
+              <option value="">なし（ルート）</option>
+            </select>
+          </div>
         </div>
         <!-- Bone deformer props -->
         <div id="def-bone-props" style="display:none">
@@ -1362,6 +1375,7 @@ class WarpDeformer {
     this.x = 100; this.y = 100; this.w = 400; this.h = 400;
     this.cols = 2; this.rows = 2;
     this.falloff = 0;
+    this.parentDeformerId = null;
     this.deforms = {};
     this.initDeforms();
   }
@@ -1430,12 +1444,12 @@ class WarpDeformer {
   }
   get type() { return 'warp'; }
   toJSON() {
-    return {id:this.id, name:this.name, type:'warp', x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, falloff:this.falloff||0, deforms:this.deforms};
+    return {id:this.id, name:this.name, type:'warp', x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, falloff:this.falloff||0, parentDeformerId:this.parentDeformerId||null, deforms:this.deforms};
   }
   static fromJSON(o) {
     const d = new WarpDeformer(o.name);
     d.id = o.id||d.id; d.x=o.x||100; d.y=o.y||100; d.w=o.w||400; d.h=o.h||400;
-    d.cols=o.cols||2; d.rows=o.rows||2; d.falloff=o.falloff||0; d.deforms=o.deforms||{};
+    d.cols=o.cols||2; d.rows=o.rows||2; d.falloff=o.falloff||0; d.parentDeformerId=o.parentDeformerId||null; d.deforms=o.deforms||{};
     return d;
   }
 }
@@ -1448,6 +1462,7 @@ class RotationDeformer {
     this.type = 'rotation';
     this.px = 400; this.py = 400;
     this.r = 80;
+    this.parentDeformerId = null;
     this.deforms = {};
     this.initDeforms();
   }
@@ -1483,12 +1498,12 @@ class RotationDeformer {
     return {x: this.px + dx*cos - dy*sin, y: this.py + dx*sin + dy*cos};
   }
   toJSON() {
-    return {id:this.id, name:this.name, type:'rotation', px:this.px, py:this.py, r:this.r, deforms:this.deforms};
+    return {id:this.id, name:this.name, type:'rotation', px:this.px, py:this.py, r:this.r, parentDeformerId:this.parentDeformerId||null, deforms:this.deforms};
   }
   static fromJSON(o) {
     const d = new RotationDeformer(o.name);
     d.id=o.id||d.id; d.px=o.px||400; d.py=o.py||400; d.r=o.r||80;
-    d.deforms=o.deforms||{};
+    d.parentDeformerId=o.parentDeformerId||null; d.deforms=o.deforms||{};
     return d;
   }
 }
@@ -1701,25 +1716,7 @@ function renderPartToCtx(pt, tc, sz, vals) {
   if (!pt || !pt.activeImg || !pt.mesh.tris.length) return;
   const wv = pt.getWorldVerts(vals);
   if (pt.deformerId) {
-    const def = deformers.find(d => d.id === pt.deformerId);
-    if (def) {
-      if (def.type === 'bone') {
-        const tr = def.getWorldTransform(vals, deformers);
-        for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
-      } else if (def.type === 'rotation') {
-        const tr = def.getTransform(vals);
-        for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
-      } else {
-        const dv = def.getDeformedVerts(vals);
-        const ww = pt.warpWeights?.[def.id];
-        for (let i = 0; i < wv.length; i++) {
-          const w = def.warpVert(wv[i].x, wv[i].y, dv);
-          const wt = ww ? (ww[i] ?? 1) : 1;
-          wv[i].x = wv[i].x + (w.x - wv[i].x) * wt;
-          wv[i].y = wv[i].y + (w.y - wv[i].y) * wt;
-        }
-      }
-    }
+    applyDeformerChainToVerts(wv, pt.deformerId, vals, deformers, pt.warpWeights);
   }
   let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity;
   for (const v of wv) { mnX=Math.min(mnX,v.x); mnY=Math.min(mnY,v.y); mxX=Math.max(mxX,v.x); mxY=Math.max(mxY,v.y); }
@@ -1839,30 +1836,9 @@ function render() {
 
     const wv = pt.getWorldVerts(vals);
 
-    // Apply deformer (warp, rotation, or bone)
+    // Apply deformer chain (leaf → parent, supporting nested deformers)
     if (pt.deformerId) {
-      const def = deformers.find(d => d.id === pt.deformerId);
-      if (def) {
-        if (def.type === 'bone') {
-          const tr = def.getWorldTransform(vals, deformers);
-          for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
-        } else if (def.type === 'rotation') {
-          const tr = def.getTransform(vals);
-          for (let i = 0; i < wv.length; i++) {
-            const w = def.applyToVert(wv[i].x, wv[i].y, tr);
-            wv[i].x = w.x; wv[i].y = w.y;
-          }
-        } else {
-          const dv = def.getDeformedVerts(vals);
-          const ww = pt.warpWeights?.[def.id];
-          for (let i = 0; i < wv.length; i++) {
-            const w = def.warpVert(wv[i].x, wv[i].y, dv);
-            const wt = ww ? (ww[i] ?? 1) : 1;
-            wv[i].x = wv[i].x + (w.x - wv[i].x) * wt;
-            wv[i].y = wv[i].y + (w.y - wv[i].y) * wt;
-          }
-        }
-      }
+      applyDeformerChainToVerts(wv, pt.deformerId, vals, deformers, pt.warpWeights);
     }
 
     // Apply physics offset in preview
@@ -4187,6 +4163,111 @@ function _kfLoopStep(now) {
   _kfLoopRAF = requestAnimationFrame(_kfLoopStep);
 }
 
+// ─── AI Part Auto-Naming ────────────────────────────────────────────────────
+const RIGGER_GEMINI_KEY = 'AIzaSyBUlaI5K9pPQ1RL84cB1kx2kGRTvrnhACA';
+
+async function _geminiVisionNamePart(imageBase64, mimeType, currentName) {
+  const prompt = `You are a Live2D artist naming parts in a Live2D character model.
+Analyze this image and suggest a concise, descriptive English part name following Live2D naming conventions.
+Use prefixes like: face_, eye_, eyebrow_, nose_, mouth_, hair_, body_, arm_, hand_, clothes_, etc.
+Use suffixes like: _L (left), _R (right), _front, _back, _base, _line, _shadow, _highlight.
+Current name: "${currentName}"
+Reply with ONLY the suggested name, nothing else. Max 30 characters, no spaces (use underscore).`;
+
+  const body = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mimeType, data: imageBase64 } }
+      ]
+    }]
+  };
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${RIGGER_GEMINI_KEY}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    return text.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '').substring(0, 40) || currentName;
+  } catch { return currentName; }
+}
+
+function _partToBase64(pt) {
+  return new Promise(resolve => {
+    if (!pt._img && !pt.img) { resolve(null); return; }
+    const src = pt._img || pt.img;
+    const w = Math.min(pt.w || pt.iw || 128, 256);
+    const h = Math.min(pt.h || pt.ih || 128, 256);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const cx = cv.getContext('2d');
+    cx.clearRect(0, 0, w, h);
+    try { cx.drawImage(src, 0, 0, w, h); } catch { resolve(null); return; }
+    const dataURL = cv.toDataURL('image/png');
+    const base64 = dataURL.replace(/^data:image\/png;base64,/, '');
+    resolve({ base64, mimeType: 'image/png' });
+  });
+}
+
+async function aiAutoNameParts() {
+  const targetIdxs = selParts.size >= 1 ? [...selParts] : parts.map((_, i) => i);
+  if (!targetIdxs.length) { setStatus('パーツがありません'); return; }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `<div style="background:#1a1e30;border:1px solid rgba(180,130,255,.4);border-radius:8px;padding:16px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;color:#c8d4f0;font-size:12px;">
+    <div style="font-size:13px;font-weight:600;color:#c0a0ff;">🤖 AIパーツ自動命名（${targetIdxs.length}件）</div>
+    <div id="ainm-status" style="font-size:10px;color:#80b0ff;">分析中...</div>
+    <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+      <button id="ainm-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button id="ainm-apply" style="background:#1a2040;border:1px solid rgba(80,160,255,.5);color:#80b0ff;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('ainm-cancel').onclick = () => modal.remove();
+
+  const listEl = document.getElementById('ainm-list');
+  const statusEl = document.getElementById('ainm-status');
+  const applyBtn = document.getElementById('ainm-apply');
+  const results = [];
+
+  for (let i = 0; i < targetIdxs.length; i++) {
+    const idx = targetIdxs[i];
+    const pt = parts[idx];
+    if (!pt) continue;
+    statusEl.textContent = `分析中 (${i+1}/${targetIdxs.length}): ${pt.name}...`;
+
+    const imgData = await _partToBase64(pt);
+    let suggested = pt.name;
+    if (imgData) {
+      suggested = await _geminiVisionNamePart(imgData.base64, imgData.mimeType, pt.name);
+    }
+
+    results.push({ idx, pt, suggested });
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;background:#0e1120;border-radius:4px;padding:5px 7px;';
+    row.innerHTML = `
+      <span style="font-size:9px;color:#4a6080;width:16px;text-align:right;flex-shrink:0;">${i+1}</span>
+      <span style="font-size:10px;color:#6878a0;min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pt.name}">${pt.name}</span>
+      <span style="color:#4a8060;font-size:10px;flex-shrink:0;">→</span>
+      <input type="text" value="${suggested}" style="flex:1;background:#131624;border:1px solid rgba(100,150,255,.3);color:#c8d4f0;border-radius:3px;padding:3px 5px;font-size:10px;outline:none;" data-result-idx="${results.length-1}">
+    `;
+    listEl.appendChild(row);
+  }
+
+  statusEl.textContent = `完了。${results.length}件の名前を提案しました。`;
+  applyBtn.disabled = false;
+  applyBtn.onclick = () => {
+    listEl.querySelectorAll('input[data-result-idx]').forEach(inp => {
+      const r = results[parseInt(inp.dataset.resultIdx)];
+      if (r && inp.value.trim()) r.pt.name = inp.value.trim();
+    });
+    updatePartsUI(); saveState(); setStatus(`🤖 AI命名: ${results.length}件のパーツ名を更新しました`);
+    modal.remove();
+  };
+}
+
 function batchRenameParts() {
   const targetParts = selParts.size > 1
     ? [...selParts].map(i => ({idx: i, pt: parts[i]}))
@@ -4764,6 +4845,35 @@ function applyPartDeformer(did) {
   updatePartsUI(); render();
   setStatus(did ? `「${parts[selPart].name}」をデフォーマーに割り当て` : `デフォーマーを解除`);
 }
+// Apply a full deformer chain (child → parent) to an array of {x,y} world verts in-place.
+// Supports nested warp/rotation deformers via parentDeformerId.
+function applyDeformerChainToVerts(wv, deformerId, vals, allDeformers, warpWeights) {
+  const visited = new Set();
+  let defId = deformerId;
+  while (defId && !visited.has(defId)) {
+    visited.add(defId);
+    const def = allDeformers.find(d => d.id === defId);
+    if (!def) break;
+    if (def.type === 'bone') {
+      const tr = def.getWorldTransform(vals, allDeformers);
+      for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
+    } else if (def.type === 'rotation') {
+      const tr = def.getTransform(vals);
+      for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
+    } else {
+      const dv = def.getDeformedVerts(vals);
+      const ww = warpWeights?.[def.id];
+      for (let i = 0; i < wv.length; i++) {
+        const w = def.warpVert(wv[i].x, wv[i].y, dv);
+        const wt = ww ? (ww[i] ?? 1) : 1;
+        wv[i].x = wv[i].x + (w.x - wv[i].x) * wt;
+        wv[i].y = wv[i].y + (w.y - wv[i].y) * wt;
+      }
+    }
+    defId = def.parentDeformerId || null;
+  }
+}
+
 function applyDeformerXY() {
   if (selDeformer < 0 || selDeformer >= deformers.length) return;
   const def = deformers[selDeformer];
@@ -4874,6 +4984,18 @@ function updateDeformerPropsUI() {
       document.getElementById('rp-angle').value = kf.angle.toFixed(1);
       document.getElementById('rp-sx').value = kf.scaleX.toFixed(2);
       document.getElementById('rp-sy').value = kf.scaleY.toFixed(2);
+      // Populate rotation parent deformer selector
+      const rotParentSel = document.getElementById('rp-parent');
+      if (rotParentSel) {
+        rotParentSel.innerHTML = '<option value="">なし（ルート）</option>';
+        for (const d2 of deformers) {
+          if (d2.id === def.id) continue;
+          const opt = document.createElement('option');
+          opt.value = d2.id; opt.textContent = `${d2.type==='warp'?'⬡':d2.type==='rotation'?'⟳':'🦴'} ${d2.name}`;
+          if (d2.id === def.parentDeformerId) opt.selected = true;
+          rotParentSel.appendChild(opt);
+        }
+      }
     } else {
       warpEl.style.display = 'block'; rotEl.style.display = 'none'; boneEl.style.display = 'none';
       titleEl.textContent = '⬡ ワープデフォーマー';
@@ -4886,6 +5008,18 @@ function updateDeformerPropsUI() {
       const fo = def.falloff || 0;
       document.getElementById('dp-falloff').value = fo;
       document.getElementById('dp-falloff-val').textContent = Math.round(fo*100)+'%';
+      // Populate warp parent deformer selector
+      const warpParentSel = document.getElementById('dp-parent');
+      if (warpParentSel) {
+        warpParentSel.innerHTML = '<option value="">なし（ルート）</option>';
+        for (const d2 of deformers) {
+          if (d2.id === def.id) continue;
+          const opt = document.createElement('option');
+          opt.value = d2.id; opt.textContent = `${d2.type==='warp'?'⬡':d2.type==='rotation'?'⟳':'🦴'} ${d2.name}`;
+          if (d2.id === def.parentDeformerId) opt.selected = true;
+          warpParentSel.appendChild(opt);
+        }
+      }
     }
   } else {
     dp.style.display = 'none';
@@ -4962,6 +5096,35 @@ function applyBoneParent(parentId) {
   if (selDeformer < 0 || selDeformer >= deformers.length) return;
   const def = deformers[selDeformer]; if (def.type !== 'bone') return;
   def.parentId = parentId || null; render();
+}
+function _hasCircularParent(defId, parentId, allDefs) {
+  const visited = new Set();
+  let cur = parentId;
+  while (cur && !visited.has(cur)) {
+    if (cur === defId) return true;
+    visited.add(cur);
+    const d = allDefs.find(x => x.id === cur);
+    cur = d?.parentDeformerId || null;
+  }
+  return false;
+}
+function applyWarpParent(parentId) {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'warp') return;
+  if (parentId && _hasCircularParent(def.id, parentId, deformers)) {
+    setStatus('循環参照になるため設定できません'); return;
+  }
+  def.parentDeformerId = parentId || null; render();
+  setStatus(parentId ? `「${def.name}」の親に「${deformers.find(d=>d.id===parentId)?.name}」を設定` : `「${def.name}」をルートデフォーマーに設定`);
+}
+function applyRotParent(parentId) {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const def = deformers[selDeformer]; if (def.type !== 'rotation') return;
+  if (parentId && _hasCircularParent(def.id, parentId, deformers)) {
+    setStatus('循環参照になるため設定できません'); return;
+  }
+  def.parentDeformerId = parentId || null; render();
+  setStatus(parentId ? `「${def.name}」の親に「${deformers.find(d=>d.id===parentId)?.name}」を設定` : `「${def.name}」をルートデフォーマーに設定`);
 }
 
 // ===== GROUPS =====
@@ -7477,16 +7640,21 @@ function getWorldVerts(pt,vals){
     sx=_interpKF(pt.scaleXKFs||{},1);sy=_interpKF(pt.scaleYKFs||{},1);
     if(sx!==1||sy!==1){const cx=(pt.x||0)+(pt.w||0)/2,cy=(pt.y||0)+(pt.h||0)/2;for(let i=0;i<n;i++){r[i].x=cx+(r[i].x-cx)*sx;r[i].y=cy+(r[i].y-cy)*sy;}}
   }
-  // Apply deformer (bone, rotation, or warp)
-  if(pt.deformerId){const def=DEFORMERS.find(d=>d.id===pt.deformerId);if(def){
-    if(def.type==='bone'){
-      const tr=interpBoneTransform(def,vals,DEFORMERS);
-      for(let i=0;i<n;i++){const dx=r[i].x-def.px,dy=r[i].y-def.py,dRad=(tr.worldAngle-def.angle)*Math.PI/180,c=Math.cos(dRad),s2=Math.sin(dRad);r[i].x=tr.worldPx+dx*c-dy*s2;r[i].y=tr.worldPy+dx*s2+dy*c;}
-    }else if(def.type==='rotation'){
-      const tr=interpRotDeform(def,vals);
-      for(let i=0;i<n;i++){const dx=(r[i].x-def.px)*tr.scaleX,dy=(r[i].y-def.py)*tr.scaleY,rad=tr.angle*Math.PI/180,c=Math.cos(rad),s2=Math.sin(rad);r[i].x=def.px+dx*c-dy*s2;r[i].y=def.py+dx*s2+dy*c;}
-    }else{const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}
-  }}
+  // Apply deformer chain (leaf → parent, supports nested deformers via parentDeformerId)
+  if(pt.deformerId){
+    const _visited=new Set();let _did=pt.deformerId;
+    while(_did&&!_visited.has(_did)){
+      _visited.add(_did);const def=DEFORMERS.find(d=>d.id===_did);if(!def)break;
+      if(def.type==='bone'){
+        const tr=interpBoneTransform(def,vals,DEFORMERS);
+        for(let i=0;i<n;i++){const dx=r[i].x-def.px,dy=r[i].y-def.py,dRad=(tr.worldAngle-def.angle)*Math.PI/180,c=Math.cos(dRad),s2=Math.sin(dRad);r[i].x=tr.worldPx+dx*c-dy*s2;r[i].y=tr.worldPy+dx*s2+dy*c;}
+      }else if(def.type==='rotation'){
+        const tr=interpRotDeform(def,vals);
+        for(let i=0;i<n;i++){const dx=(r[i].x-def.px)*tr.scaleX,dy=(r[i].y-def.py)*tr.scaleY,rad=tr.angle*Math.PI/180,c=Math.cos(rad),s2=Math.sin(rad);r[i].x=def.px+dx*c-dy*s2;r[i].y=def.py+dx*s2+dy*c;}
+      }else{const dv=interpDeforms(def,vals);for(let i=0;i<n;i++){const w=warpVert(def,r[i].x,r[i].y,dv);r[i].x=w.x;r[i].y=w.y;}}
+      _did=def.parentDeformerId||null;
+    }
+  }
   return r;
 }
 function drawTri(x0,y0,x1,y1,x2,y2,u0,v0,u1,v1,u2,v2,img){

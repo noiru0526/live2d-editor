@@ -1283,6 +1283,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#0a1a20;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#1a0a30;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
+    <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
+    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#0a1a2a;border:1px solid rgba(80,200,255,.4);color:#50c8ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#0e1120;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -13307,6 +13309,197 @@ Format your response as a structured report with clear headers. Be specific and 
   } catch (err) {
     if (statusEl) statusEl.textContent = `❌ エラー: ${err.message}`;
   }
+}
+
+// ─── KF Density Heatmap ──────────────────────────────────────────────────────
+function showKFDensityHeatmap() {
+  const anim = M.animation;
+  const tracks = Object.entries(anim?.tracks || {}).filter(([,f]) => f?.length);
+  if (!tracks.length) { document.getElementById('lbl-status').textContent = 'アニメーションデータがありません'; return; }
+  const dur = anim.duration || 3;
+  const TIME_BINS = 120;
+  const ROW_H = 12;
+  const W = Math.min(window.innerWidth - 80, 700);
+  const H = tracks.length * ROW_H + 28;
+
+  // Build density data
+  const allCounts = tracks.map(([, frames]) => {
+    const counts = new Int32Array(TIME_BINS);
+    for (const kf of frames) {
+      const bi = Math.min(TIME_BINS - 1, Math.floor((kf.t / dur) * TIME_BINS));
+      if (bi >= 0) counts[bi]++;
+    }
+    return counts;
+  });
+
+  const mo = document.createElement('div');
+  mo.className = 'mo';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:14px;width:${W+80}px;max-height:85vh;display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <h3 style="font-size:13px;color:#50c8ff;margin:0;">🗺 KFキーフレーム密度マップ</h3>
+      <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="font-size:9px;color:#4a6080;">各トラックの時間方向KF密度（明るいほど集中）。再生時間: ${dur.toFixed(2)}s / ${tracks.length}トラック</div>
+    <div style="display:flex;gap:4px;align-items:flex-start;">
+      <div id="kfd-labels" style="display:flex;flex-direction:column;width:120px;flex-shrink:0;gap:0;overflow:hidden;"></div>
+      <div style="flex:1;overflow:hidden;">
+        <canvas id="kfd-canvas" width="${W}" height="${H}" style="display:block;border-radius:3px;border:1px solid rgba(80,200,255,.15);"></canvas>
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:#4a6080;margin-top:2px;">
+          <span>0s</span><span>${(dur/4).toFixed(1)}s</span><span>${(dur/2).toFixed(1)}s</span><span>${(dur*3/4).toFixed(1)}s</span><span>${dur.toFixed(1)}s</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;font-size:9px;color:#4a6080;">
+      <div style="width:60px;height:8px;background:linear-gradient(to right,#0e1120,#204060,#3080c0,#40d0ff);border-radius:2px;"></div>
+      <span>少 → 多</span>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+  mo.addEventListener('click', e => { if (e.target === mo) mo.remove(); });
+
+  // Render labels
+  const labelsEl = document.getElementById('kfd-labels');
+  tracks.forEach(([name]) => {
+    const p = M.params[name];
+    const lbl = p?.lbl || name;
+    const div = document.createElement('div');
+    div.style.cssText = `height:${ROW_H}px;line-height:${ROW_H}px;font-size:8px;color:#6080a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;`;
+    div.textContent = lbl;
+    div.title = name;
+    labelsEl.appendChild(div);
+  });
+
+  // Render canvas
+  const cvs = document.getElementById('kfd-canvas');
+  const ctx = cvs.getContext('2d');
+  ctx.fillStyle = '#0e1120';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ruler
+  ctx.fillStyle = 'rgba(80,200,255,.08)';
+  for (let qi = 0; qi <= 4; qi++) {
+    const x = Math.round(qi / 4 * W);
+    ctx.fillRect(x, 0, 1, H - 20);
+  }
+
+  const binW = W / TIME_BINS;
+  tracks.forEach(([name], ri) => {
+    const counts = allCounts[ri];
+    const maxC = Math.max(1, ...counts);
+    const y = ri * ROW_H + 20;
+    for (let bi = 0; bi < TIME_BINS; bi++) {
+      if (!counts[bi]) continue;
+      const t = counts[bi] / maxC;
+      const r = Math.round(20 + t * 60);
+      const g = Math.round(80 + t * 120);
+      const b = Math.round(120 + t * 135);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(bi * binW, y, binW + 0.5, ROW_H - 1);
+    }
+  });
+
+  // Track separator lines + labels on canvas (top 20px)
+  ctx.fillStyle = 'rgba(80,200,255,.6)';
+  ctx.font = '9px monospace';
+  ctx.fillText('0', 2, 14);
+  ctx.fillText(`${(dur/2).toFixed(1)}s`, W/2 - 10, 14);
+  ctx.fillText(`${dur.toFixed(1)}s`, W - 28, 14);
+  ctx.strokeStyle = 'rgba(80,200,255,.12)';
+  ctx.lineWidth = 0.5;
+  for (let ri = 1; ri < tracks.length; ri++) {
+    ctx.beginPath();
+    ctx.moveTo(0, 20 + ri * ROW_H);
+    ctx.lineTo(W, 20 + ri * ROW_H);
+    ctx.stroke();
+  }
+}
+
+// ─── AI Character Coach ──────────────────────────────────────────────────────
+let _aiCoachPanel = null;
+async function showAICharacterCoachDialog() {
+  if (_aiCoachPanel) { _aiCoachPanel.remove(); _aiCoachPanel = null; return; }
+  const anim = M.animation;
+  const tracks = Object.entries(anim?.tracks || {}).filter(([,f]) => f?.length);
+  if (!tracks.length) { document.getElementById('lbl-status').textContent = 'アニメーションデータがありません'; return; }
+
+  const panel = document.createElement('div');
+  _aiCoachPanel = panel;
+  panel.style.cssText = 'position:fixed;bottom:60px;right:14px;width:280px;background:#0d1820;border:1px solid rgba(60,220,100,.4);border-radius:8px;z-index:800;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(60,220,100,.2);">
+      <span style="font-size:11px;font-weight:600;color:#40dd70;">🎯 AIキャラクターコーチ</span>
+      <button id="coach-close" style="background:none;border:none;color:#40dd70;cursor:pointer;font-size:14px;padding:0;">×</button>
+    </div>
+    <div style="padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+      <div style="font-size:9px;color:#4a8060;">分析対象</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="coach-mode-btn active" data-mode="overall" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.4);color:#40dd70;">全体</button>
+        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
+        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
+        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
+      </div>
+      <button id="coach-run" style="font-size:10px;padding:4px;border-radius:4px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.5);color:#40dd70;font-weight:600;">▶ 分析開始</button>
+      <div id="coach-status" style="font-size:9px;color:#4a8060;display:none;"></div>
+      <div id="coach-result" style="font-size:10px;color:#c0e0d0;line-height:1.55;max-height:260px;overflow-y:auto;display:none;background:#0a1410;border:1px solid rgba(60,220,100,.15);border-radius:4px;padding:8px;white-space:pre-wrap;"></div>
+    </div>`;
+  document.body.appendChild(panel);
+
+  document.getElementById('coach-close').onclick = () => { panel.remove(); _aiCoachPanel = null; };
+  panel.querySelectorAll('.coach-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panel.querySelectorAll('.coach-mode-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = '#131820'; b.style.borderColor = 'rgba(60,220,100,.2)'; b.style.color = '#4a8060';
+      });
+      btn.classList.add('active');
+      btn.style.background = '#1a3020'; btn.style.borderColor = 'rgba(60,220,100,.4)'; btn.style.color = '#40dd70';
+    });
+  });
+
+  document.getElementById('coach-run').onclick = async () => {
+    const mode = panel.querySelector('.coach-mode-btn.active')?.dataset.mode || 'overall';
+    const statusEl = document.getElementById('coach-status');
+    const resultEl = document.getElementById('coach-result');
+    statusEl.style.display = 'block'; statusEl.textContent = '🤖 Gemini に問い合わせ中...';
+    resultEl.style.display = 'none';
+
+    const dur = anim.duration || 3;
+    const trackSummaries = tracks.slice(0, 20).map(([k, frames]) => {
+      const p = M.params[k];
+      const lbl = p?.lbl || k;
+      const minV = Math.min(...frames.map(f => f.v));
+      const maxV = Math.max(...frames.map(f => f.v));
+      return `${lbl}: ${frames.length}KF, v=[${minV.toFixed(2)},${maxV.toFixed(2)}], range=[${p?.min??0},${p?.max??1}]`;
+    });
+
+    const modePrompts = {
+      overall: `全体評価: 品質スコア・主な問題点・改善すべき優先事項を3〜5点の箇条書きで。簡潔に。`,
+      timing: `タイミング分析: 各KFの時間配置は自然か？密集・疎な箇所はどこか？どの時刻に追加・削除すると良いか？`,
+      loop: `ループ評価: ループのつながりは自然か？始点と終点の値の差が大きいパラメータはどれか？修正方法を提案せよ。`,
+      vtuber: `VTuber視点の評価: 配信中に視聴者が見てどう感じるか？表情・首振り・呼吸のアニメーションとして自然か？配信映えする改善提案を3点。`
+    };
+
+    const prompt = `あなたはLive2D VTuberアニメーションの専門コーチです。
+アニメーション情報:
+- 長さ: ${dur.toFixed(2)}s, ${anim.loop ? 'ループ' : '一回再生'}
+- トラック数: ${tracks.length}
+- トラック詳細:
+${trackSummaries.join('\n')}
+
+${modePrompts[mode] || modePrompts.overall}
+日本語で200文字以内に簡潔に答えてください。`;
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '結果なし';
+      statusEl.textContent = '✅ 分析完了';
+      resultEl.textContent = text; resultEl.style.display = 'block';
+    } catch (err) { statusEl.textContent = `❌ ${err.message}`; }
+  };
 }
 
 function showParamBatchEdit() {
