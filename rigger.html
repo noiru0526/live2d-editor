@@ -6215,6 +6215,8 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-controls"> パラメータコントロールパネル（Pキー）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-gamepad"> ゲームパッド自動ON</label>
       </div>
 
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
@@ -6273,6 +6275,8 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-nostatus')?.checked) params.push('nostatus=1');
     if (document.getElementById('av-perf')?.checked) params.push('perf=1');
     if (!document.getElementById('av-hotkeys')?.checked) params.push('hotkeys=0');
+    if (document.getElementById('av-controls')?.checked) params.push('controls=1');
+    if (document.getElementById('av-gamepad')?.checked) params.push('gamepad=1');
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -6304,6 +6308,8 @@ async function doExportAvatar() {
   const noStatus = document.getElementById('av-nostatus')?.checked;
   const perf = document.getElementById('av-perf')?.checked;
   const noHotkeys = !document.getElementById('av-hotkeys')?.checked;
+  const showControls = document.getElementById('av-controls')?.checked;
+  const gpOn = document.getElementById('av-gamepad')?.checked;
   const wgClock = document.getElementById('av-wg-clock')?.checked;
   const wgTimer = document.getElementById('av-wg-timer')?.checked;
   const wgGame = document.getElementById('av-wg-game')?.value?.trim() || '';
@@ -6320,6 +6326,8 @@ async function doExportAvatar() {
   if (noStatus) defaultParams.push('nostatus=1');
   if (perf) defaultParams.push('perf=1');
   if (noHotkeys) defaultParams.push('hotkeys=0');
+  if (showControls) defaultParams.push('controls=1');
+  if (gpOn) defaultParams.push('gamepad=1');
   // Widget params
   const wgParts = [];
   if (wgClock) wgParts.push('clock');
@@ -6438,6 +6446,9 @@ function _buildHotkeyPanel(){
   EXPRS.forEach((ex,i)=>{rows.push([String(i+1),ex.name]);});
   rows.push(['---','--- 顔追跡 ---']);
   rows.push(['T','顔追跡ON/OFF']);
+  rows.push(['---','--- コントロール ---']);
+  rows.push(['P','パラメータパネル表示切替']);
+  rows.push(['G','ゲームパッド ON/OFF']);
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
