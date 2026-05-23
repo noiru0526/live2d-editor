@@ -6586,6 +6586,7 @@ function showAvatarExportDialog() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#9060d0"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
       </div>
       <div id="av-chat-opts" style="display:none;background:#0e1120;border:1px solid #1a2a3a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
         <div style="color:#6090a0;font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
@@ -6638,6 +6639,7 @@ function showAvatarExportDialog() {
     if (!document.getElementById('av-hotkeys')?.checked) params.push('hotkeys=0');
     if (document.getElementById('av-controls')?.checked) params.push('controls=1');
     if (document.getElementById('av-gamepad')?.checked) params.push('gamepad=1');
+    if (document.getElementById('av-tts')?.checked) params.push('tts=1');
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -7005,6 +7007,46 @@ document.addEventListener('keydown',e=>{
   if(e.key==='b'||e.key==='B')toggleBlur();
 });
 
+// TTS lipsync (?tts=1) — Web Speech Synthesis API driven mouthOpen
+// speak(text, voice?, rate?, pitch?) callable from console or WS events
+let _ttsSpeaking=false, _ttsTimer=null;
+function speak(text,voiceIdx=0,rate=1,pitch=1){
+  if(!('speechSynthesis' in window))return;
+  const u=new SpeechSynthesisUtterance(text);
+  const voices=speechSynthesis.getVoices();
+  const jaVoices=voices.filter(v=>v.lang.startsWith('ja'));
+  u.voice=(jaVoices[voiceIdx]||voices[voiceIdx]||voices[0])||null;
+  u.rate=rate; u.pitch=pitch; u.lang='ja-JP';
+  u.onstart=()=>{ _ttsSpeaking=true; };
+  u.onend=()=>{ _ttsSpeaking=false; T.mouthOpen=0; };
+  u.onerror=()=>{ _ttsSpeaking=false; T.mouthOpen=0; };
+  u.onboundary=(ev)=>{
+    if(ev.name==='word'){
+      const word=(text.substr(ev.charIndex,ev.charLength||4)||'').trim();
+      const v=word.length>0?Math.min(1,0.3+word.length*0.08):0;
+      T.mouthOpen=v;
+      clearTimeout(_ttsTimer);
+      _ttsTimer=setTimeout(()=>{ if(!_ttsSpeaking)T.mouthOpen=0; },200);
+    }
+  };
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+// Animate mouth open with random variation while speaking (fallback for browsers without onboundary)
+let _ttsMouthPhase=0;
+function _ttsMouthStep(dt){
+  if(!_ttsSpeaking){ if(T.mouthOpen>0)T.mouthOpen=Math.max(0,T.mouthOpen-dt*4); return; }
+  _ttsMouthPhase+=dt*12;
+  const base=0.4+Math.sin(_ttsMouthPhase)*0.25+Math.sin(_ttsMouthPhase*0.7)*0.12;
+  T.mouthOpen=Math.max(0,Math.min(1,base));
+}
+if(_p.has('tts')){
+  // Also listen for speak events from WS
+  document.addEventListener('keydown',e=>{
+    if(e.key==='s'&&e.altKey){ const t=prompt('テキストを発話:'); if(t)speak(t); }
+  });
+}
+
 // OBS WebSocket v5 integration (?obsws=ws://localhost:4455&obspass=...&obsmap={...})
 (function(){
   const obsWsUrl=_p.get('obsws');
@@ -7089,9 +7131,11 @@ document.addEventListener('keydown',e=>{
         case 'param':
           if(msg.name&&typeof msg.value==='number')S[msg.name]=Math.max(-1,Math.min(1,msg.value));
           break;
+        case 'speak':  if(msg.text) speak(msg.text, msg.voice||0, msg.rate||1, msg.pitch||1); break;
         case 'custom':
           if(msg.shake) triggerShake(msg.shake.amp??8, msg.shake.dur??0.3);
           if(msg.flash) triggerFlash(msg.flash.color||'rgba(255,255,255,0.7)', msg.flash.dur??120);
+          if(msg.speak) speak(msg.speak.text||msg.speak, msg.speak.voice||0, msg.speak.rate||1, msg.speak.pitch||1);
           break;
       }
     };
@@ -7279,6 +7323,7 @@ function frame(ts){
   S.browL=ema(S.browL,T.browL,.18);S.browR=ema(S.browR,T.browR,.18);
   S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,.32);S.mouthForm=ema(S.mouthForm,T.mouthForm,.12);
   S.cheek=ema(S.cheek,T.cheek,.08);S.bodyX=ema(S.bodyX,T.bodyX,.07);S.bodyY=ema(S.bodyY,T.bodyY,.07);
+  _ttsMouthStep(dt);
   physStep(dt);
   if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2+Math.random()*5;}}
   else{ablinkP+=dt/.11;if(ablinkP>=1){ablink=false;ablinkP=0;}}
