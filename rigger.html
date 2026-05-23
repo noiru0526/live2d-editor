@@ -251,6 +251,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-silhouette" onclick="silhouetteMode=!silhouetteMode;this.classList.toggle('active',silhouetteMode);render();" title="シルエットモード: テクスチャなしで塗りつぶし表示、メッシュ輪郭確認用">⬛ シルエット</button>
     <button class="tbtn" onclick="showGuideManager()" title="カスタムガイドライン: 参照線を追加・管理">⊞ ガイド</button>
     <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
+    <button class="tbtn" onclick="showAlignMenu(event)" title="選択パーツを整列・等間隔配置（複数選択時）">⊟ 整列</button>
     <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
     <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
     <button class="tbtn" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.classList.toggle('active',showOnionSkin);render()" title="オニオンスキン: 前KF（シアン）・次KF（オレンジ）のデフォームゴーストを重ねて表示（デフォームモードで有効）">👻 オニオン</button>
@@ -2963,6 +2964,43 @@ function addPartBoundsAsGuides() {
   }
   render();
   setStatus(`バウンドガイド追加: ${count}本 (${targets.length}パーツ)`);
+}
+
+function showAlignMenu(e) {
+  const targets = selParts.size > 1 ? [...selParts].map(i=>parts[i]) : [];
+  if (targets.length < 2) { setStatus('整列には2つ以上のパーツを選択してください'); return; }
+  function _cx(pt){ return pt.x; }
+  function _cy(pt){ return pt.y; }
+  function _applyAlign(fn) {
+    saveState();
+    fn(targets);
+    updatePartsUI(); render();
+  }
+  const xs = targets.map(_cx), ys = targets.map(_cy);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  showCtxMenu(e.clientX, e.clientY, [
+    { icon:'⬤', label:'左端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=minX)) },
+    { icon:'⬤', label:'右端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=maxX)) },
+    { icon:'⬤', label:'中央揃え（横）', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=cx)) },
+    null,
+    { icon:'⬤', label:'上端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.y=minY)) },
+    { icon:'⬤', label:'下端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.y=maxY)) },
+    { icon:'⬤', label:'中央揃え（縦）', action:()=>_applyAlign(ts=>ts.forEach(p=>p.y=cy)) },
+    null,
+    { icon:'⟺', label:'等間隔（横）', action:()=>_applyAlign(ts=>{
+      const sorted=[...ts].sort((a,b)=>a.x-b.x);
+      const step=(maxX-minX)/(sorted.length-1);
+      sorted.forEach((p,i)=>p.x=minX+step*i);
+    })},
+    { icon:'⟺', label:'等間隔（縦）', action:()=>_applyAlign(ts=>{
+      const sorted=[...ts].sort((a,b)=>a.y-b.y);
+      const step=(maxY-minY)/(sorted.length-1);
+      sorted.forEach((p,i)=>p.y=minY+step*i);
+    })},
+    null,
+    { icon:'◎', label:'キャンバス中央に整列', action:()=>_applyAlign(ts=>ts.forEach(p=>{p.x=canvasW/2;p.y=canvasH/2;})) },
+  ]);
 }
 
 function setAllPartsVisible(v) {
