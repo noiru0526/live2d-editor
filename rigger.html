@@ -6663,6 +6663,15 @@ function showAvatarExportDialog() {
         <div style="color:#4a6080;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
       </div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
+        <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#0e1120;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+      </div>
+      <div style="font-size:9px;color:#404060;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0b0d0;font-size:10px;white-space:nowrap">チャンネル名:</span>
@@ -6731,6 +6740,14 @@ function showAvatarExportDialog() {
       const cmd = document.getElementById('av-chat-cmd')?.value?.trim();
       if (cmd) params.push('chatcmd=' + encodeURIComponent(cmd));
     }
+    const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
+    const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
+    const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
+    const cgCon = parseFloat(document.getElementById('av-cg-con')?.value||'100');
+    if (cgHue !== 0) params.push('hue=' + cgHue);
+    if (cgSat !== 100) params.push('sat=' + cgSat);
+    if (cgBri !== 100) params.push('bri=' + cgBri);
+    if (cgCon !== 100) params.push('con=' + cgCon);
     const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
     if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
@@ -6882,7 +6899,7 @@ const S={headX:0,headY:0,headZ:0,eyeOpenL:0,eyeOpenR:0,eyeBallX:0,eyeBallY:0,bro
 const T={...S};
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
 // OBS/Performance settings from URL params
-// Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1
+// Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1&hue=30&sat=120&bri=90&con=110
 const _p=new URLSearchParams(location.search);
 const TARGET_FPS=Math.min(120,Math.max(5,parseInt(_p.get('fps')||'60')));
 const OBS_MODE=_p.has('obs');
@@ -6890,6 +6907,13 @@ const PERF_HUD=_p.has('perf');
 const SHOW_STATUS=!_p.has('nostatus')&&!OBS_MODE;
 let _minFrameMs=1000/TARGET_FPS;
 let _fpsCount=0,_fpsLast=0,_fpsVal=0;
+// Global color grading (?hue=0&sat=100&bri=100&con=100)
+const _GHue=parseFloat(_p.get('hue')||'0');
+const _GSat=parseFloat(_p.get('sat')||'100');
+const _GBri=parseFloat(_p.get('bri')||'100');
+const _GCon=parseFloat(_p.get('con')||'100');
+const _GFilter=(()=>{const f=[];if(_GHue!==0)f.push('hue-rotate('+_GHue+'deg)');if(_GSat!==100)f.push('saturate('+_GSat/100+')');if(_GBri!==100)f.push('brightness('+_GBri/100+')');if(_GCon!==100)f.push('contrast('+_GCon/100+')');return f.join(' ');})();
+if(_GFilter)document.getElementById('c').style.filter=_GFilter;
 const _stEl=document.getElementById('st');
 if(!SHOW_STATUS&&!PERF_HUD)_stEl.style.display='none';
 if(OBS_MODE){document.getElementById('obs-badge').style.display='block';}
