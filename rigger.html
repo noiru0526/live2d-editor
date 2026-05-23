@@ -219,6 +219,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" id="btn-mesh" onclick="setMode('mesh')">② メッシュ</button>
     <button class="tbtn" id="btn-deform" onclick="setMode('deform')">③ 変形</button>
     <button class="tbtn" id="btn-preview" onclick="setMode('preview')">④ プレビュー</button>
+    <button class="tbtn" id="btn-weightpaint" onclick="setMode('weightpaint')" title="ウェイトペイント — デフォーマーの頂点影響度をブラシで塗る">🎨 WP</button>
   </div>
   <div class="sep"></div>
   <div class="tgrp">
@@ -429,6 +430,15 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <div id="zoom-hud">100%</div>
     <div id="coord-hud">0, 0</div>
     <div id="mode-badge">PARTS</div>
+    <!-- Weight Paint Control Panel -->
+    <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(8,12,20,.92);border:1px solid rgba(100,160,255,.3);border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#6090b0;z-index:200">
+      <span style="color:#818cf8;font-weight:700;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
+      <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#818cf8" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
+      <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#f59e0b" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
+      <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
+      <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:3px;padding:1px 6px;cursor:pointer">全1</button>
+      <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:3px;padding:1px 6px;cursor:pointer">全0</button>
+    </div>
   </div>
 
   <!-- RIGHT PANEL -->
@@ -460,6 +470,11 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
             <input class="prop-in" id="dp-cols" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
             <span style="font-size:9px;color:#4e6080;margin:0 2px">×</span>
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
+          </div>
+          <div class="prop-row" style="border-top:1px solid #1a3040;margin-top:4px;padding-top:4px">
+            <span class="prop-lbl" style="color:#818cf8">輪郭</span>
+            <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px" oninput="applyDeformerFalloff(this.value)">
+            <span id="dp-falloff-val" style="font-size:9px;color:#818cf8;min-width:24px">0%</span>
           </div>
         </div>
         <!-- Rotation deformer props -->
@@ -768,6 +783,14 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         </div>
         <div id="bindings-list" style="font-size:8px;color:#2a4060;min-height:12px"></div>
       </div>
+      <!-- DEFORMER TREE -->
+      <div style="padding:4px 6px;border-top:1px solid #0e1820;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer" onclick="toggleDeformerTree()">
+          <span style="font-size:7px;color:#2a5060;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
+          <span id="def-tree-arrow" style="font-size:8px;color:#2a4060">▶</span>
+        </div>
+        <div id="def-tree-body" style="display:none;max-height:140px;overflow-y:auto"></div>
+      </div>
     </div>
 
     <!-- PHYSICS tab -->
@@ -990,6 +1013,8 @@ const collapsedDeformers = new Set();
 let paramBindings = {}; // { srcParam: [{target, srcMin, srcMax, dstMin, dstMax}] }
 const physState = new Map();
 let physLastTs = 0;
+// Weight paint state
+let _wpBrushR = 40, _wpBrushStr = 0.05, _wpBrushVal = 1.0, _wpPainting = false;
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -1066,6 +1091,7 @@ class Part {
     this.colorLabel = null; // color hex string or null
     this.note = ''; // free-form memo text
     this.pinnedVerts = new Set(); // vertex indices that are locked from deform
+    this.warpWeights = {}; // {deformerId: number[]} per-vertex deformer influence (0..1)
   }
   get w() { return this.img ? this.img.width : 100; }
   get h() { return this.img ? this.img.height : 100; }
@@ -1257,7 +1283,8 @@ class Part {
       texSwitchRanges: this.texSwitchRanges || [],
       colorLabel: this.colorLabel || null,
       note: this.note || '',
-      pinnedVerts: this.pinnedVerts ? [...this.pinnedVerts] : []
+      pinnedVerts: this.pinnedVerts ? [...this.pinnedVerts] : [],
+      warpWeights: this.warpWeights || {}
     };
   }
   static fromJSON(o) {
@@ -1284,6 +1311,7 @@ class Part {
     p.colorLabel = o.colorLabel || null;
     p.note = o.note || '';
     p.pinnedVerts = new Set(Array.isArray(o.pinnedVerts) ? o.pinnedVerts : []);
+    p.warpWeights = o.warpWeights || {};
     if (o.imageData) {
       p.imgDataURL = o.imageData;
       const img = new Image();
@@ -1310,6 +1338,7 @@ class WarpDeformer {
     this.name = name;
     this.x = 100; this.y = 100; this.w = 400; this.h = 400;
     this.cols = 2; this.rows = 2;
+    this.falloff = 0;
     this.deforms = {};
     this.initDeforms();
   }
@@ -1366,19 +1395,24 @@ class WarpDeformer {
     const ci = Math.min(Math.floor(uc), this.cols-1), ri = Math.min(Math.floor(vc), this.rows-1);
     const tu = uc-ci, tv = vc-ri, s = this.cols+1;
     const tl=dv[ri*s+ci], tr=dv[ri*s+ci+1], bl=dv[(ri+1)*s+ci], br=dv[(ri+1)*s+ci+1];
-    return {
-      x: tl.x*(1-tu)*(1-tv) + tr.x*tu*(1-tv) + bl.x*(1-tu)*tv + br.x*tu*tv,
-      y: tl.y*(1-tu)*(1-tv) + tr.y*tu*(1-tv) + bl.y*(1-tu)*tv + br.y*tu*tv
-    };
+    const wx = tl.x*(1-tu)*(1-tv) + tr.x*tu*(1-tv) + bl.x*(1-tu)*tv + br.x*tu*tv;
+    const wy = tl.y*(1-tu)*(1-tv) + tr.y*tu*(1-tv) + bl.y*(1-tu)*tv + br.y*tu*tv;
+    const fo = this.falloff || 0;
+    if (fo <= 0) return {x: wx, y: wy};
+    const d = Math.min(Math.min(u, 1-u), Math.min(v, 1-v));
+    const band = fo * 0.5;
+    const t = Math.min(1, d / band);
+    const w = t * t * (3 - 2 * t); // smoothstep
+    return {x: vx + (wx - vx) * w, y: vy + (wy - vy) * w};
   }
   get type() { return 'warp'; }
   toJSON() {
-    return {id:this.id, name:this.name, type:'warp', x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, deforms:this.deforms};
+    return {id:this.id, name:this.name, type:'warp', x:this.x, y:this.y, w:this.w, h:this.h, cols:this.cols, rows:this.rows, falloff:this.falloff||0, deforms:this.deforms};
   }
   static fromJSON(o) {
     const d = new WarpDeformer(o.name);
     d.id = o.id||d.id; d.x=o.x||100; d.y=o.y||100; d.w=o.w||400; d.h=o.h||400;
-    d.cols=o.cols||2; d.rows=o.rows||2; d.deforms=o.deforms||{};
+    d.cols=o.cols||2; d.rows=o.rows||2; d.falloff=o.falloff||0; d.deforms=o.deforms||{};
     return d;
   }
 }
@@ -1654,7 +1688,13 @@ function renderPartToCtx(pt, tc, sz, vals) {
         for (let i = 0; i < wv.length; i++) { const w = def.applyToVert(wv[i].x, wv[i].y, tr); wv[i].x=w.x; wv[i].y=w.y; }
       } else {
         const dv = def.getDeformedVerts(vals);
-        for (let i = 0; i < wv.length; i++) { const w = def.warpVert(wv[i].x, wv[i].y, dv); wv[i].x=w.x; wv[i].y=w.y; }
+        const ww = pt.warpWeights?.[def.id];
+        for (let i = 0; i < wv.length; i++) {
+          const w = def.warpVert(wv[i].x, wv[i].y, dv);
+          const wt = ww ? (ww[i] ?? 1) : 1;
+          wv[i].x = wv[i].x + (w.x - wv[i].x) * wt;
+          wv[i].y = wv[i].y + (w.y - wv[i].y) * wt;
+        }
       }
     }
   }
@@ -1781,9 +1821,12 @@ function render() {
           }
         } else {
           const dv = def.getDeformedVerts(vals);
+          const ww = pt.warpWeights?.[def.id];
           for (let i = 0; i < wv.length; i++) {
             const w = def.warpVert(wv[i].x, wv[i].y, dv);
-            wv[i].x = w.x; wv[i].y = w.y;
+            const wt = ww ? (ww[i] ?? 1) : 1;
+            wv[i].x = wv[i].x + (w.x - wv[i].x) * wt;
+            wv[i].y = wv[i].y + (w.y - wv[i].y) * wt;
           }
         }
       }
@@ -2332,6 +2375,38 @@ function render() {
       ctx.beginPath(); ctx.arc(sc.x, sc.y, rPx, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
+  }
+
+  // Weight paint overlay
+  if (mode === 'weightpaint') {
+    const pt = selPart >= 0 ? parts[selPart] : null;
+    if (pt && pt.deformerId && pt.mesh) {
+      const def = deformers.find(d => d.id === pt.deformerId);
+      if (def && def.type === 'warp') {
+        const vals = getParamVals();
+        const wv = pt.getWorldVerts(vals);
+        const ww = pt.warpWeights[def.id] || [];
+        for (let i = 0; i < wv.length; i++) {
+          const sc = m2s(wv[i].x, wv[i].y);
+          const w = ww[i] ?? 1;
+          const r = Math.floor(Math.max(0, Math.min(255, (1-w)*2*255)));
+          const g = Math.floor(Math.max(0, Math.min(255, Math.min(w, 1-w)*2*255)));
+          const b = Math.floor(Math.max(0, Math.min(255, w*2*255 - 255)));
+          ctx.fillStyle = `rgba(${r},${g},${b},0.9)`;
+          ctx.beginPath(); ctx.arc(sc.x, sc.y, 4, 0, Math.PI*2); ctx.fill();
+        }
+      }
+    }
+    // Brush cursor
+    if (_brushMousePos) {
+      const sc = m2s(_brushMousePos.x, _brushMousePos.y);
+      const rPx = _wpBrushR * VS;
+      ctx.save();
+      ctx.strokeStyle = _wpPainting ? 'rgba(129,140,248,0.9)' : 'rgba(129,140,248,0.6)';
+      ctx.lineWidth = 1.5; ctx.setLineDash([3,2]);
+      ctx.beginPath(); ctx.arc(sc.x, sc.y, rPx, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]); ctx.restore();
+    }
   }
 
   updatePartPreview();
@@ -4432,6 +4507,56 @@ function applyDeformerGrid() {
   def.cols=Math.max(1,Math.min(8,nc)); def.rows=Math.max(1,Math.min(8,nr));
   def.initDeforms(); render();
 }
+function applyDeformerFalloff(val) {
+  if (selDeformer < 0 || selDeformer >= deformers.length) return;
+  const fo = Math.max(0, Math.min(1, parseFloat(val)||0));
+  deformers[selDeformer].falloff = fo;
+  document.getElementById('dp-falloff-val').textContent = Math.round(fo*100)+'%';
+  render();
+}
+let _defTreeOpen = false;
+function toggleDeformerTree() {
+  _defTreeOpen = !_defTreeOpen;
+  document.getElementById('def-tree-body').style.display = _defTreeOpen ? 'block' : 'none';
+  document.getElementById('def-tree-arrow').textContent = _defTreeOpen ? '▼' : '▶';
+  if (_defTreeOpen) buildDeformerTree();
+}
+function buildDeformerTree() {
+  const body = document.getElementById('def-tree-body');
+  if (!body) return;
+  const typeIcon = {warp:'⬡', rotation:'⟳', bone:'🦴'};
+  // Build part→deformer map
+  const defParts = {};
+  deformers.forEach((d,i) => defParts[d.id] = []);
+  parts.forEach(pt => { if (pt.deformerId && defParts[pt.deformerId]) defParts[pt.deformerId].push(pt.name); });
+  // Build bone hierarchy
+  const childrenOf = {};
+  const topLevel = [];
+  deformers.forEach((d, i) => {
+    if (d.type === 'bone' && d.parentId) {
+      if (!childrenOf[d.parentId]) childrenOf[d.parentId] = [];
+      childrenOf[d.parentId].push(i);
+    } else {
+      topLevel.push(i);
+    }
+  });
+  function renderNode(idx, depth) {
+    const d = deformers[idx];
+    const icon = typeIcon[d.type] || '?';
+    const indent = '&nbsp;'.repeat(depth * 4);
+    const isSel = selDeformer === idx;
+    const pnames = (defParts[d.id] || []).slice(0, 2).join(', ') + (defParts[d.id].length > 2 ? '…' : '');
+    const row = document.createElement('div');
+    row.style.cssText = `cursor:pointer;padding:1px 2px;border-radius:2px;font-size:8px;${isSel ? 'background:#0e2a40;color:#60c0ff' : 'color:#3a5a70'}`;
+    row.innerHTML = `${indent}${icon} <b>${d.name}</b>${pnames ? ` <span style="color:#2a4050;font-size:7px">[${pnames}]</span>` : ''}`;
+    row.onclick = () => { selDeformer = idx; selPart = -1; updateDeformerPropsUI(); buildDeformerTree(); render(); };
+    body.appendChild(row);
+    if (childrenOf[d.id]) childrenOf[d.id].forEach(ci => renderNode(ci, depth+1));
+  }
+  body.innerHTML = '';
+  if (deformers.length === 0) { body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:2px">デフォーマーなし</div>'; return; }
+  topLevel.forEach(i => renderNode(i, 0));
+}
 function updateDeformerPropsUI() {
   const dp = document.getElementById('deformer-props');
   const pp = document.getElementById('part-props');
@@ -4482,10 +4607,14 @@ function updateDeformerPropsUI() {
       document.getElementById('dp-h').value = Math.round(def.h);
       document.getElementById('dp-cols').value = def.cols;
       document.getElementById('dp-rows').value = def.rows;
+      const fo = def.falloff || 0;
+      document.getElementById('dp-falloff').value = fo;
+      document.getElementById('dp-falloff-val').textContent = Math.round(fo*100)+'%';
     }
   } else {
     dp.style.display = 'none';
   }
+  if (_defTreeOpen) buildDeformerTree();
 }
 
 // Rotation deformer prop functions
@@ -4705,20 +4834,53 @@ function resetAll() {
 // ===== MODE =====
 function setMode(m) {
   mode=m;
-  ['parts','mesh','deform','preview'].forEach(id=>{
+  ['parts','mesh','deform','preview','weightpaint'].forEach(id=>{
     const el=document.getElementById('btn-'+id); if(el) el.classList.toggle('active',id===m);
   });
-  document.getElementById('mode-badge').textContent={parts:'PARTS',mesh:'MESH',deform:'DEFORM',preview:'PREVIEW'}[m]||m.toUpperCase();
+  document.getElementById('mode-badge').textContent={parts:'PARTS',mesh:'MESH',deform:'DEFORM',preview:'PREVIEW',weightpaint:'WGT-PAINT'}[m]||m.toUpperCase();
   if (m==='preview') { physLastTs=performance.now(); for(const pt of parts) physState.delete(pt.id); }
+  const wpPanel = document.getElementById('wp-panel');
+  if (wpPanel) wpPanel.style.display = m === 'weightpaint' ? 'flex' : 'none';
   const hints={
     parts:'パーツ設定 — ドラッグで位置 / 右クリックでパン / Shift+クリックで複数選択',
     mesh:'メッシュ編集 — 頂点をドラッグ / 右クリックでパン',
     deform:'変形リグ — KF × パラメータで変形',
-    preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中'
+    preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中',
+    weightpaint:'ウェイトペイント — ドラッグで頂点影響度を塗布 / 選択パーツのデフォーマー影響度を調整'
   };
   updatePartPropsUI(); updateOpacityKFUI(); updateHSBKFUI(); updateScaleKFUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
+
+// ===== WEIGHT PAINT =====
+function wpFill(val) {
+  const pt = selPart >= 0 ? parts[selPart] : null;
+  if (!pt || !pt.deformerId) return;
+  const def = deformers.find(d => d.id === pt.deformerId);
+  if (!def || def.type !== 'warp') return;
+  const n = pt.mesh.verts.length;
+  pt.warpWeights[def.id] = Array(n).fill(val);
+  render();
+}
+function wpApplyBrush(wx, wy) {
+  const pt = selPart >= 0 ? parts[selPart] : null;
+  if (!pt || !pt.deformerId) return;
+  const def = deformers.find(d => d.id === pt.deformerId);
+  if (!def || def.type !== 'warp') return;
+  const vals = getParamVals();
+  const wv = pt.getWorldVerts(vals);
+  if (!pt.warpWeights[def.id]) pt.warpWeights[def.id] = Array(wv.length).fill(1);
+  const ww = pt.warpWeights[def.id];
+  const r2 = _wpBrushR * _wpBrushR;
+  for (let i = 0; i < wv.length; i++) {
+    const dx = wv[i].x - wx, dy = wv[i].y - wy;
+    if (dx*dx + dy*dy > r2) continue;
+    const dist = Math.sqrt(dx*dx + dy*dy) / _wpBrushR;
+    const falloff = 1 - dist * dist; // smooth falloff
+    ww[i] = Math.max(0, Math.min(1, (ww[i] ?? 1) + (_wpBrushVal - (ww[i] ?? 1)) * _wpBrushStr * falloff));
+  }
+  render();
+}
 
 // ===== RIGHT PANEL TABS =====
 function selRTab(name) {
@@ -5743,6 +5905,7 @@ canvas.addEventListener('mousemove',e=>{
     if (newHov !== hoveredPartIdx) { hoveredPartIdx=newHov; render(); }
   }
   if (!dragging && mode==='deform') { render(); return; }
+  if (mode==='weightpaint') { if (_wpPainting) wpApplyBrush(mp.x, mp.y); else render(); return; }
   if (!dragging) return;
   if (dragMode==='pan') { VOX=panOX+(sx-dragSX); VOY=panOY+(sy-dragSY); updateZoomHUD(); render(); return; }
   if (dragMode==='box-select') { _boxSelectEnd={x:mp.x,y:mp.y}; render(); return; }
@@ -5917,6 +6080,9 @@ canvas.addEventListener('mousedown',e=>{
       }
     }
   }
+  if (e.button===0 && mode==='weightpaint') {
+    _wpPainting = true; wpApplyBrush(mp.x, mp.y); return;
+  }
   if (e.button===1||e.button===2||(e.button===0&&e.altKey)) {
     dragging=true; dragMode='pan'; dragSX=sx; dragSY=sy; panOX=VOX; panOY=VOY;
     canvas.style.cursor='grabbing'; return;
@@ -6022,6 +6188,7 @@ canvas.addEventListener('mouseleave',()=>{
   if (needRedraw) render();
 });
 canvas.addEventListener('mouseup', e => {
+  if (mode === 'weightpaint') { _wpPainting = false; render(); return; }
   const wasVI = dragVI;
   const wasMode = dragMode;
   // Finalize box selection
