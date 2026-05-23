@@ -6988,6 +6988,12 @@ function showAvatarExportDialog() {
       <textarea id="av-obs-map" rows="3" placeholder='{"ゲーム": 0, "雑談": 1, "BRB": 2}' style="width:100%;background:#080c18;border:1px solid #2a2a3a;color:#c0c0ff;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:#404060;margin-bottom:12px">OBS WebSocket v5（obs-websocket 5.x）に対応。シーン切替で自動表情発動。</div>
 
+      <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
+      <label style="display:flex;align-items:center;gap:6px;color:#a0b0d0;cursor:pointer;margin-bottom:6px;"><input type="checkbox" id="av-discord" style="accent-color:#5865f2"> Discordプレイ中ゲームで表情切替</label>
+      <div style="font-size:9px;color:#405060;margin-bottom:4px">ゲーム名↔表情インデックスのマッピング（JSON形式）「__idle」でアイドル時の表情を指定</div>
+      <textarea id="av-discord-map" rows="2" placeholder='{"Valorant": 3, "Minecraft": 0, "__idle": 1}' style="width:100%;background:#080c18;border:1px solid #1a2a3a;color:#8090e0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
+      <div style="font-size:9px;color:#404060;margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
+
       <div style="font-size:10px;color:#8090b0;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
       <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#0e1120;border:1px solid #2a3a5a;color:#c0e0ff;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#4a6080;margin-bottom:12px">.html が自動で付きます</div>
@@ -7046,6 +7052,11 @@ function showAvatarExportDialog() {
     if (obsPass) params.push('obspass=' + encodeURIComponent(obsPass));
     const obsMap = document.getElementById('av-obs-map')?.value?.trim();
     if (obsMap) params.push('obsmap=' + encodeURIComponent(obsMap));
+    if (document.getElementById('av-discord')?.checked) {
+      params.push('discord=1');
+      const discordMap = document.getElementById('av-discord-map')?.value?.trim();
+      if (discordMap) params.push('discordmap=' + encodeURIComponent(discordMap));
+    }
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
@@ -7576,6 +7587,45 @@ if(_p.has('tts')){
       else if(msg.type==='speak'&&msg.text) speak(msg.text,msg.voice||0,msg.rate||1,msg.pitch||1);
     };
   }
+})();
+
+// Discord Rich Presence → expression mapping (?discord=1&discordmap={...})
+// Requires a local Discord IPC bridge proxy running on ws://localhost:6463
+// Messages: { type: "activity", game: "Valorant"|"...", details: "..." }
+// Expression map: URL-encoded JSON e.g. {"Valorant":3,"Minecraft":0}
+// Auto-polling: polls proxy every 30s for activity updates
+(function(){
+  const discordEnabled=_p.get('discord');
+  if(!discordEnabled)return;
+  let _discordMap={};
+  try{ const raw=_p.get('discordmap'); if(raw)_discordMap=JSON.parse(decodeURIComponent(raw)); }catch(e){}
+  let _lastGame='';
+  let _discordWs=null;
+
+  function _discordConnect(){
+    try { _discordWs=new WebSocket('ws://localhost:6463'); } catch(e){ return; }
+    _discordWs.onopen=()=>{ if(_stEl)_stEl.textContent='Discord: 接続済み'; };
+    _discordWs.onclose=()=>{ _discordWs=null; setTimeout(_discordConnect,15000); };
+    _discordWs.onerror=()=>{};
+    _discordWs.onmessage=(ev)=>{
+      let msg;
+      try { msg=JSON.parse(ev.data); } catch(e){ return; }
+      if(msg.type==='activity'||msg.type==='ACTIVITY_UPDATE'){
+        const game=msg.game||msg.activity?.name||msg.data?.name||'';
+        if(game!==_lastGame){
+          _lastGame=game;
+          if(_stEl)_stEl.textContent=game?`🎮 ${game}`:'Discord: アイドル';
+          // Apply mapped expression
+          if(game&&_discordMap[game]!==undefined&&typeof applyExpr==='function'){
+            applyExpr(_discordMap[game]);
+          } else if(!game&&_discordMap['__idle']!==undefined&&typeof applyExpr==='function'){
+            applyExpr(_discordMap['__idle']);
+          }
+        }
+      }
+    };
+  }
+  _discordConnect();
 })();
 
 // Physics step
