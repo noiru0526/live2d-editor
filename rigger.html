@@ -803,8 +803,20 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <div id="expr-list" style="flex:1;overflow-y:auto">
         <div class="ex-empty">表情が登録されていません<br>「＋」ボタンで現在のパラメータを<br>表情として保存できます</div>
       </div>
+      <!-- Pose Blend Panel -->
+      <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid #0e1820;padding:4px 6px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:7px;color:#2a6050;text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
+          <div style="display:flex;gap:4px">
+            <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
+            <button onclick="clearPoseBlend()" style="background:none;border:none;color:#2a4040;cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
+          </div>
+        </div>
+        <div id="blend-sliders" style="max-height:120px;overflow-y:auto"></div>
+      </div>
       <div class="expr-footer">
         <button class="tbtn" style="flex:1;font-size:9px" onclick="exportExpressionsJSON()">JSON出力</button>
+        <button id="btn-blend-toggle" class="tbtn" style="flex:1;font-size:9px" onclick="togglePoseBlendPanel()">🔀 ブレンド</button>
         <button class="tbtn" style="flex:1;font-size:9px" onclick="resetAllParams()">全リセット</button>
       </div>
     </div>
@@ -4268,6 +4280,7 @@ function updateExpressionsUI() {
   const c=document.getElementById('expr-list'); c.innerHTML='';
   if (!expressions.length) {
     c.innerHTML='<div class="ex-empty">表情が登録されていません<br>「＋」ボタンで保存できます<br><span style="font-size:8px;color:#2a3a5a">アバター起動後 1〜9 キーで切替</span></div>';
+    const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
     return;
   }
   expressions.forEach((ex,i)=>{
@@ -4276,11 +4289,72 @@ function updateExpressionsUI() {
     d.innerHTML=`<span class="ex-num">[${i+1}]</span><span class="ex-name" title="${ex.name}">${ex.name}</span><button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
     c.appendChild(d);
   });
+  const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
 }
 function exportExpressionsJSON() {
   const json=JSON.stringify({expressions},null,2);
   const b=new Blob([json],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='expressions.json'; a.click();
+}
+
+// ===== POSE BLEND =====
+let _blendWeights = {}; // idx(string) → 0-1
+function togglePoseBlendPanel() {
+  const panel = document.getElementById('pose-blend-panel');
+  const btn = document.getElementById('btn-blend-toggle');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.style.color = isOpen ? '' : '#40c080';
+  if (!isOpen) buildBlendSliders();
+}
+function buildBlendSliders() {
+  const cont = document.getElementById('blend-sliders'); cont.innerHTML = '';
+  if (!expressions.length) { cont.innerHTML = '<div style="font-size:8px;color:#2a4060;padding:2px 0">表情が登録されていません</div>'; return; }
+  expressions.forEach((ex, i) => {
+    const w = parseFloat(_blendWeights[i] || 0);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:3px;';
+    row.innerHTML = `<span style="flex:1;font-size:8px;color:#3a8060;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ex.name}">${ex.name}</span>
+      <input type="range" min="0" max="100" value="${(w*100).toFixed(0)}" style="width:60px;accent-color:#30a070;" oninput="onBlendSlider(${i}, this.value)" title="ウェイト">
+      <span id="bw-${i}" style="font-size:7px;color:#2a6050;min-width:24px;text-align:right;">${(w*100).toFixed(0)}%</span>`;
+    cont.appendChild(row);
+  });
+}
+function onBlendSlider(idx, raw) {
+  _blendWeights[idx] = raw / 100;
+  const el = document.getElementById(`bw-${idx}`); if(el) el.textContent = raw+'%';
+  liveApplyPoseBlend();
+}
+function liveApplyPoseBlend() {
+  const totalW = Object.values(_blendWeights).reduce((s,v)=>s+v, 0);
+  if (totalW <= 0) return;
+  const merged = {};
+  for (const [idxStr, w] of Object.entries(_blendWeights)) {
+    if (w <= 0) continue;
+    const ex = expressions[parseInt(idxStr)]; if (!ex) continue;
+    for (const [k, v] of Object.entries(ex.values)) merged[k] = (merged[k]||0) + v * w;
+  }
+  for (const [k, v] of Object.entries(merged)) {
+    if (!P[k]) continue;
+    const [rmin,rmax]=P[k].r; pv[k]=Math.max(rmin,Math.min(rmax,v));
+    const el=document.getElementById('pv-'+k); if(el) el.textContent=pv[k].toFixed(2);
+  }
+  const sv = {};
+  for (const [k] of Object.entries(P)) { const [rmin,rmax]=P[k].r; sv[k]=((pv[k]-rmin)/(rmax-rmin)*100).toFixed(0); }
+  document.querySelectorAll('.pitem input[type=range]').forEach(sl => {
+    const match = sl.getAttribute('oninput')?.match(/'([^']+)'/); if(!match) return;
+    sl.value = sv[match[1]] ?? 50;
+  });
+  render();
+}
+function applyPoseBlend() {
+  saveState(); liveApplyPoseBlend();
+  setStatus('ポーズブレンドを適用');
+}
+function clearPoseBlend() {
+  _blendWeights = {};
+  document.querySelectorAll('#blend-sliders input[type=range]').forEach(sl=>{sl.value=0;});
+  document.querySelectorAll('#blend-sliders span[id^=bw-]').forEach(el=>{el.textContent='0%';});
 }
 
 // ===== DEFORMERS =====
