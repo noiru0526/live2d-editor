@@ -6973,6 +6973,7 @@ function _buildHotkeyPanel(){
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
   rows.push(['B','ブラーON/OFF']);
+  rows.push(['L','ポーズロック（顔追跡を一時停止）']);
   if(_p.get('ws')){rows.push(['---','--- WebSocket ---']);rows.push(['WS',_p.get('ws')]);}
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#4080a0;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
@@ -7143,10 +7144,23 @@ function toggleBlur(){
   _blurOn=!_blurOn;
   document.body.style.filter=_blurOn?'blur(4px)':'';
 }
+// Pose lock: freeze T state so facial tracking doesn't override it
+let _poseLocked = false, _frozenT = null;
+function togglePoseLock() {
+  _poseLocked = !_poseLocked;
+  if (_poseLocked) {
+    _frozenT = {...T};
+    if (_stEl) _stEl.textContent = '🔒 ポーズロック ON';
+  } else {
+    _frozenT = null;
+    if (_stEl) _stEl.textContent = '🔓 ポーズロック OFF';
+  }
+}
 document.addEventListener('keydown',e=>{
   if(e.key==='j'||e.key==='J')triggerShake(10,0.3);
   if(e.key==='f'||e.key==='F')triggerFlash();
   if(e.key==='b'||e.key==='B')toggleBlur();
+  if(e.key==='l'||e.key==='L')togglePoseLock();
 });
 
 // TTS lipsync (?tts=1) — Web Speech Synthesis API driven mouthOpen
@@ -7550,6 +7564,7 @@ function initCam(){
   fm.onResults(r=>{
     if(!r.multiFaceLandmarks?.length){tracking=false;return;}
     const lm=r.multiFaceLandmarks[0];tracking=true;
+    if(_poseLocked){return;} // pose lock: skip T writes
     T.headX=Math.max(-1,Math.min(1,dzone((lm[1].x-.5)*-_CALIB.headX)));
     T.headY=Math.max(-1,Math.min(1,dzone((lm[1].y-_CALIB.headYOfs)*-_CALIB.headY)));
     const le=lm[234],re=lm[454];T.headZ=Math.atan2(re.y-le.y,re.x-le.x)*1.1;
