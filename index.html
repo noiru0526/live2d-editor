@@ -4666,9 +4666,9 @@ function initTracking(){
     if(!r.multiFaceLandmarks?.length)return;
     const lm=r.multiFaceLandmarks[0];tracking=true;
     const S_=curSens;
-    tHX=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2*S_));
-    tHY=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2*S_));
-    const lE=lm[234],rE=lm[454];tHZ=Math.atan2(rE.y-lE.y,rE.x-lE.x)*S_;
+    tHX=Math.max(-1,Math.min(1,((lm[1].x-.5)*-2-_faceOffsetX)*S_*curSensX));
+    tHY=Math.max(-1,Math.min(1,((lm[1].y-.5)*-2-_faceOffsetY)*S_*curSensY));
+    const lE=lm[234],rE=lm[454];tHZ=(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ;
     const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
     const blinkFn=v=>{const lo=0.19/S_,hi=0.27/S_;return Math.max(0,Math.min(1,(hi-v)/(hi-lo)));};
     tBL=blinkFn(ear(362,385,387,263,373,380));
@@ -4749,7 +4749,10 @@ const _POSE_EASING=${JSON.stringify(poseEasing)};
 let activePose=null, poseBlend=0;
 let _posePrev=null, _posePrevT=0; // for smooth transition tracking
 let curSens=SENS;
+let curSensX=1,curSensY=1,curSensZ=1; // per-axis sensitivity multipliers
 let curDeadZone=0; // 0..0.4 dead zone for face tracking
+let _faceOffsetX=0,_faceOffsetY=0,_faceOffsetZ=0; // calibration offsets
+try{const _c=JSON.parse(localStorage.getItem('faceCalib')||'{}');_faceOffsetX=_c.ox||0;_faceOffsetY=_c.oy||0;_faceOffsetZ=_c.oz||0;}catch{}
 const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
 const exprHUD=document.getElementById('expr-hud');
 const exprList=document.getElementById('expr-list');
@@ -4847,7 +4850,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -4855,7 +4858,23 @@ document.addEventListener('keydown',ev=>{
   if (ev.key==='Escape') { const ov=document.getElementById('kbhelp-overlay'); if(ov) ov.remove(); }
   // L: pose lock toggle
   if (ev.key==='l'||ev.key==='L') { togglePoseLock(); ev.preventDefault(); }
+  // C: face calibration (set current face position as neutral)
+  if (ev.key==='c'||ev.key==='C') { calibrateFaceCenter(); ev.preventDefault(); }
 });
+function calibrateFaceCenter(){
+  if (!tracking) {
+    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='顔追跡がOFFです';setTimeout(()=>exprHUD.style.display='none',1200);}
+    return;
+  }
+  // Current smoothed raw values (before sensitivity) are in tHX/tHY/tHZ pre-scale
+  // Use the last computed S values as the offset
+  _faceOffsetX = S.hx / (curSens * curSensX) || 0;
+  _faceOffsetY = S.hy / (curSens * curSensY) || 0;
+  _faceOffsetZ = S.hz / (curSens * curSensZ) || 0;
+  if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='🎯 顔中心キャリブレーション完了';setTimeout(()=>exprHUD.style.display='none',1500);}
+  // Save to localStorage for persistence
+  try { localStorage.setItem('faceCalib', JSON.stringify({ox:_faceOffsetX,oy:_faceOffsetY,oz:_faceOffsetZ})); } catch{}
+}
 function togglePoseLock(){
   if(!_poseLocked){
     // Snap current smoothed values; _wasTracking ensures idle mode still works when no camera
@@ -5052,9 +5071,14 @@ document.body.appendChild(_mtBtn);
   panel.id='track-settings-panel';
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(14,17,32,.95);border:1px solid #3a4470;border-radius:6px;padding:10px 14px;color:#c8d4f0;font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
   panel.innerHTML=`<div style="font-size:11px;font-weight:bold;margin-bottom:8px;color:#a0d0ff;">📡 顔追跡設定</div>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:80px;accent-color:#4e7cff;" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:80px;accent-color:#4e7cff;" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:80px;accent-color:#4e7cff;" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>`;
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:#4e7cff;" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
+<div style="font-size:9px;color:#4a6080;margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#ff8080">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#80ff80">Y(上下)</span><input id="ts-sy" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#60d890;" oninput="curSensY=parseFloat(this.value);document.getElementById('ts-sy-val').textContent=this.value"><span id="ts-sy-val">1</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#8080ff">Z(傾き)</span><input id="ts-sz" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#8080ff;" oninput="curSensZ=parseFloat(this.value);document.getElementById('ts-sz-val').textContent=this.value"><span id="ts-sz-val">1</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:70px;accent-color:#4e7cff;" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:70px;accent-color:#4e7cff;" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>
+<button onclick="curSensX=1;curSensY=1;curSensZ=1;document.getElementById('ts-sx').value=1;document.getElementById('ts-sy').value=1;document.getElementById('ts-sz').value=1;document.getElementById('ts-sx-val').textContent='1';document.getElementById('ts-sy-val').textContent='1';document.getElementById('ts-sz-val').textContent='1';" style="width:100%;background:#1a2040;border:1px solid #3a4470;color:#8090a0;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">軸感度リセット</button>`;
   document.body.appendChild(panel);
   const settBtn=document.createElement('button');
   settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
