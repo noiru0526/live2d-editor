@@ -4791,12 +4791,12 @@ function updateExpressionsUI() {
     const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
     return;
   }
+  const _exBaseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
   expressions.forEach((ex,i)=>{
     const d=document.createElement('div'); d.className='ex-item'+(i===activeExprIdx?' active':'');
     d.onclick=()=>applyExpr(i);
-    // Diff badge: count params changed from baseline
-    const baseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
-    const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(baseline[k]??0))>0.01).length;
+    // Diff badge: count params changed from baseline (center KF value)
+    const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(_exBaseline[k]??0))>0.01).length;
     const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:rgba(80,180,255,.18);color:#60a0d0;border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
     d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name}">${ex.name}${diffBadge}</span>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:#4a6080;cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
@@ -6856,6 +6856,7 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='d'&&onBody){e.preventDefault();dupPart();}
   if((e.ctrlKey||e.metaKey)&&e.key==='c'&&onBody&&selPart>=0){e.preventDefault();copyPartToClipboard();}
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();riggerAutoSave();setStatus('💾 手動保存完了 (Ctrl+S)');}
   if(e.key==='f'||e.key==='F') fitView();
   if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;document.getElementById('btn-focus').classList.toggle('active',focusMode);render();}
   if(e.key==='S'&&e.shiftKey&&onBody&&!e.ctrlKey){e.preventDefault();togglePartSolo();}
