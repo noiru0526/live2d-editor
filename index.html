@@ -3298,6 +3298,7 @@ function addKF() {
 }
 
 function delKFData() {
+  pushUndo('変形KF削除');
   const name=ST.ap, v=M.params[name].val;
   delete M.def[`${name}:${v}`];
   ST.cachedVerts=null; redraw(); updateKFList(); updateKFDots(name);
@@ -3311,6 +3312,7 @@ function doDelKFVal(name, v) {
   const kfs=M.params[name].kfs;
   if (kfs.length<=2) return;
   const i=kfs.indexOf(v); if(i<0) return;
+  pushUndo('KF削除');
   kfs.splice(i,1);
   delete M.def[`${name}:${v}`];
   if (ST.selKF===v) ST.selKF=null;
@@ -4179,8 +4181,8 @@ function _advanceClipChain() {
 
 function showClipChainDialog() {
   document.getElementById('clip-chain-dialog')?.remove();
-  const clips = [-1, ...(M.animClips||[]).map((_,i)=>i)];
-  const names = ['現在のアニメ', ...(M.animClips||[]).map(c=>c.name)];
+  const clips = [-1, ...(MD.animClips||[]).map((_,i)=>i)];
+  const names = ['現在のアニメ', ...(MD.animClips||[]).map(c=>c.name)];
   const d = document.createElement('div');
   d.id = 'clip-chain-dialog';
   d.style.cssText = 'position:fixed;right:220px;top:50px;background:#1a1e30;border:1px solid rgba(80,180,255,.4);border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
@@ -4211,7 +4213,7 @@ function _renderChainList() {
   if (!_clipChain.length) {
     list.innerHTML = '<div style="font-size:9px;color:#3a4a6a;padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
   }
-  const names = ['現在', ...(M.animClips||[]).map(c=>c.name)];
+  const names = ['現在', ...(MD.animClips||[]).map(c=>c.name)];
   _clipChain.forEach((e, i) => {
     const row = document.createElement('div');
     row.style.cssText = `display:flex;align-items:center;gap:4px;padding:2px 5px;background:${i===_chainPos&&_chainPlaying?'#1a2838':'#131828'};border:1px solid ${i===_chainPos&&_chainPlaying?'rgba(80,180,255,.4)':'rgba(40,60,100,.4)'};border-radius:3px;font-size:10px;`;
@@ -4345,8 +4347,8 @@ function applyAnimTracks(now){
     }
   }
   // Overlay clip blend
-  if (_overlayClipIdx >= 0 && M.animClips && M.animClips[_overlayClipIdx]) {
-    const oc = M.animClips[_overlayClipIdx];
+  if (_overlayClipIdx >= 0 && MD.animClips && MD.animClips[_overlayClipIdx]) {
+    const oc = MD.animClips[_overlayClipIdx];
     const ocAnim = oc.animation;
     if (ocAnim && ocAnim.tracks) {
       const ocDur = ocAnim.duration || 3;
@@ -4379,6 +4381,7 @@ function applyAnimTracks(now){
   _updateAnimProgress();
 }
 let _bgmSyncEnabled = false;
+let _bgmAudio = null;
 function toggleBGMSync() {
   _bgmSyncEnabled = !_bgmSyncEnabled;
   const btn = document.getElementById('btn-bgm-sync');
@@ -4946,45 +4949,51 @@ function applyPoseBlend(dt){
   if(_posePrevT>=1){ _posePrev=null; _posePrevT=0; }
 }
 
-img.onload=img.onerror=()=>{
-  requestAnimationFrame(draw);
-  setTimeout(initTracking,500);
-  setTimeout(initAudio,1000);
-  // BGM autoplay (triggered by first user interaction if autoplay blocked)
-  const _bgmEl = document.getElementById('bgm-audio');
-  if (_bgmEl) {
-    _bgmEl.volume = ${bgmVol};
-    const _tryBgm = () => { _bgmEl.play().catch(()=>{}); };
-    _tryBgm();
-    document.addEventListener('click', _tryBgm, {once:true});
-    document.addEventListener('keydown', _tryBgm, {once:true});
-  }
-  // Apply URL params to params on load
-  const usp=new URLSearchParams(location.search);
-  for(const[k,v]of usp.entries()){
-    if(params[k]){const n=parseFloat(v);if(!isNaN(n))params[k].val=Math.max(params[k].min??-1,Math.min(params[k].max??1,n));}
-  }
-  if((${exportAutoPlay}||usp.get('autoplay')==='1')&&MD.animation){toggleExportAnim();}
-  // Extended URL params: ?clip=name, ?pose=name, ?speed=2, ?mute=1, ?noui=1
-  const clipName=usp.get('clip');
-  if(clipName&&typeof switchClip==='function'){
-    const ci=(MD.animClips||[]).findIndex(c=>c.name===clipName);
-    if(ci>=0)switchClip(ci);
-  }
-  const poseName=usp.get('pose');
-  if(poseName){const pose=MD.poses?.find(p=>p.name===poseName);if(pose){activePose=pose;poseBlend=0;}}
-  const speedParam=parseFloat(usp.get('speed'));
-  if(!isNaN(speedParam)&&typeof animSpeedMult!=='undefined'){
-    animSpeedMult=speedParam;
-    const sp=document.getElementById('anim-speed');if(sp)sp.value=speedParam;
-  }
-  if(usp.get('mute')==='1'){const bgm=document.getElementById('bgm-audio');if(bgm)bgm.muted=true;}
-  if(usp.get('noui')==='1'){
-    ['anim-controls','mt-btn','gp-btn','idle-rand-btn','cp-btn'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.style.display='none';
-    });
-  }
-};
+{
+  let _imgsLoaded=0;
+  const _startDraw=()=>{
+    if(++_imgsLoaded<(partImgs.length||1)) return;
+    requestAnimationFrame(draw);
+    setTimeout(initTracking,500);
+    setTimeout(initAudio,1000);
+    // BGM autoplay (triggered by first user interaction if autoplay blocked)
+    const _bgmEl = document.getElementById('bgm-audio');
+    if (_bgmEl) {
+      _bgmEl.volume = ${bgmVol};
+      const _tryBgm = () => { _bgmEl.play().catch(()=>{}); };
+      _tryBgm();
+      document.addEventListener('click', _tryBgm, {once:true});
+      document.addEventListener('keydown', _tryBgm, {once:true});
+    }
+    // Apply URL params to params on load
+    const usp=new URLSearchParams(location.search);
+    for(const[k,v]of usp.entries()){
+      if(params[k]){const n=parseFloat(v);if(!isNaN(n))params[k].val=Math.max(params[k].min??-1,Math.min(params[k].max??1,n));}
+    }
+    if((${exportAutoPlay}||usp.get('autoplay')==='1')&&MD.animation){toggleExportAnim();}
+    // Extended URL params: ?clip=name, ?pose=name, ?speed=2, ?mute=1, ?noui=1
+    const clipName=usp.get('clip');
+    if(clipName&&typeof switchClip==='function'){
+      const ci=(MD.animClips||[]).findIndex(c=>c.name===clipName);
+      if(ci>=0)switchClip(ci);
+    }
+    const poseName=usp.get('pose');
+    if(poseName){const pose=MD.poses?.find(p=>p.name===poseName);if(pose){activePose=pose;poseBlend=0;}}
+    const speedParam=parseFloat(usp.get('speed'));
+    if(!isNaN(speedParam)&&typeof animSpeedMult!=='undefined'){
+      animSpeedMult=speedParam;
+      const sp=document.getElementById('anim-speed');if(sp)sp.value=speedParam;
+    }
+    if(usp.get('mute')==='1'){const bgm=document.getElementById('bgm-audio');if(bgm)bgm.muted=true;}
+    if(usp.get('noui')==='1'){
+      ['anim-controls','mt-btn','gp-btn','idle-rand-btn','cp-btn'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.style.display='none';
+      });
+    }
+  };
+  if(partImgs.length===0){ _startDraw(); }
+  else { partImgs.forEach(img=>{ if(img.complete) _startDraw(); else { img.onload=_startDraw; img.onerror=_startDraw; } }); }
+}
 // postMessage API: {type:'set',param:'headX',value:0.5} or {type:'pose',name:'smile'}
 window.addEventListener('message',e=>{
   try{
@@ -6344,6 +6353,7 @@ function bakeAnimToTimeline() {
   }
   const dur = ANIM.duration || 0;
   if (dur <= 0) { document.getElementById('lbl-status').textContent = '録音時間が0秒です'; return; }
+  pushAnimUndo('録音ベイク');
   if (dur > M.animation.duration) M.animation.duration = Math.ceil(dur * 10) / 10;
   // Tolerance = 1% of param range for RDP simplification
   let kfCount = 0;
@@ -10562,6 +10572,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
         const dstName = document.getElementById('track-copy-dst').value;
         const scale = parseFloat(document.getElementById('track-copy-scale').value)||1;
         const dstParam = M.params[dstName]; if(!dstParam) return;
+        pushAnimUndo('KFコピー');
         M.animation.tracks[dstName] = srcFrames.map(kf=>({...kf, v: Math.max(dstParam.min,Math.min(dstParam.max, kf.v * scale))}));
         drawMultiTimeline();
         document.getElementById('lbl-status').textContent = `KFコピー: ${srcParam.lbl} → ${dstParam.lbl} (×${scale})`;
@@ -10569,6 +10580,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
     }},
     { icon:'🗑', label:`このトラックのKFを全削除`, action:()=>{
       if (!confirm(`「${srcParam.lbl}」のKFを全削除しますか？`)) return;
+      pushAnimUndo('トラックKF全削除');
       delete M.animation.tracks[srcName];
       drawMultiTimeline();
     }},
@@ -17521,6 +17533,7 @@ function geDeleteKF() {
   const sorted = [...track].sort((a,b) => a.frame - b.frame);
   const kf = sorted[GE.selKF];
   if (!kf) return;
+  pushAnimUndo('グラフKF削除');
   M.kfTracks[GE.param] = track.filter(k => k !== kf);
   GE.selKF = null;
   document.getElementById('ge-del-btn').style.display = 'none';

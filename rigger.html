@@ -4776,6 +4776,7 @@ function applyExpr(idx) {
   setStatus(`表情「${expressions[idx].name}」を適用`);
 }
 function deleteExpr(idx) {
+  saveState();
   const nm=expressions[idx].name; expressions.splice(idx,1);
   if (activeExprIdx>=expressions.length) activeExprIdx=-1;
   updateExpressionsUI(); setStatus(`表情「${nm}」を削除`);
@@ -4927,6 +4928,7 @@ function confirmAddDeformer() {
 function cancelAddDeformer() { document.getElementById('defmod').style.display = 'none'; }
 function deleteDeformer(di) {
   if (di < 0 || di >= deformers.length) return;
+  saveState();
   const def = deformers[di];
   parts.forEach(p => { if (p.deformerId === def.id) p.deformerId = null; });
   deformers.splice(di, 1);
