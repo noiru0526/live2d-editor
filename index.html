@@ -4152,7 +4152,7 @@ let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tracking=false;
 let _poseLocked=false,_poseLockSnap=null;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
-const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
+const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0,sacT:2,sacX:0,sacY:0,sacTX:0,sacTY:0};
 const ema=(c,t,a)=>c+(t-c)*a;
 
 const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0,'ease-in-cubic':t=>t*t*t,'ease-out-cubic':t=>1-(1-t)*(1-t)*(1-t),'ease-in-out-cubic':t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,elastic:t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1,'elastic-in':t=>t===0?0:t===1?1:-Math.pow(2,10*t-10)*Math.sin((t*10-10.75)*(2*Math.PI/3)),back:t=>{const c1=1.70158;return (c1+1)*t*t*t-c1*t*t;},'back-out':t=>{const c1=1.70158;return 1+(c1+1)*Math.pow(t-1,3)+c1*Math.pow(t-1,2);},circ:t=>1-Math.sqrt(1-t*t),'circ-out':t=>Math.sqrt(1-(t-1)*(t-1)),sine:t=>1-Math.cos(t*Math.PI/2),'sine-out':t=>Math.sin(t*Math.PI/2)};
@@ -4523,8 +4523,12 @@ function draw(ts){
   params.mouthOpen.val=_useTracking?_trackSrc.mo:(idleExtra?audioMouth:0);
   if(params.browL) params.browL.val=_useTracking?_trackSrc.bwl:0;
   if(params.browR) params.browR.val=_useTracking?_trackSrc.bwr:0;
-  if(params.eyeX) params.eyeX.val=_useTracking?_trackSrc.ex:0;
-  if(params.eyeY) params.eyeY.val=_useTracking?_trackSrc.ey:0;
+  // Micro-saccades: small random eye movements during tracking for natural look
+  S.sacT-=dt;
+  if(S.sacT<0){S.sacTX=(Math.random()-.5)*.12;S.sacTY=(Math.random()-.5)*.08;S.sacT=0.8+Math.random()*2.2;}
+  S.sacX=ema(S.sacX,S.sacTX,.055);S.sacY=ema(S.sacY,S.sacTY,.055);
+  if(params.eyeX) params.eyeX.val=_useTracking?Math.max(-1,Math.min(1,_trackSrc.ex+S.sacX)):0;
+  if(params.eyeY) params.eyeY.val=_useTracking?Math.max(-1,Math.min(1,_trackSrc.ey+S.sacY)):0;
   if(params.mouthA) params.mouthA.val=_useTracking?_trackSrc.ma:0;
   if(params.mouthI) params.mouthI.val=_useTracking?_trackSrc.mi:0;
   if(params.mouthU) params.mouthU.val=_useTracking?_trackSrc.mu:0;
