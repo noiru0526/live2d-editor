@@ -874,7 +874,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <div id="blend-sliders" style="max-height:120px;overflow-y:auto"></div>
       </div>
       <div class="expr-footer">
-        <button class="tbtn" style="flex:1;font-size:9px" onclick="exportExpressionsJSON()">JSON出力</button>
+        <button class="tbtn" style="flex:1;font-size:9px" onclick="exportExpressionsJSON()">↓JSON</button>
+        <button class="tbtn" style="flex:1;font-size:9px" onclick="importExpressionsJSON()">↑JSON</button>
         <button id="btn-blend-toggle" class="tbtn" style="flex:1;font-size:9px" onclick="togglePoseBlendPanel()">🔀 ブレンド</button>
         <button class="tbtn" style="flex:1;font-size:9px" onclick="resetAllParams()">全リセット</button>
       </div>
@@ -4792,15 +4793,44 @@ function updateExpressionsUI() {
   expressions.forEach((ex,i)=>{
     const d=document.createElement('div'); d.className='ex-item'+(i===activeExprIdx?' active':'');
     d.onclick=()=>applyExpr(i);
-    d.innerHTML=`<span class="ex-num">[${i+1}]</span><span class="ex-name" title="${ex.name}">${ex.name}</span><button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
+    // Diff badge: count params changed from baseline
+    const baseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
+    const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(baseline[k]??0))>0.01).length;
+    const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:rgba(80,180,255,.18);color:#60a0d0;border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
+    d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name}">${ex.name}${diffBadge}</span>
+      <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:#4a6080;cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
+      <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
     c.appendChild(d);
   });
   const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
+}
+function duplicateExpr(idx) {
+  if (idx < 0 || idx >= expressions.length) return;
+  const ex = expressions[idx];
+  const copy = { id: Date.now(), name: ex.name + '_copy', values: {...ex.values} };
+  expressions.splice(idx + 1, 0, copy);
+  updateExpressionsUI(); setStatus(`表情「${ex.name}」を複製 → 「${copy.name}」`);
 }
 function exportExpressionsJSON() {
   const json=JSON.stringify({expressions},null,2);
   const b=new Blob([json],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='expressions.json'; a.click();
+}
+function importExpressionsJSON() {
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const text = await f.text();
+      const data = JSON.parse(text);
+      const exprs = data.expressions || (Array.isArray(data) ? data : null);
+      if (!exprs?.length) { setStatus('有効な表情データが見つかりません'); return; }
+      const merged = [...expressions, ...exprs.map(e => ({...e, id: Date.now() + Math.random()}))];
+      expressions = merged;
+      updateExpressionsUI(); setStatus(`表情をインポート: ${exprs.length}件追加（計${expressions.length}件）`);
+    } catch(e) { setStatus('JSONパースエラー: ' + e.message); }
+  };
+  inp.click();
 }
 
 // ===== POSE BLEND =====
