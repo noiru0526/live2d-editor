@@ -2493,6 +2493,9 @@ function pushAnimUndo(name='アニメ操作') {
     def:null,
     animTracks:JSON.parse(JSON.stringify(M.animation?.tracks||{})),
     animDur:M.animation?.duration,
+    animLoopIn:M.animation?.loopIn,
+    animLoopOut:M.animation?.loopOut,
+    animLoop:M.animation?.loop,
   };
   snap._name = name;
   snap._time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -2506,7 +2509,10 @@ function _applySnapshot(s) {
   if (s.verts) { M.mesh.verts=s.verts; M.def=s.def; }
   if (s.animTracks!==null && s.animTracks!==undefined && M.animation) {
     M.animation.tracks=s.animTracks;
-    if (s.animDur!==undefined) M.animation.duration=s.animDur;
+    if (s.animDur!==undefined) { M.animation.duration=s.animDur; const de=document.getElementById('tl-duration');if(de)de.value=s.animDur.toFixed(1); }
+    if (s.animLoopIn!==undefined) { M.animation.loopIn=s.animLoopIn; const li=document.getElementById('tl-loop-in');if(li)li.value=(s.animLoopIn??0).toFixed(2); }
+    if (s.animLoopOut!==undefined) { M.animation.loopOut=s.animLoopOut; const lo=document.getElementById('tl-loop-out');if(lo)lo.value=(s.animLoopOut??s.animDur??3).toFixed(2); }
+    if (s.animLoop!==undefined) { M.animation.loop=s.animLoop; }
     drawMultiTimeline();
   }
   ST.cachedVerts=null; redraw(); updateAllKFDots();
@@ -4866,11 +4872,12 @@ function calibrateFaceCenter(){
     if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='顔追跡がOFFです';setTimeout(()=>exprHUD.style.display='none',1200);}
     return;
   }
-  // Current smoothed raw values (before sensitivity) are in tHX/tHY/tHZ pre-scale
-  // Use the last computed S values as the offset
-  _faceOffsetX = S.hx / (curSens * curSensX) || 0;
-  _faceOffsetY = S.hy / (curSens * curSensY) || 0;
-  _faceOffsetZ = S.hz / (curSens * curSensZ) || 0;
+  // S.hx = (raw_x - _faceOffsetX) * curSens * curSensX, so raw_x = S.hx/(curSens*curSensX) + _faceOffsetX
+  // Accumulate into existing offset so repeated recalibrations work correctly
+  const _cs = curSens;
+  _faceOffsetX += (_cs * curSensX) ? S.hx / (_cs * curSensX) : 0;
+  _faceOffsetY += (_cs * curSensY) ? S.hy / (_cs * curSensY) : 0;
+  _faceOffsetZ += (_cs * curSensZ) ? S.hz / (_cs * curSensZ) : 0;
   if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='🎯 顔中心キャリブレーション完了';setTimeout(()=>exprHUD.style.display='none',1500);}
   // Save to localStorage for persistence
   try { localStorage.setItem('faceCalib', JSON.stringify({ox:_faceOffsetX,oy:_faceOffsetY,oz:_faceOffsetZ})); } catch{}
@@ -5458,12 +5465,15 @@ document.addEventListener('keydown',e=>{
     e.preventDefault();
   }
   if (e.ctrlKey&&e.key==='v'&&ST.animMode&&tlKFClipboard.length>0) {
+    pushAnimUndo('KFペースト');
     const baseT=ST.animPlayhead;
+    tlSelectedKFs.clear();
     for (const {name,dt,v,interp} of tlKFClipboard) {
       if (!M.animation.tracks[name]) M.animation.tracks[name]=[];
       const newKF={t:Math.round((baseT+dt)*1000)/1000,v,interp};
       M.animation.tracks[name].push(newKF);
       M.animation.tracks[name].sort((a,b)=>a.t-b.t);
+      tlSelectedKFs.add(newKF);
     }
     drawMultiTimeline(); e.preventDefault();
   }
@@ -14852,14 +14862,14 @@ function smoothAnimKFValues() {
     const frames = M.animation.tracks[name];
     if (!frames || frames.length < 3) continue;
     const sorted = [...frames].sort((a,b)=>a.t-b.t);
-    // Gaussian blur: 3-pass weighted average
+    // Gaussian blur: 2-pass weighted average using snapshot of previous values each pass
     for (let pass = 0; pass < 2; pass++) {
+      const snap = sorted.map(f => f.v);
       for (let i = 1; i < sorted.length-1; i++) {
-        const prev = sorted[i-1].v, cur = sorted[i].v, next = sorted[i+1].v;
-        sorted[i].v = prev * (alpha*0.25) + cur * (1 - alpha*0.5) + next * (alpha*0.25);
+        sorted[i].v = snap[i-1] * (alpha*0.25) + snap[i] * (1 - alpha*0.5) + snap[i+1] * (alpha*0.25);
       }
     }
-    // Update original frames
+    // Update original frames by time lookup
     for (const kf of frames) {
       const s = sorted.find(sf => Math.abs(sf.t - kf.t) < 0.001);
       if (s) kf.v = s.v;
