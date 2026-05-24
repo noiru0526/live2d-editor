@@ -13484,7 +13484,7 @@ async function showAIAnimCritiqueDialog() {
     const kfVals = frames.map(f => f.v.toFixed(3));
     const minV = Math.min(...frames.map(f => f.v));
     const maxV = Math.max(...frames.map(f => f.v));
-    const easings = [...new Set(frames.map(f => f.e || 'linear'))].join('/');
+    const easings = [...new Set(frames.map(f => f.interp || f.e || 'linear'))].join('/');
     trackSummaries.push(`${lbl} (${k}): ${frames.length}KF, range=[${minV.toFixed(2)},${maxV.toFixed(2)}], paramRange=[${p.min},${p.max}], easings=${easings}`);
     if (frames.length <= 8) trackSummaries[trackSummaries.length-1] += `, times=[${kfTimes.join(',')}], values=[${kfVals.join(',')}]`;
   }
@@ -18543,7 +18543,7 @@ function insertSnippet(idx) {
     for (const kf of kfs) {
       const t = snapT(t0 + (kf.t || 0));
       M.animation.tracks[paramId] = M.animation.tracks[paramId].filter(k => Math.abs(k.t - t) > 0.001);
-      M.animation.tracks[paramId].push({ t, v: kf.v, interp: kf.e || kf.interp || 'smooth' });
+      M.animation.tracks[paramId].push({ t, v: kf.v, interp: kf.interp || kf.e || 'smooth' });
       inserted++;
     }
     M.animation.tracks[paramId].sort((a, b) => a.t - b.t);
@@ -18563,7 +18563,7 @@ function saveCurrentAsSnippet() {
   for (const [pid, kfs] of Object.entries(M.animation?.tracks || {})) {
     const relevant = kfs.filter(k => k.t >= t0 - 0.001 && k.t <= t1 + 0.001);
     if (!relevant.length) continue;
-    snipTracks[pid] = relevant.map(k => ({ t: parseFloat((k.t - t0).toFixed(4)), v: k.v, e: k.easing }));
+    snipTracks[pid] = relevant.map(k => ({ t: parseFloat((k.t - t0).toFixed(4)), v: k.v, interp: k.interp || 'smooth' }));
   }
   if (!Object.keys(snipTracks).length) { document.getElementById('lbl-status').textContent = 'スニペット範囲内にKFがありません'; return; }
   if (!M.customSnippets) M.customSnippets = [];
