@@ -461,6 +461,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
       <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:3px;padding:1px 6px;cursor:pointer">全1</button>
       <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:3px;padding:1px 6px;cursor:pointer">全0</button>
+      <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(129,140,248,.15);border:1px solid rgba(129,140,248,.4);color:#a5b4fc;border-radius:3px;padding:1px 6px;cursor:pointer">自動計算</button>
     </div>
   </div>
 
@@ -5404,6 +5405,26 @@ function wpFill(val) {
   const n = pt.mesh.verts.length;
   pt.warpWeights[def.id] = Array(n).fill(val);
   render();
+}
+function wpAutoCalc() {
+  const pt = selPart >= 0 ? parts[selPart] : null;
+  if (!pt || !pt.deformerId) { setStatus('自動ウェイト: パーツとデフォーマーを選択してください'); return; }
+  const def = deformers.find(d => d.id === pt.deformerId);
+  if (!def || def.type !== 'warp') { setStatus('自動ウェイト: ワープデフォーマーが必要です'); return; }
+  const vals = getParamVals();
+  const wv = pt.getWorldVerts(vals);
+  const dLeft = def.x, dRight = def.x + def.w, dTop = def.y, dBottom = def.y + def.h;
+  const falloffPx = Math.min(def.w, def.h) * 0.25; // 25% of smaller dimension
+  const weights = wv.map(v => {
+    const dx = Math.max(0, Math.max(dLeft - v.x, v.x - dRight));
+    const dy = Math.max(0, Math.max(dTop - v.y, v.y - dBottom));
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist === 0) return 1; // inside
+    if (dist >= falloffPx) return 0; // outside falloff
+    return 1 - dist / falloffPx; // smooth falloff
+  });
+  pt.warpWeights[def.id] = weights;
+  render(); saveState(); setStatus(`自動ウェイト計算完了: ${pt.name} ← ${def.name}`);
 }
 function wpApplyBrush(wx, wy) {
   const pt = selPart >= 0 ? parts[selPart] : null;

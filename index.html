@@ -12600,6 +12600,18 @@ function toggleParamRecord() {
     _paramRecBuf = {};
     drawMultiTimeline();
     document.getElementById('lbl-status').textContent = `録音完了: ${kfCount}個のKFを挿入しました`;
+    // Offer auto-cleanup after recording
+    if (kfCount > 100) {
+      setTimeout(() => {
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(20,24,44,.95);border:1px solid rgba(255,160,60,.5);border-radius:6px;padding:8px 14px;color:#ffa030;font-size:10px;font-family:monospace;z-index:800;display:flex;gap:10px;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.5);';
+        toast.innerHTML = `<span>録音完了: ${kfCount}KF。ノイズを除去しますか？</span>
+          <button onclick="cleanupAnimKFs(0.008);this.closest('div').remove();" style="background:#2a1800;border:1px solid rgba(255,160,60,.6);color:#ffa030;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">✂ 整理</button>
+          <button onclick="this.closest('div').remove();" style="background:none;border:none;color:#4a6080;cursor:pointer;font-size:9px;">閉じる</button>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.isConnected && toast.remove(), 8000);
+      }, 500);
+    }
   } else {
     // Start recording (with optional countdown)
     const btn = document.getElementById('btn-param-rec');
