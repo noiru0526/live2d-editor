@@ -4256,7 +4256,7 @@ function evalAnimTrackExport(frames,p,t){
   if(i===0)return sorted[0].v;
   const f0=sorted[i-1],f1=sorted[i];
   const rawFrac=(t-f0.t)/Math.max(f1.t-f0.t,.0001);
-  const ifn=IFN[f0.interp??p.interp??'linear']||IFN.linear;
+  const ifn=IFN[f0.interp??f0.easing??f0.e??p.interp??'linear']||IFN.linear;
   return f0.v+(f1.v-f0.v)*ifn(Math.max(0,Math.min(1,rawFrac)));
 }
 let _prevParamSnap={},_clipFadeStart=0,_clipFadeActive=false;
@@ -9699,8 +9699,8 @@ function evalAnimTrack(frames, p, t) {
   if (i===0) return sorted[0].v;
   const f0=sorted[i-1], f1=sorted[i];
   const rawFrac=(t-f0.t)/Math.max(f1.t-f0.t,0.0001);
-  // Per-KF interp takes priority over param-level interp
-  const interpMode = f0.interp ?? p.interp ?? 'linear';
+  // Per-KF interp takes priority over param-level interp (also handle legacy 'e'/'easing' fields)
+  const interpMode = f0.interp ?? f0.easing ?? f0.e ?? p.interp ?? 'linear';
   const frac=applyAnimInterp(rawFrac, interpMode);
   return f0.v+(f1.v-f0.v)*frac;
 }
@@ -13401,7 +13401,7 @@ Only include parameters from the available list. Values must be within each para
           const t = Math.round((kf.t ?? 0) * 10000) / 10000;
           const v = Math.max(p.min, Math.min(p.max, kf.v ?? 0));
           if (t < 0 || t > result.duration + 0.01) continue;
-          M.animation.tracks[k].push({ t, v, e: kf.e || 'smooth' });
+          M.animation.tracks[k].push({ t, v, interp: kf.e || kf.interp || 'smooth' });
           kfInserted++;
         }
         M.animation.tracks[k].sort((a, b) => a.t - b.t);
@@ -18457,7 +18457,7 @@ function insertSnippet(idx) {
     for (const kf of kfs) {
       const t = snapT(t0 + (kf.t || 0));
       M.animation.tracks[paramId] = M.animation.tracks[paramId].filter(k => Math.abs(k.t - t) > 0.001);
-      M.animation.tracks[paramId].push({ t, v: kf.v, easing: kf.e || 'smooth' });
+      M.animation.tracks[paramId].push({ t, v: kf.v, interp: kf.e || kf.interp || 'smooth' });
       inserted++;
     }
     M.animation.tracks[paramId].sort((a, b) => a.t - b.t);
