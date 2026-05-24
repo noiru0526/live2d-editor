@@ -765,7 +765,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <div style="padding:6px 8px;border-top:1px solid #1a2030;flex-shrink:0">
         <button class="ab" onclick="resetKF()">現KFをリセット</button>
         <button class="ab" onclick="resetAll()">パーツ全リセット</button>
-        <button class="ab" onclick="undo()" style="font-size:9px">↩ 元に戻す (Ctrl+Z)</button>
+        <button class="ab" onclick="undo()" style="font-size:9px">↩ Ctrl+Z</button>
+        <button class="ab" onclick="redo()" style="font-size:9px">↪ Ctrl+Y</button>
         <button class="ab pr" onclick="saveModelOnly()">💾 モデル保存</button>
         <button class="ab pr" onclick="showAvatarExportDialog()">🎭 アバターHTML出力</button>
         <div style="margin-top:4px;font-size:8px;color:#2e5060;line-height:1.4">OBSブラウザソースURL例:<br>
@@ -1083,24 +1084,39 @@ function showRigCtxMenu(x, y, items) {
   setTimeout(() => document.addEventListener('mousedown', dismiss), 0);
 }
 
-// ===== UNDO =====
-let undoStack = [];
-function saveState() {
-  undoStack.push(JSON.stringify({parts: parts.map(p => p.toJSON(true)), selPart, canvasW, canvasH, expressions, deformers: deformers.map(d=>d.toJSON())}));
-  if (undoStack.length > 40) undoStack.shift();
+// ===== UNDO / REDO =====
+let undoStack = [], redoStack = [];
+function _snapState() {
+  return JSON.stringify({parts: parts.map(p => p.toJSON(true)), selPart, selParts:[...selParts], canvasW, canvasH, expressions, deformers: deformers.map(d=>d.toJSON())});
 }
-function undo() {
-  if (!undoStack.length) { setStatus('元に戻す履歴がありません'); return; }
-  const s = JSON.parse(undoStack.pop());
+function _applyState(s) {
   canvasW = s.canvasW || 1000; canvasH = s.canvasH || 1000;
   document.getElementById('cvW').value = canvasW;
   document.getElementById('cvH').value = canvasH;
   parts = s.parts.map(o => Part.fromJSON(o));
   selPart = Math.min(s.selPart, parts.length - 1);
+  selParts = new Set((s.selParts||[]).filter(i=>i>=0&&i<parts.length));
+  if (selPart >= 0) selParts.add(selPart);
   expressions = s.expressions || expressions;
   if (s.deformers) deformers = s.deformers.map(o => o.type==='rotation' ? RotationDeformer.fromJSON(o) : o.type==='bone' ? BoneDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
   updatePartsUI(); buildKFUI(); render(); updateExpressionsUI(); updatePhysicsUI();
+}
+function saveState() {
+  undoStack.push(_snapState());
+  if (undoStack.length > 40) undoStack.shift();
+  redoStack = []; // new action invalidates redo history
+}
+function undo() {
+  if (!undoStack.length) { setStatus('元に戻す履歴がありません'); return; }
+  redoStack.push(_snapState()); // save current for redo
+  _applyState(JSON.parse(undoStack.pop()));
   setStatus('元に戻しました');
+}
+function redo() {
+  if (!redoStack.length) { setStatus('やり直す履歴がありません'); return; }
+  undoStack.push(_snapState());
+  _applyState(JSON.parse(redoStack.pop()));
+  setStatus('やり直しました');
 }
 
 // ===== PART CLASS =====
@@ -6858,6 +6874,7 @@ document.addEventListener('keydown',e=>{
   const onBody=document.activeElement===document.body||document.activeElement===canvas;
   if(e.key==='Delete'&&onBody) delPart();
   if((e.ctrlKey||e.metaKey)&&e.key==='z'&&onBody){e.preventDefault();undo();}
+  if((e.ctrlKey||e.metaKey)&&(e.key==='y'||e.key==='Y')&&onBody){e.preventDefault();redo();}
   if((e.ctrlKey||e.metaKey)&&e.key==='d'&&onBody){e.preventDefault();dupPart();}
   if((e.ctrlKey||e.metaKey)&&e.key==='c'&&onBody&&selPart>=0){e.preventDefault();copyPartToClipboard();}
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}

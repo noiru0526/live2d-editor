@@ -4726,7 +4726,7 @@ async function initTracking(){
   const pc=document.getElementById('obs-path-code');
   if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
   else if(pc)pc.textContent=location.href;
-  let lastVT=-1;
+  let lastVT=-1, _trackLastSeen=0;
   function detectLoop(){
     if(video.readyState>=2&&video.currentTime!==lastVT){
       lastVT=video.currentTime;
@@ -4736,7 +4736,7 @@ async function initTracking(){
         const lm=result.faceLandmarks[0];
         const bs={};
         if(result.faceBlendshapes?.[0])result.faceBlendshapes[0].categories.forEach(c=>bs[c.categoryName]=c.score);
-        tracking=true;
+        _trackLastSeen=now; tracking=true;
         const S_=curSens,t=now;
         // Head pose from nose tip + eye-corner roll
         const rhx=Math.max(-1,Math.min(1,((lm[1].x-.5)*-2-_faceOffsetX)*S_*curSensX));
@@ -4776,6 +4776,9 @@ async function initTracking(){
         tBwL=OEF.bwl.filter(rbwl,t);tBwR=OEF.bwr.filter(rbwr,t);
         tEX=OEF.ex.filter(rex,t);tEY=OEF.ey.filter(rey,t);
         tMA=OEF.ma.filter(shapeA,t);tMI=OEF.mi.filter(shapeI,t);tMU=OEF.mu.filter(shapeU,t);
+      } else {
+        // No face detected — switch to idle after 1.5s
+        if(performance.now()-_trackLastSeen>1500) tracking=false;
       }
     }
     requestAnimationFrame(detectLoop);
