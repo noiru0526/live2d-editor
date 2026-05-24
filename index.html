@@ -1252,6 +1252,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:#2e3656;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2e3656;border:1px solid var(--border);color:#80a0d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:#2e3656;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
+    <button onclick="showTimeScaleDialog()" title="タイムスケール: 全KFの時刻を倍率変換してアニメ全体のスピードを変更&#10;例: 0.5→2倍速、2.0→半速" style="background:#2e3656;border:1px solid rgba(100,200,255,.4);color:#60c8ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏩ 速度</button>
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2e3656;border:1px solid var(--border);color:#c0a0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2e3656;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#1e2a1e;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
@@ -12320,6 +12321,65 @@ function clampAllKFValues() {
   }
   drawMultiTimeline();
   document.getElementById('lbl-status').textContent = `KFクランプ: ${clamped}個の値を修正（パラメータ範囲内に）`;
+}
+
+// Time scale: multiply all KF times (and duration) by a factor
+function showTimeScaleDialog() {
+  const anim = M.animation;
+  if (!anim?.tracks || !Object.keys(anim.tracks).length) {
+    document.getElementById('lbl-status').textContent = 'アニメーションデータがありません'; return;
+  }
+  const dur = anim.duration || 3;
+  showModal('⏩ タイムスケール', `
+    <div style="font-size:12px;display:grid;gap:10px;min-width:280px">
+      <div style="font-size:10px;color:#6080a0">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
+      <div style="font-size:10px;color:#6080a0">現在の長さ: <b style="color:#cdd6f4">${dur.toFixed(2)}s</b></div>
+      <div style="display:grid;gap:6px;">
+        <div style="font-size:10px;color:#aabbcc;margin-bottom:2px">プリセット:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${[['0.25x', 0.25], ['0.5x', 0.5], ['0.75x', 0.75], ['2x', 2], ['3x', 3], ['4x', 4]].map(([lbl, v]) =>
+            `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:#1a2040;border:1px solid rgba(80,160,255,.4);color:#80b0ff;border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
+          ).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <span style="font-size:10px;color:#aabbcc;white-space:nowrap">倍率:</span>
+          <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
+            style="flex:1;background:#0e1120;border:1px solid var(--border);color:#cdd6f4;border-radius:4px;padding:4px 8px;font-size:12px;"
+            oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
+          <span id="ts-preview" style="font-size:11px;color:#60d890;min-width:60px;">→ ${dur.toFixed(2)}s</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#8090a0;margin-top:2px;">
+          <input type="checkbox" id="ts-all-clips" style="accent-color:#4e7cff"> 全クリップに適用（クリップ1のみはOFF）
+        </label>
+      </div>
+    </div>
+  `, () => {
+    const factor = parseFloat(document.getElementById('ts-factor').value);
+    if (isNaN(factor) || factor <= 0) { document.getElementById('lbl-status').textContent = '無効な倍率です'; return; }
+    const allClips = document.getElementById('ts-all-clips').checked;
+
+    function scaleAnim(animObj) {
+      if (!animObj?.tracks) return;
+      for (const frames of Object.values(animObj.tracks)) {
+        if (!frames?.length) continue;
+        for (const kf of frames) kf.t = kf.t * factor;
+      }
+      if (animObj.duration) animObj.duration = animObj.duration * factor;
+      if (animObj.loopIn !== undefined) animObj.loopIn = animObj.loopIn * factor;
+      if (animObj.loopOut !== undefined) animObj.loopOut = animObj.loopOut * factor;
+      if (animObj.markers) for (const m of animObj.markers) m.t = m.t * factor;
+    }
+
+    pushAnimUndo('タイムスケール×' + factor);
+    scaleAnim(M.animation);
+    if (allClips && M.animClips) {
+      for (const clip of M.animClips) scaleAnim(clip.animation);
+    }
+    const newDur = (M.animation.duration || dur * factor);
+    document.getElementById('anim-dur').value = newDur.toFixed(2);
+    document.getElementById('lbl-status').textContent = `⏩ タイムスケール×${factor}: ${dur.toFixed(2)}s → ${newDur.toFixed(2)}s`;
+    ST.cachedVerts = null; drawMultiTimeline();
+  }, null);
 }
 
 // Quantize all KF times (or selected KFs only) to the nearest snap grid multiple
