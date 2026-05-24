@@ -17524,8 +17524,9 @@ function geAddKF() {
   if (!M.kfTracks[GE.param]) M.kfTracks[GE.param] = [];
   const frame = ST.frame;
   const existing = M.kfTracks[GE.param].find(k => k.frame === frame);
-  if (existing) { existing.value = M.params[GE.param] ?? 0; }
-  else { M.kfTracks[GE.param].push({ frame, value: M.params[GE.param] ?? 0 }); }
+  const curVal = M.params[GE.param]?.val ?? 0;
+  if (existing) { existing.value = curVal; }
+  else { M.kfTracks[GE.param].push({ frame, value: curVal }); }
   geRender();
   drawMultiTimeline();
 }
