@@ -2475,6 +2475,8 @@ function snapshotState() {
     // Include animation tracks for undo coverage
     animTracks: JSON.parse(JSON.stringify(M.animation?.tracks||{})),
     animDur: M.animation?.duration,
+    // Snapshot kfs arrays so KF position moves can be undone
+    paramKfs: Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,[...p.kfs]])),
   };
 }
 function pushUndo(name='操作') {
@@ -2497,6 +2499,7 @@ function pushAnimUndo(name='アニメ操作') {
     animLoopIn:M.animation?.loopIn,
     animLoopOut:M.animation?.loopOut,
     animLoop:M.animation?.loop,
+    animMarkers:JSON.parse(JSON.stringify(M.animation?.markers||[])),
   };
   snap._name = name;
   snap._time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -2514,8 +2517,10 @@ function _applySnapshot(s) {
     if (s.animLoopIn!==undefined) { M.animation.loopIn=s.animLoopIn; const li=document.getElementById('tl-loop-in');if(li)li.value=(s.animLoopIn??0).toFixed(2); }
     if (s.animLoopOut!==undefined) { M.animation.loopOut=s.animLoopOut; const lo=document.getElementById('tl-loop-out');if(lo)lo.value=(s.animLoopOut??s.animDur??3).toFixed(2); }
     if (s.animLoop!==undefined) { M.animation.loop=s.animLoop; }
+    if (s.animMarkers!==undefined) { M.animation.markers=s.animMarkers; }
     drawMultiTimeline();
   }
+  if (s.paramKfs) { for (const [k,kfs] of Object.entries(s.paramKfs)) { if (M.params[k]) M.params[k].kfs=[...kfs]; } updateAllKFDots(); updateKFList(); }
   ST.cachedVerts=null; redraw(); updateAllKFDots();
 }
 function undo() { const s=ST.undo.pop(); if(!s) return; ST.redo.push(snapshotState()); _applySnapshot(s); updateUndoHistoryPanel(); }
@@ -3015,6 +3020,7 @@ function renderParamRow(name, p, cont, _isFavArg) {
     row.querySelector(`#interp-${name}`).addEventListener('change',e=>{ M.params[name].interp=e.target.value; ST.cachedVerts=null; redraw(); drawTimeline(); });
     const sl = row.querySelector(`#ps-${name}`);
     updateSliderFill(sl, p.val, p.min, p.max);
+    sl.addEventListener('mousedown', () => { if (ST.animMode && tlAutoKF) pushAnimUndo('KF自動記録'); });
     sl.addEventListener('input',e=>{
       if (p.locked) { e.target.value=p.val; return; }
       p.val=parseFloat(e.target.value);
@@ -4343,7 +4349,7 @@ function applyAnimTracks(now){
     if (ocAnim && ocAnim.tracks) {
       const ocDur = ocAnim.duration || 3;
       if (_overlayLastNow != null) {
-        const dt2 = (now - _overlayLastNow) / 1000 * (animSpeedMult || 1);
+        const dt2 = (now - _overlayLastNow) / 1000 * Math.abs(animSpeedMult || 1);
         _overlayT += dt2;
       }
       _overlayLastNow = now;
@@ -4675,7 +4681,7 @@ function initTracking(){
     const S_=curSens;
     tHX=Math.max(-1,Math.min(1,((lm[1].x-.5)*-2-_faceOffsetX)*S_*curSensX));
     tHY=Math.max(-1,Math.min(1,((lm[1].y-.5)*-2-_faceOffsetY)*S_*curSensY));
-    const lE=lm[234],rE=lm[454];tHZ=(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ;
+    const lE=lm[234],rE=lm[454];tHZ=Math.max(-1,Math.min(1,(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ));
     const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
     const blinkFn=v=>{const lo=0.19/S_,hi=0.27/S_;return Math.max(0,Math.min(1,(hi-v)/(hi-lo)));};
     tBL=blinkFn(ear(362,385,387,263,373,380));
@@ -9255,6 +9261,7 @@ function drawTimeline() {
     const p=M.params[ST.ap]; if(!p) return;
     newVal=parseFloat(newVal.toFixed(3));
     if (oldVal===newVal) return;
+    pushUndo('KF移動');
     // Move def data from old KF key to new KF key
     const oldKey=`${ST.ap}:${oldVal}`;
     const newKey=`${ST.ap}:${newVal}`;
@@ -15543,12 +15550,12 @@ function applyPlayheadToParams() {
       const toKX2=t=>((t-tlZoomOff)/visibleDur)*(W-2)+1;
       const loopIn=M.animation.loopIn??0, loopOut=M.animation.loopOut??dur;
       const mx=e.clientX-r.left;
-      if (Math.abs(mx-toKX2(loopIn))<12) { tlmLoopDrag='in'; e.stopPropagation(); return; }
-      if (Math.abs(mx-toKX2(loopOut))<12) { tlmLoopDrag='out'; e.stopPropagation(); return; }
+      if (Math.abs(mx-toKX2(loopIn))<12) { pushAnimUndo('ループ区間移動'); tlmLoopDrag='in'; e.stopPropagation(); return; }
+      if (Math.abs(mx-toKX2(loopOut))<12) { pushAnimUndo('ループ区間移動'); tlmLoopDrag='out'; e.stopPropagation(); return; }
       // Marker drag: check if near a marker triangle (top 14px)
       if ((e.clientY-r.top)<14) {
         const hitM=(M.animation.markers||[]).find(m=>Math.abs(mx-toKX2(m.t))<8);
-        if (hitM) { tlmMarkerDrag={marker:hitM, origT:hitM.t}; e.stopPropagation(); return; }
+        if (hitM) { pushAnimUndo('マーカー移動'); tlmMarkerDrag={marker:hitM, origT:hitM.t}; e.stopPropagation(); return; }
       }
     }
     const hit=hitTestKF(e);
@@ -15562,6 +15569,7 @@ function applyPlayheadToParams() {
       // Click on unselected KF: clear selection and select this one
       if (!tlSelectedKFs.has(hit.kf)) { tlSelectedKFs.clear(); tlSelectedKFs.add(hit.kf); }
       // Build drag entries for all selected KFs
+      pushAnimUndo('KF移動');
       const kfToName = new Map();
       for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
       const entries = [];

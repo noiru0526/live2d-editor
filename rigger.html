@@ -1086,7 +1086,7 @@ function showRigCtxMenu(x, y, items) {
 // ===== UNDO =====
 let undoStack = [];
 function saveState() {
-  undoStack.push(JSON.stringify({parts: parts.map(p => p.toJSON(true)), selPart, canvasW, canvasH, expressions}));
+  undoStack.push(JSON.stringify({parts: parts.map(p => p.toJSON(true)), selPart, canvasW, canvasH, expressions, deformers: deformers.map(d=>d.toJSON())}));
   if (undoStack.length > 40) undoStack.shift();
 }
 function undo() {
@@ -1098,7 +1098,8 @@ function undo() {
   parts = s.parts.map(o => Part.fromJSON(o));
   selPart = Math.min(s.selPart, parts.length - 1);
   expressions = s.expressions || expressions;
-  updatePartsUI(); buildKFUI(); render(); updateExpressionsUI();
+  if (s.deformers) deformers = s.deformers.map(o => o.type==='rotation' ? RotationDeformer.fromJSON(o) : o.type==='bone' ? BoneDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
+  updatePartsUI(); buildKFUI(); render(); updateExpressionsUI(); updatePhysicsUI();
   setStatus('元に戻しました');
 }
 
