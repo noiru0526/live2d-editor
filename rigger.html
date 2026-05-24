@@ -270,6 +270,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
     <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存 (右クリックで透過PNG)&#10;" oncontextmenu="event.preventDefault();screenshotCanvas(true)">📷 SS</button>
     <button class="tbtn" onclick="showPartNoteList()" title="メモが書かれたパーツの一覧（行クリックで選択）">📝 ノート</button>
     <button class="tbtn" id="btn-gpad" onclick="toggleRiggerGamepad()" title="ゲームパッド: 左スティック=頭X/Y, 右スティック=眼球, L2/R2=目開閉, ×△□○=表情1-4">🎮 GPad</button>
+    <button class="tbtn" onclick="showShortcutsOverlay()" title="キーボードショートカット一覧 (? キーでも表示)">⌨ ?</button>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -6919,18 +6920,23 @@ function showShortcutsOverlay() {
   d.onclick = ()=>d.remove();
   const shortcuts = [
     ['全般',''],
-    ['Ctrl+Z','元に戻す'],['Ctrl+D','パーツ複製'],['Ctrl+C/V','コピー/ペースト'],
-    ['Delete','パーツ削除'],['F / f','フィット表示'],['F2','フォーカスモード切替'],
+    ['Ctrl+Z','元に戻す'],['Ctrl+Y','やり直す（Redo）'],['Ctrl+D','パーツ複製'],
+    ['Ctrl+C/V','コピー/ペースト'],['Delete','パーツ削除'],
+    ['F','フィット表示'],['F2','フォーカスモード切替'],
     ['H','選択パーツ表示/非表示'],['L','選択パーツロック切替'],
     ['Shift+S','ソロ表示切替'],['0','全パラメータリセット'],
-    ['1〜9','表情プリセット適用'],
-    ['↑↓←→','パーツ移動 (Shift=10px)'],
-    ['モード・ツール',''],
-    ['Ctrl+ドラッグ','ブラシデフォーム (デフォームモード)'],
+    ['1〜9','表情プリセット適用'],['↑↓←→','パーツ移動 (Shift=10px)'],
+    ['?','このショートカット一覧を表示'],
+    ['メッシュ・変形',''],
+    ['Ctrl+ドラッグ','ブラシデフォーム（デフォームモード）'],
     ['Ctrl+ホイール','ブラシ半径変更'],
-    ['S','シメトリモード切替 (メッシュ/デフォームモード)'],
-    ['Alt+ドラッグ','パーツ移動のエッジスナップ'],
+    ['Ctrl+ドラッグ（メッシュ）','グリッドスナップ移動'],
+    ['S','シメトリモード切替（メッシュ/デフォームモード）'],
+    ['Alt+ドラッグ','他パーツのエッジに吸着スナップ'],
     [', / .','前/次のKFに移動（現在パラメータ）'],
+    ['ビュー',''],
+    ['Ctrl+ホイール','ズーム'],['Ctrl+G','グリッドスナップON/OFF'],
+    ['Ctrl+S','自動保存（2分ごと・手動でも可）'],
   ];
   const rows = shortcuts.map(([k, v])=> v ?
     `<tr><td style="padding:3px 12px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 12px;color:#a0b8d0;font-size:11px;">${v}</td></tr>` :
