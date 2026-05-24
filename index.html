@@ -14811,39 +14811,59 @@ function batchSetInterpolation() {
 }
 
 // Remove duplicate and very-close keyframes from animation tracks
-// thresh: minimum time gap in seconds (default 5ms); KFs closer than this with near-equal values are merged
+// thresh: value approximation tolerance (default 0.005); uses RDP-style reduction —
+//   removes KFs whose values can be linearly approximated within thresh.
+//   Also removes exact duplicate times.
 function cleanupAnimKFs(thresh) {
-  if (thresh === undefined) thresh = 0.005; // 5ms default
+  if (thresh === undefined) thresh = 0.005;
   const tracks = M.animation?.tracks;
   if (!tracks || Object.keys(tracks).length === 0) { document.getElementById('lbl-status').textContent = 'KFがありません'; return; }
   const kfToName = new Map();
   for (const [nm,frms] of Object.entries(tracks)) for (const kf of frms) kfToName.set(kf,nm);
-  // Which tracks to clean: those containing selected KFs, or all if none selected
   const targetNames = tlSelectedKFs.size > 0
     ? new Set([...tlSelectedKFs].map(kf=>kfToName.get(kf)).filter(Boolean))
     : new Set(Object.keys(tracks));
   pushAnimUndo();
   let totalRemoved = 0;
+  // RDP-style 1D simplification: keep a KF only if it deviates from linear interpolation by > thresh
+  function rdpReduce(frames) {
+    if (frames.length <= 2) return frames;
+    // Always keep first and last
+    const keep = new Uint8Array(frames.length); keep[0] = keep[frames.length-1] = 1;
+    const stack = [[0, frames.length-1]];
+    while (stack.length) {
+      const [lo, hi] = stack.pop();
+      if (hi - lo <= 1) continue;
+      const t0=frames[lo].t, v0=frames[lo].v, t1=frames[hi].t, v1=frames[hi].v;
+      const tRange=t1-t0||1e-9;
+      let maxDev=0, maxIdx=lo+1;
+      for (let i=lo+1; i<hi; i++) {
+        const frac=(frames[i].t-t0)/tRange;
+        const linV=v0+(v1-v0)*frac;
+        const dev=Math.abs(frames[i].v-linV);
+        if (dev>maxDev){maxDev=dev;maxIdx=i;}
+      }
+      if (maxDev>thresh){keep[maxIdx]=1;stack.push([lo,maxIdx],[maxIdx,hi]);}
+    }
+    return frames.filter((_,i)=>keep[i]);
+  }
   for (const name of targetNames) {
     const frames = tracks[name];
     if (!frames || frames.length < 2) continue;
     frames.sort((a,b)=>a.t-b.t);
-    const kept = [frames[0]];
-    for (let i = 1; i < frames.length; i++) {
-      const prev = kept[kept.length-1], cur = frames[i];
-      const timeTooClose = (cur.t - prev.t) < thresh;
-      const valueSame = Math.abs(cur.v - prev.v) < 1e-4;
-      if (timeTooClose && valueSame) {
-        totalRemoved++;
-      } else {
-        kept.push(cur);
-      }
+    // First remove exact duplicate times (keep the last one at each time)
+    const deduped = [];
+    for (let i=0;i<frames.length;i++){
+      if (i+1<frames.length && Math.abs(frames[i+1].t-frames[i].t)<0.0005) continue;
+      deduped.push(frames[i]);
     }
-    tracks[name] = kept;
+    const simplified = rdpReduce(deduped);
+    totalRemoved += frames.length - simplified.length;
+    tracks[name] = simplified;
   }
   tlSelectedKFs.clear();
   drawMultiTimeline();
-  document.getElementById('lbl-status').textContent = `KFクリーンアップ: ${totalRemoved}個削除（しきい値 ${(thresh*1000).toFixed(0)}ms）`;
+  document.getElementById('lbl-status').textContent = `KFクリーンアップ (RDP): ${totalRemoved}個削除（許容誤差 ${thresh.toFixed(4)}）`;
 }
 
 function smoothAnimKFValues() {
