@@ -4516,8 +4516,11 @@ function draw(ts){
   params.headX.val=_useTracking?_trackSrc.hx:(idleFull?breathX:0);
   params.headY.val=_useTracking?_trackSrc.hy:(idleFull?breathY:0);
   params.headZ.val=_useTracking?_trackSrc.hz:(idleFull?breathZ:0);
-  params.blinkL.val=_useTracking?_trackSrc.bl:(idleExtra?ab:0);
-  params.blinkR.val=_useTracking?_trackSrc.br:(idleExtra?ab:0);
+  // Subtle breathing overlay during tracking (low-amplitude so it doesn't fight the tracked head)
+  if(_useTracking){if(params.body)params.body.val=Math.sin(S.bp)*.18+Math.sin(S.bp*.617)*.08;}
+  // During tracking, overlay auto-blink so avatar blinks even when user stares at screen
+  params.blinkL.val=_useTracking?Math.min(1,_trackSrc.bl+ab):(idleExtra?ab:0);
+  params.blinkR.val=_useTracking?Math.min(1,_trackSrc.br+ab):(idleExtra?ab:0);
   // Audio-reactive mouth when not tracking
   const audioMouth=!_useTracking&&audioActive?getAudioLevel():0;
   params.mouthOpen.val=_useTracking?_trackSrc.mo:(idleExtra?audioMouth:0);
