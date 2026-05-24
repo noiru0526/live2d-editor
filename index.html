@@ -4103,8 +4103,6 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
   ol.addEventListener('click',function(ev){if(ev.target===ol)ol.style.display='none';});
 })();
 <\/script>` : ''}
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
 const MD=${JSON.stringify(mdata)};
 const canvas=document.getElementById('c');
@@ -4675,70 +4673,114 @@ function draw(ts){
 }
 
 let tEX=0,tEY=0,tMA=0,tMI=0,tMU=0;
-function initTracking(){
-  if(loadMsg) loadMsg.textContent='顔追跡 初期化中...';
+// One Euro Filter — low-lag adaptive smoothing (better than EMA for face tracking)
+class OneEuroFilter{
+  constructor(f=30,mc=1.0,b=0.007,dc=1.0){this.f=f;this.mc=mc;this.b=b;this.dc=dc;this.x=null;this.dx=0;this.t=null;}
+  _a(c){const tau=1/(2*Math.PI*c),dt=1/this.f;return 1/(1+tau/dt);}
+  filter(x,ts){
+    if(this.t!==null&&ts>this.t)this.f=1000/(ts-this.t);
+    this.t=ts;
+    if(this.x===null){this.x=x;return x;}
+    const dx=(x-this.x)*this.f,edx=this.dx+this._a(this.dc)*(dx-this.dx);
+    this.dx=edx;
+    const xh=this.x+this._a(this.mc+this.b*Math.abs(edx))*(x-this.x);
+    this.x=xh;return xh;
+  }
+  reset(){this.x=null;this.dx=0;this.t=null;}
+}
+async function initTracking(){
+  if(loadMsg)loadMsg.textContent='顔追跡 初期化中...';
+  let FaceLandmarker,FilesetResolver;
+  try{
+    const v=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
+    FaceLandmarker=v.FaceLandmarker;FilesetResolver=v.FilesetResolver;
+  }catch(e){
+    stEl.textContent='FaceLandmarker 読込失敗（ネット接続が必要）';stEl.className='err';
+    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}return;
+  }
+  const fsr=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  const fl=await FaceLandmarker.createFromOptions(fsr,{
+    baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},
+    outputFaceBlendshapes:true,runningMode:'VIDEO',numFaces:1
+  });
+  // One Euro Filter instances — hx/hy/hz: smooth motion; blink/mouth/brow: fast response
+  const OEF={
+    hx:new OneEuroFilter(30,1.5,0.007),hy:new OneEuroFilter(30,1.5,0.007),
+    hz:new OneEuroFilter(30,1.0,0.005),bl:new OneEuroFilter(30,4.0,0.0),
+    br:new OneEuroFilter(30,4.0,0.0),mo:new OneEuroFilter(30,4.0,0.0),
+    bwl:new OneEuroFilter(30,2.0,0.005),bwr:new OneEuroFilter(30,2.0,0.005),
+    ex:new OneEuroFilter(30,2.5,0.01),ey:new OneEuroFilter(30,2.5,0.01),
+    ma:new OneEuroFilter(30,4.0,0.0),mi:new OneEuroFilter(30,4.0,0.0),mu:new OneEuroFilter(30,4.0,0.0)
+  };
   const video=document.createElement('video');video.style.display='none';document.body.appendChild(video);
-  const fm=new FaceMesh({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'+f});
-  fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
-  fm.onResults(r=>{
-    if(!r.multiFaceLandmarks?.length)return;
-    const lm=r.multiFaceLandmarks[0];tracking=true;
-    const S_=curSens;
-    tHX=Math.max(-1,Math.min(1,((lm[1].x-.5)*-2-_faceOffsetX)*S_*curSensX));
-    tHY=Math.max(-1,Math.min(1,((lm[1].y-.5)*-2-_faceOffsetY)*S_*curSensY));
-    const lE=lm[234],rE=lm[454];tHZ=Math.max(-1,Math.min(1,(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ));
-    const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
-    const blinkFn=v=>{const lo=0.19/S_,hi=0.27/S_;return Math.max(0,Math.min(1,(hi-v)/(hi-lo)));};
-    tBL=blinkFn(ear(362,385,387,263,373,380));
-    tBR=blinkFn(ear(33,160,158,133,153,144));
-    tMO=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*28*S_));
-    // Mouth shape (A=open, I=wide, U=round)
-    const mH=Math.abs(lm[14].y-lm[13].y);
-    const mW=Math.abs(lm[61].x-lm[291].x);
-    const baseW=Math.abs(lm[234].x-lm[454].x)*0.35;
-    const shapeA=Math.max(0,Math.min(1,mH/baseW*S_*3));
-    const shapeI=Math.max(0,Math.min(1,(mW/baseW-0.8)*S_*3));
-    const shapeU=Math.max(0,Math.min(1,(1-mW/baseW*1.2)*S_*2));
-    tMA=shapeA; tMI=shapeI*Math.max(0,1-shapeA*2); tMU=shapeU*Math.max(0,1-shapeA*2);
-    // Eyebrow height (0=neutral, -1=raised, +1=frown)
-    const lBrowY=(lm[70].y+lm[107].y)/2, lEyeY=(lm[159].y+lm[145].y)/2;
-    const rBrowY=(lm[300].y+lm[336].y)/2, rEyeY=(lm[386].y+lm[374].y)/2;
-    const browBase=0.065;
-    tBwL=Math.max(-1,Math.min(1,((browBase-(lEyeY-lBrowY))/browBase)*1.5*S_));
-    tBwR=Math.max(-1,Math.min(1,((browBase-(rEyeY-rBrowY))/browBase)*1.5*S_));
-    // Iris tracking (landmarks 468-477 from refineLandmarks)
-    // Right iris center: 468, Left iris center: 473
-    // Eye corners: right eye outer 33, inner 133; left eye outer 362, inner 263
-    if (lm.length>473) {
-      const riris=lm[468], liris=lm[473];
-      // Right eye bounds
-      const reL=lm[133], reR=lm[33], reT=lm[159], reB=lm[145];
-      const leL=lm[263], leR=lm[362], leT=lm[386], leB=lm[374];
-      const reW=reR.x-reL.x, reH=reB.y-reT.y;
-      const leW=leR.x-leL.x, leH=leB.y-leT.y;
-      const reX=(reW>0.001)?(riris.x-(reL.x+reR.x)/2)/reW*2:0;
-      const reY=(reH>0.001)?(riris.y-(reT.y+reB.y)/2)/reH*2:0;
-      const leX=(leW>0.001)?(liris.x-(leL.x+leR.x)/2)/leW*2:0;
-      const leY=(leH>0.001)?(liris.y-(leT.y+leB.y)/2)/leH*2:0;
-      tEX=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_));
-      tEY=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_));
-    }
-  });
-  const cam=new Camera(video,{onFrame:async()=>{if(video.readyState>=2)await fm.send({image:video});},width:320,height:240});
-  cam.start().then(()=>{
-    stEl.textContent='Camera: Active ✓ [ヒント]';stEl.className='ok';
-    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
-    // Update OBS path with actual file path
-    const pc=document.getElementById('obs-path-code');
-    if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
-    else if(pc)pc.textContent=location.href;
-  }).catch(()=>{
+  let stream;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
+  }catch(e){
     stEl.textContent='Camera: Error [ヒント]';stEl.className='err';
-    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
-    const pc=document.getElementById('obs-path-code');
-    if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
-    else if(pc)pc.textContent=location.href;
-  });
+    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}return;
+  }
+  video.srcObject=stream;video.onloadedmetadata=()=>video.play();
+  stEl.textContent='Camera: Active ✓ [ヒント]';stEl.className='ok';
+  if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+  const pc=document.getElementById('obs-path-code');
+  if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
+  else if(pc)pc.textContent=location.href;
+  let lastVT=-1;
+  function detectLoop(){
+    if(video.readyState>=2&&video.currentTime!==lastVT){
+      lastVT=video.currentTime;
+      const now=performance.now();
+      const result=fl.detectForVideo(video,now);
+      if(result.faceLandmarks?.length){
+        const lm=result.faceLandmarks[0];
+        const bs={};
+        if(result.faceBlendshapes?.[0])result.faceBlendshapes[0].categories.forEach(c=>bs[c.categoryName]=c.score);
+        tracking=true;
+        const S_=curSens,t=now;
+        // Head pose from nose tip + eye-corner roll
+        const rhx=Math.max(-1,Math.min(1,((lm[1].x-.5)*-2-_faceOffsetX)*S_*curSensX));
+        const rhy=Math.max(-1,Math.min(1,((lm[1].y-.5)*-2-_faceOffsetY)*S_*curSensY));
+        const lE=lm[234],rE=lm[454];
+        const rhz=Math.max(-1,Math.min(1,(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ));
+        // BlendShape-based blink/mouth (more accurate than geometric EAR)
+        const rbl=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*S_));
+        const rbr=Math.max(0,Math.min(1,(bs.eyeBlinkRight??0)*1.3*S_));
+        const rmo=Math.max(0,Math.min(1,(bs.jawOpen??0)*1.2*S_));
+        // Eyebrow: browDown* = frown (+), browInnerUp/browOuterUp* = raise (-)
+        const rawBwL=(bs.browDownLeft??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpLeft??0)*0.7;
+        const rawBwR=(bs.browDownRight??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpRight??0)*0.7;
+        const rbwl=Math.max(-1,Math.min(1,rawBwL*S_));
+        const rbwr=Math.max(-1,Math.min(1,rawBwR*S_));
+        // Iris gaze from landmark positions (indices same as FaceMesh)
+        let rex=0,rey=0;
+        if(lm.length>473){
+          const ri=lm[468],li=lm[473];
+          const reL=lm[133],reR=lm[33],reT=lm[159],reB=lm[145];
+          const leL=lm[263],leR=lm[362],leT=lm[386],leB=lm[374];
+          const reW=reR.x-reL.x,reH=reB.y-reT.y,leW=leR.x-leL.x,leH=leB.y-leT.y;
+          const reX=(reW>0.001)?(ri.x-(reL.x+reR.x)/2)/reW*2:0;
+          const reY=(reH>0.001)?(ri.y-(reT.y+reB.y)/2)/reH*2:0;
+          const leX=(leW>0.001)?(li.x-(leL.x+leR.x)/2)/leW*2:0;
+          const leY=(leH>0.001)?(li.y-(leT.y+leB.y)/2)/leH*2:0;
+          rex=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_));
+          rey=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_));
+        }
+        // Mouth shape A/I/U from BlendShapes
+        const shapeA=Math.max(0,Math.min(1,(bs.jawOpen??0)*S_));
+        const shapeI=Math.max(0,Math.min(1,((bs.mouthStretchLeft??0)+(bs.mouthStretchRight??0))*S_*0.6));
+        const shapeU=Math.max(0,Math.min(1,(bs.mouthPucker??0)*S_*1.5));
+        // Apply One Euro Filter before writing to target vars
+        tHX=OEF.hx.filter(rhx,t);tHY=OEF.hy.filter(rhy,t);tHZ=OEF.hz.filter(rhz,t);
+        tBL=OEF.bl.filter(rbl,t);tBR=OEF.br.filter(rbr,t);tMO=OEF.mo.filter(rmo,t);
+        tBwL=OEF.bwl.filter(rbwl,t);tBwR=OEF.bwr.filter(rbwr,t);
+        tEX=OEF.ex.filter(rex,t);tEY=OEF.ey.filter(rey,t);
+        tMA=OEF.ma.filter(shapeA,t);tMI=OEF.mi.filter(shapeI,t);tMU=OEF.mu.filter(shapeU,t);
+      }
+    }
+    requestAnimationFrame(detectLoop);
+  }
+  requestAnimationFrame(detectLoop);
 }
 // ---- Audio-reactive mouth ----
 let audioAnalyser=null, audioData=null, audioActive=false;
@@ -7050,83 +7092,70 @@ function applyBrushSculpt(cx, cy, e) {
 }
 
 // ==================== FACE AUTO-DETECT ====================
-let _fmLoaded=false;
+// Shared FaceLandmarker loader cache for editor tools
+let _editorFLCache = null;
+async function _loadEditorFL(mode='IMAGE') {
+  const v = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
+  const fsr = await v.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  return await v.FaceLandmarker.createFromOptions(fsr, {
+    baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},
+    outputFaceBlendshapes:false, runningMode:mode, numFaces:1
+  });
+}
 
-function faceAutoDetect() {
+async function faceAutoDetect() {
   if (!M.img) { alert('先に画像を開いてください'); return; }
-  document.getElementById('lbl-status').textContent='MediaPipe 読込中...';
-  function run() {
-    const fm=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${f}`});
-    fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.2,minTrackingConfidence:.2});
-    fm.onResults(r=>{
-      if (!r.multiFaceLandmarks?.length) {
-        document.getElementById('lbl-status').textContent='顔を検出できませんでした。手動で配置してください。';
-        return;
-      }
-      const lm=r.multiFaceLandmarks[0];
-      // Iris centers (refined landmarks 468=left, 473=right)
-      const lEye=lm[468]??lm[159], rEye=lm[473]??lm[386];
-      const lBrow={x:(lm[70].x+lm[107].x)/2, y:(lm[70].y+lm[107].y)/2};
-      const rBrow={x:(lm[300].x+lm[336].x)/2, y:(lm[300].y+lm[336].y)/2};
-      const mouthX=(lm[61].x+lm[291].x)/2, mouthY=(lm[13].y+lm[14].y)/2;
-      ST.markers.eyeL={x:lEye.x*M.iw, y:lEye.y*M.ih};
-      ST.markers.eyeR={x:rEye.x*M.iw, y:rEye.y*M.ih};
-      ST.markers.browL={x:lBrow.x*M.iw, y:lBrow.y*M.ih};
-      ST.markers.browR={x:rBrow.x*M.iw, y:rBrow.y*M.ih};
-      ST.markers.mouth={x:mouthX*M.iw, y:mouthY*M.ih};
-      redraw();
-      document.getElementById('lbl-status').textContent='顔検出完了！マーカーを確認してプリセットを適用してください';
-      fm.close();
-    });
-    // Draw avatar image to a canvas at standardized size and send to FaceMesh
-    const sz=Math.max(M.iw,M.ih,640);
-    const tc=document.createElement('canvas'); tc.width=sz; tc.height=sz;
-    const ttc=tc.getContext('2d');
-    // Center image on canvas
-    const ox=(sz-M.iw)/2, oy=(sz-M.ih)/2;
-    ttc.drawImage(M.img,ox,oy,M.iw,M.ih);
-    // Adjust marker coordinates for the offset after detection
-    fm.onResults=r=>{
-      if (!r.multiFaceLandmarks?.length) {
-        document.getElementById('lbl-status').textContent='顔を検出できませんでした。手動で配置してください。';
-        return;
-      }
-      const lm=r.multiFaceLandmarks[0];
-      const toImg=(pt)=>({x:(pt.x*sz-ox), y:(pt.y*sz-oy)});
-      const lEye=toImg(lm[468]??lm[159]), rEye=toImg(lm[473]??lm[386]);
-      const lBrow=toImg({x:(lm[70].x+lm[107].x)/2, y:(lm[70].y+lm[107].y)/2});
-      const rBrow=toImg({x:(lm[300].x+lm[336].x)/2, y:(lm[300].y+lm[336].y)/2});
-      const mouth=toImg({x:(lm[61].x+lm[291].x)/2, y:(lm[13].y+lm[14].y)/2});
-      ST.markers.eyeL=lEye; ST.markers.eyeR=rEye;
-      ST.markers.browL=lBrow; ST.markers.browR=rBrow;
-      ST.markers.mouth=mouth;
-      redraw();
-      document.getElementById('lbl-status').textContent='顔検出完了！マーカーを確認してプリセットを適用してください';
-      fm.close();
-    };
-    fm.send({image:tc}).catch(e=>{
-      document.getElementById('lbl-status').textContent='検出エラー: '+e.message;
-    });
+  const lbl = document.getElementById('lbl-status');
+  lbl.textContent = 'FaceLandmarker 読込中...';
+  let fl;
+  try { fl = await _loadEditorFL('IMAGE'); }
+  catch(e) { lbl.textContent='FaceLandmarker 読込失敗（ネット接続が必要）'; return; }
+  lbl.textContent = '検出中...';
+  const sz=Math.max(M.iw,M.ih,640);
+  const tc=document.createElement('canvas'); tc.width=sz; tc.height=sz;
+  const ttc=tc.getContext('2d');
+  const ox=(sz-M.iw)/2, oy=(sz-M.ih)/2;
+  ttc.drawImage(M.img,ox,oy,M.iw,M.ih);
+  const result = fl.detect(tc);
+  fl.close();
+  if (!result.faceLandmarks?.length) {
+    lbl.textContent='顔を検出できませんでした。手動で配置してください。'; return;
   }
-  if (!window.FaceMesh) {
-    const s=document.createElement('script');
-    s.src='https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js';
-    s.crossOrigin='anonymous';
-    s.onload=()=>{ document.getElementById('lbl-status').textContent='MediaPipe 準備中...'; setTimeout(run,300); };
-    s.onerror=()=>{ document.getElementById('lbl-status').textContent='MediaPipe 読み込み失敗（インターネット接続が必要）'; };
-    document.head.appendChild(s);
-  } else { run(); }
+  const lm=result.faceLandmarks[0];
+  const toImg=(pt)=>({x:pt.x*sz-ox, y:pt.y*sz-oy});
+  const lEye=toImg(lm[468]??lm[159]), rEye=toImg(lm[473]??lm[386]);
+  const lBrow=toImg({x:(lm[70].x+lm[107].x)/2, y:(lm[70].y+lm[107].y)/2});
+  const rBrow=toImg({x:(lm[300].x+lm[336].x)/2, y:(lm[300].y+lm[336].y)/2});
+  const mouth=toImg({x:(lm[61].x+lm[291].x)/2, y:(lm[13].y+lm[14].y)/2});
+  ST.markers.eyeL=lEye; ST.markers.eyeR=rEye;
+  ST.markers.browL=lBrow; ST.markers.browR=rBrow;
+  ST.markers.mouth=mouth;
+  redraw();
+  lbl.textContent='顔検出完了！マーカーを確認してプリセットを適用してください';
 }
 
 // ==================== WEBCAM TEST ====================
-let _wcActive=false, _wcCam=null, _wcFM=null, _wcRAF=null;
+let _wcActive=false, _wcStream=null, _wcFL=null, _wcRAF=null;
+
+// One Euro Filter for editor (same algorithm as exported avatar)
+class _EditorOEF{
+  constructor(f=30,mc=1.0,b=0.007,dc=1.0){this.f=f;this.mc=mc;this.b=b;this.dc=dc;this.x=null;this.dx=0;this.t=null;}
+  _a(c){const tau=1/(2*Math.PI*c),dt=1/this.f;return 1/(1+tau/dt);}
+  filter(x,ts){
+    if(this.t!==null&&ts>this.t)this.f=1000/(ts-this.t);
+    this.t=ts;if(this.x===null){this.x=x;return x;}
+    const dx=(x-this.x)*this.f,edx=this.dx+this._a(this.dc)*(dx-this.dx);
+    this.dx=edx;return this.x=this.x+this._a(this.mc+this.b*Math.abs(edx))*(x-this.x);
+  }
+  reset(){this.x=null;this.dx=0;this.t=null;}
+}
 
 function toggleWebcamTest() {
   const panel=document.getElementById('webcam-panel');
   if (_wcActive) {
-    // Stop
     _wcActive=false;
-    if (_wcCam) { try{_wcCam.stop();}catch(e){} _wcCam=null; }
+    if (_wcStream){_wcStream.getTracks().forEach(t=>t.stop());_wcStream=null;}
+    if (_wcRAF){cancelAnimationFrame(_wcRAF);_wcRAF=null;}
     panel.style.display='none';
     document.getElementById('btn-webcam').classList.remove('on');
     return;
@@ -7136,136 +7165,133 @@ function toggleWebcamTest() {
   _wcActive=true;
   document.getElementById('webcam-status').textContent='読込中...';
   if (typeof renderWcExprBtns === 'function') setTimeout(renderWcExprBtns, 50);
+  startWC();
+}
 
-  function startWC() {
-    const video=document.getElementById('webcam-video');
-    _wcFM=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${f}`});
-    _wcFM.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
-    // Smoothed values state
-    const _sm = {hx:0,hy:0,hz:0,bl:0,mo:0,ex:0,ey:0,brL:0,brR:0};
-    _wcFM.onResults(r=>{
-      const ovc = document.getElementById('wc-overlay');
-      const octx = ovc ? ovc.getContext('2d') : null;
-      if (octx) octx.clearRect(0,0,ovc.width,ovc.height);
-      if (!r.multiFaceLandmarks?.length) { document.getElementById('webcam-status').textContent='顔を検出中...'; return; }
-      const lm=r.multiFaceLandmarks[0];
-      const alpha = parseFloat(document.getElementById('wc-smooth')?.value ?? 0.5);
-      const gHead = parseFloat(document.getElementById('wc-gain-head')?.value ?? 1);
-      const gHz = parseFloat(document.getElementById('wc-gain-hz')?.value ?? 1);
-      const gMouth = parseFloat(document.getElementById('wc-gain-mouth')?.value ?? 1);
-      const gBlink = parseFloat(document.getElementById('wc-gain-blink')?.value ?? 1);
-      const gGaze = parseFloat(document.getElementById('wc-gain-gaze')?.value ?? 1);
-      const gBrow = parseFloat(document.getElementById('wc-gain-brow')?.value ?? 1);
-
-      // Raw values with adjustable gain
-      const rhx=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2*gHead));
-      const rhy=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2*gHead));
-      // Head Z (roll): angle of line between eye outer corners
-      const eyeAngle=Math.atan2(lm[263].y-lm[33].y, lm[263].x-lm[33].x);
-      const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5*gHz));
-      const ear=(p1,p2,p3,p4,p5,p6)=>{const d=(a,b)=>Math.hypot(lm[a].x-lm[b].x,lm[a].y-lm[b].y);return(d(p2,p6)+d(p3,p5))/(2*d(p1,p4));};
-      const rbl=Math.max(0,Math.min(1,(0.27-ear(362,385,387,263,373,380))/(0.08)*gBlink));
-      const rmo=Math.max(0,Math.min(1,(lm[14].y-lm[13].y)*28*gMouth));
-      // Eyebrow raise: distance from brow to eye top, normalized by eye height
-      const browDistL=(lm[105].y-lm[159].y)*100, browDistR=(lm[334].y-lm[386].y)*100;
-      const rbrL=Math.max(-1,Math.min(1,-(browDistL-2.5)*0.4*gBrow));
-      const rbrR=Math.max(-1,Math.min(1,-(browDistR-2.5)*0.4*gBrow));
-      let rex=0, rey=0;
-      if (lm.length>473) {
-        const ri=lm[468],li=lm[473];
-        const rW=lm[33].x-lm[133].x, lW=lm[362].x-lm[263].x;
-        rex=((rW>0.001?(ri.x-(lm[133].x+lm[33].x)/2)/rW*2:0)+(lW>0.001?(li.x-(lm[263].x+lm[362].x)/2)/lW*2:0))/2*-1.5*gGaze;
-        const rH=(lm[159].y-lm[145].y), lH=(lm[386].y-lm[374].y);
-        rey=((rH>0.001?(ri.y-(lm[159].y+lm[145].y)/2)/rH*2:0)+(lH>0.001?(li.y-(lm[386].y+lm[374].y)/2)/lH*2:0))/2*-2*gGaze;
-        rey=Math.max(-1,Math.min(1,rey));
-      }
-      // Low-pass smooth
-      _sm.hx=alpha*_sm.hx+(1-alpha)*rhx;
-      _sm.hy=alpha*_sm.hy+(1-alpha)*rhy;
-      _sm.hz=alpha*_sm.hz+(1-alpha)*rhz;
-      _sm.bl=alpha*_sm.bl+(1-alpha)*rbl;
-      _sm.mo=alpha*_sm.mo+(1-alpha)*rmo;
-      _sm.ex=alpha*_sm.ex+(1-alpha)*rex;
-      _sm.ey=alpha*_sm.ey+(1-alpha)*rey;
-      _sm.brL=alpha*_sm.brL+(1-alpha)*rbrL;
-      _sm.brR=alpha*_sm.brR+(1-alpha)*rbrR;
-
-      // Draw face mesh overlay
-      if (octx && ovc) {
-        const W=ovc.width, H=ovc.height;
-        // Key landmark dots
-        const KEY_LM=[1,33,133,362,263,61,291,13,14,468,473,10,152];
-        octx.fillStyle='rgba(78,200,255,0.8)';
-        KEY_LM.forEach(i=>{ if(lm[i]){ octx.beginPath(); octx.arc(lm[i].x*W,lm[i].y*H,2,0,Math.PI*2); octx.fill(); } });
-        // Contour lines: face oval (simplified)
-        const OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10];
-        octx.strokeStyle='rgba(78,200,255,0.35)';
-        octx.lineWidth=1;
-        octx.beginPath();
-        OVAL.forEach((i,idx)=>{ if(lm[i]) idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H); });
-        octx.closePath(); octx.stroke();
-        // Eye left
-        const LEYE=[362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398];
-        octx.strokeStyle='rgba(255,180,80,0.6)';
-        octx.beginPath();
-        LEYE.forEach((i,idx)=>{ if(lm[i]) idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H); });
-        octx.closePath(); octx.stroke();
-        // Eye right
-        const REYE=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
-        octx.beginPath();
-        REYE.forEach((i,idx)=>{ if(lm[i]) idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H); });
-        octx.closePath(); octx.stroke();
-        // Mouth outer
-        const MOUTH=[61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146];
-        octx.strokeStyle='rgba(160,255,160,0.6)';
-        octx.beginPath();
-        MOUTH.forEach((i,idx)=>{ if(lm[i]) idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H); });
-        octx.closePath(); octx.stroke();
-      }
-
-      document.getElementById('webcam-status').textContent='追跡中 ✓';
-      document.getElementById('wc-hx').textContent='頭X: '+_sm.hx.toFixed(2);
-      document.getElementById('wc-hy').textContent='頭Y: '+_sm.hy.toFixed(2);
-      document.getElementById('wc-bl').textContent='瞬き: '+_sm.bl.toFixed(2);
-      document.getElementById('wc-mo').textContent='口: '+_sm.mo.toFixed(2);
-      document.getElementById('wc-ex').textContent='視線X: '+_sm.ex.toFixed(2);
-      const _hz=document.getElementById('wc-hz'); if(_hz) _hz.textContent='頭Z: '+_sm.hz.toFixed(2);
-      const _ey=document.getElementById('wc-ey'); if(_ey) _ey.textContent='視線Y: '+_sm.ey.toFixed(2);
-      const _brow=document.getElementById('wc-brow'); if(_brow) _brow.textContent='眉: '+((_sm.brL+_sm.brR)/2).toFixed(2);
-      const sv=document.getElementById('wc-smooth'); const svl=document.getElementById('wc-smooth-val');
-      if(sv&&svl) svl.textContent=parseFloat(sv.value).toFixed(2);
-      // Apply to current params for live preview
-      const _setP = (id, v) => { const p=M.params[id]; if(!p) return; p.val=Math.max(p.min,Math.min(p.max,v)); const s=document.getElementById('ps-'+id); if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);} const pv=document.getElementById('pv-'+id); if(pv)pv.textContent=p.val.toFixed(2); };
-      _setP('headX', _sm.hx); _setP('headY', _sm.hy); _setP('headZ', _sm.hz);
-      _setP('blinkL', _sm.bl); _setP('blinkR', _sm.bl);
-      _setP('mouthOpen', _sm.mo);
-      _setP('eyeBallX', _sm.ex); _setP('eyeBallY', _sm.ey);
-      _setP('browL', _sm.brL); _setP('browR', _sm.brR);
-      ST.cachedVerts=null; redraw();
-      // Expression auto-detect
-      if (typeof wcAutoDetectExpr === 'function') wcAutoDetectExpr(_sm);
-    });
-    if (window.Camera) {
-      _wcCam=new Camera(video,{onFrame:async()=>{if(video.readyState>=2)await _wcFM.send({image:video});},width:320,height:240});
-      _wcCam.start().then(()=>{document.getElementById('webcam-status').textContent='カメラ起動済み ✓';})
-        .catch(()=>{document.getElementById('webcam-status').textContent='カメラエラー';_wcActive=false;panel.style.display='none';});
-    } else { document.getElementById('webcam-status').textContent='Camera API なし（FaceMesh読込待ち）'; }
-  }
-
-  function loadAndStart() {
-    const scriptsNeeded=[];
-    if (!window.FaceMesh) scriptsNeeded.push('https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js');
-    if (!window.Camera) scriptsNeeded.push('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js');
-    if (scriptsNeeded.length===0) { startWC(); return; }
-    let loaded=0;
-    for (const src of scriptsNeeded) {
-      const s=document.createElement('script'); s.src=src; s.crossOrigin='anonymous';
-      s.onload=()=>{ if(++loaded===scriptsNeeded.length) setTimeout(startWC,300); };
-      s.onerror=()=>{ document.getElementById('webcam-status').textContent='ネット接続が必要'; };
-      document.head.appendChild(s);
+async function startWC() {
+  const video=document.getElementById('webcam-video');
+  const panel=document.getElementById('webcam-panel');
+  const statusEl=document.getElementById('webcam-status');
+  if (!_wcFL) {
+    try {
+      const v=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm');
+      const fsr=await v.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+      _wcFL=await v.FaceLandmarker.createFromOptions(fsr,{
+        baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},
+        outputFaceBlendshapes:true,runningMode:'VIDEO',numFaces:1
+      });
+    } catch(e) {
+      statusEl.textContent='読込失敗（ネット接続が必要）';
+      _wcActive=false;panel.style.display='none';document.getElementById('btn-webcam').classList.remove('on');return;
     }
   }
-  loadAndStart();
+  const oef={
+    hx:new _EditorOEF(30,1.5,0.007),hy:new _EditorOEF(30,1.5,0.007),
+    hz:new _EditorOEF(30,1.0,0.005),bl:new _EditorOEF(30,4.0,0.0),
+    mo:new _EditorOEF(30,4.0,0.0),ex:new _EditorOEF(30,2.5,0.01),
+    ey:new _EditorOEF(30,2.5,0.01),brL:new _EditorOEF(30,2.0,0.005),brR:new _EditorOEF(30,2.0,0.005)
+  };
+  try {
+    _wcStream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
+  } catch(e) {
+    statusEl.textContent='カメラエラー';_wcActive=false;panel.style.display='none';
+    document.getElementById('btn-webcam').classList.remove('on');return;
+  }
+  video.srcObject=_wcStream;video.onloadedmetadata=()=>video.play();
+  const _sm={hx:0,hy:0,hz:0,bl:0,mo:0,ex:0,ey:0,brL:0,brR:0};
+  let lastVT=-1;
+  function detectLoop(){
+    if(!_wcActive)return;
+    const ovc=document.getElementById('wc-overlay');
+    const octx=ovc?ovc.getContext('2d'):null;
+    if(octx)octx.clearRect(0,0,ovc.width,ovc.height);
+    if(video.readyState>=2&&video.currentTime!==lastVT){
+      lastVT=video.currentTime;
+      const now=performance.now();
+      // Smooth slider → One Euro Filter mincutoff (0→fast/5Hz, 0.95→smooth/0.62Hz)
+      const sv=parseFloat(document.getElementById('wc-smooth')?.value??0.5);
+      const mc=5.0*(1-sv)+0.3*sv;
+      Object.values(oef).forEach(f=>f.mc=mc);
+      const result=_wcFL.detectForVideo(video,now);
+      if(result.faceLandmarks?.length){
+        const lm=result.faceLandmarks[0];
+        const bs={};
+        if(result.faceBlendshapes?.[0])result.faceBlendshapes[0].categories.forEach(c=>bs[c.categoryName]=c.score);
+        const gHead=parseFloat(document.getElementById('wc-gain-head')?.value??1);
+        const gHz=parseFloat(document.getElementById('wc-gain-hz')?.value??1);
+        const gMouth=parseFloat(document.getElementById('wc-gain-mouth')?.value??1);
+        const gBlink=parseFloat(document.getElementById('wc-gain-blink')?.value??1);
+        const gGaze=parseFloat(document.getElementById('wc-gain-gaze')?.value??1);
+        const gBrow=parseFloat(document.getElementById('wc-gain-brow')?.value??1);
+        const rhx=Math.max(-1,Math.min(1,(lm[1].x-.5)*-2*gHead));
+        const rhy=Math.max(-1,Math.min(1,(lm[1].y-.5)*-2*gHead));
+        const eyeAngle=Math.atan2(lm[263].y-lm[33].y,lm[263].x-lm[33].x);
+        const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5*gHz));
+        const rbl=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*gBlink));
+        const rmo=Math.max(0,Math.min(1,(bs.jawOpen??0)*1.2*gMouth));
+        const rawBwL=(bs.browDownLeft??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpLeft??0)*0.7;
+        const rawBwR=(bs.browDownRight??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpRight??0)*0.7;
+        const rbrL=Math.max(-1,Math.min(1,rawBwL*gBrow));
+        const rbrR=Math.max(-1,Math.min(1,rawBwR*gBrow));
+        let rex=0,rey=0;
+        if(lm.length>473){
+          const ri=lm[468],li=lm[473];
+          const rW=lm[33].x-lm[133].x,lW=lm[362].x-lm[263].x;
+          rex=((rW>0.001?(ri.x-(lm[133].x+lm[33].x)/2)/rW*2:0)+(lW>0.001?(li.x-(lm[263].x+lm[362].x)/2)/lW*2:0))/2*-1.5*gGaze;
+          const rH=(lm[159].y-lm[145].y),lH=(lm[386].y-lm[374].y);
+          rey=((rH>0.001?(ri.y-(lm[159].y+lm[145].y)/2)/rH*2:0)+(lH>0.001?(li.y-(lm[386].y+lm[374].y)/2)/lH*2:0))/2*-2*gGaze;
+          rey=Math.max(-1,Math.min(1,rey));
+        }
+        _sm.hx=oef.hx.filter(rhx,now);_sm.hy=oef.hy.filter(rhy,now);_sm.hz=oef.hz.filter(rhz,now);
+        _sm.bl=oef.bl.filter(rbl,now);_sm.mo=oef.mo.filter(rmo,now);
+        _sm.ex=oef.ex.filter(rex,now);_sm.ey=oef.ey.filter(rey,now);
+        _sm.brL=oef.brL.filter(rbrL,now);_sm.brR=oef.brR.filter(rbrR,now);
+        if(octx&&ovc){
+          const W=ovc.width,H=ovc.height;
+          const KEY_LM=[1,33,133,362,263,61,291,13,14,468,473,10,152];
+          octx.fillStyle='rgba(78,200,255,0.8)';
+          KEY_LM.forEach(i=>{if(lm[i]){octx.beginPath();octx.arc(lm[i].x*W,lm[i].y*H,2,0,Math.PI*2);octx.fill();}});
+          const OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10];
+          octx.strokeStyle='rgba(78,200,255,0.35)';octx.lineWidth=1;octx.beginPath();
+          OVAL.forEach((i,idx)=>{if(lm[i])idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H);});
+          octx.closePath();octx.stroke();
+          const LEYE=[362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398];
+          octx.strokeStyle='rgba(255,180,80,0.6)';octx.beginPath();
+          LEYE.forEach((i,idx)=>{if(lm[i])idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H);});
+          octx.closePath();octx.stroke();
+          const REYE=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
+          octx.beginPath();
+          REYE.forEach((i,idx)=>{if(lm[i])idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H);});
+          octx.closePath();octx.stroke();
+          const MOUTH=[61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146];
+          octx.strokeStyle='rgba(160,255,160,0.6)';octx.beginPath();
+          MOUTH.forEach((i,idx)=>{if(lm[i])idx===0?octx.moveTo(lm[i].x*W,lm[i].y*H):octx.lineTo(lm[i].x*W,lm[i].y*H);});
+          octx.closePath();octx.stroke();
+        }
+        statusEl.textContent='追跡中 ✓ (FaceLandmarker+OEF)';
+        document.getElementById('wc-hx').textContent='頭X: '+_sm.hx.toFixed(2);
+        document.getElementById('wc-hy').textContent='頭Y: '+_sm.hy.toFixed(2);
+        document.getElementById('wc-bl').textContent='瞬き: '+_sm.bl.toFixed(2);
+        document.getElementById('wc-mo').textContent='口: '+_sm.mo.toFixed(2);
+        document.getElementById('wc-ex').textContent='視線X: '+_sm.ex.toFixed(2);
+        const _hz=document.getElementById('wc-hz');if(_hz)_hz.textContent='頭Z: '+_sm.hz.toFixed(2);
+        const _ey=document.getElementById('wc-ey');if(_ey)_ey.textContent='視線Y: '+_sm.ey.toFixed(2);
+        const _brow=document.getElementById('wc-brow');if(_brow)_brow.textContent='眉: '+((_sm.brL+_sm.brR)/2).toFixed(2);
+        const svEl=document.getElementById('wc-smooth');const svlEl=document.getElementById('wc-smooth-val');
+        if(svEl&&svlEl)svlEl.textContent=parseFloat(svEl.value).toFixed(2);
+        const _setP=(id,v)=>{const p=M.params[id];if(!p)return;p.val=Math.max(p.min,Math.min(p.max,v));const s=document.getElementById('ps-'+id);if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}const pv=document.getElementById('pv-'+id);if(pv)pv.textContent=p.val.toFixed(2);};
+        _setP('headX',_sm.hx);_setP('headY',_sm.hy);_setP('headZ',_sm.hz);
+        _setP('blinkL',_sm.bl);_setP('blinkR',_sm.bl);_setP('mouthOpen',_sm.mo);
+        _setP('eyeBallX',_sm.ex);_setP('eyeBallY',_sm.ey);
+        _setP('browL',_sm.brL);_setP('browR',_sm.brR);
+        ST.cachedVerts=null;redraw();
+        if(typeof wcAutoDetectExpr==='function')wcAutoDetectExpr(_sm);
+      } else { statusEl.textContent='顔を検出中...'; }
+    }
+    _wcRAF=requestAnimationFrame(detectLoop);
+  }
+  statusEl.textContent='カメラ起動済み ✓';
+  _wcRAF=requestAnimationFrame(detectLoop);
 }
 
 // ==================== 2D FACE CONTROLLER ====================
