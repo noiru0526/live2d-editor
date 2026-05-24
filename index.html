@@ -1216,6 +1216,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2e3656;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
+    <button onclick="rescaleAnimationDuration()" title="アニメーション全体の長さをリスケール（全KFを比率で伸縮・ループ区間・マーカーも追従）" style="background:#2e3656;border:1px solid rgba(200,160,60,.4);color:#e0c060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 時間リスケール</button>
     <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
     <button onclick="repeatLoopRegion()" title="ループ区間を指定回数繰り返して展開（アニメーションを伸長）" style="background:#2e3656;border:1px solid rgba(100,200,80,.4);color:#a0f0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔁 区間繰り返し</button>
     <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#2e3656;border:1px solid rgba(100,160,255,.4);color:#80a4ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
@@ -14944,6 +14945,31 @@ function normalizeToLoopRegion() {
   document.getElementById('lbl-status').textContent = `ループ正規化: ${loopIn.toFixed(3)}s→0, 長さ ${loopLen.toFixed(3)}s`;
 }
 
+function rescaleAnimationDuration() {
+  const oldDur = M.animation.duration || 3;
+  const newDurStr = prompt(`アニメーション全体をリスケール\n現在の長さ: ${oldDur.toFixed(2)}s\n\n新しい長さ（秒）を入力:`, oldDur.toFixed(1));
+  if (!newDurStr) return;
+  const newDur = parseFloat(newDurStr);
+  if (isNaN(newDur) || newDur <= 0 || newDur > 999) { document.getElementById('lbl-status').textContent = '有効な長さ（秒）を入力してください'; return; }
+  const ratio = newDur / oldDur;
+  pushAnimUndo('アニメ時間リスケール');
+  for (const frames of Object.values(M.animation.tracks || {})) {
+    if (!frames) continue;
+    for (const kf of frames) kf.t = Math.round(kf.t * ratio * 10000) / 10000;
+    frames.sort((a,b)=>a.t-b.t);
+  }
+  M.animation.duration = Math.round(newDur * 1000) / 1000;
+  if (M.animation.loopIn != null) M.animation.loopIn = Math.round(M.animation.loopIn * ratio * 1000) / 1000;
+  if (M.animation.loopOut != null) M.animation.loopOut = Math.round(M.animation.loopOut * ratio * 1000) / 1000;
+  if (M.animation.markers?.length) for (const m of M.animation.markers) m.t = Math.round(m.t * ratio * 1000) / 1000;
+  const de=document.getElementById('tl-duration'); if(de)de.value=M.animation.duration.toFixed(1);
+  const li=document.getElementById('tl-loop-in'); if(li)li.value=(M.animation.loopIn??0).toFixed(2);
+  const lo=document.getElementById('tl-loop-out'); if(lo)lo.value=(M.animation.loopOut??M.animation.duration).toFixed(2);
+  ST.animPlayhead = Math.min(ST.animPlayhead * ratio, newDur);
+  drawMultiTimeline();
+  document.getElementById('lbl-status').textContent = `時間リスケール: ${oldDur.toFixed(2)}s → ${newDur.toFixed(2)}s (×${ratio.toFixed(2)})`;
+}
+
 function repeatLoopRegion() {
   const dur = M.animation.duration || 3;
   const loopIn = M.animation.loopIn ?? 0;
@@ -15439,9 +15465,10 @@ function applyPlayheadToParams() {
       }},
       ...(tlSelectedKFs.size > 1 ? [
         null,
-        { icon:'🔀', label:`選択${tlSelectedKFs.size}個のKFに一括適用→Linear`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='linear'; drawMultiTimeline(); }},
-        { icon:'🔀', label:`選択${tlSelectedKFs.size}個のKFに一括適用→Smooth`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='smooth'; drawMultiTimeline(); }},
-        { icon:'🔀', label:`選択${tlSelectedKFs.size}個のKFに一括適用→Step`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='step'; drawMultiTimeline(); }},
+        { icon:'🎨', label:`選択${tlSelectedKFs.size}個にイージングを選択...`, action:()=>{ showEasingPicker(easing=>{ pushAnimUndo('一括イージング'); for(const kf of tlSelectedKFs)kf.interp=easing; drawMultiTimeline(); document.getElementById('lbl-status').textContent=`一括イージング: ${tlSelectedKFs.size}KF → ${easing}`; }, hit.kf.interp||'smooth'); }},
+        { icon:'🔀', label:`選択${tlSelectedKFs.size}個→Linear`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='linear'; drawMultiTimeline(); }},
+        { icon:'🔀', label:`選択${tlSelectedKFs.size}個→Smooth`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='smooth'; drawMultiTimeline(); }},
+        { icon:'🔀', label:`選択${tlSelectedKFs.size}個→Step`, action:()=>{ pushAnimUndo(); for(const kf of tlSelectedKFs)kf.interp='step'; drawMultiTimeline(); }},
       ] : []),
       null,
       { icon:'⇿', label:'選択KFを均等配置', action:()=>equalizeSelectedKFs() },
