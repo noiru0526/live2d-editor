@@ -938,6 +938,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="wc-hz" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#d0b0ff;">頭Z: 0.00</div>
     <div id="wc-ey" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#ffc0a0;">視線Y: 0.00</div>
     <div id="wc-brow" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#c0e0a0;">眉: 0.00</div>
+    <div id="wc-vowel" style="font-size:9px;background:#0e1120;border-radius:3px;padding:2px 5px;color:#ffa0e0;font-weight:600;">母音: —</div>
   </div>
   <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
     <span style="font-size:9px;color:var(--dim);">平滑化:</span>
@@ -7331,6 +7332,12 @@ async function startWC() {
         const _hz=document.getElementById('wc-hz');if(_hz)_hz.textContent='頭Z: '+_sm.hz.toFixed(2);
         const _ey=document.getElementById('wc-ey');if(_ey)_ey.textContent='視線Y: '+_sm.ey.toFixed(2);
         const _brow=document.getElementById('wc-brow');if(_brow)_brow.textContent='眉: '+((_sm.brL+_sm.brR)/2).toFixed(2);
+        const _vowelEl=document.getElementById('wc-vowel');
+        if(_vowelEl){
+          const _vows=[['A',_sm.ma],['I',_sm.mi],['U',_sm.mu],['E',_sm.me],['O',_sm.mos]];
+          const _topV=_vows.reduce((best,v)=>v[1]>best[1]?v:best,['—',0.08]);
+          _vowelEl.textContent='母音: '+(_topV[1]>0.08?_topV[0]+'('+_topV[1].toFixed(2)+')':'—');
+        }
         const svEl=document.getElementById('wc-smooth');const svlEl=document.getElementById('wc-smooth-val');
         if(svEl&&svlEl)svlEl.textContent=parseFloat(svEl.value).toFixed(2);
         const _setP=(id,v)=>{const p=M.params[id];if(!p)return;p.val=Math.max(p.min,Math.min(p.max,v));const s=document.getElementById('ps-'+id);if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}const pv=document.getElementById('pv-'+id);if(pv)pv.textContent=p.val.toFixed(2);};
