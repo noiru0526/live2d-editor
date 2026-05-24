@@ -4160,6 +4160,8 @@ const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1
 // Timeline animation playback
 let animT=0, animLastNow=null, animPlaying=false, animSpeedMult=1;
 let _reversePlay = false;
+const tlMutedTracks = new Set(); // not used in export but referenced in applyAnimTracks
+let tlSoloTrack = null;
 let _clipChain = [];     // [{clipIdx, loops}]  clipIdx=-1=current, loops=0=infinite
 let _chainPos = 0;       // current position in chain
 let _chainPlaying = false;
