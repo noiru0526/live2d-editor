@@ -11168,6 +11168,7 @@ function showCameraTrackMenu() {
   const dur = M.animation.duration || 3;
   const mkCam = (key, def) => {
     if (!M.animation.tracks[key]) {
+      pushAnimUndo('カメラトラック追加');
       M.animation.tracks[key] = [{t:0,v:def,interp:'smooth'},{t:dur,v:def,interp:'smooth'}];
       drawMultiTimeline();
     }
@@ -11180,7 +11181,7 @@ function showCameraTrackMenu() {
     {icon:'⬍', label:'Y移動トラック追加 (±200px)', action:()=>mkCam('__camY',0)},
     {icon:'💥', label:'シェイクトラック追加 (揺れ強度0〜1)', action:()=>mkCam('__camShake',0)},
     null,
-    {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ ['__camZoom','__camX','__camY','__camShake'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
+    {icon:'🗑', label:'全カメラトラックを削除', action:()=>{ pushAnimUndo('カメラトラック全削除'); ['__camZoom','__camX','__camY','__camShake'].forEach(k=>delete M.animation.tracks[k]); drawMultiTimeline(); }},
   ]);
 }
 
