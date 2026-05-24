@@ -5018,13 +5018,14 @@ function buildDeformerTree() {
   const defParts = {};
   deformers.forEach((d,i) => defParts[d.id] = []);
   parts.forEach(pt => { if (pt.deformerId && defParts[pt.deformerId]) defParts[pt.deformerId].push(pt.name); });
-  // Build bone hierarchy
+  // Build hierarchy (bones use parentId, warp/rotation use parentDeformerId)
   const childrenOf = {};
   const topLevel = [];
   deformers.forEach((d, i) => {
-    if (d.type === 'bone' && d.parentId) {
-      if (!childrenOf[d.parentId]) childrenOf[d.parentId] = [];
-      childrenOf[d.parentId].push(i);
+    const parentId = d.type === 'bone' ? d.parentId : d.parentDeformerId;
+    if (parentId) {
+      if (!childrenOf[parentId]) childrenOf[parentId] = [];
+      childrenOf[parentId].push(i);
     } else {
       topLevel.push(i);
     }

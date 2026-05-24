@@ -4136,6 +4136,7 @@ const SPR=(MD.springs??[]).map(sb=>({
 let prevHX=0, prevHY=0;
 
 let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tracking=false;
+let _poseLocked=false,_poseLockSnap=null;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
 const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
@@ -4491,21 +4492,25 @@ function draw(ts){
   const by=Math.sin(S.bp*.5)*1.5, ix=Math.sin(S.ip*.41)*1.2;
   const idleFull=IDLE!=='none';
   const idleExtra=IDLE==='full';
-  params.headX.val=tracking?S.hx:(idleFull?breathX:0);
-  params.headY.val=tracking?S.hy:(idleFull?breathY:0);
-  params.headZ.val=tracking?S.hz:(idleFull?breathZ:0);
-  params.blinkL.val=tracking?S.bl:(idleExtra?ab:0);
-  params.blinkR.val=tracking?S.br:(idleExtra?ab:0);
+  // Pose lock: freeze tracking params at snapshot values (only overrides when tracking was ON at lock time)
+  const _ps = _poseLocked && _poseLockSnap && _poseLockSnap._wasTracking ? _poseLockSnap : null;
+  const _trackSrc = _ps || S;
+  const _useTracking = _ps ? true : tracking;
+  params.headX.val=_useTracking?_trackSrc.hx:(idleFull?breathX:0);
+  params.headY.val=_useTracking?_trackSrc.hy:(idleFull?breathY:0);
+  params.headZ.val=_useTracking?_trackSrc.hz:(idleFull?breathZ:0);
+  params.blinkL.val=_useTracking?_trackSrc.bl:(idleExtra?ab:0);
+  params.blinkR.val=_useTracking?_trackSrc.br:(idleExtra?ab:0);
   // Audio-reactive mouth when not tracking
-  const audioMouth=!tracking&&audioActive?getAudioLevel():0;
-  params.mouthOpen.val=tracking?S.mo:(idleExtra?audioMouth:0);
-  if(params.browL) params.browL.val=tracking?S.bwl:0;
-  if(params.browR) params.browR.val=tracking?S.bwr:0;
-  if(params.eyeX) params.eyeX.val=tracking?S.ex:0;
-  if(params.eyeY) params.eyeY.val=tracking?S.ey:0;
-  if(params.mouthA) params.mouthA.val=tracking?S.ma:0;
-  if(params.mouthI) params.mouthI.val=tracking?S.mi:0;
-  if(params.mouthU) params.mouthU.val=tracking?S.mu:0;
+  const audioMouth=!_useTracking&&audioActive?getAudioLevel():0;
+  params.mouthOpen.val=_useTracking?_trackSrc.mo:(idleExtra?audioMouth:0);
+  if(params.browL) params.browL.val=_useTracking?_trackSrc.bwl:0;
+  if(params.browR) params.browR.val=_useTracking?_trackSrc.bwr:0;
+  if(params.eyeX) params.eyeX.val=_useTracking?_trackSrc.ex:0;
+  if(params.eyeY) params.eyeY.val=_useTracking?_trackSrc.ey:0;
+  if(params.mouthA) params.mouthA.val=_useTracking?_trackSrc.ma:0;
+  if(params.mouthI) params.mouthI.val=_useTracking?_trackSrc.mi:0;
+  if(params.mouthU) params.mouthU.val=_useTracking?_trackSrc.mu:0;
   // Apply timeline animation tracks (overlays on top of face tracking)
   if(animPlaying) applyAnimTracks(ts);
   // Expression pose blend (overlays on top of tracking)
@@ -4842,13 +4847,37 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
   }
   if (ev.key==='Escape') { const ov=document.getElementById('kbhelp-overlay'); if(ov) ov.remove(); }
+  // L: pose lock toggle
+  if (ev.key==='l'||ev.key==='L') { togglePoseLock(); ev.preventDefault(); }
 });
+function togglePoseLock(){
+  if(!_poseLocked){
+    // Snap current smoothed values; _wasTracking ensures idle mode still works when no camera
+    _poseLockSnap={hx:S.hx,hy:S.hy,hz:S.hz,bl:S.bl,br:S.br,mo:S.mo,
+      bwl:S.bwl,bwr:S.bwr,ex:S.ex,ey:S.ey,ma:S.ma,mi:S.mi,mu:S.mu,
+      _wasTracking:tracking};
+    _poseLocked=true;
+  } else {
+    _poseLocked=false;_poseLockSnap=null;
+  }
+  // Visual indicator
+  let lockEl=document.getElementById('pose-lock-badge');
+  if(!lockEl){
+    lockEl=document.createElement('div');
+    lockEl.id='pose-lock-badge';
+    lockEl.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);background:rgba(255,100,60,.85);color:#fff;font-size:11px;font-family:monospace;padding:3px 12px;border-radius:12px;z-index:999;pointer-events:none;border:1px solid rgba(255,140,80,.6);display:none;';
+    lockEl.textContent='🔒 ポーズロック中 — Lで解除';
+    document.body.appendChild(lockEl);
+  }
+  lockEl.style.display=_poseLocked?'block':'none';
+  if(exprHUD){exprHUD.style.display='block';exprHUD.textContent=_poseLocked?'🔒 ポーズロック ON':'🔓 ポーズロック OFF';setTimeout(()=>exprHUD.style.display='none',1200);}
+}
 function _poseEase(t){
   if(_POSE_EASING==='linear') return t;
   if(_POSE_EASING==='easeIn') return t*t;
@@ -9939,30 +9968,22 @@ function drawMultiTimeline() {
     filteredRows = withGroups;
   }
 
-  // Prefix-based group collapse (e.g., "eye_open", "eye_blink" → group "eye")
-  if (tlCollapsedGroups.size > 0) {
+  // Prefix-based group headers (always shown for groups ≥2 members; collapsed ones hide member tracks)
+  {
     const withPfxGroups = [];
     const seenPfxHeaders = new Set();
     for (const row of filteredRows) {
       const [name] = row;
       if (name.startsWith('__')) { withPfxGroups.push(row); continue; }
       const pfx = name.includes('_') ? name.split('_')[0] : null;
-      if (pfx && tlCollapsedGroups.has(pfx)) {
-        if (!seenPfxHeaders.has(pfx)) {
-          seenPfxHeaders.add(pfx);
-          const memberCount = filteredRows.filter(([n]) => !n.startsWith('__') && n.split('_')[0]===pfx).length;
-          withPfxGroups.push([`__pfx:${pfx}`, {__isPfxGroup:true, pfx, memberCount}]);
-        }
-        // skip member tracks (collapsed)
-      } else {
-        // Inject prefix header if not yet shown (but NOT collapsed)
-        if (pfx && !seenPfxHeaders.has(pfx)) {
-          seenPfxHeaders.add(pfx);
-          const memberCount = filteredRows.filter(([n]) => !n.startsWith('__') && n.split('_')[0]===pfx).length;
-          if (memberCount >= 2) withPfxGroups.push([`__pfx:${pfx}`, {__isPfxGroup:true, pfx, memberCount}]);
-        }
-        withPfxGroups.push(row);
+      if (!pfx) { withPfxGroups.push(row); continue; }
+      if (!seenPfxHeaders.has(pfx)) {
+        seenPfxHeaders.add(pfx);
+        const memberCount = filteredRows.filter(([n]) => !n.startsWith('__') && n.includes('_') && n.split('_')[0]===pfx).length;
+        if (memberCount >= 2) withPfxGroups.push([`__pfx:${pfx}`, {__isPfxGroup:true, pfx, memberCount}]);
       }
+      // Only add member track if prefix group is NOT collapsed
+      if (!tlCollapsedGroups.has(pfx)) withPfxGroups.push(row);
     }
     filteredRows = withPfxGroups;
   }
@@ -13623,8 +13644,14 @@ ${modePrompts[mode] || modePrompts.overall}
 // ─── Animation Comparison Mode ────────────────────────────────────────────────
 function showAnimCompareDialog() {
   const clips = M.animClips || [];
-  if (clips.length < 2) {
-    document.getElementById('lbl-status').textContent = '比較には2つ以上のクリップが必要です';
+  // Build allAnims: main anim + named clips
+  const mainHasTracks = Object.keys(M.animation?.tracks||{}).length > 0;
+  const allAnims = [
+    ...(mainHasTracks ? [{ name: 'メインアニメーション', animation: M.animation }] : []),
+    ...clips.filter(c => Object.keys(c.animation?.tracks||{}).length > 0)
+  ];
+  if (allAnims.length < 2) {
+    document.getElementById('lbl-status').textContent = '比較には2つ以上のアニメーションが必要です（クリップを追加してください）';
     return;
   }
   const W = Math.min(window.innerWidth - 80, 750);
@@ -13641,11 +13668,11 @@ function showAnimCompareDialog() {
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <span style="font-size:10px;color:#4a6080;">クリップA:</span>
       <select id="cmp-clip-a" style="background:#131828;border:1px solid #2a3a5a;color:#4e7cff;font-size:10px;border-radius:3px;padding:2px 5px;">
-        ${clips.map((c,i)=>`<option value="${i}">${c.name||`Clip ${i+1}`}</option>`).join('')}
+        ${allAnims.map((c,i)=>`<option value="${i}">${c.name||`Clip ${i+1}`}</option>`).join('')}
       </select>
       <span style="font-size:10px;color:#4a6080;">クリップB:</span>
       <select id="cmp-clip-b" style="background:#131828;border:1px solid #2a3a5a;color:#ff6060;font-size:10px;border-radius:3px;padding:2px 5px;">
-        ${clips.map((c,i)=>`<option value="${i}" ${i===1?'selected':''}>${c.name||`Clip ${i+1}`}</option>`).join('')}
+        ${allAnims.map((c,i)=>`<option value="${i}" ${i===1?'selected':''}>${c.name||`Clip ${i+1}`}</option>`).join('')}
       </select>
       <span style="font-size:10px;color:#4a6080;">パラメータ:</span>
       <select id="cmp-param" style="background:#131828;border:1px solid #2a3a5a;color:#cdd6f4;font-size:10px;border-radius:3px;padding:2px 5px;flex:1;min-width:120px;">
@@ -13670,7 +13697,7 @@ function showAnimCompareDialog() {
     const W2 = cvs.width, H2 = cvs.height;
     ctx2.fillStyle = '#0a0e1e'; ctx2.fillRect(0, 0, W2, H2);
 
-    const clipA = clips[idxA], clipB = clips[idxB];
+    const clipA = allAnims[idxA], clipB = allAnims[idxB];
     if (!clipA || !clipB) return;
     const durA = clipA.animation?.duration || 3;
     const durB = clipB.animation?.duration || 3;
