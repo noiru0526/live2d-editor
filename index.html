@@ -4152,7 +4152,7 @@ let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tracking=false;
 let _poseLocked=false,_poseLockSnap=null;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
-const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
+const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0};
 const ema=(c,t,a)=>c+(t-c)*a;
 
 const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0,'ease-in-cubic':t=>t*t*t,'ease-out-cubic':t=>1-(1-t)*(1-t)*(1-t),'ease-in-out-cubic':t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,elastic:t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1,'elastic-in':t=>t===0?0:t===1?1:-Math.pow(2,10*t-10)*Math.sin((t*10-10.75)*(2*Math.PI/3)),back:t=>{const c1=1.70158;return (c1+1)*t*t*t-c1*t*t;},'back-out':t=>{const c1=1.70158;return 1+(c1+1)*Math.pow(t-1,3)+c1*Math.pow(t-1,2);},circ:t=>1-Math.sqrt(1-t*t),'circ-out':t=>Math.sqrt(1-(t-1)*(t-1)),sine:t=>1-Math.cos(t*Math.PI/2),'sine-out':t=>Math.sin(t*Math.PI/2)};
@@ -4497,6 +4497,7 @@ function draw(ts){
   S.bwl=ema(S.bwl,tBwL,EMA.bw);S.bwr=ema(S.bwr,tBwR,EMA.bw);
   S.ex=ema(S.ex,tEX,EMA.ex);S.ey=ema(S.ey,tEY,EMA.ey);
   S.ma=ema(S.ma,tMA,EMA.mo);S.mi=ema(S.mi,tMI,EMA.mo);S.mu=ema(S.mu,tMU,EMA.mo);
+  S.me=ema(S.me,tME,EMA.mo);S.mos=ema(S.mos,tMOs,EMA.mo);
   if(!S.ablink){S.ablinkT-=dt;if(S.ablinkT<=0){S.ablink=true;S.ablinkP=0;S.ablinkT=3+Math.random()*5;}}
   else{S.ablinkP+=dt/.10;if(S.ablinkP>=1){S.ablink=false;S.ablinkP=0;}}
   const ab=S.ablink?Math.sin(S.ablinkP*Math.PI):0;
@@ -4527,6 +4528,8 @@ function draw(ts){
   if(params.mouthA) params.mouthA.val=_useTracking?_trackSrc.ma:0;
   if(params.mouthI) params.mouthI.val=_useTracking?_trackSrc.mi:0;
   if(params.mouthU) params.mouthU.val=_useTracking?_trackSrc.mu:0;
+  if(params.mouthE) params.mouthE.val=_useTracking?_trackSrc.me:0;
+  if(params.mouthO) params.mouthO.val=_useTracking?_trackSrc.mos:0;
   // Apply timeline animation tracks (overlays on top of face tracking)
   if(animPlaying) applyAnimTracks(ts);
   // Expression pose blend (overlays on top of tracking)
@@ -4672,7 +4675,7 @@ function draw(ts){
   requestAnimationFrame(draw);
 }
 
-let tEX=0,tEY=0,tMA=0,tMI=0,tMU=0;
+let tEX=0,tEY=0,tMA=0,tMI=0,tMU=0,tME=0,tMOs=0;
 // One Euro Filter — low-lag adaptive smoothing (better than EMA for face tracking)
 class OneEuroFilter{
   constructor(f=30,mc=1.0,b=0.007,dc=1.0){this.f=f;this.mc=mc;this.b=b;this.dc=dc;this.x=null;this.dx=0;this.t=null;}
@@ -4710,7 +4713,8 @@ async function initTracking(){
     br:new OneEuroFilter(30,4.0,0.0),mo:new OneEuroFilter(30,4.0,0.0),
     bwl:new OneEuroFilter(30,2.0,0.005),bwr:new OneEuroFilter(30,2.0,0.005),
     ex:new OneEuroFilter(30,2.5,0.01),ey:new OneEuroFilter(30,2.5,0.01),
-    ma:new OneEuroFilter(30,4.0,0.0),mi:new OneEuroFilter(30,4.0,0.0),mu:new OneEuroFilter(30,4.0,0.0)
+    ma:new OneEuroFilter(30,4.0,0.0),mi:new OneEuroFilter(30,4.0,0.0),mu:new OneEuroFilter(30,4.0,0.0),
+    me:new OneEuroFilter(30,4.0,0.0),mos:new OneEuroFilter(30,4.0,0.0)
   };
   const video=document.createElement('video');video.style.display='none';document.body.appendChild(video);
   let stream;
@@ -4766,16 +4770,19 @@ async function initTracking(){
           rex=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_));
           rey=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_));
         }
-        // Mouth shape A/I/U from BlendShapes
+        // Mouth shape A/I/U/E/O from BlendShapes
         const shapeA=Math.max(0,Math.min(1,(bs.jawOpen??0)*S_));
         const shapeI=Math.max(0,Math.min(1,((bs.mouthStretchLeft??0)+(bs.mouthStretchRight??0))*S_*0.6));
         const shapeU=Math.max(0,Math.min(1,(bs.mouthPucker??0)*S_*1.5));
+        const shapeE=Math.max(0,Math.min(1,((bs.mouthSmileLeft??0)+(bs.mouthSmileRight??0))*S_*0.75));
+        const shapeO=Math.max(0,Math.min(1,(bs.mouthFunnel??0)*S_*1.3));
         // Apply One Euro Filter before writing to target vars
         tHX=OEF.hx.filter(rhx,t);tHY=OEF.hy.filter(rhy,t);tHZ=OEF.hz.filter(rhz,t);
         tBL=OEF.bl.filter(rbl,t);tBR=OEF.br.filter(rbr,t);tMO=OEF.mo.filter(rmo,t);
         tBwL=OEF.bwl.filter(rbwl,t);tBwR=OEF.bwr.filter(rbwr,t);
         tEX=OEF.ex.filter(rex,t);tEY=OEF.ey.filter(rey,t);
         tMA=OEF.ma.filter(shapeA,t);tMI=OEF.mi.filter(shapeI,t);tMU=OEF.mu.filter(shapeU,t);
+        tME=OEF.me.filter(shapeE,t);tMOs=OEF.mos.filter(shapeO,t);
       } else {
         // No face detected — switch to idle after 1.5s
         if(performance.now()-_trackLastSeen>1500) tracking=false;
@@ -5947,6 +5954,8 @@ function showMouthShapeSetup() {
     mouthA:{ lbl:'口形 A', min:0, max:1, step:.01, val:0, kfs:[0,1], interp:'ease-in' },
     mouthI:{ lbl:'口形 I', min:0, max:1, step:.01, val:0, kfs:[0,1], interp:'ease-in' },
     mouthU:{ lbl:'口形 U', min:0, max:1, step:.01, val:0, kfs:[0,1], interp:'ease-in' },
+    mouthE:{ lbl:'口形 E', min:0, max:1, step:.01, val:0, kfs:[0,1], interp:'ease-in' },
+    mouthO:{ lbl:'口形 O', min:0, max:1, step:.01, val:0, kfs:[0,1], interp:'ease-in' },
   };
   let added=0;
   for (const [k,v] of Object.entries(shapeParams)) {
@@ -5993,11 +6002,37 @@ function showMouthShapeSetup() {
       else          return {dx:cornerPucker, dy: mry*0.5*t};
     });
   }
+  // Mouth E: wide, slightly open, corners stretched outward and up (like え)
+  function mouthEDelta() {
+    return M.mesh.verts.map(v=>{
+      const nx=(v.x-mm.x)/(mrx*1.4), ny=(v.y-mm.y)/(mry*0.8);
+      if (nx*nx+ny*ny>1.5) return {dx:0,dy:0};
+      const t=Math.max(0,1-ny*ny*0.6);
+      const cornerStretch=(Math.abs(nx)>.3)?Math.sign(nx)*mrx*0.3*t:0;
+      if (v.y<mm.y) return {dx:cornerStretch, dy:-mry*0.35*t};
+      else          return {dx:cornerStretch, dy: mry*0.40*t};
+    });
+  }
+  // Mouth O: rounded circle (like お)
+  function mouthODelta() {
+    return M.mesh.verts.map(v=>{
+      const nx=(v.x-mm.x)/(mrx*0.9), ny=(v.y-mm.y)/(mry*0.9);
+      const dist=Math.sqrt(nx*nx+ny*ny);
+      if (dist>1.5) return {dx:0,dy:0};
+      const t=Math.max(0,1-dist*0.7);
+      // corners pull in, top/bottom open outward
+      const cornerPucker=(Math.abs(nx)>.4)?-Math.sign(nx)*mrx*0.2*t:0;
+      if (v.y<mm.y) return {dx:cornerPucker, dy:-mry*0.65*t};
+      else          return {dx:cornerPucker, dy: mry*0.75*t};
+    });
+  }
   M.def['mouthA:1']=mouthADelta();
   M.def['mouthI:1']=mouthIDelta();
   M.def['mouthU:1']=mouthUDelta();
+  M.def['mouthE:1']=mouthEDelta();
+  M.def['mouthO:1']=mouthODelta();
   ST.cachedVerts=null; updateAllKFDots(); updateKFList();
-  document.getElementById('lbl-status').textContent='口形 A/I/U プリセット適用！プレビューで確認してください';
+  document.getElementById('lbl-status').textContent='口形 A/I/U/E/O プリセット適用！プレビューで確認してください';
 }
 
 function applyMouthFromMarkers() {
@@ -7192,7 +7227,9 @@ async function startWC() {
     hx:new _EditorOEF(30,1.5,0.007),hy:new _EditorOEF(30,1.5,0.007),
     hz:new _EditorOEF(30,1.0,0.005),bl:new _EditorOEF(30,4.0,0.0),
     mo:new _EditorOEF(30,4.0,0.0),ex:new _EditorOEF(30,2.5,0.01),
-    ey:new _EditorOEF(30,2.5,0.01),brL:new _EditorOEF(30,2.0,0.005),brR:new _EditorOEF(30,2.0,0.005)
+    ey:new _EditorOEF(30,2.5,0.01),brL:new _EditorOEF(30,2.0,0.005),brR:new _EditorOEF(30,2.0,0.005),
+    ma:new _EditorOEF(30,4.0,0.0),mi:new _EditorOEF(30,4.0,0.0),mu:new _EditorOEF(30,4.0,0.0),
+    me:new _EditorOEF(30,4.0,0.0),mos:new _EditorOEF(30,4.0,0.0)
   };
   try {
     _wcStream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
@@ -7232,6 +7269,11 @@ async function startWC() {
         const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5*gHz));
         const rbl=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*gBlink));
         const rmo=Math.max(0,Math.min(1,(bs.jawOpen??0)*1.2*gMouth));
+        const rma=Math.max(0,Math.min(1,(bs.jawOpen??0)*gMouth));
+        const rmi=Math.max(0,Math.min(1,((bs.mouthStretchLeft??0)+(bs.mouthStretchRight??0))*gMouth*0.6));
+        const rmu=Math.max(0,Math.min(1,(bs.mouthPucker??0)*gMouth*1.5));
+        const rme=Math.max(0,Math.min(1,((bs.mouthSmileLeft??0)+(bs.mouthSmileRight??0))*gMouth*0.75));
+        const rmos=Math.max(0,Math.min(1,(bs.mouthFunnel??0)*gMouth*1.3));
         const rawBwL=(bs.browDownLeft??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpLeft??0)*0.7;
         const rawBwR=(bs.browDownRight??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpRight??0)*0.7;
         const rbrL=Math.max(-1,Math.min(1,rawBwL*gBrow));
@@ -7249,6 +7291,8 @@ async function startWC() {
         _sm.bl=oef.bl.filter(rbl,now);_sm.mo=oef.mo.filter(rmo,now);
         _sm.ex=oef.ex.filter(rex,now);_sm.ey=oef.ey.filter(rey,now);
         _sm.brL=oef.brL.filter(rbrL,now);_sm.brR=oef.brR.filter(rbrR,now);
+        _sm.ma=oef.ma.filter(rma,now);_sm.mi=oef.mi.filter(rmi,now);_sm.mu=oef.mu.filter(rmu,now);
+        _sm.me=oef.me.filter(rme,now);_sm.mos=oef.mos.filter(rmos,now);
         if(octx&&ovc){
           const W=ovc.width,H=ovc.height;
           const KEY_LM=[1,33,133,362,263,61,291,13,14,468,473,10,152];
@@ -7287,6 +7331,8 @@ async function startWC() {
         _setP('blinkL',_sm.bl);_setP('blinkR',_sm.bl);_setP('mouthOpen',_sm.mo);
         _setP('eyeBallX',_sm.ex);_setP('eyeBallY',_sm.ey);
         _setP('browL',_sm.brL);_setP('browR',_sm.brR);
+        _setP('mouthA',_sm.ma);_setP('mouthI',_sm.mi);_setP('mouthU',_sm.mu);
+        _setP('mouthE',_sm.me);_setP('mouthO',_sm.mos);
         ST.cachedVerts=null;redraw();
         if(typeof wcAutoDetectExpr==='function')wcAutoDetectExpr(_sm);
       } else { statusEl.textContent='顔を検出中...'; }
@@ -8303,6 +8349,8 @@ function addVTuberParams() {
     { id:'mouthA', lbl:'口形 A（大）', min:0, max:1, kfs:[0,1] },
     { id:'mouthI', lbl:'口形 I（横）', min:0, max:1, kfs:[0,1] },
     { id:'mouthU', lbl:'口形 U（丸）', min:0, max:1, kfs:[0,1] },
+    { id:'mouthE', lbl:'口形 E（え）', min:0, max:1, kfs:[0,1] },
+    { id:'mouthO', lbl:'口形 O（お）', min:0, max:1, kfs:[0,1] },
     { id:'cheekPuff', lbl:'頬ぷくぷく', min:0, max:1, kfs:[0,1] },
     { id:'eyeWide', lbl:'目 見開き', min:0, max:1, kfs:[0,1] },
     { id:'tongue', lbl:'舌', min:0, max:1, kfs:[0,1] },
@@ -16225,7 +16273,7 @@ const PGROUPS = {
   '頭部':  ['headX','headY','headZ'],
   '目':    ['blinkL','blinkR','eyeX','eyeY','eyeWide'],
   '眉':    ['browL','browR','browAngle'],
-  '口':    ['mouthOpen','mouthA','mouthI','mouthU','cheekPuff','tongue'],
+  '口':    ['mouthOpen','mouthA','mouthI','mouthU','mouthE','mouthO','cheekPuff','tongue'],
   '体':    [],
 };
 let pgroupVisible = {}; // groupName -> bool (expanded?)
