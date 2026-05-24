@@ -11330,6 +11330,7 @@ function scaleSelectedKFTimes() {
   if (tlSelectedKFs.size < 2) { document.getElementById('lbl-status').textContent = 'タイムスケール: 2つ以上のKFを選択してください'; return; }
   const scale = parseFloat(prompt('タイムスケール倍率を入力 (例: 0.5で2倍速、2.0で半速):', '0.5'));
   if (isNaN(scale)||scale<=0) return;
+  pushAnimUndo('KFタイムスケール');
   // Find min time of selected KFs (pivot)
   let minT = Infinity;
   for (const kf of tlSelectedKFs) minT = Math.min(minT, kf.t);
@@ -11349,6 +11350,7 @@ function scaleSelectedKFTimes() {
 function equalizeSelectedKFs() {
   // Distribute selected KFs evenly between their min and max times (per track)
   if (tlSelectedKFs.size < 3) { document.getElementById('lbl-status').textContent = '均等化: 3つ以上のKFを選択してください'; return; }
+  pushAnimUndo('KF均等化');
   // Group by track
   const byTrack = new Map();
   for (const [nm, frms] of Object.entries(M.animation.tracks)) {
@@ -11374,6 +11376,7 @@ function offsetSelectedKFValues() {
   if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
   const offset = parseFloat(prompt('値をオフセット（例: 0.1 or -0.2）:', '0'));
   if (isNaN(offset)) return;
+  pushAnimUndo('KF値オフセット');
   const kfToName = new Map();
   for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
   for (const kf of tlSelectedKFs) {
@@ -11389,6 +11392,7 @@ function scaleSelectedKFValues() {
   if (!tlSelectedKFs.size) { document.getElementById('lbl-status').textContent = 'KFを選択してください'; return; }
   const scale = parseFloat(prompt('値をスケール（例: 2.0で倍、0.5で半分）:', '1'));
   if (isNaN(scale) || scale === 0) return;
+  pushAnimUndo('KF値スケール');
   const kfToName = new Map();
   for (const [nm,frms] of Object.entries(M.animation.tracks)) for (const kf of frms) kfToName.set(kf,nm);
   for (const kf of tlSelectedKFs) {
@@ -14783,10 +14787,10 @@ function scaleParamValues() {
   for (const [name, frames] of Object.entries(M.animation.tracks||{})) {
     if (!frames) continue;
     if (selectedNames && !selectedNames.has(name)) continue;
-    const param = (M.params||[]).find(p=>p.name===name);
+    const param = M.params?.[name];
     const mid = param ? (param.min + param.max) / 2 : 0;
     for (const kf of frames) {
-      kf.v = mid + (kf.v - mid) * factor;
+      kf.v = param ? Math.max(param.min, Math.min(param.max, mid + (kf.v - mid) * factor)) : mid + (kf.v - mid) * factor;
       count++;
     }
   }
@@ -18529,7 +18533,7 @@ function insertSnippet(idx) {
   const snippets = _getAllSnippets();
   const s = snippets[idx]; if (!s) return;
   const t0 = ST.animPlayhead ?? 0;
-  saveUndoAnimLight();
+  pushAnimUndo('スニペット挿入');
   let inserted = 0;
   for (const [paramId, kfs] of Object.entries(s.tracks || {})) {
     if (!M.params[paramId]) continue;
