@@ -7234,6 +7234,7 @@ async function startWC() {
   const oef={
     hx:new _EditorOEF(30,1.5,0.007),hy:new _EditorOEF(30,1.5,0.007),
     hz:new _EditorOEF(30,1.0,0.005),bl:new _EditorOEF(30,4.0,0.0),
+    blL:new _EditorOEF(30,4.0,0.0),blR:new _EditorOEF(30,4.0,0.0),
     mo:new _EditorOEF(30,4.0,0.0),ex:new _EditorOEF(30,2.5,0.01),
     ey:new _EditorOEF(30,2.5,0.01),brL:new _EditorOEF(30,2.0,0.005),brR:new _EditorOEF(30,2.0,0.005),
     ma:new _EditorOEF(30,4.0,0.0),mi:new _EditorOEF(30,4.0,0.0),mu:new _EditorOEF(30,4.0,0.0),
@@ -7246,7 +7247,7 @@ async function startWC() {
     document.getElementById('btn-webcam').classList.remove('on');return;
   }
   video.srcObject=_wcStream;video.onloadedmetadata=()=>video.play();
-  const _sm={hx:0,hy:0,hz:0,bl:0,mo:0,ex:0,ey:0,brL:0,brR:0};
+  const _sm={hx:0,hy:0,hz:0,bl:0,blL:0,blR:0,mo:0,ex:0,ey:0,brL:0,brR:0,ma:0,mi:0,mu:0,me:0,mos:0};
   let lastVT=-1;
   function detectLoop(){
     if(!_wcActive)return;
@@ -7276,6 +7277,8 @@ async function startWC() {
         const eyeAngle=Math.atan2(lm[263].y-lm[33].y,lm[263].x-lm[33].x);
         const rhz=Math.max(-1,Math.min(1,eyeAngle*3.5*gHz));
         const rbl=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*gBlink));
+        const rblL=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*gBlink));
+        const rblR=Math.max(0,Math.min(1,(bs.eyeBlinkRight??0)*1.3*gBlink));
         const rmo=Math.max(0,Math.min(1,(bs.jawOpen??0)*1.2*gMouth));
         const rma=Math.max(0,Math.min(1,(bs.jawOpen??0)*gMouth));
         const rmi=Math.max(0,Math.min(1,((bs.mouthStretchLeft??0)+(bs.mouthStretchRight??0))*gMouth*0.6));
@@ -7296,7 +7299,8 @@ async function startWC() {
           rey=Math.max(-1,Math.min(1,rey));
         }
         _sm.hx=oef.hx.filter(rhx,now);_sm.hy=oef.hy.filter(rhy,now);_sm.hz=oef.hz.filter(rhz,now);
-        _sm.bl=oef.bl.filter(rbl,now);_sm.mo=oef.mo.filter(rmo,now);
+        _sm.bl=oef.bl.filter(rbl,now);_sm.blL=oef.blL.filter(rblL,now);_sm.blR=oef.blR.filter(rblR,now);
+        _sm.mo=oef.mo.filter(rmo,now);
         _sm.ex=oef.ex.filter(rex,now);_sm.ey=oef.ey.filter(rey,now);
         _sm.brL=oef.brL.filter(rbrL,now);_sm.brR=oef.brR.filter(rbrR,now);
         _sm.ma=oef.ma.filter(rma,now);_sm.mi=oef.mi.filter(rmi,now);_sm.mu=oef.mu.filter(rmu,now);
@@ -7342,7 +7346,7 @@ async function startWC() {
         if(svEl&&svlEl)svlEl.textContent=parseFloat(svEl.value).toFixed(2);
         const _setP=(id,v)=>{const p=M.params[id];if(!p)return;p.val=Math.max(p.min,Math.min(p.max,v));const s=document.getElementById('ps-'+id);if(s){s.value=p.val;updateSliderFill(s,p.val,p.min,p.max);}const pv=document.getElementById('pv-'+id);if(pv)pv.textContent=p.val.toFixed(2);};
         _setP('headX',_sm.hx);_setP('headY',_sm.hy);_setP('headZ',_sm.hz);
-        _setP('blinkL',_sm.bl);_setP('blinkR',_sm.bl);_setP('mouthOpen',_sm.mo);
+        _setP('blinkL',_sm.blL);_setP('blinkR',_sm.blR);_setP('mouthOpen',_sm.mo);
         _setP('eyeBallX',_sm.ex);_setP('eyeBallY',_sm.ey);
         _setP('browL',_sm.brL);_setP('browR',_sm.brR);
         _setP('mouthA',_sm.ma);_setP('mouthI',_sm.mi);_setP('mouthU',_sm.mu);
@@ -7445,7 +7449,8 @@ const _WC_AUTO_EXPRS = [
   { name:'😊 笑顔', detect: sm => sm.mo > 0.45 && sm.hy < 0, score: sm => sm.mo * 0.7 + (sm.hy < 0 ? 0.3 : 0) },
   { name:'😲 驚き', detect: sm => sm.mo > 0.6 && sm.bl < 0.2, score: sm => sm.mo * 0.5 + (1 - sm.bl) * 0.5 },
   { name:'😌 目を閉じ', detect: sm => sm.bl > 0.7, score: sm => sm.bl },
-  { name:'😉 ウィンク', detect: sm => (sm.bl > 0.7 && sm.blR !== undefined && sm.blR < 0.4) || (sm.blL !== undefined && sm.blL > 0.7), score: sm => sm.bl },
+  { name:'😉 ウィンク左', detect: sm => sm.blL > 0.65 && sm.blR < 0.35, score: sm => sm.blL * (1-sm.blR) },
+  { name:'😉 ウィンク右', detect: sm => sm.blR > 0.65 && sm.blL < 0.35, score: sm => sm.blR * (1-sm.blL) },
   { name:'😐 無表情', detect: sm => sm.mo < 0.15 && sm.bl < 0.3, score: sm => (1-sm.mo) * 0.5 + (1-sm.bl) * 0.5 },
 ];
 
