@@ -4559,6 +4559,38 @@ function draw(ts){
   if(params.mouthO) params.mouthO.val=_useTracking?_trackSrc.mos:0;
   // Apply timeline animation tracks (overlays on top of face tracking)
   if(animPlaying) applyAnimTracks(ts);
+  // Auto-expression trigger: smoothly blend named poses based on BlendShapes
+  if(_useTracking && MD.poses?.length && performance.now()>_autoExprManualUntil){
+    const _now2=performance.now();
+    // Detection table: [keyword(s) in pose name, condition, clearCondition]
+    const _afChecks=[
+      {keys:['笑顔','smile','smile2'],     pass:S.me>0.42,    clear:S.me<0.28},
+      {keys:['驚き','surprise','surpris'],  pass:S.mo>0.55&&(S.bwl+S.bwr)<-0.35, clear:S.mo<0.3||(S.bwl+S.bwr)>-0.1},
+      {keys:['怒り','angry','frown'],       pass:S.bwl>0.42&&S.bwr>0.42&&S.mo<0.2, clear:S.bwl<0.3||S.bwr<0.3},
+    ];
+    let _newAuto=null;
+    for(const c of _afChecks){
+      if(!c.pass) continue;
+      const p=MD.poses.find(p=>c.keys.some(k=>p.name.toLowerCase().includes(k)));
+      if(p){_newAuto=p;break;}
+    }
+    if(_newAuto!==_autoExprPose && _now2>_autoExprCool){
+      _autoExprPose=_newAuto;
+      _autoExprCool=_now2+800; // 0.8s before re-checking
+    }
+    if(_autoExprPose && _afChecks.find(c=>c.keys.some(k=>_autoExprPose.name.toLowerCase().includes(k)))?.clear){
+      _autoExprPose=null;
+    }
+    // Fade weight toward target (0 or 1)
+    const tgtW=_autoExprPose?1:0;
+    _autoExprW+=(_autoExprW<tgtW?1:-1)*Math.min(Math.abs(tgtW-_autoExprW),dt*1.5);
+    // Overlay auto-expr params additively on top of tracking (only if no manual pose active)
+    if(!activePose && _autoExprPose && _autoExprW>0.01){
+      for(const[k,v]of Object.entries(_autoExprPose.values)){
+        if(params[k]) params[k].val=params[k].val*(1-_autoExprW)+v*_autoExprW;
+      }
+    }
+  }
   // Expression pose blend (overlays on top of tracking)
   applyPoseBlend(dt);
   ctx.clearRect(0,0,W*DPR,H*DPR);
@@ -4858,6 +4890,8 @@ const _POSE_TRANS_MS=${poseTransitionMs};
 const _POSE_EASING=${JSON.stringify(poseEasing)};
 let activePose=null, poseBlend=0;
 let _posePrev=null, _posePrevT=0; // for smooth transition tracking
+// Auto-expression trigger: BlendShape → named pose blending
+let _autoExprPose=null,_autoExprW=0,_autoExprCool=0,_autoExprManualUntil=0;
 let curSens=SENS;
 let curSensX=1,curSensY=1,curSensZ=1; // per-axis sensitivity multipliers
 let curDeadZone=0; // 0..0.4 dead zone for face tracking
@@ -4886,6 +4920,8 @@ function _setPose(idx){
   }
   if(idx<0){activePose=null;poseBlend=0;updateExprList(0);}
   else{activePose=EXPR_POSES[idx];poseBlend=0;updateExprList(idx+1);}
+  // Suppress auto-expression for 6s after manual pose change
+  _autoExprManualUntil=performance.now()+6000;
   if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+(activePose?activePose.name:'デフォルト');setTimeout(()=>exprHUD.style.display='none',1500);}
 }
 // Natural speed variation (subtle ±8% sine wave)
@@ -7485,14 +7521,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==================== EXPRESSION PRESETS (FACE TRACKING) ====================
 let _wcExprPresets = []; // [{name, vals:{headX,headY,blinkL,...}}]
-// Built-in auto-detect presets
+// Built-in auto-detect presets (BlendShape-based for accuracy)
 const _WC_AUTO_EXPRS = [
-  { name:'😊 笑顔', detect: sm => sm.mo > 0.45 && sm.hy < 0, score: sm => sm.mo * 0.7 + (sm.hy < 0 ? 0.3 : 0) },
-  { name:'😲 驚き', detect: sm => sm.mo > 0.6 && sm.bl < 0.2, score: sm => sm.mo * 0.5 + (1 - sm.bl) * 0.5 },
-  { name:'😌 目を閉じ', detect: sm => sm.bl > 0.7, score: sm => sm.bl },
-  { name:'😉 ウィンク左', detect: sm => sm.blL > 0.65 && sm.blR < 0.35, score: sm => sm.blL * (1-sm.blR) },
-  { name:'😉 ウィンク右', detect: sm => sm.blR > 0.65 && sm.blL < 0.35, score: sm => sm.blR * (1-sm.blL) },
-  { name:'😐 無表情', detect: sm => sm.mo < 0.15 && sm.bl < 0.3, score: sm => (1-sm.mo) * 0.5 + (1-sm.bl) * 0.5 },
+  // 大笑い: strong smile + mouth open (priority over 笑顔)
+  { name:'😆 大笑い', detect: sm => sm.me > 0.45 && sm.mo > 0.45,
+    score: sm => (sm.me + sm.mo) * 0.5 },
+  // 笑顔: mouthSmile BlendShape (more accurate than mouth-open heuristic)
+  { name:'😊 笑顔', detect: sm => sm.me > 0.32 && sm.me > sm.mo * 0.8,
+    score: sm => sm.me },
+  // 驚き: mouth open + brows raised (brL/brR negative = raised)
+  { name:'😲 驚き', detect: sm => sm.mo > 0.55 && (sm.brL+sm.brR) < -0.35,
+    score: sm => sm.mo*0.5 + Math.min(1, -(sm.brL+sm.brR)*0.8)*0.5 },
+  // 怒り: brows furrowed + calm mouth
+  { name:'😤 怒り', detect: sm => sm.brL > 0.42 && sm.brR > 0.42 && sm.mo < 0.2,
+    score: sm => (sm.brL+sm.brR)*0.5 },
+  // 目を閉じ
+  { name:'😌 目を閉じ', detect: sm => sm.bl > 0.7,
+    score: sm => sm.bl },
+  // ウィンク左右
+  { name:'😉 ウィンク左', detect: sm => sm.blL > 0.65 && sm.blR < 0.35,
+    score: sm => sm.blL * (1-sm.blR) },
+  { name:'😉 ウィンク右', detect: sm => sm.blR > 0.65 && sm.blL < 0.35,
+    score: sm => sm.blR * (1-sm.blL) },
+  // 照れ: head down + low smile + soft eyes
+  { name:'😳 照れ', detect: sm => sm.hy < -0.22 && sm.me < 0.2 && sm.bl < 0.45,
+    score: sm => -sm.hy * 0.6 + (1-sm.me) * 0.4 },
+  // 考え中: head tilted up + closed mouth
+  { name:'🤔 考え中', detect: sm => sm.hy > 0.28 && sm.mo < 0.12 && Math.abs(sm.hx) < 0.3,
+    score: sm => sm.hy * (1-sm.mo) },
+  // 無表情: catch-all neutral
+  { name:'😐 無表情', detect: sm => sm.mo < 0.15 && sm.bl < 0.3 && sm.me < 0.2 && Math.abs(sm.brL+sm.brR) < 0.25,
+    score: sm => (1-sm.mo)*0.4 + (1-sm.bl)*0.3 + (1-sm.me)*0.3 },
 ];
 
 function renderWcExprBtns() {
