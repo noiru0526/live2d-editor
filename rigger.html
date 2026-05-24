@@ -4280,11 +4280,12 @@ async function aiAutoNameParts() {
   statusEl.textContent = `完了。${results.length}件の名前を提案しました。`;
   applyBtn.disabled = false;
   applyBtn.onclick = () => {
+    saveState();
     listEl.querySelectorAll('input[data-result-idx]').forEach(inp => {
       const r = results[parseInt(inp.dataset.resultIdx)];
       if (r && inp.value.trim()) r.pt.name = inp.value.trim();
     });
-    updatePartsUI(); saveState(); setStatus(`🤖 AI命名: ${results.length}件のパーツ名を更新しました`);
+    updatePartsUI(); setStatus(`🤖 AI命名: ${results.length}件のパーツ名を更新しました`);
     modal.remove();
   };
 }
@@ -4906,6 +4907,7 @@ function confirmAddDeformer() {
   const nm = document.getElementById('defni').value.trim() || `デフォーマー${deformers.length+1}`;
   const typeVal = document.querySelector('input[name="deftype"]:checked')?.value || 'warp';
   document.getElementById('defmod').style.display = 'none';
+  saveState();
   let def;
   if (typeVal === 'rotation') {
     def = new RotationDeformer(nm);
