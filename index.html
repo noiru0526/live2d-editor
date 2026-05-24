@@ -1504,6 +1504,7 @@ const ctx    = canvas.getContext('2d');
 const vp     = document.getElementById('vp');
 
 let _CW=0, _CH=0, _DPR=1; // logical canvas dimensions
+let _editorCamZoom=1, _editorCamX=0, _editorCamY=0; // camera track preview state
 
 function resize() {
   _DPR = window.devicePixelRatio || 1;
@@ -1636,6 +1637,14 @@ function redraw() {
   ctx.save();
   ctx.scale(_DPR, _DPR);
   ctx.clearRect(0,0,CW(),CH());
+  // Camera track preview: apply __camZoom/__camX/__camY offset around canvas center (anim mode only)
+  if (ST.animMode && M.img && (_editorCamZoom!==1 || _editorCamX!==0 || _editorCamY!==0)) {
+    const tx=getTx(), scl=tx.s;
+    const mcx=CW()/2, mcy=CH()/2;
+    ctx.translate(mcx+_editorCamX*scl, mcy+_editorCamY*scl);
+    ctx.scale(_editorCamZoom, _editorCamZoom);
+    ctx.translate(-mcx, -mcy);
+  }
   if (!M.img) {
     const cx=CW()/2, cy=CH()/2;
     // Draw a soft glow circle
@@ -1706,6 +1715,16 @@ function redraw() {
     ctx.restore();
   }
   ctx.restore();
+  // Camera preview badge
+  if (ST.animMode && M.img && (_editorCamZoom!==1 || _editorCamX!==0 || _editorCamY!==0)) {
+    ctx.save();
+    ctx.font = '10px monospace'; ctx.textAlign='right';
+    const badge = `📷 ×${_editorCamZoom.toFixed(2)}  ${_editorCamX>0?'+':''}${_editorCamX.toFixed(0)}, ${_editorCamY>0?'+':''}${_editorCamY.toFixed(0)}`;
+    const bw = ctx.measureText(badge).width + 12;
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(CW()-bw-2, 2, bw, 18);
+    ctx.fillStyle='#ffd060'; ctx.fillText(badge, CW()-6, 14);
+    ctx.textAlign='left'; ctx.restore();
+  }
   // Param HUD overlay
   if (ST.paramHUD && M.img) {
     ctx.save();
@@ -15309,6 +15328,12 @@ function animMultiPlay() {
         const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
       }
     }
+    // Camera track preview update
+    _editorCamZoom=1; _editorCamX=0; _editorCamY=0;
+    const _mct=M.animation.tracks;
+    if (_mct['__camZoom']?.length && !tlHiddenTracks.has('__camZoom') && !tlMutedTracks.has('__camZoom')) _editorCamZoom=evalAnimTrack(_mct['__camZoom'],{min:0.1,max:4,val:1},t);
+    if (_mct['__camX']?.length && !tlHiddenTracks.has('__camX') && !tlMutedTracks.has('__camX')) _editorCamX=evalAnimTrack(_mct['__camX'],{min:-200,max:200,val:0},t);
+    if (_mct['__camY']?.length && !tlHiddenTracks.has('__camY') && !tlMutedTracks.has('__camY')) _editorCamY=evalAnimTrack(_mct['__camY'],{min:-200,max:200,val:0},t);
     _applyLoopFade(t);
     // Check if playhead crossed a marker (show brief label)
     if (M.animation.markers?.length) {
@@ -15495,6 +15520,12 @@ function applyPlayheadToParams() {
       const part=M.parts.find(p=>p.id===name.slice(6)); if(part){if(!part.filter)part.filter={b:100,c:100,s:100,h:0};part.filter.h=evalAnimTrack(frames,{min:-180,max:180,val:0},t);}
     }
   }
+  // Camera track preview
+  _editorCamZoom=1; _editorCamX=0; _editorCamY=0;
+  const _ct=M.animation.tracks;
+  if (_ct['__camZoom']?.length && !tlHiddenTracks.has('__camZoom')) _editorCamZoom=evalAnimTrack(_ct['__camZoom'],{min:0.1,max:4,val:1},t);
+  if (_ct['__camX']?.length && !tlHiddenTracks.has('__camX')) _editorCamX=evalAnimTrack(_ct['__camX'],{min:-200,max:200,val:0},t);
+  if (_ct['__camY']?.length && !tlHiddenTracks.has('__camY')) _editorCamY=evalAnimTrack(_ct['__camY'],{min:-200,max:200,val:0},t);
   _applyLoopFade(t);
   ST.cachedVerts=null; redraw();
   if (ST.animMode) updateKFNavDisplay();
