@@ -4047,6 +4047,10 @@ canvas{display:block;image-rendering:auto;}
 #chat-ov .cb .cu{color:#7ec8ff;font-weight:700;margin-right:5px;}
 #chat-ov.show{display:block;}
 canvas.mirrored{transform:scaleX(-1);}
+/* Volume visualizer */
+#vol-viz{display:none;position:fixed;bottom:10px;right:10px;width:48px;height:28px;z-index:98;pointer-events:none;}
+#vol-viz.show{display:flex;align-items:flex-end;gap:2px;}
+#vol-viz .vb{width:6px;height:1px;border-radius:2px 2px 0 0;background:rgba(78,200,255,.7);opacity:.25;transition:height .07s ease,opacity .07s ease;}
 @keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
@@ -4108,6 +4112,7 @@ ${includeCtrlPanel ? `
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
 <div id="chat-ov"><div class="cm"></div></div>
+<div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
 
@@ -4135,11 +4140,16 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">← / →</td><td>KF ±0.1秒移動</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">T</td><td>顔追跡 ON/OFF</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">C</td><td>コントロールパネル</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">P</td><td>パラメータパネル</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">D</td><td>追跡デバッグ表示</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">J / F / B</td><td>シェイク / フラッシュ / ブラー</td></tr>
       <tr><td colspan="2" style="color:#3a5070;font-size:10px;padding-top:6px;">─── URLパラメータ ───</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5607,6 +5617,38 @@ function _handleChatMsg(rawMsg){
     break;
   }
 }
+// Mic volume visualizer (?showvolume=1)
+(()=>{
+  if((new URLSearchParams(location.search)).get('showvolume')!=='1') return;
+  const _vv=document.getElementById('vol-viz');
+  if(!_vv) return;
+  _vv.classList.add('show');
+  const _bars=[..._vv.querySelectorAll('.vb')];
+  const _N=_bars.length;
+  let _rafId=null, _startTimer=null, _lastT=0, _smoothed=new Array(_N).fill(0);
+  function _getVol(){
+    try{const v=typeof getAudioLevel==='function'?Number(getAudioLevel()):0;return Number.isFinite(v)?Math.max(0,Math.min(1,v)):0;}catch{return 0;}
+  }
+  function _tick(ts){
+    _rafId=requestAnimationFrame(_tick);
+    if(ts-_lastT<33) return; // ~30fps cap
+    _lastT=ts;
+    const lv=_getVol();
+    for(let i=0;i<_N;i++){
+      const th=(i+1)/(_N+1); // left=low threshold, right=high threshold
+      const target=lv>th?lv*(0.3+0.7*(i+1)/_N):0;
+      _smoothed[i]=_smoothed[i]*0.7+target*0.3;
+      const h=Math.round(_smoothed[i]*26);
+      _bars[i].style.height=(h>1?h:1)+'px';
+      _bars[i].style.opacity=h>2?'0.85':'0.25';
+    }
+  }
+  function _stop(){clearTimeout(_startTimer);_startTimer=null;if(_rafId){cancelAnimationFrame(_rafId);_rafId=null;}}
+  function _start(){if(_rafId||_startTimer||document.hidden)return;_startTimer=setTimeout(()=>{_startTimer=null;_rafId=requestAnimationFrame(_tick);},1200);}
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden)_stop(); else _start(); });
+  if(document.readyState==='complete') _start();
+  else window.addEventListener('load',_start,{once:true});
+})();
 // Chat overlay (?showchat=1) — subscribes to noiru-chat postMessage events for display
 (()=>{
   if((new URLSearchParams(location.search)).get('showchat')!=='1') return;
