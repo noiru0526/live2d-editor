@@ -4793,6 +4793,7 @@ class OneEuroFilter{
   }
   reset(){this.x=null;this.dx=0;this.t=null;}
 }
+const _detectFps=(()=>{const _u=new URLSearchParams(location.search);if(_u.get('lowcpu')==='1')return 15;const _f=parseInt(_u.get('fps'),10);return(_f>=5&&_f<60)?_f:0;})(); // 0=no limit; fps>=60 treated as unlimited
 async function initTracking(){
   const _lp=document.getElementById('load-prog');
   const _setP=(pct,msg)=>{if(_lp)_lp.style.width=pct+'%';if(loadMsg&&msg)loadMsg.textContent=msg;};
@@ -4838,7 +4839,14 @@ async function initTracking(){
   if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
   else if(pc)pc.textContent=location.href;
   let lastVT=-1, _trackLastSeen=0, _autoCalibDone=false, _firstTrackTime=0;
+  const _detectInterval=_detectFps>0?1000/_detectFps:0;
+  let _lastDetectT=0;
   function detectLoop(){
+    if(_detectInterval>0){
+      const _now=performance.now();
+      if(_now-_lastDetectT<_detectInterval){requestAnimationFrame(detectLoop);return;}
+      _lastDetectT=_now;
+    }
     if(video.readyState>=2&&video.currentTime!==lastVT){
       lastVT=video.currentTime;
       const now=performance.now();
@@ -4973,7 +4981,7 @@ function _dbgUpdate(){
   const f=(v,d=2)=>Number.isFinite(v)?v.toFixed(d):'?';
   const fps=tracking?_dbgFps:0;
   _dbgOv.innerHTML=`<div style="color:#4e7cff;margin-bottom:2px;font-size:10px;">🔍 追跡デバッグ</div>`+
-    `<div>状態: ${tracking?'<span style="color:#00ff80">✓ 追跡中</span>':'<span style="color:#ff4060">✗ ロスト</span>'} | <span style="color:#ffd060">${fps}fps</span></div>`+
+    `<div>状態: ${tracking?'<span style="color:#00ff80">✓ 追跡中</span>':'<span style="color:#ff4060">✗ ロスト</span>'} | <span style="color:#ffd060">${fps}fps</span>${_detectFps>0?`<span style="color:#3a6a4a;font-size:8px"> limit:${_detectFps}</span>`:''}</div>`+
     `<div>頭 X:${f(S.hx)} Y:${f(S.hy)} Z:${f(S.hz)}</div>`+
     `<div>瞬き L:${f(S.bl)} R:${f(S.br)}</div>`+
     `<div>口開:${f(S.mo)} (A:${f(S.ma)} E:${f(S.me)})</div>`+
