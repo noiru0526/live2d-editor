@@ -5210,6 +5210,61 @@ document.addEventListener('keydown',ev=>{
     ev.preventDefault();
   }
 });
+// Screen effects: Shake (J), Flash (F), Blur (B)
+(()=>{
+  const _wrap=document.getElementById('wrap');
+  const _body=document.body;
+  let _shakeRaf=null;
+  window.triggerShake=function(intensity,dur){
+    const _i=Math.max(1,Math.min(30,Number(intensity)||8));
+    const _d=Math.max(0.1,Math.min(3,Number(dur)||0.5));
+    const _end=performance.now()+_d*1000;
+    if(_shakeRaf) cancelAnimationFrame(_shakeRaf);
+    function _step(now){
+      if(now>_end){if(_wrap)_wrap.style.transform='';_shakeRaf=null;return;}
+      const x=(Math.random()-.5)*2*_i, y=(Math.random()-.5)*2*_i;
+      if(_wrap)_wrap.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      _shakeRaf=requestAnimationFrame(_step);
+    }
+    _shakeRaf=requestAnimationFrame(_step);
+  };
+  let _flashEl=null,_flashTimerIn=null,_flashTimerOut=null;
+  window.triggerFlash=function(color,dur){
+    const _c=String(color||'ffffff').replace(/[^0-9a-fA-F]/g,'').padEnd(6,'0').slice(0,6);
+    const _d=Math.max(0.05,Math.min(2,Number(dur)||0.25));
+    clearTimeout(_flashTimerIn);clearTimeout(_flashTimerOut);
+    if(_flashEl){_flashEl.remove();_flashEl=null;}
+    const fl=document.createElement('div');_flashEl=fl;
+    fl.id='flash-ov';fl.style.cssText=`position:fixed;inset:0;background:#${_c};z-index:9998;pointer-events:none;opacity:0;`;
+    document.body.appendChild(fl);
+    // double rAF ensures initial opacity:0 is painted before fade-in starts
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      fl.style.transition=`opacity ${_d/4}s ease`;fl.style.opacity='0.85';
+      _flashTimerIn=setTimeout(()=>{
+        fl.style.transition=`opacity ${_d/2}s ease`;fl.style.opacity='0';
+        _flashTimerOut=setTimeout(()=>{if(_flashEl===fl){fl.remove();_flashEl=null;}},_d*500+50);
+      },_d*400);
+    }));
+  };
+  let _blurTimer=null;
+  window.triggerBlur=function(amount,dur){
+    const _a=Math.max(1,Math.min(20,Number(amount)||6));
+    const _d=Math.max(0.1,Math.min(5,Number(dur)||1));
+    const _cv=document.getElementById('c');
+    if(!_cv) return;
+    clearTimeout(_blurTimer);
+    _cv.style.transition=`filter ${_d/4}s ease`;
+    _cv.style.filter=`blur(${_a}px)`;
+    _blurTimer=setTimeout(()=>{_cv.style.filter='blur(0px)';setTimeout(()=>_cv.style.transition='',_d*250);},_d*750);
+  };
+  document.addEventListener('keydown',ev=>{
+    if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.repeat) return;
+    if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
+    if(ev.key==='j'||ev.key==='J'){window.triggerShake();ev.preventDefault();}
+    else if(ev.key==='f'||ev.key==='F'){window.triggerFlash();ev.preventDefault();}
+    else if(ev.key==='b'||ev.key==='B'){window.triggerBlur();ev.preventDefault();}
+  });
+})();
 // Keyup: release Shift+1〜9 momentary pose → restore default
 let _momentaryPoseKey=null; // '1'〜'9' or null
 document.addEventListener('keyup',ev=>{
@@ -5988,6 +6043,15 @@ window.addEventListener('message',ev=>{
       reply({ok:true}); break;
     case 'speak':
       if(typeof window.speak==='function') window.speak(d.text,{rate:d.rate,pitch:d.pitch,volume:d.volume,voice:d.voice});
+      reply({ok:true}); break;
+    case 'shake':
+      if(typeof window.triggerShake==='function') window.triggerShake(d.intensity,d.dur);
+      reply({ok:true}); break;
+    case 'flash':
+      if(typeof window.triggerFlash==='function') window.triggerFlash(d.color,d.dur);
+      reply({ok:true}); break;
+    case 'blur':
+      if(typeof window.triggerBlur==='function') window.triggerBlur(d.amount,d.dur);
       reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
