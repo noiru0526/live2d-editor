@@ -10172,6 +10172,7 @@ let _loopFadeIn = 0;   // fade-in duration in seconds at loop start (0=off)
 let _loopFadeOut = 0;  // fade-out duration in seconds before loop end (0=off)
 let _exportHotkeys = {}; // {poseName: key} custom key per pose in exported HTML
 const tlSelectedKFs = new Set(); // selected KF object references (for multi-select)
+let tlSelAnchor = null; // {name, kf} — last directly clicked KF for Shift+click range select
 let tlKFClipboard = []; // [{name, dt, v, interp}] relative times for paste
 let tlSnapEnabled = false; // KF snap to grid
 let tlTrackFilter = ''; // Track search filter string
@@ -16084,13 +16085,23 @@ function applyPlayheadToParams() {
     const hit=hitTestKF(e);
     if (hit && e.button===0) {
       if (e.ctrlKey||e.metaKey) {
-        // Ctrl+click: toggle KF in/out of selection
+        // Ctrl+click: toggle KF in/out of selection; update anchor to this KF
         if (tlSelectedKFs.has(hit.kf)) tlSelectedKFs.delete(hit.kf);
-        else tlSelectedKFs.add(hit.kf);
+        else { tlSelectedKFs.add(hit.kf); tlSelAnchor={name:hit.name, kf:hit.kf}; }
         drawMultiTimeline(); e.stopPropagation(); return;
       }
-      // Click on unselected KF: clear selection and select this one
+      if (e.shiftKey) {
+        // Shift+click: select range within this track from anchor to clicked KF
+        const frames=M.animation.tracks[hit.name]; if(!frames) { e.stopPropagation(); return; }
+        const anchorKF=(tlSelAnchor&&tlSelAnchor.name===hit.name&&frames.includes(tlSelAnchor.kf))?tlSelAnchor.kf:null;
+        const anchorT=anchorKF?anchorKF.t:hit.kf.t; // fallback = single KF if no anchor in this track
+        const lo=Math.min(anchorT,hit.kf.t), hi=Math.max(anchorT,hit.kf.t);
+        for(const kf of frames) if(kf.t>=lo-0.0001&&kf.t<=hi+0.0001) tlSelectedKFs.add(kf);
+        drawMultiTimeline(); e.stopPropagation(); return;
+      }
+      // Plain click: clear selection and select only this KF; update anchor
       if (!tlSelectedKFs.has(hit.kf)) { tlSelectedKFs.clear(); tlSelectedKFs.add(hit.kf); }
+      tlSelAnchor={name:hit.name, kf:hit.kf};
       // Build drag entries for all selected KFs
       pushAnimUndo('KF移動');
       const kfToName = new Map();
