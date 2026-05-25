@@ -824,10 +824,13 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       <!-- DEFORMER TREE -->
       <div style="padding:4px 6px;border-top:1px solid #0e1820;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer" onclick="toggleDeformerTree()">
-          <span style="font-size:7px;color:#2a5060;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
-          <span id="def-tree-arrow" style="font-size:8px;color:#2a4060">▶</span>
+          <span style="font-size:7px;color:#4a8060;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
+          <span style="display:flex;gap:4px;align-items:center">
+            <span style="font-size:7px;color:#2a4060">ドラッグで親子変更</span>
+            <span id="def-tree-arrow" style="font-size:8px;color:#3a6060">▼</span>
+          </span>
         </div>
-        <div id="def-tree-body" style="display:none;max-height:140px;overflow-y:auto"></div>
+        <div id="def-tree-body" style="display:block;max-height:180px;overflow-y:auto;background:#060b12;border-radius:3px;padding:2px 0"></div>
       </div>
     </div>
 
@@ -2786,7 +2789,7 @@ function loadModelFromJSON(json) {
     collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
-    updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); fitView();
+    updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); buildDeformerTree(); fitView();
     setStatus(`モデル読込 — ${parts.length}パーツ, ${expressions.length}表情, ${groups.length}グループ`);
   } catch(err) { setStatus('JSON読込失敗: '+err.message); }
 }
@@ -4940,7 +4943,7 @@ function confirmAddDeformer() {
   if (selPart >= 0) parts[selPart].deformerId = def.id;
   deformers.push(def);
   selDeformer = deformers.length - 1;
-  updatePartsUI(); updateDeformerPropsUI(); render();
+  updatePartsUI(); updateDeformerPropsUI(); buildDeformerTree(); render();
   const icon = typeVal==='rotation'?'⟳':typeVal==='bone'?'🦴':'⬡';
   setStatus(`${icon} デフォーマー「${nm}」を作成`);
 }
@@ -4953,7 +4956,7 @@ function deleteDeformer(di) {
   deformers.splice(di, 1);
   collapsedDeformers.delete(def.id);
   selDeformer = -1;
-  updatePartsUI(); updateDeformerPropsUI(); render();
+  updatePartsUI(); updateDeformerPropsUI(); buildDeformerTree(); render();
   setStatus(`デフォーマー「${def.name}」を削除`);
 }
 function selectDeformer(di) {
@@ -5026,7 +5029,9 @@ function applyDeformerFalloff(val) {
   document.getElementById('dp-falloff-val').textContent = Math.round(fo*100)+'%';
   render();
 }
-let _defTreeOpen = false;
+let _defTreeOpen = true; // show by default
+let _defTreeCollapsed = new Set(); // collapsed node IDs
+let _defDragSrc = null; // drag source deformer index
 function toggleDeformerTree() {
   _defTreeOpen = !_defTreeOpen;
   document.getElementById('def-tree-body').style.display = _defTreeOpen ? 'block' : 'none';
@@ -5035,40 +5040,106 @@ function toggleDeformerTree() {
 }
 function buildDeformerTree() {
   const body = document.getElementById('def-tree-body');
-  if (!body) return;
+  if (!body || !_defTreeOpen) return;
   const typeIcon = {warp:'⬡', rotation:'⟳', bone:'🦴'};
+  const typeColor = {warp:'#5a8a4a', rotation:'#7a60b0', bone:'#8a7050'};
   // Build part→deformer map
   const defParts = {};
-  deformers.forEach((d,i) => defParts[d.id] = []);
+  deformers.forEach(d => defParts[d.id] = []);
   parts.forEach(pt => { if (pt.deformerId && defParts[pt.deformerId]) defParts[pt.deformerId].push(pt.name); });
-  // Build hierarchy (bones use parentId, warp/rotation use parentDeformerId)
+  // Build hierarchy
   const childrenOf = {};
   const topLevel = [];
   deformers.forEach((d, i) => {
     const parentId = d.type === 'bone' ? d.parentId : d.parentDeformerId;
-    if (parentId) {
+    if (parentId && deformers.find(x=>x.id===parentId)) {
       if (!childrenOf[parentId]) childrenOf[parentId] = [];
       childrenOf[parentId].push(i);
-    } else {
-      topLevel.push(i);
-    }
+    } else topLevel.push(i);
   });
-  function renderNode(idx, depth) {
+  // Drop indicator element
+  let dropEl = null;
+  function getParentId(d) { return d.type==='bone' ? d.parentId : d.parentDeformerId; }
+  function setParentId(d, pid) {
+    if (d.type==='bone') d.parentId=pid;
+    else d.parentDeformerId=pid;
+  }
+  function renderNode(idx, depth, isLast) {
     const d = deformers[idx];
     const icon = typeIcon[d.type] || '?';
-    const indent = '&nbsp;'.repeat(depth * 4);
+    const col = typeColor[d.type] || '#5a7a90';
     const isSel = selDeformer === idx;
-    const pnames = (defParts[d.id] || []).slice(0, 2).join(', ') + (defParts[d.id].length > 2 ? '…' : '');
+    const hasChildren = !!(childrenOf[d.id]?.length);
+    const isCollapsed = _defTreeCollapsed.has(d.id);
+    const pnames = (defParts[d.id] || []).slice(0,3).join(', ') + (defParts[d.id].length>3?'…':'');
     const row = document.createElement('div');
-    row.style.cssText = `cursor:pointer;padding:1px 2px;border-radius:2px;font-size:8px;${isSel ? 'background:#0e2a40;color:#60c0ff' : 'color:#3a5a70'}`;
-    row.innerHTML = `${indent}${icon} <b>${d.name}</b>${pnames ? ` <span style="color:#2a4050;font-size:7px">[${pnames}]</span>` : ''}`;
-    row.onclick = () => { selDeformer = idx; selPart = -1; updateDeformerPropsUI(); buildDeformerTree(); render(); };
+    row.dataset.defIdx = idx;
+    row.draggable = true;
+    row.style.cssText = `display:flex;align-items:center;cursor:pointer;padding:2px 2px 2px ${4+depth*12}px;border-radius:2px;font-size:9px;gap:2px;${isSel?'background:#0e2a40;':''}transition:background .1s;`;
+    // Collapse toggle
+    const tog = document.createElement('span');
+    tog.textContent = hasChildren ? (isCollapsed?'▶':'▼') : ' ';
+    tog.style.cssText = `font-size:7px;width:10px;flex-shrink:0;color:${hasChildren?'#4a6080':'transparent'};cursor:${hasChildren?'pointer':'default'}`;
+    if (hasChildren) tog.onclick = (e) => { e.stopPropagation(); _defTreeCollapsed.has(d.id)?_defTreeCollapsed.delete(d.id):_defTreeCollapsed.add(d.id); buildDeformerTree(); };
+    // Icon + name
+    const label = document.createElement('span');
+    label.style.cssText = `color:${isSel?'#70d0ff':col};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    label.innerHTML = `<span style="font-size:9px">${icon}</span> <b>${d.name}</b>${pnames?`<span style="color:#304860;font-size:7px;margin-left:3px">[${pnames}]</span>`:''}`;
+    row.appendChild(tog); row.appendChild(label);
+    // Hover highlight
+    row.onmouseenter = () => { if(!isSel) row.style.background='#0a1e30'; };
+    row.onmouseleave = () => { if(!isSel) row.style.background=''; };
+    // Click = select
+    row.onclick = (e) => { if(e.target===tog)return; selDeformer=idx; selPart=-1; updateDeformerPropsUI(); buildDeformerTree(); render(); };
+    // Right-click menu: reparent, delete
+    row.oncontextmenu = (e) => {
+      e.preventDefault();
+      const items = [
+        {icon:'⬡',label:'親なし（ルートへ）', action:()=>{ saveState(); setParentId(d,null); buildDeformerTree(); render(); }},
+        ...deformers.filter((_,i2)=>i2!==idx).map(d2=>({
+          icon:typeIcon[d2.type]||'?',
+          label:`親を「${d2.name}」に設定`,
+          action:()=>{ if(_hasCircularParent(d.id,d2.id,deformers)){setStatus('循環参照は設定できません');return;} saveState();setParentId(d,d2.id);buildDeformerTree();render();}
+        }))
+      ];
+      showCtxMenu(e.clientX,e.clientY,items);
+    };
+    // Drag-and-drop for reparenting
+    row.ondragstart = (e) => { _defDragSrc=idx; e.dataTransfer.effectAllowed='move'; row.style.opacity='.5'; };
+    row.ondragend = () => { _defDragSrc=null; row.style.opacity=''; if(dropEl){dropEl.style.outline='';dropEl=null;} buildDeformerTree(); };
+    row.ondragover = (e) => {
+      e.preventDefault();
+      if(_defDragSrc===null||_defDragSrc===idx) return;
+      if(dropEl&&dropEl!==row){dropEl.style.outline='';}
+      row.style.outline='1px solid #4a8fcc'; dropEl=row;
+    };
+    row.ondragleave = () => { row.style.outline=''; if(dropEl===row)dropEl=null; };
+    row.ondrop = (e) => {
+      e.preventDefault(); row.style.outline=''; dropEl=null;
+      if(_defDragSrc===null||_defDragSrc===idx) return;
+      const src=deformers[_defDragSrc];
+      if(_hasCircularParent(src.id,d.id,deformers)){setStatus('循環参照は設定できません');return;}
+      saveState(); setParentId(src,d.id);
+      buildDeformerTree(); render();
+      setStatus(`「${src.name}」を「${d.name}」の子に移動`);
+    };
     body.appendChild(row);
-    if (childrenOf[d.id]) childrenOf[d.id].forEach(ci => renderNode(ci, depth+1));
+    if (hasChildren && !isCollapsed) childrenOf[d.id].forEach((ci,j)=>renderNode(ci,depth+1,j===childrenOf[d.id].length-1));
   }
+  // Drop-to-root zone
+  body.ondragover = (e) => { e.preventDefault(); };
+  body.ondrop = (e) => {
+    if(_defDragSrc===null)return;
+    const tgt=e.target.closest('[data-def-idx]');
+    if(tgt)return; // handled by row
+    const src=deformers[_defDragSrc];
+    saveState(); setParentId(src,null);
+    buildDeformerTree(); render();
+    setStatus(`「${src.name}」をルートに移動`);
+  };
   body.innerHTML = '';
-  if (deformers.length === 0) { body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:2px">デフォーマーなし</div>'; return; }
-  topLevel.forEach(i => renderNode(i, 0));
+  if (deformers.length === 0) { body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:4px">デフォーマーなし</div>'; return; }
+  topLevel.forEach((i,j)=>renderNode(i,0,j===topLevel.length-1));
 }
 function updateDeformerPropsUI() {
   const dp = document.getElementById('deformer-props');
