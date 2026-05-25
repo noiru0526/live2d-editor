@@ -4079,6 +4079,8 @@ canvas.mirrored{transform:scaleX(-1);}
 #vol-viz .vb{width:6px;height:1px;border-radius:2px 2px 0 0;background:rgba(78,200,255,.7);opacity:.25;transition:height .07s ease,opacity .07s ease;}
 @keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 #nameplate{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.82);border:1px solid rgba(78,124,255,.35);border-radius:6px;padding:4px 18px;font-family:'Segoe UI',monospace;font-size:14px;color:#e8f0ff;pointer-events:none;z-index:50;white-space:nowrap;letter-spacing:.04em;backdrop-filter:blur(4px);}
+#streamtimer{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#a0ffc0;background:rgba(10,14,30,.75);border:1px solid rgba(78,255,160,.2);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.06em;backdrop-filter:blur(4px);}
+#streamtimer.show{display:block;}
 #ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
 #ticker-ov.show{display:flex;align-items:center;}
 #ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:#a0d0ff;letter-spacing:.04em;}
@@ -4168,6 +4170,7 @@ ${includeCtrlPanel ? `
 <div id="vignette-ov"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
+<div id="streamtimer"></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="poptext-ov"></div>
 <div id="roulette-ov"><div id="roulette-slot">？</div><div id="roulette-result"></div></div>
@@ -4221,6 +4224,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -6480,6 +6484,25 @@ window.addEventListener('message',ev=>{
     const opts=Array.isArray(d.options)?d.options.filter(Boolean):_rOptions;
     window.triggerRoulette(opts);
   },{passive:true});
+})();
+// Stream timer: ?streamtimer=1 (?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX)
+(()=>{
+  const _usp4=new URLSearchParams(location.search);
+  if(_usp4.get('streamtimer')!=='1') return;
+  const _el=document.getElementById('streamtimer');if(!_el) return;
+  const _pos=_usp4.get('streamtimerpos')||'tl';
+  const _col=_usp4.get('streamtimercolor');
+  if(_col) _el.style.color='#'+_col.replace(/^#/,'');
+  const _posMap={tl:'top:10px;left:10px',tr:'top:10px;right:10px',bl:'bottom:10px;left:10px',br:'bottom:10px;right:10px'};
+  (_posMap[_pos]||_posMap.tl).split(';').forEach(s=>{const[k,v]=s.split(':');if(k)_el.style[k.trim()]=v;});
+  _el.classList.add('show');
+  const _start=Date.now();
+  function _fmt(ms){
+    const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+    return (h?h+':':'')+(m<10&&h?'0':'')+m+':'+(sec<10?'0':'')+sec;
+  }
+  setInterval(()=>{_el.textContent=_fmt(Date.now()-_start);},1000);
+  _el.textContent='0:00';
 })();
 // Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
 (()=>{
