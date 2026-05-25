@@ -5141,7 +5141,12 @@ function applyPoseBlend(dt){
     }
   };
   if(partImgs.length===0){ _startDraw(); }
-  else { partImgs.forEach(img=>{ if(img.complete) _startDraw(); else { img.onload=_startDraw; img.onerror=_startDraw; } }); }
+  else { partImgs.forEach(img=>{
+    let _called=false;
+    const _done=()=>{ if(_called)return; _called=true; img.removeEventListener('load',_done); img.removeEventListener('error',_done); _startDraw(); };
+    img.addEventListener('load',_done); img.addEventListener('error',_done);
+    if(img.complete) _done();
+  }); }
 }
 // postMessage API: {type:'set',param:'headX',value:0.5} or {type:'pose',name:'smile'}
 window.addEventListener('message',e=>{
