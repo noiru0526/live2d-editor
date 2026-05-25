@@ -374,7 +374,8 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
       </div>
       <div class="lsec-body" id="mesh-body">
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
-        <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成</button>
+        <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成（グリッド）</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:#a0d0ff" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
@@ -4158,6 +4159,87 @@ function rebuildMesh() {
   const c=parseInt(document.getElementById('mc').value)||8, r=parseInt(document.getElementById('mr').value)||8;
   parts[selPart].buildMesh(c,r); render();
   setStatus(`「${parts[selPart].name}」メッシュ ${c}×${r}`);
+}
+
+// Delaunay triangulation (Bowyer-Watson) for mesh generation
+function rebuildMeshDelaunay() {
+  if (selPart<0||!parts[selPart].img) { setStatus('パーツを選択（画像が必要）'); return; }
+  const pt=parts[selPart];
+  const w=pt.w, h=pt.h;
+  const cols=parseInt(document.getElementById('mc').value)||8;
+  const rows=parseInt(document.getElementById('mr').value)||8;
+  // Sample interior points (skip fully transparent areas if image loaded)
+  const pts=[];
+  // Corners always included
+  pts.push({x:0,y:0},{x:w,y:0},{x:0,y:h},{x:w,y:h});
+  // Grid points, filtered by alpha
+  const offC=document.createElement('canvas'); offC.width=w; offC.height=h;
+  const offCtx=offC.getContext('2d');
+  offCtx.drawImage(pt.img,0,0,w,h);
+  let imgData=null;
+  try{ imgData=offCtx.getImageData(0,0,w,h); }catch{}
+  const hasAlpha=(x,y)=>{
+    if(!imgData)return true;
+    const i=((Math.round(y)*w+Math.round(x))*4)+3;
+    return imgData.data[i]>20;
+  };
+  // Interior grid samples
+  for(let r=0;r<=rows;r++) for(let c=0;c<=cols;c++){
+    const x=c/cols*w, y=r/rows*h;
+    if((c===0||c===cols||r===0||r===rows)||hasAlpha(x,y)) pts.push({x,y});
+  }
+  // Deduplicate nearby points
+  const unique=[];
+  const minDist=Math.min(w,h)/(Math.max(cols,rows)*2);
+  for(const p of pts){
+    if(!unique.some(q=>Math.hypot(p.x-q.x,p.y-q.y)<minDist)) unique.push(p);
+  }
+  // Bowyer-Watson Delaunay
+  function circumcircle(a,b,c){
+    const ax=a.x-c.x,ay=a.y-c.y,bx=b.x-c.x,by=b.y-c.y;
+    const D=2*(ax*(b.y-c.y)+bx*(c.y-a.y)+c.x*(a.y-b.y));
+    if(Math.abs(D)<1e-10)return null;
+    const ux=((ax*ax+ay*ay)*(b.y-c.y)+(bx*bx+by*by)*(c.y-a.y)+(c.x*c.x+(c.y-a.y)*(c.y-a.y))*(a.y-b.y))/D;
+    const uy=((ax*ax+ay*ay)*(c.x-b.x)+(bx*bx+by*by)*(a.x-c.x)+(c.x*c.x+(c.y-a.y)*(c.y-a.y))*(b.x-a.x))/D;
+    const r2=(c.x-ux)*(c.x-ux)+(c.y-uy)*(c.y-uy);
+    return {cx:ux,cy:uy,r2};
+  }
+  // Super triangle
+  const margin=Math.max(w,h)*10;
+  const st=[{x:w/2-margin,y:-margin},{x:w/2+margin,y:h+margin*2},{x:w/2+margin*2,y:-margin}];
+  let tris=[[0,1,2]]; const allPts=[...st,...unique];
+  for(let pi=3;pi<allPts.length;pi++){
+    const p=allPts[pi]; const bad=[]; const edges=[];
+    for(const t of tris){
+      const cc=circumcircle(allPts[t[0]],allPts[t[1]],allPts[t[2]]);
+      if(cc&&(p.x-cc.cx)*(p.x-cc.cx)+(p.y-cc.cy)*(p.y-cc.cy)<=cc.r2+1e-10){
+        bad.push(t);
+        const te=[[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]];
+        for(const e of te){
+          const dup=edges.findIndex(e2=>(e2[0]===e[1]&&e2[1]===e[0])||(e2[0]===e[0]&&e2[1]===e[1]));
+          if(dup>=0)edges.splice(dup,1); else edges.push(e);
+        }
+      }
+    }
+    const kept=tris.filter(t=>!bad.includes(t));
+    tris=[...kept,...edges.map(e=>[e[0],e[1],pi])];
+  }
+  // Remove super-triangle verts
+  const stIdx=new Set([0,1,2]);
+  const finalTris=tris.filter(t=>!t.some(i=>stIdx.has(i))).map(t=>t.map(i=>i-3));
+  // Build mesh from unique points (offset by super-tri)
+  const verts=unique.map(p=>({x:p.x,y:p.y}));
+  // Only keep tris whose centroid is inside alpha mask
+  const goodTris=finalTris.filter(([a,b,c])=>{
+    const cx=(verts[a].x+verts[b].x+verts[c].x)/3;
+    const cy=(verts[a].y+verts[b].y+verts[c].y)/3;
+    return hasAlpha(cx,cy);
+  });
+  if(goodTris.length===0){ setStatus('有効な三角形がありません。グリッドを使用してください'); return; }
+  saveState();
+  pt.mesh={verts,tris:goodTris,cols,rows};
+  pt.initDeforms(); render();
+  setStatus(`「${pt.name}」Delaunayメッシュ: ${verts.length}頂点 ${goodTris.length}三角形`);
 }
 
 // ===== KF LOOP PREVIEW =====
