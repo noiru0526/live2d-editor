@@ -4080,6 +4080,7 @@ ${responsiveCanvas ? `#wrap { position: fixed; inset: 0; display: flex; align-it
 ${bgVideoUrl ? `<video autoplay loop muted playsinline style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;" src="${bgVideoUrl.replace(/"/g,'&quot;')}"></video>` : ''}
 <div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div><div style="width:120px;height:2px;background:rgba(78,124,255,.2);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="load-prog" style="height:100%;width:0%;background:#4e7cff;border-radius:2px;transition:width .4s ease;"></div></div></div>
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
+<script>(()=>{const _fn=parseFloat(new URLSearchParams(location.search).get('fadein'));if(_fn>0&&_fn<=30){const _cc=document.getElementById('c');if(_cc)_cc.style.opacity='0';}})();</script>
 ${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes('b')?'bottom:8px':'top:8px'};${creditPos.includes('r')?'right:12px':'left:12px'};color:${creditColor};font-size:10px;font-family:monospace;pointer-events:none;z-index:50;opacity:.7;white-space:nowrap;">${creditText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
 ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).length>0) ? `<div id="anim-controls" style="position:fixed;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:99;min-width:160px;">
@@ -4150,6 +4151,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -4804,9 +4806,14 @@ class OneEuroFilter{
   reset(){this.x=null;this.dx=0;this.t=null;}
 }
 const _detectFps=(()=>{const _u=new URLSearchParams(location.search);if(_u.get('lowcpu')==='1')return 15;const _f=parseInt(_u.get('fps'),10);return(_f>=5&&_f<60)?_f:0;})(); // 0=no limit; fps>=60 treated as unlimited
+const _fadeinSec=(()=>{const _n=parseFloat(new URLSearchParams(location.search).get('fadein'));return(_n>0&&_n<=30)?_n:0;})();
 async function initTracking(){
   const _lp=document.getElementById('load-prog');
   const _setP=(pct,msg)=>{if(_lp)_lp.style.width=pct+'%';if(loadMsg&&msg)loadMsg.textContent=msg;};
+  const _finishLoading=()=>{
+    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+    if(_fadeinSec>0){const _c=document.getElementById('c');if(_c)requestAnimationFrame(()=>{_c.style.transition='opacity '+_fadeinSec+'s ease';_c.style.opacity='1';});}
+  };
   _setP(10,'MediaPipe 読み込み中... [1/3]');
   let FaceLandmarker,FilesetResolver;
   try{
@@ -4814,15 +4821,21 @@ async function initTracking(){
     FaceLandmarker=v.FaceLandmarker;FilesetResolver=v.FilesetResolver;
   }catch(e){
     stEl.textContent='FaceLandmarker 読込失敗（ネット接続が必要）';stEl.className='err';
-    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}return;
+    _finishLoading(); return;
   }
   _setP(40,'WASM 初期化中... [2/3]');
-  const fsr=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
-  _setP(70,'顔認識モデル 読み込み中... [3/3]');
-  const fl=await FaceLandmarker.createFromOptions(fsr,{
-    baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},
-    outputFaceBlendshapes:true,outputFaceTransformationMatrixes:true,runningMode:'VIDEO',numFaces:1
-  });
+  let fsr,fl;
+  try{
+    fsr=await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+    _setP(70,'顔認識モデル 読み込み中... [3/3]');
+    fl=await FaceLandmarker.createFromOptions(fsr,{
+      baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',delegate:'GPU'},
+      outputFaceBlendshapes:true,outputFaceTransformationMatrixes:true,runningMode:'VIDEO',numFaces:1
+    });
+  }catch(e){
+    stEl.textContent='WASM/モデル読込失敗: '+e.message;stEl.className='err';
+    _finishLoading(); return;
+  }
   // One Euro Filter instances — hx/hy/hz: smooth motion; blink/mouth/brow: fast response
   const OEF={
     hx:new OneEuroFilter(30,1.5,0.007),hy:new OneEuroFilter(30,1.5,0.007),
@@ -4839,12 +4852,12 @@ async function initTracking(){
     stream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
   }catch(e){
     stEl.textContent='Camera: Error [ヒント]';stEl.className='err';
-    if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}return;
+    _finishLoading(); return;
   }
   video.srcObject=stream;video.onloadedmetadata=()=>video.play();
   stEl.textContent='Camera: Active ✓ [ヒント]';stEl.className='ok';
   _setP(100,'');
-  if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+  _finishLoading();
   const pc=document.getElementById('obs-path-code');
   if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
   else if(pc)pc.textContent=location.href;
