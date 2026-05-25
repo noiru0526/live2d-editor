@@ -4182,7 +4182,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
-      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
@@ -5696,21 +5696,40 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
   if(!_channels.length) return;
   const _chSet=new Set(_channels);
   let _ws=null, _wsRetry=0, _wsTimer=null, _wsStopped=false;
+  // Sub/bits effect config
+  const _usp2=new URLSearchParams(location.search);
+  const _subEffect=_usp2.get('subeffect')==='1';
+  const _subPoseName=_usp2.get('subpose')||'';
+  const _bitsThresh=Math.max(1,parseInt(_usp2.get('bitseffect')||'100',10)||100);
+  function _parseTags(raw){const t={};(raw||'').split(';').forEach(p=>{const [k,v]=p.split('=');if(k)t[k]=v||'';});return t;}
+  function _fireSub(tags){
+    if(!_subEffect) return;
+    if(typeof window.triggerRain==='function') window.triggerRain('⭐',20);
+    if(typeof window.triggerFlash==='function') window.triggerFlash('ffc000',0.3);
+    if(_subPoseName){const p=MD?.poses?.find(x=>x.name===_subPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},5000);}}
+  }
   function _handleIrcLine(line){
     if(!line) return;
-    if(line.startsWith('PING ')){
-      try{_ws.send('PONG '+line.slice(5));}catch(_){}
-      return;
-    }
-    const m=line.match(/^(?:@\S+ )?:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
+    if(line.startsWith('PING ')){try{_ws.send('PONG '+line.slice(5));}catch(_){} return;}
+    // Parse IRC tags
+    let tagsRaw='',rest=line;
+    if(line.startsWith('@')){const sp=line.indexOf(' ');tagsRaw=line.slice(1,sp);rest=line.slice(sp+1);}
+    // USERNOTICE = sub/resub/gift sub
+    const un=rest.match(/^:tmi\.twitch\.tv USERNOTICE #([a-z0-9_]+)/i);
+    if(un&&_chSet.has(un[1])){const tags=_parseTags(tagsRaw);const mid=(tags['msg-id']||'').toLowerCase();if(['sub','resub','subgift','submysterygift'].includes(mid))_fireSub(tags);return;}
+    // PRIVMSG with bits tag
+    const m=rest.match(/^:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
     if(!m||!_chSet.has(m[2])) return;
     window.postMessage({type:'noiru-chat',source:'twitch',channel:m[2],user:m[1],msg:m[3]},'*');
+    const tags2=_parseTags(tagsRaw);const bits=parseInt(tags2['bits']||'0',10);
+    if(bits>=_bitsThresh){if(typeof window.triggerFlash==='function')window.triggerFlash('ff40c0',0.2);if(typeof window.triggerRain==='function')window.triggerRain('💎',Math.min(50,Math.floor(bits/10)));}
   }
   function _twitchConnect(){
     if(_wsStopped) return;
     if(_ws&&(_ws.readyState===WebSocket.CONNECTING||_ws.readyState===WebSocket.OPEN)) return;
     _ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
     _ws.onopen=()=>{
+      _ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
       _ws.send('PASS SCHMOOPIIE');
       _ws.send('NICK justinfan'+Math.floor(10000+Math.random()*90000));
       _ws.send('JOIN '+_channels.map(c=>'#'+c).join(','));
