@@ -4200,6 +4200,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fps=N</td><td>顔追跡FPS上限（例: 15・30）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ws=URL</td><td>ゲームWS連携（shake/flash/blur/rain/speak/setPose）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?obsws=URL</td><td>OBS WS v5連携（+?obspassword=PW ?obsscenes=場面:表情）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?sync=CH</td><td>マルチタブ同期（+?syncrole=leader/follower）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
@@ -6176,6 +6177,35 @@ window.addEventListener('message',ev=>{
   }
   _owsConnect();
   window.addEventListener('pagehide',()=>{_owsStopped=true;clearTimeout(_owsTimer);if(_ows&&_ows.readyState<WebSocket.CLOSING)try{_ows.close();}catch(_){} });
+})();
+// Multi-tab sync (?sync=channel&syncrole=leader|follower)
+// Leader: broadcasts pose/param changes; Follower: mirrors leader state
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _syncCh=_usp.get('sync');
+  if(!_syncCh||typeof BroadcastChannel==='undefined') return;
+  const _role=_usp.get('syncrole')||'follower';
+  const _bc=new BroadcastChannel('noiru-sync-'+_syncCh);
+  if(_role==='leader'){
+    // Leader: broadcast current state every 100ms via setInterval
+    setInterval(()=>{
+      if(typeof params==='undefined') return;
+      const msg={type:'noiru-sync',pose:activePose?.name??null,poseBlend:poseBlend??0,params:{}};
+      for(const[k,p]of Object.entries(params)) msg.params[k]=p.val;
+      _bc.postMessage(msg);
+    },100);
+  } else {
+    // Follower: mirror leader state (MD may load async; optional chaining guards)
+    _bc.onmessage=ev=>{
+      const d=ev.data;if(!d||d.type!=='noiru-sync') return;
+      if(d.pose==null){activePose=null;poseBlend=0;}
+      else{const p=MD?.poses?.find(x=>x.name===d.pose);if(p){activePose=p;poseBlend=d.poseBlend??0;}}
+      if(d.params&&typeof params!=='undefined'){
+        for(const[k,v]of Object.entries(d.params)){if(params[k]!==undefined)params[k].val=v;}
+      }
+    };
+  }
+  window.addEventListener('pagehide',()=>_bc.close());
 })();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
