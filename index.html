@@ -4199,6 +4199,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursor=✨</td><td>絵文字カーソル（+?cursorsize=24）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -5779,6 +5780,23 @@ function initChatTriggers(){
   ];
   for(const b of builtins){ if(!presetNames.has(b.keyword)) _chatTriggers.push(b); }
 }
+// ?hotword=word:effect[,word2:effect2,...] — URL-based chat effect triggers
+// Effects: rain rain:🎊 flash shake blur border
+(()=>{
+  const _raw=(new URLSearchParams(location.search)).get('hotword');if(!_raw) return;
+  const _hw=[];
+  _raw.split(',').forEach(pair=>{
+    const _sep=pair.indexOf(':');if(_sep<1) return;
+    const kw=pair.slice(0,_sep).trim().toLowerCase();
+    const eff=pair.slice(_sep+1).trim();
+    if(kw&&eff) _hw.push({keyword:kw,effect:eff});
+  });
+  if(_hw.length){
+    window.addEventListener('load',()=>setTimeout(()=>{
+      _hw.forEach(h=>{if(!_chatTriggers.some(t=>t.keyword===h.keyword))_chatTriggers.push(h);});
+    },600));
+  }
+})();
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
 
 // Twitch IRC direct connection (?twitch=ch or ?twitch=ch1,ch2,ch3)
@@ -5906,6 +5924,14 @@ function _handleChatMsg(rawMsg){
     if(t.param&&params[t.param]!==undefined){
       params[t.param].val=t.value??0;
       setTimeout(()=>{if(params[t.param])params[t.param].val=0;},2000);
+    }
+    if(t.effect){
+      const eff=String(t.effect);
+      if(eff==='rain'||eff.startsWith('rain:')){ const em=eff.split(':')[1]||'⭐'; if(typeof window.triggerRain==='function')window.triggerRain(em,20); }
+      else if(eff==='flash'){ if(typeof window.triggerFlash==='function')window.triggerFlash(); }
+      else if(eff==='shake'){ if(typeof window.triggerShake==='function')window.triggerShake(); }
+      else if(eff==='blur'){ if(typeof window.triggerBlur==='function')window.triggerBlur(); }
+      else if(eff==='border'){ if(typeof window.triggerBorderAlert==='function')window.triggerBorderAlert(); }
     }
     break;
   }
