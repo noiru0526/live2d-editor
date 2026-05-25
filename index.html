@@ -4860,8 +4860,8 @@ async function initTracking(){
           const reY=(reH>0.001)?(ri.y-(reT.y+reB.y)/2)/reH*2:0;
           const leX=(leW>0.001)?(li.x-(leL.x+leR.x)/2)/leW*2:0;
           const leY=(leH>0.001)?(li.y-(leT.y+leB.y)/2)/leH*2:0;
-          rex=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_));
-          rey=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_));
+          rex=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_*curSensEye));
+          rey=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_*curSensEye));
         }
         // Mouth shape A/I/U/E/O from BlendShapes
         const shapeA=Math.max(0,Math.min(1,(bs.jawOpen??0)*S_));
@@ -4917,9 +4917,12 @@ let _posePrev=null, _posePrevT=0; // for smooth transition tracking
 let _autoExprPose=null,_autoExprW=0,_autoExprCool=0,_autoExprManualUntil=0;
 let curSens=SENS;
 let curSensX=1,curSensY=1,curSensZ=1; // per-axis sensitivity multipliers
+let curSensEye=1.0; // iris/gaze sensitivity multiplier (1.0 = default ±1.5 range)
 let curDeadZone=0; // 0..0.4 dead zone for face tracking
 let _faceOffsetX=0,_faceOffsetY=0,_faceOffsetZ=0; // calibration offsets
 try{const _c=JSON.parse(localStorage.getItem('faceCalib')||'{}');_faceOffsetX=_c.ox||0;_faceOffsetY=_c.oy||0;_faceOffsetZ=_c.oz||0;}catch{}
+function _saveTS(patch){try{const s=JSON.parse(localStorage.getItem('trackSettings')||'{}');Object.assign(s,patch);localStorage.setItem('trackSettings',JSON.stringify(s));}catch{}}
+try{const _ts=JSON.parse(localStorage.getItem('trackSettings')||'{}');const _v=Number(_ts.eye);if(Number.isFinite(_v))curSensEye=Math.max(0.2,Math.min(3,_v));}catch{}
 const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
 const exprHUD=document.getElementById('expr-hud');
 const exprList=document.getElementById('expr-list');
@@ -5259,13 +5262,22 @@ document.body.appendChild(_mtBtn);
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#8080ff">Z(傾き)</span><input id="ts-sz" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#8080ff;" oninput="curSensZ=parseFloat(this.value);document.getElementById('ts-sz-val').textContent=this.value"><span id="ts-sz-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:70px;accent-color:#4e7cff;" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:70px;accent-color:#4e7cff;" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>
-<button onclick="curSensX=1;curSensY=1;curSensZ=1;document.getElementById('ts-sx').value=1;document.getElementById('ts-sy').value=1;document.getElementById('ts-sz').value=1;document.getElementById('ts-sx-val').textContent='1';document.getElementById('ts-sy-val').textContent='1';document.getElementById('ts-sz-val').textContent='1';" style="width:100%;background:#1a2040;border:1px solid #3a4470;color:#8090a0;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">軸感度リセット</button>`;
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#c0d0ff">👁 視線</span><input id="ts-eye" type="range" min="0.2" max="3" step="0.05" value="1" style="width:70px;accent-color:#c080ff;" oninput="const _ev=Math.max(0.2,Math.min(3,parseFloat(this.value)));curSensEye=_ev;document.getElementById('ts-eye-val').textContent=_ev.toFixed(2);_saveTS({eye:_ev});"><span id="ts-eye-val">1.00</span></label>
+<button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';_saveTS({eye:1});" style="width:100%;background:#1a2040;border:1px solid #3a4470;color:#8090a0;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">軸・視線感度リセット</button>`;
   document.body.appendChild(panel);
+  // Sync eye slider to persisted value on DOM creation
+  {const te=document.getElementById('ts-eye');const tev=document.getElementById('ts-eye-val');if(te)te.value=curSensEye;if(tev)tev.textContent=curSensEye.toFixed(2);}
   const settBtn=document.createElement('button');
   settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
   settBtn.title='顔追跡の感度・デッドゾーン・スムース設定';
   settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
-  settBtn.onclick=()=>{ const v=panel.style.display==='none'; panel.style.display=v?'block':'none'; settBtn.style.color=v?'#60d890':'#a0d0ff'; };
+  settBtn.onclick=()=>{
+    const v=panel.style.display==='none';
+    panel.style.display=v?'block':'none';
+    settBtn.style.color=v?'#60d890':'#a0d0ff';
+    // Sync eye slider with current value when opening
+    if(v){const te=document.getElementById('ts-eye');const tev=document.getElementById('ts-eye-val');if(te)te.value=curSensEye;if(tev)tev.textContent=curSensEye.toFixed(2);}
+  };
   document.body.appendChild(settBtn);
 })();
 // Voice recognition: keyword → pose/param trigger
