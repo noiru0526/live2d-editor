@@ -4079,6 +4079,12 @@ canvas.mirrored{transform:scaleX(-1);}
 #vol-viz .vb{width:6px;height:1px;border-radius:2px 2px 0 0;background:rgba(78,200,255,.7);opacity:.25;transition:height .07s ease,opacity .07s ease;}
 @keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 #nameplate{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.82);border:1px solid rgba(78,124,255,.35);border-radius:6px;padding:4px 18px;font-family:'Segoe UI',monospace;font-size:14px;color:#e8f0ff;pointer-events:none;z-index:50;white-space:nowrap;letter-spacing:.04em;backdrop-filter:blur(4px);}
+#death-counter{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#ff6060;background:rgba(30,10,10,.8);border:1px solid rgba(255,80,80,.3);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.04em;backdrop-filter:blur(4px);}
+#death-counter.show{display:block;}
+#songcard{display:none;position:fixed;z-index:56;background:rgba(10,14,30,.9);border:1px solid rgba(78,124,255,.35);border-radius:8px;padding:8px 14px;font-family:'Segoe UI',sans-serif;pointer-events:none;max-width:260px;backdrop-filter:blur(6px);}
+#songcard.show{display:block;animation:cbslide .3s ease both;}
+#songcard .sc-title{font-size:13px;font-weight:700;color:#e8f0ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#songcard .sc-artist{font-size:10px;color:#6878a0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #streamtimer{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#a0ffc0;background:rgba(10,14,30,.75);border:1px solid rgba(78,255,160,.2);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.06em;backdrop-filter:blur(4px);}
 #streamtimer.show{display:block;}
 #ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
@@ -4170,6 +4176,8 @@ ${includeCtrlPanel ? `
 <div id="vignette-ov"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
+<div id="death-counter"></div>
+<div id="songcard"><div class="sc-title" id="sc-title">曲名</div><div class="sc-artist" id="sc-artist">アーティスト</div></div>
 <div id="streamtimer"></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="poptext-ov"></div>
@@ -4225,6 +4233,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -6538,6 +6548,57 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='poptext') return;
     if(typeof window.showPopText==='function') window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size});
   },{passive:true});
+})();
+// Death counter: ?deathcounter=N (?deathcounterpos= ?deathcounterlabel= ?deathcounterkey=`)
+(()=>{
+  const _usp5=new URLSearchParams(location.search);
+  const _raw5=_usp5.get('deathcounter');if(_raw5===null) return;
+  const _dc=document.getElementById('death-counter');if(!_dc) return;
+  let _count=Math.max(0,parseInt(_raw5)||0);
+  const _lbl=_usp5.get('deathcounterlabel')||'Deaths';
+  const _key=(_usp5.get('deathcounterkey')||'`').slice(0,4);
+  const _pos=_usp5.get('deathcounterpos')||'br';
+  const _posMap2={tl:'top:10px;left:10px',tr:'top:10px;right:10px',bl:'bottom:38px;left:10px',br:'bottom:38px;right:10px'};
+  (_posMap2[_pos]||_posMap2.br).split(';').forEach(s=>{const[k,v]=s.split(':');if(k)_dc.style[k.trim()]=v;});
+  function _render(){_dc.textContent=`💀 ${_lbl}: ${_count}`;};
+  _render();_dc.classList.add('show');
+  document.addEventListener('keydown',ev=>{
+    if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.repeat) return;
+    if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
+    if(ev.key===_key){_count++;_render();ev.preventDefault();}
+    else if(ev.key==='Backspace'&&ev.shiftKey){_count=Math.max(0,_count-1);_render();ev.preventDefault();}
+  });
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd') return;
+    if(d.cmd==='deathAdd'){_count+=Number(d.n)||1;_render();}
+    else if(d.cmd==='deathSet'){_count=Math.max(0,parseInt(d.n)||0);_render();}
+    else if(d.cmd==='deathReset'){_count=0;_render();}
+  },{passive:true});
+})();
+// Now playing card: noiru-cmd {cmd:'nowplaying', title, artist, album, dur}
+(()=>{
+  const _sc=document.getElementById('songcard');
+  const _sct=document.getElementById('sc-title');
+  const _sca=document.getElementById('sc-artist');
+  if(!_sc||!_sct||!_sca) return;
+  // Position: bottom-left by default
+  const _usp6=new URLSearchParams(location.search);
+  const _scpos=_usp6.get('songcardpos')||'bl';
+  const _scpm={tl:'top:10px;left:10px',tr:'top:10px;right:10px',bl:'bottom:38px;left:10px',br:'bottom:38px;right:10px'};
+  (_scpm[_scpos]||_scpm.bl).split(';').forEach(s=>{const[k,v]=s.split(':');if(k)_sc.style[k.trim()]=v;});
+  let _scTimer=null;
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='nowplaying') return;
+    if(!d.title){_sc.classList.remove('show');return;}
+    _sct.textContent=String(d.title).slice(0,80);
+    _sca.textContent=[d.artist,d.album].filter(Boolean).join(' — ').slice(0,80)||'';
+    _sc.classList.remove('show');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>_sc.classList.add('show')));
+    clearTimeout(_scTimer);
+    const _dur=Number(d.dur)||0;
+    if(_dur>0) _scTimer=setTimeout(()=>_sc.classList.remove('show'),_dur*1000);
+  },{passive:true});
+  // noiru-cmd nowplaying も postMessage API 経由で処理済み
 })();
 // Ticker tape (?ticker=TEXT &tickerspeed=80 &tickercolor=RRGGBB &tickerbg=RRGGBB)
 (()=>{
