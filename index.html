@@ -4535,8 +4535,10 @@ function draw(ts){
   const _ps = _poseLocked && _poseLockSnap && _poseLockSnap._wasTracking ? _poseLockSnap : null;
   const _trackSrc = _ps || S;
   const _useTracking = _ps ? true : tracking;
+  // Surprise: strong jaw open → subtle head pull-back (slightly upward/backward lean)
+  const _surprisePull=Math.max(0,(S.mo-.45)*.3);
   params.headX.val=_useTracking?_trackSrc.hx:(idleFull?breathX:0);
-  params.headY.val=_useTracking?_trackSrc.hy:(idleFull?breathY:0);
+  params.headY.val=_useTracking?_trackSrc.hy-_surprisePull:(idleFull?breathY:0);
   params.headZ.val=_useTracking?_trackSrc.hz:(idleFull?breathZ:0);
   // Subtle breathing overlay during tracking (low-amplitude so it doesn't fight the tracked head)
   if(_useTracking){if(params.body)params.body.val=Math.sin(S.bp)*.18+Math.sin(S.bp*.617)*.08;}
