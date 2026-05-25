@@ -8741,7 +8741,7 @@ function renderPartsList() {
       const dur = M.animation.duration || 3;
       const mkTrack = (pfx, def, mn, mx) => {
         const k = '__'+pfx+':'+part.id;
-        if (!M.animation.tracks[k]) M.animation.tracks[k]=[{t:0,v:def,interp:'smooth'},{t:dur,v:def,interp:'smooth'}];
+        if (!M.animation.tracks[k]) { pushAnimUndo('フィルタートラック追加'); M.animation.tracks[k]=[{t:0,v:def,interp:'smooth'},{t:dur,v:def,interp:'smooth'}]; }
       };
       showCtxMenu(e.clientX, e.clientY, [
         {icon:'⬜', label:'不透明度トラック', action:()=>{ mkTrack('opacity',1,0,1); renderPartsList(); drawMultiTimeline(); }},
@@ -8750,7 +8750,7 @@ function renderPartsList() {
         {icon:'🎨', label:'彩度トラック', action:()=>{ mkTrack('saturation',100,0,200); renderPartsList(); drawMultiTimeline(); }},
         {icon:'🌈', label:'色相トラック', action:()=>{ mkTrack('hue',0,-180,180); renderPartsList(); drawMultiTimeline(); }},
         null,
-        ...fxKeys.filter(_hasTrack).map(pfx=>({icon:'🗑',label:`「${pfx}」トラックを削除`,action:()=>{ delete M.animation.tracks['__'+pfx+':'+part.id]; renderPartsList(); drawMultiTimeline(); }})),
+        ...fxKeys.filter(_hasTrack).map(pfx=>({icon:'🗑',label:`「${pfx}」トラックを削除`,action:()=>{ const _k='__'+pfx+':'+part.id; if(!M.animation.tracks[_k])return; pushAnimUndo('フィルタートラック削除'); delete M.animation.tracks[_k]; renderPartsList(); drawMultiTimeline(); }})),
       ]);
     });
     actions.appendChild(fxBtn);
