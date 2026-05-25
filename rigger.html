@@ -6595,6 +6595,14 @@ canvas.addEventListener('wheel',e=>{
     _brushRadius = Math.max(10, Math.min(400, _brushRadius * (e.deltaY>0 ? 0.88 : 1.12)));
     updateBrushRadiusUI(); render(); return;
   }
+  if (mode==='weightpaint' && e.shiftKey) {
+    // Shift+wheel: brush size. Normal wheel keeps zoom.
+    const _r=_wpBrushR*(e.deltaY>0?0.88:1.12);
+    _wpBrushR=Math.round(Math.max(5,Math.min(150,Number.isFinite(_r)?_r:30)));
+    const sl=document.getElementById('wp-r'); if(sl)sl.value=_wpBrushR;
+    const rv=document.getElementById('wp-rv'); if(rv)rv.textContent=_wpBrushR;
+    render(); return;
+  }
   const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
   const f=e.deltaY>0?.88:1.12;
   VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; VS*=f; updateZoomHUD(); render();
