@@ -5585,13 +5585,14 @@ function initChatTriggers(){
 }
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
 
-// Twitch IRC direct connection (?twitch=channelname)
+// Twitch IRC direct connection (?twitch=ch or ?twitch=ch1,ch2,ch3)
 // Only handles IRC connection; trigger processing is delegated to _handleChatMsg (defined below).
 (()=>{
   const _rawCh=(new URLSearchParams(location.search)).get('twitch');
   if(!_rawCh) return;
-  const _ch=_rawCh.trim().toLowerCase().replace(/^#/,'');
-  if(!/^[a-z0-9_]{3,25}$/.test(_ch)) return;
+  const _channels=_rawCh.split(',').map(c=>c.trim().toLowerCase().replace(/^#/,'')).filter(c=>/^[a-z0-9_]{3,25}$/.test(c));
+  if(!_channels.length) return;
+  const _chSet=new Set(_channels);
   let _ws=null, _wsRetry=0, _wsTimer=null, _wsStopped=false;
   function _handleIrcLine(line){
     if(!line) return;
@@ -5600,8 +5601,8 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
       return;
     }
     const m=line.match(/^(?:@\S+ )?:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
-    if(!m||m[2]!==_ch) return;
-    window.postMessage({type:'noiru-chat',source:'twitch',user:m[1],msg:m[3]},'*');
+    if(!m||!_chSet.has(m[2])) return;
+    window.postMessage({type:'noiru-chat',source:'twitch',channel:m[2],user:m[1],msg:m[3]},'*');
   }
   function _twitchConnect(){
     if(_wsStopped) return;
@@ -5610,10 +5611,10 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
     _ws.onopen=()=>{
       _ws.send('PASS SCHMOOPIIE');
       _ws.send('NICK justinfan'+Math.floor(10000+Math.random()*90000));
-      _ws.send('JOIN #'+_ch);
+      _ws.send('JOIN '+_channels.map(c=>'#'+c).join(','));
       _wsRetry=0;
       const s=document.getElementById('status-el');
-      if(s)s.textContent='Twitch: #'+_ch+' 接続中';
+      if(s)s.textContent='Twitch: '+_channels.map(c=>'#'+c).join(', ')+' 接続中';
     };
     _ws.onmessage=ev=>{
       const lines=String(ev.data).split('\r\n');
