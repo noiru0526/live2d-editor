@@ -3785,6 +3785,22 @@ function showExportHotkeyDialog() {
   overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
 }
 
+let _quickExporting=false;
+async function quickExportHTML() {
+  if (_quickExporting) return;
+  if (!M.img) { document.getElementById('lbl-status').textContent='画像を開いてください'; return; }
+  _quickExporting=true;
+  try {
+    const raw=localStorage.getItem('noiru-last-export-settings');
+    if(raw) try{_applyExportSettings(JSON.parse(raw));}catch(err){console.warn('設定復元失敗',err);}
+    await exportHTML();
+    document.getElementById('lbl-status').textContent='クイックエクスポート完了 (Ctrl+Shift+E)';
+  } catch(err) {
+    console.error(err);
+    document.getElementById('lbl-status').textContent='クイックエクスポートに失敗しました';
+  } finally { _quickExporting=false; }
+}
+
 function saveExportPreset() {
   const name = prompt('プリセット名を入力:', 'プリセット1');
   if (!name) return;
@@ -3844,6 +3860,7 @@ async function exportHTML(filePath) {
     a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
     a.download='noiru-avatar.html'; a.click();
   }
+  try{localStorage.setItem('noiru-last-export-settings',JSON.stringify(_getExportSettings()));}catch(err){console.warn('設定保存失敗',err);}
 }
 
 async function exportAllClipsHTML() {
@@ -5675,6 +5692,7 @@ document.addEventListener('keydown',e=>{
   if ((e.ctrlKey&&e.key==='y')||(e.ctrlKey&&e.shiftKey&&e.key==='Z')) { redo(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='s') { saveModel(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
+  if (!e.repeat&&e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='e') { quickExportHTML(); e.preventDefault(); }
   // KF copy/paste (anim mode)
   if (e.ctrlKey&&e.key==='c'&&ST.animMode&&tlSelectedKFs.size>0) {
     const kfToName=new Map();
