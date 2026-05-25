@@ -4228,6 +4228,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hue=N</td><td>色相回転（度）/ ?sat=N 彩度% / ?bri=N 明度% / ?con=N コントラスト%</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5512,6 +5513,17 @@ function applyPoseBlend(dt){
       const _op=Math.min(1,Math.max(0,Number(_raw)));if(!(_op>0)) return;
       const _v=document.getElementById('vignette-ov');if(!_v) return;
       _v.style.opacity=String(_op);_v.style.display='block';
+    })();
+    // Frame overlay: ?frame=URL (PNG decoration over avatar, z-index 94)
+    (()=>{
+      const _url=usp.get('frame');if(!_url) return;
+      const _fit=usp.get('framefit')||'contain';
+      const _op=Math.min(1,Math.max(0,Number(usp.get('frameopacity'))||1));
+      const _fi=document.createElement('img');
+      _fi.src=_url;
+      _fi.style.cssText=`position:fixed;inset:0;width:100%;height:100%;object-fit:${['contain','cover','fill'].includes(_fit)?_fit:'contain'};pointer-events:none;z-index:94;opacity:${_op};`;
+      _fi.setAttribute('crossorigin','anonymous');
+      document.body.appendChild(_fi);
     })();
     // Avatar transform: ?scale=N ?x=N ?y=N (applied to #wrap to compose with mirror)
     (()=>{
