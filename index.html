@@ -4016,6 +4016,7 @@ canvas{display:block;image-rendering:auto;}
 #st.ok{color:#70d870;}#st.err{color:#f08080;}
 #obs-tip{display:none;position:fixed;top:40px;right:10px;background:rgba(20,24,44,.95);border:1px solid #3a4470;border-radius:6px;padding:12px 14px;color:#c8d4f0;font-size:11px;font-family:sans-serif;line-height:1.8;max-width:260px;z-index:99;}
 #expr-hud{display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 12px;color:#ffd060;font-size:11px;font-family:monospace;pointer-events:none;z-index:99;}
+#dbg-ov{display:none;position:fixed;top:10px;left:10px;background:rgba(0,0,0,.78);color:#00e080;font-size:9.5px;font-family:monospace;padding:6px 10px;border-radius:5px;pointer-events:none;z-index:99;line-height:1.65;min-width:160px;}
 #expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(10,12,22,.75);border:1px solid rgba(60,70,110,.5);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
 #expr-list .el{color:#8898c0;} #expr-list .el.active{color:#ffd060;font-weight:bold;}
 #pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
@@ -4080,6 +4081,7 @@ ${includeCtrlPanel ? `
   </div>`).join('')}
 </div>` : ''}
 <div id="expr-hud"></div>
+<div id="dbg-ov"></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
 
@@ -4812,6 +4814,9 @@ async function initTracking(){
         const bs={};
         if(result.faceBlendshapes?.[0])result.faceBlendshapes[0].categories.forEach(c=>bs[c.categoryName]=c.score);
         _trackLastSeen=now; tracking=true;
+        // FPS counter for debug overlay
+        _dbgFpsCnt++;
+        if(now-_dbgFpsLast>=1000){_dbgFps=_dbgFpsCnt;_dbgFpsCnt=0;_dbgFpsLast=now;}
         // Auto-calibrate 1.5s after first face detection (skip if already calibrated this session)
         if(!_autoCalibDone){
           if(_firstTrackTime===0)_firstTrackTime=now;
@@ -4926,6 +4931,28 @@ try{const _ts=JSON.parse(localStorage.getItem('trackSettings')||'{}');const _v=N
 const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
 const exprHUD=document.getElementById('expr-hud');
 const exprList=document.getElementById('expr-list');
+const _dbgOv=document.getElementById('dbg-ov');
+let _dbgMode=false,_dbgFpsCnt=0,_dbgFpsLast=performance.now(),_dbgFps=0,_dbgTimer=null;
+function _dbgUpdate(){
+  if(!_dbgMode||!_dbgOv)return;
+  const f=(v,d=2)=>Number.isFinite(v)?v.toFixed(d):'?';
+  const fps=tracking?_dbgFps:0;
+  _dbgOv.innerHTML=`<div style="color:#4e7cff;margin-bottom:2px;font-size:10px;">🔍 追跡デバッグ</div>`+
+    `<div>状態: ${tracking?'<span style="color:#00ff80">✓ 追跡中</span>':'<span style="color:#ff4060">✗ ロスト</span>'} | <span style="color:#ffd060">${fps}fps</span></div>`+
+    `<div>頭 X:${f(S.hx)} Y:${f(S.hy)} Z:${f(S.hz)}</div>`+
+    `<div>瞬き L:${f(S.bl)} R:${f(S.br)}</div>`+
+    `<div>口開:${f(S.mo)} (A:${f(S.ma)} E:${f(S.me)})</div>`+
+    `<div>眉 L:${f(S.bwl)} R:${f(S.bwr)}</div>`+
+    `<div>視線 X:${f(S.ex)} Y:${f(S.ey)}</div>`+
+    (S.ck>0.05?`<div>頬: ${f(S.ck)}</div>`:'')+
+    `<div style="color:#3a5a8a;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
+}
+function _setDbgMode(on){
+  _dbgMode=on;
+  if(_dbgOv)_dbgOv.style.display=on?'block':'none';
+  if(on){_dbgFpsCnt=0;_dbgFps=0;_dbgFpsLast=performance.now();_dbgUpdate();if(!_dbgTimer)_dbgTimer=setInterval(_dbgUpdate,150);}
+  else{clearInterval(_dbgTimer);_dbgTimer=null;}
+}
 function updateExprList(activeIdx) {
   if (!exprList) return;
   if (EXPR_POSES.length>0) exprList.style.display='block';
@@ -4986,6 +5013,8 @@ document.addEventListener('keydown',ev=>{
     const st=document.getElementById('st');
     if(st) st.style.display=st.style.display==='none'?'':'none';
   }
+  // D: debug overlay (tracking quality monitor)
+  if (ev.key==='d'||ev.key==='D') { _setDbgMode(!_dbgMode); ev.preventDefault(); }
   // Space: play/pause animation
   if (ev.key===' ' && typeof toggleExportAnim==='function' && MD.animation) {
     toggleExportAnim(); ev.preventDefault();
@@ -5022,7 +5051,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
