@@ -5043,6 +5043,26 @@ function confirmAddDeformer() {
   setStatus(`${icon} デフォーマー「${nm}」を作成`);
 }
 function cancelAddDeformer() { document.getElementById('defmod').style.display = 'none'; }
+function cloneDeformer(di) {
+  if (di < 0 || di >= deformers.length) return;
+  saveState();
+  const src = deformers[di];
+  const clone = JSON.parse(JSON.stringify(src.toJSON()));
+  clone.id = 'def_' + Date.now();
+  clone.name = src.name + ' コピー';
+  let def;
+  if (src.type === 'rotation') { def = new RotationDeformer(clone.name); }
+  else if (src.type === 'bone') { def = new BoneDeformer(clone.name); }
+  else { def = new WarpDeformer(clone.name); }
+  Object.assign(def, clone);
+  def.id = 'def_' + Date.now() + Math.random().toString(36).slice(2,6);
+  def.name = clone.name;
+  def.parentDeformerId = src.parentDeformerId; // inherit parent
+  deformers.push(def);
+  selDeformer = deformers.length - 1;
+  updatePartsUI(); updateDeformerPropsUI(); buildDeformerTree(); render();
+  setStatus(`デフォーマー「${def.name}」を複製`);
+}
 function deleteDeformer(di) {
   if (di < 0 || di >= deformers.length) return;
   saveState();
@@ -5190,6 +5210,8 @@ function buildDeformerTree() {
     row.oncontextmenu = (e) => {
       e.preventDefault();
       const items = [
+        {icon:'📋',label:'複製', action:()=>cloneDeformer(idx)},
+        null,
         {icon:'⬡',label:'親なし（ルートへ）', action:()=>{ saveState(); setParentId(d,null); buildDeformerTree(); render(); }},
         ...deformers.filter((_,i2)=>i2!==idx).map(d2=>({
           icon:typeIcon[d2.type]||'?',
