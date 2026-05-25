@@ -4192,7 +4192,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">C</td><td>コントロールパネル</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">P</td><td>パラメータパネル</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">D</td><td>追跡デバッグ表示</td></tr>
-      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">J / F / B</td><td>シェイク / フラッシュ / ブラー</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">J / F / B / G</td><td>シェイク / フラッシュ / ブラー / グリッチ</td></tr>
       <tr><td colspan="2" style="color:#3a5070;font-size:10px;padding-top:6px;">─── URLパラメータ ───</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
@@ -5298,12 +5298,40 @@ document.addEventListener('keydown',ev=>{
     _cv.style.filter=`blur(${_a}px)`;
     _blurTimer=setTimeout(()=>{_cv.style.filter='blur(0px)';setTimeout(()=>_cv.style.transition='',_d*250);},_d*750);
   };
+  let _glitchTimer=null;
+  window.triggerGlitch=function(intensity,dur){
+    const _i=Math.max(1,Math.min(10,Number(intensity)||4));
+    const _d=Math.max(0.1,Math.min(3,Number(dur)||0.6));
+    const _cv=document.getElementById('c');const _wrap=document.getElementById('wrap');
+    if(!_wrap) return;
+    clearTimeout(_glitchTimer);
+    const _end=performance.now()+_d*1000;
+    let _raf2;
+    function _step2(now){
+      if(now>_end){
+        _wrap.style.transform=_wrap.dataset.baseTransform||'';
+        if(_cv) _cv.style.filter='';
+        _glitchTimer=null;return;
+      }
+      const x=(Math.random()-.5)*_i*4,y=(Math.random()-.5)*_i;
+      const sk=(Math.random()-.5)*_i*0.8;
+      const base=_wrap.dataset.baseTransform||'';
+      _wrap.style.transform=`${base} translate(${x.toFixed(1)}px,${y.toFixed(1)}px) skewX(${sk.toFixed(1)}deg)`;
+      if(_cv&&Math.random()>.6){
+        const h=Math.floor(Math.random()*360);
+        _cv.style.filter=`hue-rotate(${h}deg) saturate(200%) contrast(130%)`;
+      } else if(_cv){_cv.style.filter='';}
+      _glitchTimer=setTimeout(()=>requestAnimationFrame(_step2),40+Math.random()*60);
+    }
+    requestAnimationFrame(_step2);
+  };
   document.addEventListener('keydown',ev=>{
     if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.repeat) return;
     if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
     if(ev.key==='j'||ev.key==='J'){window.triggerShake();ev.preventDefault();}
     else if(ev.key==='f'||ev.key==='F'){window.triggerFlash();ev.preventDefault();}
     else if(ev.key==='b'||ev.key==='B'){window.triggerBlur();ev.preventDefault();}
+    else if(ev.key==='g'||ev.key==='G'){window.triggerGlitch();ev.preventDefault();}
   });
 })();
 // Keyup: release Shift+1〜9 momentary pose → restore default
@@ -6191,8 +6219,9 @@ function _handleChatMsg(rawMsg){
     switch(d.cmd){
       case 'shake': if(typeof window.triggerShake==='function')window.triggerShake(d.intensity,d.dur); break;
       case 'flash': if(typeof window.triggerFlash==='function')window.triggerFlash(d.color,d.dur); break;
-      case 'blur':  if(typeof window.triggerBlur==='function')window.triggerBlur(d.amount,d.dur); break;
-      case 'rain':  if(typeof window.triggerRain==='function')window.triggerRain(d.emoji,d.count); break;
+      case 'blur':   if(typeof window.triggerBlur==='function')window.triggerBlur(d.amount,d.dur); break;
+      case 'glitch': if(typeof window.triggerGlitch==='function')window.triggerGlitch(d.intensity,d.dur); break;
+      case 'rain':   if(typeof window.triggerRain==='function')window.triggerRain(d.emoji,d.count); break;
       case 'borderAlert': if(typeof window.triggerBorderAlert==='function')window.triggerBorderAlert(d.color,d.dur); break;
       case 'speak': if(typeof window.speak==='function')window.speak(d.text,{rate:d.rate,pitch:d.pitch,volume:d.volume,voice:d.voice}); break;
       case 'setPose': {
@@ -6278,6 +6307,9 @@ window.addEventListener('message',ev=>{
       reply({ok:true}); break;
     case 'grade':
       if(typeof window.setGrade==='function') window.setGrade(d.hue,d.sat,d.bri,d.con);
+      reply({ok:true}); break;
+    case 'glitch':
+      if(typeof window.triggerGlitch==='function') window.triggerGlitch(d.intensity,d.dur);
       reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
