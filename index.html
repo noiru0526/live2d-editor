@@ -4046,6 +4046,22 @@ canvas{display:block;image-rendering:auto;}
 #chat-ov .cb{background:rgba(10,12,26,.82);border:1px solid rgba(78,124,255,.28);border-radius:10px;padding:5px 10px;font-size:11.5px;line-height:1.45;color:#dde4ff;animation:cmfade 8s forwards;word-break:break-word;}
 #chat-ov .cb .cu{color:#7ec8ff;font-weight:700;margin-right:5px;}
 #chat-ov.show{display:block;}
+/* Chat bubble (?chatbubble=1) */
+#cb-ov{display:none;position:fixed;z-index:97;pointer-events:none;font-family:'Segoe UI',sans-serif;max-width:320px;}
+#cb-ov.show{display:block;}
+#cb-ov .cbb{background:rgba(12,15,30,.88);border:1px solid rgba(78,124,255,.4);border-radius:14px;padding:8px 14px;font-size:12px;color:#dde4ff;position:relative;word-break:break-word;line-height:1.5;backdrop-filter:blur(6px);box-shadow:0 2px 12px rgba(0,0,0,.5);animation:cbslide .25s ease forwards;}
+#cb-ov .cbu{color:#7ec8ff;font-weight:700;margin-right:5px;font-size:11px;}
+#cb-ov.pos-tl{top:16px;left:16px;}
+#cb-ov.pos-tc{top:16px;left:50%;transform:translateX(-50%);}
+#cb-ov.pos-tr{top:16px;right:16px;}
+#cb-ov.pos-bl{bottom:70px;left:16px;}
+#cb-ov.pos-bc{bottom:70px;left:50%;transform:translateX(-50%);}
+#cb-ov.pos-br{bottom:70px;right:16px;}
+#cb-ov.pos-tc .cbb::after,#cb-ov.pos-tl .cbb::after,#cb-ov.pos-tr .cbb::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-bottom:0;border-top-color:rgba(78,124,255,.4);}
+#cb-ov.pos-bc .cbb::after,#cb-ov.pos-bl .cbb::after,#cb-ov.pos-br .cbb::after{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top:0;border-bottom-color:rgba(78,124,255,.4);}
+@keyframes cbslide{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+#cb-ov.hiding .cbb{animation:cbfade .4s ease forwards;}
+@keyframes cbfade{to{opacity:0;transform:translateY(-4px);}}
 canvas.mirrored{transform:scaleX(-1);}
 /* Volume visualizer */
 #vol-viz{display:none;position:fixed;bottom:10px;right:10px;width:48px;height:28px;z-index:98;pointer-events:none;}
@@ -4118,6 +4134,7 @@ ${includeCtrlPanel ? `
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
 <div id="chat-ov"><div class="cm"></div></div>
+<div id="cb-ov"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
@@ -4164,6 +4181,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5775,6 +5793,37 @@ function _handleChatMsg(rawMsg){
     _cm.appendChild(cb);
     while(_cm.children.length>_MAX) _cm.removeChild(_cm.firstChild);
     cb.addEventListener('animationend',()=>cb.remove(),{once:true});
+  });
+})();
+// Chat bubble (?chatbubble=1) — shows latest chat message as speech bubble near avatar
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatbubble')!=='1') return;
+  const _ov=document.getElementById('cb-ov');
+  if(!_ov) return;
+  const _validPos=['tl','tc','tr','bl','bc','br'];
+  const _p=_validPos.includes(_usp.get('chatbubble_pos')??'')?_usp.get('chatbubble_pos'):'tc';
+  _ov.classList.add('pos-'+_p);
+  const _rawT=Number(_usp.get('chatbubble_time'));
+  const _dispMs=(Number.isFinite(_rawT)&&_rawT>=1&&_rawT<=30)?_rawT*1000:6000;
+  const _queue=[];let _showing=false;let _hideTimer=null;
+  function _show(user,msg){
+    const el=document.createElement('div');el.className='cbb';
+    if(user){const s=document.createElement('span');s.className='cbu';s.textContent=user+':';el.appendChild(s);}
+    el.appendChild(document.createTextNode(msg));
+    _ov.innerHTML='';_ov.appendChild(el);_ov.classList.add('show');_ov.classList.remove('hiding');_showing=true;
+    if(_hideTimer) clearTimeout(_hideTimer);
+    _hideTimer=setTimeout(()=>{
+      _ov.classList.add('hiding');
+      setTimeout(()=>{_ov.classList.remove('show','hiding');_ov.innerHTML='';_showing=false;
+        if(_queue.length>0){const n=_queue.shift();_show(n.user,n.msg);}},400);
+    },_dispMs);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||typeof d!=='object'||d.type!=='noiru-chat') return;
+    const msg=(typeof d.msg==='string'?d.msg.trim():'').slice(0,200);if(!msg) return;
+    const user=typeof d.user==='string'?d.user.trim().slice(0,32):'';
+    if(!_showing){_show(user,msg);}else if(_queue.length<3){_queue.push({user,msg});}
   });
 })();
 window.addEventListener('message',ev2=>{
