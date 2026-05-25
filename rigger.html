@@ -76,7 +76,7 @@ body{background:#12151f;color:#cdd6f4;font-family:'Segoe UI',system-ui,sans-seri
 #cw{flex:1;background:#080b10;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #c{image-rendering:pixelated;cursor:crosshair}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(8,11,16,.9);border:1px solid #2a3a5a;color:#6080a0;font-size:9px;padding:3px 12px;border-radius:12px;pointer-events:none;display:none}
-#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(8,11,16,.8);border:1px solid #1e2638;border-radius:3px;padding:2px 8px;font-size:9px;color:#3a4a6a;pointer-events:none;font-family:monospace}
+#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(8,11,16,.8);border:1px solid #1e2638;border-radius:3px;padding:2px 8px;font-size:9px;color:#3a4a6a;pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
 #coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(8,11,16,.8);border:1px solid #1e2638;border-radius:3px;padding:2px 8px;font-size:9px;color:#3a4a6a;pointer-events:none;font-family:monospace}
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(124,58,237,.2);border:1px solid #7c3aed;border-radius:3px;padding:2px 8px;font-size:9px;color:#c4b5fd;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
@@ -6605,7 +6605,7 @@ canvas.addEventListener('wheel',e=>{
   }
   const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
   const f=e.deltaY>0?.88:1.12;
-  VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; VS*=f; updateZoomHUD(); render();
+  VS=Math.max(0.05,Math.min(40,VS*f)); VOX=mx-(mx-VOX)*f; VOY=my-(my-VOY)*f; updateZoomHUD(); render();
 },{passive:false});
 
 canvas.addEventListener('contextmenu', e => {
