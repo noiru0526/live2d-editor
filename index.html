@@ -4082,6 +4082,8 @@ canvas.mirrored{transform:scaleX(-1);}
 #ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
 #ticker-ov.show{display:flex;align-items:center;}
 #ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:#a0d0ff;letter-spacing:.04em;}
+#poptext-ov{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.7);opacity:0;pointer-events:none;z-index:200;font-family:'Segoe UI',sans-serif;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+#poptext-ov.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 #countdown-ov{display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.88);border:1px solid rgba(78,124,255,.4);border-radius:8px;padding:6px 22px;font-family:'Segoe UI',monospace;color:#e8f0ff;pointer-events:none;z-index:50;text-align:center;backdrop-filter:blur(6px);transition:opacity .6s;}
 #countdown-ov.show{display:block;}
 #countdown-ov .cd-lbl{font-size:9px;color:#6080c0;text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
@@ -4162,6 +4164,7 @@ ${includeCtrlPanel ? `
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
+<div id="poptext-ov"></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
@@ -4209,6 +4212,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursor=✨</td><td>絵文字カーソル（+?cursorsize=24）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -6323,6 +6327,9 @@ window.addEventListener('message',ev=>{
     case 'glitch':
       if(typeof window.triggerGlitch==='function') window.triggerGlitch(d.intensity,d.dur);
       reply({ok:true}); break;
+    case 'poptext':
+      if(typeof window.showPopText==='function') window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size});
+      reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
 });
@@ -6414,6 +6421,41 @@ window.addEventListener('message',ev=>{
     };
   }
   window.addEventListener('pagehide',()=>_bc.close());
+})();
+// Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
+(()=>{
+  const _pov=document.getElementById('poptext-ov');if(!_pov) return;
+  let _ptTimer=null;
+  window.showPopText=function(text,opts){
+    if(typeof text!=='string'||!text.trim()) return;
+    const _dur=Math.min(10,Math.max(0.5,Number(opts?.dur)||3));
+    const _col=opts?.color?'#'+String(opts.color).replace(/^#/,''):'#fff';
+    const _sz=Math.min(72,Math.max(16,Number(opts?.size)||36));
+    clearTimeout(_ptTimer);
+    _pov.textContent=text.slice(0,120);
+    _pov.style.color=_col;_pov.style.fontSize=_sz+'px';
+    _pov.classList.remove('show');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      _pov.classList.add('show');
+      _ptTimer=setTimeout(()=>{_pov.classList.remove('show');},_dur*1000);
+    }));
+  };
+  // URL: ?poptext=TEXT (?poptextdelay=N ?poptextdur=N ?poptextcolor=HEX ?poptextsize=N)
+  const _usp2=new URLSearchParams(location.search);
+  const _pt=_usp2.get('poptext');
+  if(_pt){
+    const _delay=Math.max(0,Number(_usp2.get('poptextdelay'))||0);
+    setTimeout(()=>window.showPopText(_pt,{
+      dur:Number(_usp2.get('poptextdur'))||3,
+      color:_usp2.get('poptextcolor')||'',
+      size:Number(_usp2.get('poptextsize'))||36
+    }),_delay*1000);
+  }
+  // noiru-cmd: {cmd:'poptext', text, dur, color, size}
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='poptext') return;
+    if(typeof window.showPopText==='function') window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size});
+  },{passive:true});
 })();
 // Ticker tape (?ticker=TEXT &tickerspeed=80 &tickercolor=RRGGBB &tickerbg=RRGGBB)
 (()=>{
