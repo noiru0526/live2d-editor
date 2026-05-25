@@ -4199,6 +4199,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mute=1</td><td>BGMをミュート</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fps=N</td><td>顔追跡FPS上限（例: 15・30）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ws=URL</td><td>ゲームWS連携（shake/flash/blur/rain/speak/setPose）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?obsws=URL</td><td>OBS WS v5連携（+?obspassword=PW ?obsscenes=場面:表情）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
@@ -6097,6 +6098,66 @@ window.addEventListener('message',ev=>{
     default: reply({ok:false,error:'unknown command'});
   }
 });
+// OBS WebSocket v5 (?obsws=URL&obspassword=PW&obsscenes=Scene1:pose1,Scene2:pose2)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _owsUrl=_usp.get('obsws');
+  if(!_owsUrl) return;
+  const _owsPw=_usp.get('obspassword')||'';
+  // Parse scene→pose map: "Scene1:happy,Scene2:sad"
+  const _sceneMap={};
+  (_usp.get('obsscenes')||'').split(',').forEach(pair=>{
+    const [sc,pn]=pair.split(':');if(sc&&pn)_sceneMap[sc.trim()]=pn.trim();
+  });
+  async function _auth(pw,salt,challenge){
+    const enc=new TextEncoder();
+    const _hash=async b=>{const h=await crypto.subtle.digest('SHA-256',enc.encode(b));return btoa(String.fromCharCode(...new Uint8Array(h)));};
+    const b64salt=await _hash(pw+salt);
+    return await _hash(b64salt+challenge);
+  }
+  function _applyScene(name){
+    if(!name) return;
+    const poseName=_sceneMap[name];
+    if(poseName){
+      const p=MD?.poses?.find(x=>x.name===poseName);
+      if(p){activePose=p;poseBlend=0;if(typeof updateExprList==='function'){const idx=MD.poses.indexOf(p);updateExprList(idx+1);}}
+    }
+  }
+  let _ows=null,_owsRetry=0,_owsTimer=null,_owsStopped=false,_reqId=1;
+  function _owsConnect(){
+    if(_owsStopped) return;
+    if(_ows&&_ows.readyState<WebSocket.CLOSING) return;
+    try{
+      _ows=new WebSocket(_owsUrl);
+      _ows.onmessage=async ev=>{
+        let msg;try{msg=JSON.parse(ev.data);}catch{return;}
+        const {op,d}=msg||{};
+        if(op===0){// Hello
+          const authStr=d?.authentication&&_owsPw?await _auth(_owsPw,d.authentication.salt,d.authentication.challenge):'';
+          const identifyMsg={op:1,d:{rpcVersion:1,eventSubscriptions:4}};// 4=Scenes events
+          if(authStr) identifyMsg.d.authentication=authStr;
+          _ows.send(JSON.stringify(identifyMsg));
+        } else if(op===2){// Identified
+          _owsRetry=0;
+          // Request current scene
+          _ows.send(JSON.stringify({op:6,d:{requestType:'GetCurrentProgramScene',requestId:String(_reqId++)}}));
+        } else if(op===7){// RequestResponse for GetCurrentProgramScene
+          _applyScene(d?.responseData?.currentProgramSceneName);
+        } else if(op===5){// Event
+          if(d?.eventType==='CurrentProgramSceneChanged') _applyScene(d?.eventData?.sceneName);
+        }
+      };
+      _ows.onclose=()=>{
+        _ows=null; if(_owsStopped) return;
+        const ms=Math.min(30000,1500*Math.pow(1.5,_owsRetry++))+Math.random()*500;
+        clearTimeout(_owsTimer); _owsTimer=setTimeout(_owsConnect,ms);
+      };
+      _ows.onerror=()=>{if(_ows&&_ows.readyState<WebSocket.CLOSING)try{_ows.close();}catch(_){}};
+    }catch(e){console.warn('[obsws]',e);}
+  }
+  _owsConnect();
+  window.addEventListener('pagehide',()=>{_owsStopped=true;clearTimeout(_owsTimer);if(_ows&&_ows.readyState<WebSocket.CLOSING)try{_ows.close();}catch(_){} });
+})();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
 (()=>{
