@@ -5405,6 +5405,22 @@ function applyPoseBlend(dt){
         const el=document.getElementById(id);if(el)el.style.display='none';
       });
     }
+    // Global color grading: ?hue=N ?sat=N ?bri=N ?con=N (CSS filter on canvas)
+    (()=>{
+      const _hue=Number(usp.get('hue'));
+      const _sat=Number(usp.get('sat'));
+      const _bri=Number(usp.get('bri'));
+      const _con=Number(usp.get('con'));
+      const _hasGrade=(Number.isFinite(_hue)&&_hue!==0)||(Number.isFinite(_sat)&&_sat!==100)||(Number.isFinite(_bri)&&_bri!==100)||(Number.isFinite(_con)&&_con!==100);
+      if(!_hasGrade) return;
+      const _cv=document.getElementById('c');if(!_cv) return;
+      const _parts=[];
+      if(Number.isFinite(_hue)&&_hue!==0) _parts.push(`hue-rotate(${_hue}deg)`);
+      if(Number.isFinite(_sat)&&_sat!==100) _parts.push(`saturate(${Math.max(0,_sat)}%)`);
+      if(Number.isFinite(_bri)&&_bri!==100) _parts.push(`brightness(${Math.max(0,_bri)}%)`);
+      if(Number.isFinite(_con)&&_con!==100) _parts.push(`contrast(${Math.max(0,_con)}%)`);
+      _cv.style.filter=_parts.join(' ');
+    })();
   };
   if(partImgs.length===0){ _startDraw(); }
   else { partImgs.forEach(img=>{
