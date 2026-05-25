@@ -4084,6 +4084,11 @@ canvas.mirrored{transform:scaleX(-1);}
 #ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:#a0d0ff;letter-spacing:.04em;}
 #poptext-ov{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.7);opacity:0;pointer-events:none;z-index:200;font-family:'Segoe UI',sans-serif;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.6);transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
 #poptext-ov.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+#roulette-ov{display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:210;background:rgba(10,14,30,.95);border:2px solid rgba(78,124,255,.6);border-radius:12px;padding:18px 32px;text-align:center;font-family:'Segoe UI',sans-serif;}
+#roulette-ov.show{display:block;}
+#roulette-slot{font-size:28px;font-weight:700;color:#ffd060;height:40px;overflow:hidden;line-height:40px;white-space:nowrap;}
+#roulette-result{font-size:14px;color:#8898c0;margin-top:6px;display:none;}
+#roulette-result.show{display:block;}
 #countdown-ov{display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.88);border:1px solid rgba(78,124,255,.4);border-radius:8px;padding:6px 22px;font-family:'Segoe UI',monospace;color:#e8f0ff;pointer-events:none;z-index:50;text-align:center;backdrop-filter:blur(6px);transition:opacity .6s;}
 #countdown-ov.show{display:block;}
 #countdown-ov .cd-lbl{font-size:9px;color:#6080c0;text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
@@ -4165,6 +4170,7 @@ ${includeCtrlPanel ? `
 <div id="nameplate"></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="poptext-ov"></div>
+<div id="roulette-ov"><div id="roulette-slot">？</div><div id="roulette-result"></div></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
@@ -4196,6 +4202,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">P</td><td>パラメータパネル</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">D</td><td>追跡デバッグ表示</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">J / F / B / G</td><td>シェイク / フラッシュ / ブラー / グリッチ</td></tr>
+      <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">R</td><td>ルーレット（?roulette=設定時）</td></tr>
       <tr><td colspan="2" style="color:#3a5070;font-size:10px;padding-top:6px;">─── URLパラメータ ───</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
@@ -4213,6 +4220,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -6330,6 +6338,9 @@ window.addEventListener('message',ev=>{
     case 'poptext':
       if(typeof window.showPopText==='function') window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size});
       reply({ok:true}); break;
+    case 'roulette':
+      if(typeof window.triggerRoulette==='function') window.triggerRoulette(d.options);
+      reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
 });
@@ -6421,6 +6432,54 @@ window.addEventListener('message',ev=>{
     };
   }
   window.addEventListener('pagehide',()=>_bc.close());
+})();
+// Roulette: window.triggerRoulette(options, callback) + noiru-cmd roulette + ?roulette=a,b,c
+(()=>{
+  const _rov=document.getElementById('roulette-ov');
+  const _rslot=document.getElementById('roulette-slot');
+  const _rres=document.getElementById('roulette-result');
+  if(!_rov||!_rslot||!_rres) return;
+  let _rSpinning=false;
+  let _rOptions=[];
+  const _usp3=new URLSearchParams(location.search);
+  const _rawR=_usp3.get('roulette');
+  if(_rawR) _rOptions=_rawR.split(',').map(s=>s.trim()).filter(Boolean);
+  window.triggerRoulette=function(options,callback){
+    const opts=(Array.isArray(options)&&options.length)?options:_rOptions;
+    if(!opts.length||_rSpinning) return;
+    _rSpinning=true;
+    _rres.classList.remove('show');_rres.textContent='';
+    _rov.classList.add('show');
+    const _winner=opts[Math.floor(Math.random()*opts.length)];
+    let _frame=0;const _totalFrames=40;
+    function _spin(){
+      if(_frame<_totalFrames){
+        const _spd=_frame<20?80:_frame<32?150:_frame<38?250:400; // ease-out speed
+        _rslot.textContent=opts[Math.floor(Math.random()*opts.length)];
+        _frame++;
+        setTimeout(_spin,_spd-(_frame*1.5));
+      } else {
+        _rslot.textContent=_winner;
+        _rres.textContent='🎉 決定！';_rres.classList.add('show');
+        _rSpinning=false;
+        if(typeof callback==='function') callback(_winner);
+        setTimeout(()=>{_rov.classList.remove('show');_rres.classList.remove('show');},3000);
+      }
+    }
+    _spin();
+  };
+  // Rキーでトリガー
+  document.addEventListener('keydown',ev=>{
+    if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.repeat) return;
+    if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
+    if((ev.key==='r'||ev.key==='R')&&_rOptions.length){window.triggerRoulette();ev.preventDefault();}
+  });
+  // noiru-cmd roulette
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='roulette') return;
+    const opts=Array.isArray(d.options)?d.options.filter(Boolean):_rOptions;
+    window.triggerRoulette(opts);
+  },{passive:true});
 })();
 // Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
 (()=>{
