@@ -4040,6 +4040,13 @@ canvas{display:block;image-rendering:auto;}
 #pose-bar button{background:rgba(20,24,44,.9);border:1px solid #3a4470;border-radius:5px;padding:4px 10px;color:#a0b0d0;font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
 #pose-bar button:hover{border-color:#4e7cff;color:#fff;}
 #pose-bar button.active{background:rgba(20,50,80,.9);border-color:#4e7cff;color:#60d890;font-weight:bold;}
+/* Chat overlay */
+#chat-ov{display:none;position:fixed;bottom:16px;left:14px;max-width:340px;z-index:98;pointer-events:none;font-family:'Segoe UI',sans-serif;}
+#chat-ov .cm{display:flex;flex-direction:column;gap:3px;max-height:240px;overflow:hidden;}
+#chat-ov .cb{background:rgba(10,12,26,.82);border:1px solid rgba(78,124,255,.28);border-radius:10px;padding:5px 10px;font-size:11.5px;line-height:1.45;color:#dde4ff;animation:cmfade 8s forwards;word-break:break-word;}
+#chat-ov .cb .cu{color:#7ec8ff;font-weight:700;margin-right:5px;}
+#chat-ov.show{display:block;}
+@keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
@@ -4099,6 +4106,7 @@ ${includeCtrlPanel ? `
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
+<div id="chat-ov"><div class="cm"></div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
 
@@ -5488,9 +5496,9 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
       try{_ws.send('PONG '+line.slice(5));}catch(_){}
       return;
     }
-    const m=line.match(/^(?:@\S+ )?:\S+!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
-    if(!m||m[1]!==_ch) return;
-    _handleChatMsg(m[2]);
+    const m=line.match(/^(?:@\S+ )?:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
+    if(!m||m[2]!==_ch) return;
+    window.postMessage({type:'noiru-chat',source:'twitch',user:m[1],msg:m[3]},'*');
   }
   function _twitchConnect(){
     if(_wsStopped) return;
@@ -5576,6 +5584,28 @@ function _handleChatMsg(rawMsg){
     break;
   }
 }
+// Chat overlay (?showchat=1) — subscribes to noiru-chat postMessage events for display
+(()=>{
+  if((new URLSearchParams(location.search)).get('showchat')!=='1') return;
+  const _ov=document.getElementById('chat-ov');
+  const _cm=_ov?.querySelector('.cm');
+  if(!_ov||!_cm) return;
+  _ov.classList.add('show');
+  const _MAX=5;
+  window.addEventListener('message',ev=>{
+    const d=ev.data;
+    if(!d||typeof d!=='object'||d.type!=='noiru-chat') return;
+    const msg=(typeof d.msg==='string'?d.msg.trim():'').slice(0,200);
+    if(!msg) return;
+    const cb=document.createElement('div');
+    cb.className='cb';
+    if(d.user){const s=document.createElement('span');s.className='cu';s.textContent=d.user+':';cb.appendChild(s);}
+    cb.appendChild(document.createTextNode(msg));
+    _cm.appendChild(cb);
+    while(_cm.children.length>_MAX) _cm.removeChild(_cm.firstChild);
+    cb.addEventListener('animationend',()=>cb.remove(),{once:true});
+  });
+})();
 window.addEventListener('message',ev2=>{
   const d2=ev2.data;
   if(!d2||typeof d2!=='object'||d2.type!=='noiru-chat') return;
