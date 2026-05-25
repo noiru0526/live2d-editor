@@ -4832,10 +4832,14 @@ async function initTracking(){
         const rbr=Math.max(0,Math.min(1,(bs.eyeBlinkRight??0)*1.3*S_));
         const rmo=Math.max(0,Math.min(1,(bs.jawOpen??0)*1.2*S_));
         // Eyebrow: browDown* = frown (+), browInnerUp/browOuterUp* = raise (-)
-        const rawBwL=(bs.browDownLeft??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpLeft??0)*0.7;
-        const rawBwR=(bs.browDownRight??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpRight??0)*0.7;
-        const rbwl=Math.max(-1,Math.min(1,rawBwL*S_));
-        const rbwr=Math.max(-1,Math.min(1,rawBwR*S_));
+        // Use max(inner, outer) instead of weighted sum to avoid mutual cancellation
+        const biUp=bs.browInnerUp??0;
+        const raiseL=Math.max(biUp,(bs.browOuterUpLeft??0)*1.1);
+        const raiseR=Math.max(biUp,(bs.browOuterUpRight??0)*1.1);
+        // Head pitch compensation: looking down (rhy>0) adds slight frown bias in BlendShapes
+        const pitchComp=rhy*0.12;
+        const rbwl=Math.max(-1,Math.min(1,((bs.browDownLeft??0)-raiseL-pitchComp)*S_));
+        const rbwr=Math.max(-1,Math.min(1,((bs.browDownRight??0)-raiseR-pitchComp)*S_));
         // Iris gaze from landmark positions (indices same as FaceMesh)
         let rex=0,rey=0;
         if(lm.length>473){
@@ -7372,10 +7376,13 @@ async function startWC() {
         const rmu=Math.max(0,Math.min(1,(bs.mouthPucker??0)*gMouth*1.5));
         const rme=Math.max(0,Math.min(1,((bs.mouthSmileLeft??0)+(bs.mouthSmileRight??0))*gMouth*0.75));
         const rmos=Math.max(0,Math.min(1,(bs.mouthFunnel??0)*gMouth*1.3));
-        const rawBwL=(bs.browDownLeft??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpLeft??0)*0.7;
-        const rawBwR=(bs.browDownRight??0)-(bs.browInnerUp??0)*0.5-(bs.browOuterUpRight??0)*0.7;
-        const rbrL=Math.max(-1,Math.min(1,rawBwL*gBrow));
-        const rbrR=Math.max(-1,Math.min(1,rawBwR*gBrow));
+        // Brow: max(inner, outer) avoids cancellation; pitch compensation from head matrix
+        const biUp2=bs.browInnerUp??0;
+        const raiseBwL=Math.max(biUp2,(bs.browOuterUpLeft??0)*1.1);
+        const raiseBwR=Math.max(biUp2,(bs.browOuterUpRight??0)*1.1);
+        const pitchCmp=rhy*0.12;
+        const rbrL=Math.max(-1,Math.min(1,((bs.browDownLeft??0)-raiseBwL-pitchCmp)*gBrow));
+        const rbrR=Math.max(-1,Math.min(1,((bs.browDownRight??0)-raiseBwR-pitchCmp)*gBrow));
         let rex=0,rey=0;
         if(lm.length>473){
           const ri=lm[468],li=lm[473];
