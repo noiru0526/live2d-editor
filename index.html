@@ -4209,6 +4209,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tts=1</td><td>TTSリップシンク（window.speak(text)・noiru-cmd speak対応）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hue=N</td><td>色相回転（度）/ ?sat=N 彩度% / ?bri=N 明度% / ?con=N コントラスト%</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -4277,6 +4278,7 @@ let prevHX=0, prevHY=0;
 let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tCK=0,tracking=false;
 let _poseLocked=false,_poseLockSnap=null;
 let _ttsSpeaking=false,_ttsMouthPhase=0,_ttsMouth=0,_ttsUtter=null;
+let _poiX=0,_poiY=0,_poiT=0,_poiMaxT=3,_poiHead=false;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
 const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ck:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0,sacT:2,sacX:0,sacY:0,sacTX:0,sacTY:0};
@@ -4668,6 +4670,20 @@ function draw(ts){
   S.sacX=ema(S.sacX,S.sacTX,.055);S.sacY=ema(S.sacY,S.sacTY,.055);
   if(params.eyeX) params.eyeX.val=_useTracking?Math.max(-1,Math.min(1,_trackSrc.ex+S.sacX)):0;
   if(params.eyeY) params.eyeY.val=_useTracking?Math.max(-1,Math.min(1,_trackSrc.ey+S.sacY)):0;
+  // POI: blend gaze toward clicked screen position
+  if(_poiT>0){
+    _poiT=Math.max(0,_poiT-dt);
+    const _fade=0.4; // fade in/out duration (seconds)
+    const _elapsed=_poiMaxT-_poiT;
+    const _alpha=Math.min(_elapsed/_fade,_poiT/_fade,1);
+    if(params.eyeX) params.eyeX.val=params.eyeX.val*(1-_alpha)+_poiX*_alpha;
+    if(params.eyeY) params.eyeY.val=params.eyeY.val*(1-_alpha)+_poiY*_alpha;
+    if(_poiHead){
+      const _hAlpha=_alpha*0.5; // head moves at half the eye intensity
+      params.headX.val=params.headX.val*(1-_hAlpha)+_poiX*0.4*_hAlpha;
+      params.headY.val=params.headY.val*(1-_hAlpha)+_poiY*0.3*_hAlpha;
+    }
+  }
   if(params.mouthA) params.mouthA.val=_useTracking?_trackSrc.ma:0;
   if(params.mouthI) params.mouthI.val=_useTracking?_trackSrc.mi:0;
   if(params.mouthU) params.mouthU.val=_useTracking?_trackSrc.mu:0;
@@ -5431,6 +5447,29 @@ function applyPoseBlend(dt){
       const _op=Math.min(1,Math.max(0,Number(_raw)));if(!(_op>0)) return;
       const _v=document.getElementById('vignette-ov');if(!_v) return;
       _v.style.opacity=String(_op);_v.style.display='block';
+    })();
+    // POI (Point of Interest): ?poi=1 or ?poi=head — click/tap canvas to direct gaze
+    (()=>{
+      const _p=usp.get('poi');if(!_p||_p==='0') return;
+      _poiHead=(_p==='head');
+      const _rawT=Number(usp.get('poitimeout'));
+      _poiMaxT=(Number.isFinite(_rawT)&&_rawT>=0.5&&_rawT<=30)?_rawT:3;
+      const _cv=document.getElementById('c');if(!_cv) return;
+      function _setPoi(ex,ey){
+        const r=_cv.getBoundingClientRect();
+        _poiX=Math.max(-1,Math.min(1,((ex-r.left)/r.width*2-1)));
+        _poiY=Math.max(-1,Math.min(1,(1-(ey-r.top)/r.height)*2-1));
+        _poiT=_poiMaxT;
+      }
+      _cv.addEventListener('click',ev=>_setPoi(ev.clientX,ev.clientY),{passive:true});
+      _cv.addEventListener('touchend',ev=>{const t=ev.changedTouches[0];if(t)_setPoi(t.clientX,t.clientY);},{passive:true});
+      // noiru-cmd: lookAt {x, y} (normalized -1 to 1)
+      window.addEventListener('message',ev=>{
+        const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='lookAt') return;
+        const nx=Math.max(-1,Math.min(1,Number(d.x)||0));
+        const ny=Math.max(-1,Math.min(1,Number(d.y)||0));
+        _poiX=nx;_poiY=ny;_poiT=_poiMaxT;
+      },{passive:true});
     })();
   };
   if(partImgs.length===0){ _startDraw(); }
