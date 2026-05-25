@@ -4062,6 +4062,10 @@ canvas{display:block;image-rendering:auto;}
 @keyframes cbslide{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 #cb-ov.hiding .cbb{animation:cbfade .4s ease forwards;}
 @keyframes cbfade{to{opacity:0;transform:translateY(-4px);}}
+/* Emoji rain (?rain=emoji / triggerRain()) */
+#rain-container{position:fixed;inset:0;pointer-events:none;z-index:96;overflow:hidden;}
+.rain-drop{position:absolute;top:-60px;user-select:none;animation:raindrop linear forwards;}
+@keyframes raindrop{0%{transform:translateY(0) rotate(0deg);opacity:1;}80%{opacity:1;}100%{transform:translateY(110vh) rotate(540deg);opacity:0;}}
 canvas.mirrored{transform:scaleX(-1);}
 /* Volume visualizer */
 #vol-viz{display:none;position:fixed;bottom:10px;right:10px;width:48px;height:28px;z-index:98;pointer-events:none;}
@@ -4135,6 +4139,7 @@ ${includeCtrlPanel ? `
 <div id="dbg-ov"></div>
 <div id="chat-ov"><div class="cm"></div></div>
 <div id="cb-ov"></div>
+<div id="rain-container"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
@@ -4182,6 +4187,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5826,6 +5832,36 @@ function _handleChatMsg(rawMsg){
     if(!_showing){_show(user,msg);}else if(_queue.length<3){_queue.push({user,msg});}
   });
 })();
+// Emoji rain — window.triggerRain(emoji, count) + ?rain=emoji auto-loop
+(()=>{
+  const _rc=document.getElementById('rain-container');
+  if(!_rc) return;
+  function _drop(emoji){
+    const el=document.createElement('span');el.className='rain-drop';el.textContent=emoji;
+    const _dur=1800+Math.random()*1500;
+    el.style.left=(Math.random()*100)+'vw';
+    el.style.fontSize=(20+Math.random()*20)+'px';
+    el.style.animationDuration=_dur+'ms';
+    el.style.animationDelay=(Math.random()*200)+'ms';
+    _rc.appendChild(el);setTimeout(()=>el.remove(),_dur+400);
+  }
+  window.triggerRain=function(emoji,count){
+    const _em=String(emoji||'⭐').slice(0,4)||'⭐';
+    const _ct=Math.min(Math.max(1,Math.floor(Number(count)||15)),50);
+    for(let i=0;i<_ct;i++) setTimeout(()=>_drop(_em),i*80+Math.random()*50);
+  };
+  const _usp=new URLSearchParams(location.search);
+  const _rawE=_usp.get('rain');
+  if(_rawE){
+    const _em=_rawE.slice(0,4)||'⭐';
+    const _ctRaw=Number(_usp.get('raincount'));
+    const _ct=Math.min(Math.max(1,Number.isFinite(_ctRaw)&&_ctRaw>=1?Math.floor(_ctRaw):15),50);
+    const _ivRaw=Number(_usp.get('raininterval'));
+    const _iv=(Number.isFinite(_ivRaw)&&_ivRaw>=2&&_ivRaw<=300)?_ivRaw*1000:8000;
+    window.triggerRain(_em,_ct);
+    setInterval(()=>window.triggerRain(_em,_ct),_iv);
+  }
+})();
 window.addEventListener('message',ev2=>{
   const d2=ev2.data;
   if(!d2||typeof d2!=='object'||d2.type!=='noiru-chat') return;
@@ -5861,6 +5897,9 @@ window.addEventListener('message',ev=>{
     case 'getState':
       reply({ok:true,pose:activePose?.name||null,playing:typeof animPlaying!=='undefined'?animPlaying:false,
              params:Object.fromEntries(Object.entries(params).map(([k,p])=>[k,p.val]))}); break;
+    case 'rain':
+      if(typeof window.triggerRain==='function') window.triggerRain(d.emoji,d.count);
+      reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
 });
