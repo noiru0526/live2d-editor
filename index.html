@@ -4163,6 +4163,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=秒or日時</td><td>カウントダウンタイマー（+?countdownlabel=TEXT）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5646,15 +5647,22 @@ window.addEventListener('load',()=>{
   }).catch(()=>{});
 });
 
+const _chatCooldowns=new Map(); // keyword → last trigger timestamp
+const _chatCooldownMs=(()=>{const _raw=new URLSearchParams(location.search).get('chatcooldown');if(_raw===null)return 3000;const _n=Number(_raw);return(Number.isFinite(_n)&&_n>=0&&_n<=60)?_n*1000:3000;})();
 function _handleChatMsg(rawMsg){
   if(typeof rawMsg!=='string') return;
   const triggers=(typeof _chatTriggers!=='undefined'&&Array.isArray(_chatTriggers))?_chatTriggers:[];
   if(!triggers.length) return;
   const msg=rawMsg.toLowerCase().trim();
   if(!msg) return;
+  const now=Date.now();
   for(const t of triggers){
     const kw=String(t.keyword??'').toLowerCase().trim();
     if(!kw||!msg.includes(kw)) continue;
+    const lastT=_chatCooldowns.get(kw)??0;
+    const cd=(Number.isFinite(t.cooldown)&&t.cooldown>=0)?t.cooldown*1000:_chatCooldownMs;
+    if(now-lastT<cd) break; // on cooldown: skip this trigger AND stop searching (don't fire any match)
+    _chatCooldowns.set(kw,now);
     if(t.pose){
       const preset=MD.posePresets?.find(x=>x.name===t.pose);
       if(preset){for(const[k,v] of Object.entries(preset.vals)){if(params[k])params[k].val=v;}}
