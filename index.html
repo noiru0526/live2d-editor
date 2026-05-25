@@ -5474,6 +5474,59 @@ function initChatTriggers(){
 }
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
 
+// Twitch IRC direct connection (?twitch=channelname)
+// Only handles IRC connection; trigger processing is delegated to _handleChatMsg (defined below).
+(()=>{
+  const _rawCh=(new URLSearchParams(location.search)).get('twitch');
+  if(!_rawCh) return;
+  const _ch=_rawCh.trim().toLowerCase().replace(/^#/,'');
+  if(!/^[a-z0-9_]{3,25}$/.test(_ch)) return;
+  let _ws=null, _wsRetry=0, _wsTimer=null, _wsStopped=false;
+  function _handleIrcLine(line){
+    if(!line) return;
+    if(line.startsWith('PING ')){
+      try{_ws.send('PONG '+line.slice(5));}catch(_){}
+      return;
+    }
+    const m=line.match(/^(?:@\S+ )?:\S+!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
+    if(!m||m[1]!==_ch) return;
+    _handleChatMsg(m[2]);
+  }
+  function _twitchConnect(){
+    if(_wsStopped) return;
+    if(_ws&&(_ws.readyState===WebSocket.CONNECTING||_ws.readyState===WebSocket.OPEN)) return;
+    _ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    _ws.onopen=()=>{
+      _ws.send('PASS SCHMOOPIIE');
+      _ws.send('NICK justinfan'+Math.floor(10000+Math.random()*90000));
+      _ws.send('JOIN #'+_ch);
+      _wsRetry=0;
+      const s=document.getElementById('status-el');
+      if(s)s.textContent='Twitch: #'+_ch+' 接続中';
+    };
+    _ws.onmessage=ev=>{
+      const lines=String(ev.data).split('\r\n');
+      for(const line of lines) _handleIrcLine(line);
+    };
+    _ws.onclose=()=>{
+      _ws=null;
+      if(_wsStopped) return;
+      const base=Math.min(30000,1500*Math.pow(1.5,_wsRetry++));
+      const delay=Math.floor(base*(0.8+Math.random()*0.4));
+      clearTimeout(_wsTimer);
+      _wsTimer=setTimeout(_twitchConnect,delay);
+    };
+    _ws.onerror=()=>{
+      if(_ws&&_ws.readyState<WebSocket.CLOSING) try{_ws.close();}catch(_){}
+    };
+  }
+  window.addEventListener('pagehide',()=>{
+    _wsStopped=true; clearTimeout(_wsTimer);
+    if(_ws&&_ws.readyState<WebSocket.CLOSING) try{_ws.close();}catch(_){}
+  });
+  window.addEventListener('load',()=>setTimeout(_twitchConnect,700));
+})();
+
 // MIDI control for avatar (uses MD.midiMappings from editor export)
 window.addEventListener('load',()=>{
   if(!navigator.requestMIDIAccess||!MD.midiMappings) return;
@@ -5498,22 +5551,23 @@ window.addEventListener('load',()=>{
   }).catch(()=>{});
 });
 
-window.addEventListener('message',ev2=>{
-  const d2=ev2.data;
-  if(typeof d2!=='object'||d2.type!=='noiru-chat') return;
-  const msg=(d2.msg||'').toLowerCase().trim();
+function _handleChatMsg(rawMsg){
+  if(typeof rawMsg!=='string') return;
+  const triggers=(typeof _chatTriggers!=='undefined'&&Array.isArray(_chatTriggers))?_chatTriggers:[];
+  if(!triggers.length) return;
+  const msg=rawMsg.toLowerCase().trim();
   if(!msg) return;
-  for(const t of _chatTriggers){
-    if(!msg.includes(t.keyword)) continue;
+  for(const t of triggers){
+    const kw=String(t.keyword??'').toLowerCase().trim();
+    if(!kw||!msg.includes(kw)) continue;
     if(t.pose){
-      // Try posePresets first, then legacy MD.poses
       const preset=MD.posePresets?.find(x=>x.name===t.pose);
       if(preset){for(const[k,v] of Object.entries(preset.vals)){if(params[k])params[k].val=v;}}
       else{const p=MD.poses?.find(x=>x.name===t.pose);if(p){activePose=p;poseBlend=0;}}
     }
     if(t.clip&&typeof switchClip==='function'){
       const ci=(MD.animClips||[]).findIndex(c=>c.name===t.clip);
-      if(ci>=0){switchClip(ci);}
+      if(ci>=0)switchClip(ci);
     }
     if(t.param&&params[t.param]!==undefined){
       params[t.param].val=t.value??0;
@@ -5521,6 +5575,11 @@ window.addEventListener('message',ev2=>{
     }
     break;
   }
+}
+window.addEventListener('message',ev2=>{
+  const d2=ev2.data;
+  if(!d2||typeof d2!=='object'||d2.type!=='noiru-chat') return;
+  _handleChatMsg(d2.msg);
 });
 // postMessage API for external/iframe control
 // Commands: setPose, setParam, playClip, playAnim, stopAnim, reset, getState
