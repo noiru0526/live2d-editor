@@ -4168,11 +4168,11 @@ const SPR=(MD.springs??[]).map(sb=>({
 }));
 let prevHX=0, prevHY=0;
 
-let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tracking=false;
+let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tCK=0,tracking=false;
 let _poseLocked=false,_poseLockSnap=null;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
-const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0,sacT:2,sacX:0,sacY:0,sacTX:0,sacTY:0};
+const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ck:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0,sacT:2,sacX:0,sacY:0,sacTX:0,sacTY:0};
 const ema=(c,t,a)=>c+(t-c)*a;
 
 const IFN={linear:t=>t,smooth:t=>t*t*(3-2*t),'ease-in':t=>t*t,'ease-out':t=>1-(1-t)*(1-t),bounce:t=>{const k=t<.5?2*t:2-2*t;return t<.5?k*k/2:1-k*k/2;},step:()=>0,'ease-in-cubic':t=>t*t*t,'ease-out-cubic':t=>1-(1-t)*(1-t)*(1-t),'ease-in-out-cubic':t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,elastic:t=>t===0?0:t===1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(2*Math.PI/3))+1,'elastic-in':t=>t===0?0:t===1?1:-Math.pow(2,10*t-10)*Math.sin((t*10-10.75)*(2*Math.PI/3)),back:t=>{const c1=1.70158;return (c1+1)*t*t*t-c1*t*t;},'back-out':t=>{const c1=1.70158;return 1+(c1+1)*Math.pow(t-1,3)+c1*Math.pow(t-1,2);},circ:t=>1-Math.sqrt(1-t*t),'circ-out':t=>Math.sqrt(1-(t-1)*(t-1)),sine:t=>1-Math.cos(t*Math.PI/2),'sine-out':t=>Math.sin(t*Math.PI/2)};
@@ -4517,16 +4517,18 @@ function draw(ts){
   S.bwl=ema(S.bwl,tBwL,EMA.bw);S.bwr=ema(S.bwr,tBwR,EMA.bw);
   S.ex=ema(S.ex,tEX,EMA.ex);S.ey=ema(S.ey,tEY,EMA.ey);
   S.ma=ema(S.ma,tMA,EMA.mo);S.mi=ema(S.mi,tMI,EMA.mo);S.mu=ema(S.mu,tMU,EMA.mo);
-  S.me=ema(S.me,tME,EMA.mo);S.mos=ema(S.mos,tMOs,EMA.mo);
+  S.me=ema(S.me,tME,EMA.mo);S.mos=ema(S.mos,tMOs,EMA.mo);S.ck=ema(S.ck,tCK,EMA.mo);
   if(!S.ablink){S.ablinkT-=dt;if(S.ablinkT<=0){S.ablink=true;S.ablinkP=0;S.ablinkT=3+Math.random()*5;}}
   else{S.ablinkP+=dt/.10;if(S.ablinkP>=1){S.ablink=false;S.ablinkP=0;}}
   const ab=S.ablink?Math.sin(S.ablinkP*Math.PI):0;
   S.bp+=dt*.38;S.ip+=dt*.22;
-  // Multi-frequency breathing
-  const breathX=Math.sin(S.bp)*.22+Math.sin(S.bp*.617)*.10;
-  const breathY=Math.sin(S.bp*.79)*.14+Math.sin(S.bp*.523)*.06;
-  const breathZ=Math.sin(S.bp*.45)*.08;
-  const by=Math.sin(S.bp*.5)*1.5, ix=Math.sin(S.ip*.41)*1.2;
+  // Emotion-driven breath scale: smile/surprise amplify body movement
+  const _emoBoost=1+S.me*.4+Math.max(0,S.mo-.3)*.3;
+  // Multi-frequency breathing (scaled by emotion)
+  const breathX=(Math.sin(S.bp)*.22+Math.sin(S.bp*.617)*.10)*_emoBoost;
+  const breathY=(Math.sin(S.bp*.79)*.14+Math.sin(S.bp*.523)*.06)*_emoBoost;
+  const breathZ=(Math.sin(S.bp*.45)*.08)*_emoBoost;
+  const by=Math.sin(S.bp*.5)*1.5*_emoBoost, ix=Math.sin(S.ip*.41)*1.2;
   const idleFull=IDLE!=='none';
   const idleExtra=IDLE==='full';
   // Pose lock: freeze tracking params at snapshot values (only overrides when tracking was ON at lock time)
@@ -4557,6 +4559,7 @@ function draw(ts){
   if(params.mouthU) params.mouthU.val=_useTracking?_trackSrc.mu:0;
   if(params.mouthE) params.mouthE.val=_useTracking?_trackSrc.me:0;
   if(params.mouthO) params.mouthO.val=_useTracking?_trackSrc.mos:0;
+  if(params.cheek) params.cheek.val=_useTracking?_trackSrc.ck:0;
   // Apply timeline animation tracks (overlays on top of face tracking)
   if(animPlaying) applyAnimTracks(ts);
   // Auto-expression trigger: smoothly blend named poses based on BlendShapes
@@ -4773,7 +4776,7 @@ async function initTracking(){
     bwl:new OneEuroFilter(30,2.0,0.005),bwr:new OneEuroFilter(30,2.0,0.005),
     ex:new OneEuroFilter(30,2.5,0.01),ey:new OneEuroFilter(30,2.5,0.01),
     ma:new OneEuroFilter(30,4.0,0.0),mi:new OneEuroFilter(30,4.0,0.0),mu:new OneEuroFilter(30,4.0,0.0),
-    me:new OneEuroFilter(30,4.0,0.0),mos:new OneEuroFilter(30,4.0,0.0)
+    me:new OneEuroFilter(30,4.0,0.0),mos:new OneEuroFilter(30,4.0,0.0),ck:new OneEuroFilter(30,3.0,0.002)
   };
   const video=document.createElement('video');video.style.display='none';document.body.appendChild(video);
   let stream;
@@ -4789,7 +4792,7 @@ async function initTracking(){
   const pc=document.getElementById('obs-path-code');
   if(pc&&location.protocol==='file:')pc.textContent=location.href.replace(/\//g,'\\\\').replace('file:','').replace(/^\\\\/,'');
   else if(pc)pc.textContent=location.href;
-  let lastVT=-1, _trackLastSeen=0;
+  let lastVT=-1, _trackLastSeen=0, _autoCalibDone=false, _firstTrackTime=0;
   function detectLoop(){
     if(video.readyState>=2&&video.currentTime!==lastVT){
       lastVT=video.currentTime;
@@ -4800,6 +4803,11 @@ async function initTracking(){
         const bs={};
         if(result.faceBlendshapes?.[0])result.faceBlendshapes[0].categories.forEach(c=>bs[c.categoryName]=c.score);
         _trackLastSeen=now; tracking=true;
+        // Auto-calibrate 1.5s after first face detection (skip if already calibrated this session)
+        if(!_autoCalibDone){
+          if(_firstTrackTime===0)_firstTrackTime=now;
+          if(now-_firstTrackTime>1500){_autoCalibDone=true;calibrateFaceCenter();}
+        }
         const S_=curSens,t=now;
         // Head pose — prefer 3D transformation matrix; fall back to landmark geometry
         let rhx,rhy,rhz;
@@ -4855,6 +4863,8 @@ async function initTracking(){
         tEX=OEF.ex.filter(rex,t);tEY=OEF.ey.filter(rey,t);
         tMA=OEF.ma.filter(shapeA,t);tMI=OEF.mi.filter(shapeI,t);tMU=OEF.mu.filter(shapeU,t);
         tME=OEF.me.filter(shapeE,t);tMOs=OEF.mos.filter(shapeO,t);
+        const shapeCK=Math.max(0,Math.min(1,(bs.cheekPuff??0)*S_*1.2));
+        tCK=OEF.ck.filter(shapeCK,t);
       } else {
         // No face detected — switch to idle after 1.5s
         if(performance.now()-_trackLastSeen>1500) tracking=false;
@@ -5026,7 +5036,7 @@ function togglePoseLock(){
   if(!_poseLocked){
     // Snap current smoothed values; _wasTracking ensures idle mode still works when no camera
     _poseLockSnap={hx:S.hx,hy:S.hy,hz:S.hz,bl:S.bl,br:S.br,mo:S.mo,
-      bwl:S.bwl,bwr:S.bwr,ex:S.ex,ey:S.ey,ma:S.ma,mi:S.mi,mu:S.mu,
+      bwl:S.bwl,bwr:S.bwr,ex:S.ex,ey:S.ey,ma:S.ma,mi:S.mi,mu:S.mu,me:S.me,mos:S.mos,ck:S.ck,
       _wasTracking:tracking};
     _poseLocked=true;
   } else {
@@ -7306,7 +7316,7 @@ async function startWC() {
     mo:new _EditorOEF(30,4.0,0.0),ex:new _EditorOEF(30,2.5,0.01),
     ey:new _EditorOEF(30,2.5,0.01),brL:new _EditorOEF(30,2.0,0.005),brR:new _EditorOEF(30,2.0,0.005),
     ma:new _EditorOEF(30,4.0,0.0),mi:new _EditorOEF(30,4.0,0.0),mu:new _EditorOEF(30,4.0,0.0),
-    me:new _EditorOEF(30,4.0,0.0),mos:new _EditorOEF(30,4.0,0.0)
+    me:new _EditorOEF(30,4.0,0.0),mos:new _EditorOEF(30,4.0,0.0),ck:new _EditorOEF(30,3.0,0.002)
   };
   try {
     _wcStream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
@@ -7315,7 +7325,7 @@ async function startWC() {
     document.getElementById('btn-webcam').classList.remove('on');return;
   }
   video.srcObject=_wcStream;video.onloadedmetadata=()=>video.play();
-  const _sm={hx:0,hy:0,hz:0,bl:0,blL:0,blR:0,mo:0,ex:0,ey:0,brL:0,brR:0,ma:0,mi:0,mu:0,me:0,mos:0};
+  const _sm={hx:0,hy:0,hz:0,bl:0,blL:0,blR:0,mo:0,ex:0,ey:0,brL:0,brR:0,ma:0,mi:0,mu:0,me:0,mos:0,ck:0};
   let lastVT=-1;
   function detectLoop(){
     if(!_wcActive)return;
@@ -7382,6 +7392,8 @@ async function startWC() {
         _sm.brL=oef.brL.filter(rbrL,now);_sm.brR=oef.brR.filter(rbrR,now);
         _sm.ma=oef.ma.filter(rma,now);_sm.mi=oef.mi.filter(rmi,now);_sm.mu=oef.mu.filter(rmu,now);
         _sm.me=oef.me.filter(rme,now);_sm.mos=oef.mos.filter(rmos,now);
+        const rck=Math.max(0,Math.min(1,(bs.cheekPuff??0)*gMouth*1.2));
+        _sm.ck=oef.ck.filter(rck,now);
         if(octx&&ovc){
           const W=ovc.width,H=ovc.height;
           const KEY_LM=[1,33,133,362,263,61,291,13,14,468,473,10,152];
@@ -7427,7 +7439,7 @@ async function startWC() {
         _setP('eyeBallX',_sm.ex);_setP('eyeBallY',_sm.ey);
         _setP('browL',_sm.brL);_setP('browR',_sm.brR);
         _setP('mouthA',_sm.ma);_setP('mouthI',_sm.mi);_setP('mouthU',_sm.mu);
-        _setP('mouthE',_sm.me);_setP('mouthO',_sm.mos);
+        _setP('mouthE',_sm.me);_setP('mouthO',_sm.mos);_setP('cheek',_sm.ck);
         ST.cachedVerts=null;redraw();
         if(typeof wcAutoDetectExpr==='function')wcAutoDetectExpr(_sm);
       } else { statusEl.textContent='顔を検出中...'; }
