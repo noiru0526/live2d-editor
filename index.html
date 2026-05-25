@@ -4079,6 +4079,9 @@ canvas.mirrored{transform:scaleX(-1);}
 #vol-viz .vb{width:6px;height:1px;border-radius:2px 2px 0 0;background:rgba(78,200,255,.7);opacity:.25;transition:height .07s ease,opacity .07s ease;}
 @keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 #nameplate{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.82);border:1px solid rgba(78,124,255,.35);border-radius:6px;padding:4px 18px;font-family:'Segoe UI',monospace;font-size:14px;color:#e8f0ff;pointer-events:none;z-index:50;white-space:nowrap;letter-spacing:.04em;backdrop-filter:blur(4px);}
+#ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
+#ticker-ov.show{display:flex;align-items:center;}
+#ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:#a0d0ff;letter-spacing:.04em;}
 #countdown-ov{display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.88);border:1px solid rgba(78,124,255,.4);border-radius:8px;padding:6px 22px;font-family:'Segoe UI',monospace;color:#e8f0ff;pointer-events:none;z-index:50;text-align:center;backdrop-filter:blur(6px);transition:opacity .6s;}
 #countdown-ov.show{display:block;}
 #countdown-ov .cd-lbl{font-size:9px;color:#6080c0;text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
@@ -4151,6 +4154,7 @@ ${includeCtrlPanel ? `
 <div id="vignette-ov"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
+<div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
@@ -4194,6 +4198,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=秒or日時</td><td>カウントダウンタイマー（+?countdownlabel=TEXT）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursor=✨</td><td>絵文字カーソル（+?cursorsize=24）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -6300,6 +6305,36 @@ window.addEventListener('message',ev=>{
     };
   }
   window.addEventListener('pagehide',()=>_bc.close());
+})();
+// Ticker tape (?ticker=TEXT &tickerspeed=80 &tickercolor=RRGGBB &tickerbg=RRGGBB)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _text=_usp.get('ticker');if(!_text) return;
+  const _ov=document.getElementById('ticker-ov');
+  const _inner=document.getElementById('ticker-inner');
+  if(!_ov||!_inner) return;
+  const _tc=_usp.get('tickercolor');
+  const _bg=_usp.get('tickerbg');
+  if(_tc) _inner.style.color='#'+_tc.replace(/^#/,'');
+  if(_bg) _ov.style.background='#'+_bg.replace(/^#/,'');
+  const _sep='   •   ';
+  const _full=_text+_sep;
+  _inner.textContent=_full+_full;
+  _ov.classList.add('show');
+  const _speed=Math.min(400,Math.max(20,Number(_usp.get('tickerspeed'))||80));
+  let _x=window.innerWidth,_last=performance.now(),_raf,_halfW=0;
+  requestAnimationFrame(()=>{
+    _halfW=_inner.scrollWidth/2;
+    function _tick(now){
+      const dt=Math.min(0.1,(now-_last)/1000);_last=now;
+      _x-=_speed*dt;
+      if(_halfW>0&&_x<-_halfW)_x+=_halfW;
+      _inner.style.transform=`translateX(${_x}px)`;
+      _raf=requestAnimationFrame(_tick);
+    }
+    _raf=requestAnimationFrame(_tick);
+  });
+  window.addEventListener('pagehide',()=>cancelAnimationFrame(_raf));
 })();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
