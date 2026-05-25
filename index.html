@@ -4070,6 +4070,7 @@ canvas{display:block;image-rendering:auto;}
 #border-glow{position:fixed;inset:0;pointer-events:none;z-index:95;}
 #border-glow.pulse{animation:borderPulse var(--bg-dur,2s) ease-in-out infinite;}
 @keyframes borderPulse{0%,100%{box-shadow:inset 0 0 var(--bg-sz,14px) calc(var(--bg-sz,14px) / 2) transparent;}50%{box-shadow:inset 0 0 var(--bg-sz,14px) calc(var(--bg-sz,14px) / 2) var(--bg-color,#fff);}}
+#grade-ov{position:fixed;inset:0;pointer-events:none;z-index:91;}
 #vignette-ov{display:none;position:fixed;inset:0;pointer-events:none;z-index:92;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,1) 100%);}
 canvas.mirrored{transform:scaleX(-1);}
 /* Volume visualizer */
@@ -4146,6 +4147,7 @@ ${includeCtrlPanel ? `
 <div id="cb-ov"></div>
 <div id="rain-container"></div>
 <div id="border-glow"></div>
+<div id="grade-ov"></div>
 <div id="vignette-ov"></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
@@ -5425,21 +5427,28 @@ function applyPoseBlend(dt){
         const el=document.getElementById(id);if(el)el.style.display='none';
       });
     }
-    // Global color grading: ?hue=N ?sat=N ?bri=N ?con=N (CSS filter on canvas)
+    // Global color grading: ?hue=N ?sat=N ?bri=N ?con=N (backdrop-filter on #grade-ov)
     (()=>{
-      const _hue=Number(usp.get('hue'));
-      const _sat=Number(usp.get('sat'));
-      const _bri=Number(usp.get('bri'));
-      const _con=Number(usp.get('con'));
-      const _hasGrade=(Number.isFinite(_hue)&&_hue!==0)||(Number.isFinite(_sat)&&_sat!==100)||(Number.isFinite(_bri)&&_bri!==100)||(Number.isFinite(_con)&&_con!==100);
-      if(!_hasGrade) return;
-      const _cv=document.getElementById('c');if(!_cv) return;
-      const _parts=[];
-      if(Number.isFinite(_hue)&&_hue!==0) _parts.push(`hue-rotate(${_hue}deg)`);
-      if(Number.isFinite(_sat)&&_sat!==100) _parts.push(`saturate(${Math.max(0,_sat)}%)`);
-      if(Number.isFinite(_bri)&&_bri!==100) _parts.push(`brightness(${Math.max(0,_bri)}%)`);
-      if(Number.isFinite(_con)&&_con!==100) _parts.push(`contrast(${Math.max(0,_con)}%)`);
-      _cv.style.filter=_parts.join(' ');
+      const _go=document.getElementById('grade-ov');if(!_go) return;
+      function _buildGrade(hue,sat,bri,con){
+        const parts=[];
+        const h=Number(hue),s=Number(sat),b=Number(bri),c=Number(con);
+        if(Number.isFinite(h)&&h!==0) parts.push(`hue-rotate(${h}deg)`);
+        if(Number.isFinite(s)&&s!==100) parts.push(`saturate(${Math.max(0,s)}%)`);
+        if(Number.isFinite(b)&&b!==100) parts.push(`brightness(${Math.max(0,b)}%)`);
+        if(Number.isFinite(c)&&c!==100) parts.push(`contrast(${Math.max(0,c)}%)`);
+        return parts.join(' ');
+      }
+      // Use usp.has() so unset params use their identity defaults (hue=0, sat/bri/con=100)
+      const _initHue=usp.has('hue')?Number(usp.get('hue')):0;
+      const _initSat=usp.has('sat')?Number(usp.get('sat')):100;
+      const _initBri=usp.has('bri')?Number(usp.get('bri')):100;
+      const _initCon=usp.has('con')?Number(usp.get('con')):100;
+      const _initF=_buildGrade(_initHue,_initSat,_initBri,_initCon);
+      if(_initF) _go.style.backdropFilter=_initF;
+      window.setGrade=function(hue,sat,bri,con){
+        _go.style.backdropFilter=_buildGrade(hue??0,sat??100,bri??100,con??100);
+      };
     })();
     // Vignette overlay: ?vignette=0.0-1.0 (dark corners)
     (()=>{
@@ -6183,6 +6192,9 @@ window.addEventListener('message',ev=>{
       reply({ok:true}); break;
     case 'chat':
       window.postMessage({type:'noiru-chat',source:d.source||'api',channel:d.channel||'',user:String(d.user||''),msg:String(d.msg||'')},'*');
+      reply({ok:true}); break;
+    case 'grade':
+      if(typeof window.setGrade==='function') window.setGrade(d.hue,d.sat,d.bri,d.con);
       reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
