@@ -9450,11 +9450,23 @@ function drawTimeline() {
   // Triangle indicator
   tlCtx.fillStyle='#fff';
   tlCtx.beginPath(); tlCtx.moveTo(cx-5,0); tlCtx.lineTo(cx+5,0); tlCtx.lineTo(cx,8); tlCtx.closePath(); tlCtx.fill();
+  // Alt+drag KF snap indicator: glow ring on snap target KF
+  const snapT=typeof window._tlKfSnapTarget==='function'?window._tlKfSnapTarget():null;
+  if(snapT!==null){
+    const sx=pToX(snapT);
+    tlCtx.save();
+    tlCtx.strokeStyle='rgba(96,216,144,0.9)'; tlCtx.lineWidth=2.5;
+    tlCtx.beginPath(); tlCtx.arc(sx,H/2,8,0,Math.PI*2); tlCtx.stroke();
+    tlCtx.fillStyle='rgba(96,216,144,0.25)';
+    tlCtx.beginPath(); tlCtx.arc(sx,H/2,8,0,Math.PI*2); tlCtx.fill();
+    tlCtx.restore();
+  }
 }
 
 // Click + drag on timeline to scrub parameter value OR drag KF diamonds
 (()=>{
   let tlDragging=false, kfDragging=null; // kfDragging = {kfVal, oldVal}
+  let _kfSnapTarget=null; // value currently snapped to (for visual indicator)
   const KF_HIT_RADIUS = 8;
 
   function xToParamVal(ex) {
@@ -9479,6 +9491,18 @@ function drawTimeline() {
       if (Math.abs(pToX(kfv)-mx)<KF_HIT_RADIUS) return kfv;
     }
     return null;
+  }
+
+  // Alt+drag: snap to nearest neighboring KF in the same parameter
+  function snapToKF(val) {
+    _kfSnapTarget=null; // always reset first
+    const p=M.params[ST.ap]; if(!p||!kfDragging) return val;
+    const others=p.kfs.filter(k=>Math.abs(k-kfDragging.kfVal)>0.0001);
+    if(!others.length) return val;
+    const nearest=others.reduce((a,b)=>Math.abs(a-val)<Math.abs(b-val)?a:b);
+    const snapThresh=Math.abs(p.max-p.min)*0.025; // 2.5% of range
+    if(Math.abs(nearest-val)<snapThresh){ _kfSnapTarget=nearest; return nearest; }
+    return val;
   }
 
   function tlSetFromEvent(e) {
@@ -9523,8 +9547,8 @@ function drawTimeline() {
 
   window.addEventListener('mousemove',e=>{
     if (kfDragging) {
-      const newVal=xToParamVal(e.clientX);
-      // Preview: just show cursor position
+      let newVal=xToParamVal(e.clientX);
+      if(e.altKey) newVal=snapToKF(newVal); else _kfSnapTarget=null;
       const p=M.params[ST.ap];
       if (p) { p.val=newVal; ST.cachedVerts=null; redraw(); drawTimeline(); }
     } else if (tlDragging) { tlSetFromEvent(e); }
@@ -9532,13 +9556,19 @@ function drawTimeline() {
 
   window.addEventListener('mouseup',e=>{
     if (kfDragging) {
-      const newVal=xToParamVal(e.clientX);
+      let newVal=xToParamVal(e.clientX);
+      if(e.altKey) newVal=snapToKF(newVal);
       const oldVal=kfDragging.kfVal;
-      if (Math.abs(newVal-oldVal)>0.001) moveKFTo(oldVal, newVal);
-      kfDragging=null; tlTrack.style.cursor='col-resize';
+      const shouldMove=Math.abs(newVal-oldVal)>0.001;
+      kfDragging=null; _kfSnapTarget=null; tlTrack.style.cursor='col-resize';
+      if(shouldMove) moveKFTo(oldVal,newVal);
+      drawTimeline(); // ensure snap ring is cleared
     }
     tlDragging=false;
   });
+
+  // Expose snap target for drawTimeline visual indicator
+  window._tlKfSnapTarget=()=>_kfSnapTarget;
 })();
 
 new ResizeObserver(resizeTimeline).observe(document.getElementById('tl-track'));
