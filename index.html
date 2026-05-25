@@ -4194,6 +4194,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tts=1</td><td>TTSリップシンク（window.speak(text)・noiru-cmd speak対応）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -4260,6 +4261,7 @@ let prevHX=0, prevHY=0;
 
 let tHX=0,tHY=0,tHZ=0,tBL=0,tBR=0,tMO=0,tBwL=0,tBwR=0,tCK=0,tracking=false;
 let _poseLocked=false,_poseLockSnap=null;
+let _ttsSpeaking=false,_ttsMouthPhase=0,_ttsMouth=0,_ttsUtter=null;
 const EMA=${JSON.stringify(emaAlphas)};
 const IDLE=${JSON.stringify(idleMode)};
 const S={hx:0,hy:0,hz:0,bl:0,br:0,mo:0,bwl:0,bwr:0,ex:0,ey:0,ma:0,mi:0,mu:0,me:0,mos:0,ck:0,ablink:false,ablinkP:0,ablinkT:3,bp:0,ip:0,last:0,sacT:2,sacX:0,sacY:0,sacTX:0,sacTY:0};
@@ -4639,7 +4641,10 @@ function draw(ts){
   params.blinkR.val=_useTracking?Math.max(0,Math.min(1,_trackSrc.br+ab+_smileSq)):(idleExtra?ab:0);
   // Audio-reactive mouth when not tracking
   const audioMouth=!_useTracking&&audioActive?getAudioLevel():0;
-  params.mouthOpen.val=_useTracking?_trackSrc.mo:(idleExtra?audioMouth:0);
+  // TTS lip sync: oscillate mouthOpen while speaking
+  if(_ttsSpeaking){_ttsMouthPhase+=dt*7;_ttsMouth=Math.max(0,Math.sin(_ttsMouthPhase))*0.65+0.05;}
+  else if(_ttsMouth>0){_ttsMouth=Math.max(0,_ttsMouth-dt*3);}
+  params.mouthOpen.val=_useTracking?_trackSrc.mo:(_ttsMouth>0.01?_ttsMouth:(idleExtra?audioMouth:0));
   if(params.browL) params.browL.val=_useTracking?_trackSrc.bwl:0;
   if(params.browR) params.browR.val=_useTracking?_trackSrc.bwr:0;
   // Micro-saccades: small random eye movements during tracking for natural look
@@ -5907,6 +5912,29 @@ function _handleChatMsg(rawMsg){
     },_d*1000);
   };
 })();
+// TTS lip sync (?tts=1) — window.speak(text, {rate, pitch, volume, voice}) + noiru-cmd speak
+(()=>{
+  if((new URLSearchParams(location.search)).get('tts')!=='1') return;
+  if(!('speechSynthesis' in window)) return;
+  function _voice(name){if(!name)return null;const vv=speechSynthesis.getVoices();return vv.find(v=>v.name===name||v.lang===name)||null;}
+  window.speak=function(text,opts){
+    if(typeof text!=='string'||!text.trim()) return;
+    if(_ttsUtter){speechSynthesis.cancel();}
+    const u=new SpeechSynthesisUtterance(text.slice(0,500));
+    if(opts){
+      const v=_voice(opts.voice);if(v)u.voice=v;
+      if(Number.isFinite(opts.rate)&&opts.rate>=0.1&&opts.rate<=10)u.rate=opts.rate;
+      if(Number.isFinite(opts.pitch)&&opts.pitch>=0&&opts.pitch<=2)u.pitch=opts.pitch;
+      if(Number.isFinite(opts.volume)&&opts.volume>=0&&opts.volume<=1)u.volume=opts.volume;
+    }
+    u.onstart=()=>{_ttsSpeaking=true;_ttsMouthPhase=0;};
+    u.onend=u.onerror=()=>{_ttsSpeaking=false;};
+    u.onboundary=ev=>{if(ev.name==='word')_ttsMouthPhase=0;};
+    _ttsUtter=u;speechSynthesis.speak(u);
+  };
+  // Cancel TTS on Esc key
+  document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&_ttsUtter){speechSynthesis.cancel();_ttsSpeaking=false;}},{capture:true,passive:true});
+})();
 window.addEventListener('message',ev2=>{
   const d2=ev2.data;
   if(!d2||typeof d2!=='object'||d2.type!=='noiru-chat') return;
@@ -5947,6 +5975,9 @@ window.addEventListener('message',ev=>{
       reply({ok:true}); break;
     case 'borderAlert':
       if(typeof window.triggerBorderAlert==='function') window.triggerBorderAlert(d.color,d.dur);
+      reply({ok:true}); break;
+    case 'speak':
+      if(typeof window.speak==='function') window.speak(d.text,{rate:d.rate,pitch:d.pitch,volume:d.volume,voice:d.voice});
       reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
