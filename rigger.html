@@ -373,6 +373,7 @@ input[type=range]{width:100%;height:3px;accent-color:#7c3aed;cursor:pointer;disp
         <h3>MESH</h3>
       </div>
       <div class="lsec-body" id="mesh-body">
+        <div id="mesh-stats" style="font-size:9px;color:#7aa0c0;text-align:center;padding:2px 0;background:rgba(0,0,0,.2);border-radius:3px;margin-bottom:4px">頂点: — / 三角形: —</div>
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成（グリッド）</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:#a0d0ff" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
@@ -2626,6 +2627,18 @@ function render() {
 
   updatePartPreview();
   scheduleThumbUpdate();
+  updateMeshStats();
+}
+
+let _lastMeshStatsText = '';
+function updateMeshStats() {
+  const el = document.getElementById('mesh-stats');
+  if (!el) return;
+  const pt = selPart >= 0 && selPart < parts.length ? parts[selPart] : null;
+  const text = pt?.mesh?.verts && pt?.mesh?.tris
+    ? `頂点: ${pt.mesh.verts.length} / 三角形: ${pt.mesh.tris.length}`
+    : '頂点: — / 三角形: —';
+  if (text !== _lastMeshStatsText) { el.textContent = text; _lastMeshStatsText = text; }
 }
 
 // ===== PART MANAGEMENT =====
