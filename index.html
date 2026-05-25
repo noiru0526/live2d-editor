@@ -4053,6 +4053,10 @@ canvas.mirrored{transform:scaleX(-1);}
 #vol-viz .vb{width:6px;height:1px;border-radius:2px 2px 0 0;background:rgba(78,200,255,.7);opacity:.25;transition:height .07s ease,opacity .07s ease;}
 @keyframes cmfade{0%{opacity:1;}70%{opacity:1;}100%{opacity:0;}}
 #nameplate{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.82);border:1px solid rgba(78,124,255,.35);border-radius:6px;padding:4px 18px;font-family:'Segoe UI',monospace;font-size:14px;color:#e8f0ff;pointer-events:none;z-index:50;white-space:nowrap;letter-spacing:.04em;backdrop-filter:blur(4px);}
+#countdown-ov{display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(10,14,30,.88);border:1px solid rgba(78,124,255,.4);border-radius:8px;padding:6px 22px;font-family:'Segoe UI',monospace;color:#e8f0ff;pointer-events:none;z-index:50;text-align:center;backdrop-filter:blur(6px);transition:opacity .6s;}
+#countdown-ov.show{display:block;}
+#countdown-ov .cd-lbl{font-size:9px;color:#6080c0;text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
+#countdown-ov .cd-time{font-size:22px;font-weight:700;letter-spacing:.06em;color:#a0d0ff;}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
@@ -4116,6 +4120,7 @@ ${includeCtrlPanel ? `
 <div id="chat-ov"><div class="cm"></div></div>
 <div id="vol-viz"><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div></div>
 <div id="nameplate"></div>
+<div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:#4e7cff;margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:#4e7cff">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
 ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
 
@@ -4155,6 +4160,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nameplate=名前</td><td>ネームプレート表示（+?nameplatecolor=RRGGBB）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=秒or日時</td><td>カウントダウンタイマー（+?countdownlabel=TEXT）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5674,6 +5680,34 @@ function _handleChatMsg(rawMsg){
   document.addEventListener('visibilitychange',()=>{ if(document.hidden)_stop(); else _start(); });
   if(document.readyState==='complete') _start();
   else window.addEventListener('load',_start,{once:true});
+})();
+// Countdown timer (?countdown=秒数 or ?countdown=ISO日時)
+(()=>{
+  const _raw=(new URLSearchParams(location.search)).get('countdown');
+  if(!_raw) return;
+  const _ov=document.getElementById('countdown-ov');
+  const _td=document.getElementById('cd-time');
+  if(!_ov||!_td) return;
+  // Parse: integer seconds OR ISO datetime string
+  let _endMs;
+  if(/^\d+$/.test(_raw.trim())){ const _n=parseInt(_raw,10); if(_n>0&&_n<=86400)_endMs=Date.now()+_n*1000; else return; }
+  else { const _d=new Date(_raw); if(isNaN(_d.getTime())) return; _endMs=_d.getTime(); }
+  if(_endMs<=Date.now()) return; // already expired
+  // Custom label via ?countdownlabel=TEXT
+  const _lbl=document.querySelector('#countdown-ov .cd-lbl');
+  const _lblTxt=(new URLSearchParams(location.search)).get('countdownlabel');
+  if(_lbl&&_lblTxt) _lbl.textContent=_lblTxt.slice(0,40);
+  _ov.classList.add('show');
+  let _timer=null;
+  function _tick(){
+    const rem=Math.max(0,Math.ceil((_endMs-Date.now())/1000));
+    const h=Math.floor(rem/3600), m=Math.floor((rem%3600)/60), s=rem%60;
+    _td.textContent=h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:
+                       `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(rem===0){ clearInterval(_timer); _timer=null; setTimeout(()=>{_ov.style.opacity='0';setTimeout(()=>_ov.remove(),700);},2000); return false; }
+    return true;
+  }
+  if(_tick()) _timer=setInterval(_tick,1000);
 })();
 // Chat overlay (?showchat=1) — subscribes to noiru-chat postMessage events for display
 (()=>{
