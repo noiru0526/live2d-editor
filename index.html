@@ -4193,6 +4193,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nameplate=名前</td><td>ネームプレート表示（+?nameplatecolor=RRGGBB）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=秒or日時</td><td>カウントダウンタイマー（+?countdownlabel=TEXT）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursor=✨</td><td>絵文字カーソル（+?cursorsize=24）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
@@ -5420,6 +5421,18 @@ function applyPoseBlend(dt){
       }
     }
     if(usp.get('hidecursor')==='1'&&!document.getElementById('hc-style')){const _cs=document.createElement('style');_cs.id='hc-style';_cs.textContent='*{cursor:none!important;}';document.head.appendChild(_cs);}
+    // Custom emoji cursor: ?cursor=✨ (?cursorsize=N, default 24)
+    (()=>{
+      const _em=usp.get('cursor');if(!_em) return;
+      const _sz=Math.min(64,Math.max(12,Number(usp.get('cursorsize'))||24));
+      const _cs=document.createElement('style');_cs.textContent='*{cursor:none!important;}';document.head.appendChild(_cs);
+      const _ce=document.createElement('div');
+      _ce.style.cssText=`position:fixed;pointer-events:none;z-index:9999;font-size:${_sz}px;line-height:1;transform:translate(-50%,-50%);display:none;user-select:none;`;
+      _ce.textContent=_em.slice(0,8);
+      document.body.appendChild(_ce);
+      document.addEventListener('mousemove',ev=>{_ce.style.display='block';_ce.style.left=ev.clientX+'px';_ce.style.top=ev.clientY+'px';},{passive:true});
+      document.addEventListener('mouseleave',()=>{_ce.style.display='none';},{passive:true});
+    })();
     const _opParam=Number(usp.get('opacity'));
     if(Number.isFinite(_opParam)&&_opParam>=0&&_opParam<=1){const _cv=document.getElementById('c');if(_cv)_cv.style.opacity=String(_opParam);}
     if(usp.get('noui')==='1'){
