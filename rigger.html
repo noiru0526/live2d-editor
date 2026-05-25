@@ -3211,7 +3211,14 @@ function updatePartsUI() {
         gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-dup" title="グループを複製（全パーツをコピー）" style="background:none;border:none;color:#60a0d0;cursor:pointer;font-size:9px;padding:0 2px;">⧉</button><button class="pgroup-del" title="グループを削除">✕</button>`;
         gh.querySelector('.pgroup-dup').onclick = (e) => { e.stopPropagation(); duplicateGroup(grp.id); };
         gh.querySelector('.pgroup-del').onclick = (e) => { e.stopPropagation(); deleteGroup(grp.id); };
-        gh.onclick = () => toggleGroup(grp.id);
+        gh.onclick = (e) => {
+          if(e.ctrlKey||e.metaKey){
+            const anyCollapsed=groups.some(g=>collapsedGroups.has(g.id));
+            if(anyCollapsed){groups.forEach(g=>collapsedGroups.delete(g.id));setStatus('全グループ展開');}
+            else{groups.forEach(g=>collapsedGroups.add(g.id));setStatus('全グループ折りたたみ');}
+            updatePartsUI();
+          } else { toggleGroup(grp.id); }
+        };
         list.appendChild(gh);
       }
       if (collapsedGroups.has(pt.groupId)) return;
