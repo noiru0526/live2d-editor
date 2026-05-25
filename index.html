@@ -4191,6 +4191,13 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcooldown=秒</td><td>チャットトリガーのクールダウン（デフォルト: 3秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoplay=1</td><td>アニメーション自動再生</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?clip=名前</td><td>指定クリップを初期選択</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pose=名前</td><td>指定表情で起動</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?speed=N</td><td>再生速度（例: 1.5）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?loop=N</td><td>ループ回数（-1=無限、1=1回のみ）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mute=1</td><td>BGMをミュート</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fps=N</td><td>顔追跡FPS上限（例: 15・30）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
@@ -4227,6 +4234,7 @@ const SENS=${sens};
 const LOOP_FADE_IN=${exportFadeIn};
 const LOOP_FADE_OUT=${exportFadeOut};
 const ANIM_LOOP_COUNT=${exportLoopCount}; // -1=infinite, 1+=loop count
+let _rtLoopCount=ANIM_LOOP_COUNT; // overridable at runtime via ?loop=N
 let _animLoopsPlayed=0;
 const stEl=document.getElementById('st');
 const loadEl=document.getElementById('loading');
@@ -4405,7 +4413,7 @@ function applyAnimTracks(now){
     const rawOff=animT-loopIn;
     if(rawOff>=0){
       const loopsDone=Math.floor(rawOff/loopLen);
-      if(ANIM_LOOP_COUNT>0&&loopsDone>=ANIM_LOOP_COUNT){
+      if(_rtLoopCount>0&&loopsDone>=_rtLoopCount){
         animPlaying=false;
         const btn=document.getElementById('anim-btn');
         if(btn)btn.textContent='▶ Anim';
@@ -5313,6 +5321,8 @@ function applyPoseBlend(dt){
       const sp=document.getElementById('anim-speed');if(sp)sp.value=speedParam;
     }
     if(usp.get('mute')==='1'){const bgm=document.getElementById('bgm-audio');if(bgm)bgm.muted=true;}
+    const _loopParam=usp.get('loop');
+    if(_loopParam!==null){const _ln=parseFloat(_loopParam);if(!isNaN(_ln)){_rtLoopCount=_ln<0?-1:Math.max(1,Math.round(_ln));}}
     const bgParam=usp.get('bg');
     if(bgParam&&/^#?[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(bgParam)){
       const bgHex=bgParam.startsWith('#')?bgParam:'#'+bgParam;
