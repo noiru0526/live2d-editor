@@ -4162,6 +4162,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nameplate=名前</td><td>ネームプレート表示（+?nameplatecolor=RRGGBB）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=秒or日時</td><td>カウントダウンタイマー（+?countdownlabel=TEXT）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?hidecursor=1</td><td>マウスカーソル非表示</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?opacity=0〜1</td><td>アバター全体の透明度（例: 0.7）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#3a7050;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
       ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
@@ -5278,6 +5279,8 @@ function applyPoseBlend(dt){
       }
     }
     if(usp.get('hidecursor')==='1'&&!document.getElementById('hc-style')){const _cs=document.createElement('style');_cs.id='hc-style';_cs.textContent='*{cursor:none!important;}';document.head.appendChild(_cs);}
+    const _opParam=Number(usp.get('opacity'));
+    if(Number.isFinite(_opParam)&&_opParam>=0&&_opParam<=1){const _cv=document.getElementById('c');if(_cv)_cv.style.opacity=String(_opParam);}
     if(usp.get('noui')==='1'){
       ['anim-controls','mt-btn','gp-btn','idle-rand-btn','cp-btn'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.style.display='none';
