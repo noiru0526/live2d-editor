@@ -4198,6 +4198,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?loop=N</td><td>ループ回数（-1=無限、1=1回のみ）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mute=1</td><td>BGMをミュート</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fps=N</td><td>顔追跡FPS上限（例: 15・30）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ws=URL</td><td>ゲームWS連携（shake/flash/blur/rain/speak/setPose）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
@@ -5999,6 +6000,46 @@ function _handleChatMsg(rawMsg){
   };
   // Cancel TTS on Esc key
   document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&_ttsUtter){speechSynthesis.cancel();_ttsSpeaking=false;}},{capture:true,passive:true});
+})();
+// Game WebSocket (?ws=URL) — external WS events → trigger shake/flash/blur/rain/speak/setPose
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _wsUrl=_usp.get('ws');
+  if(!_wsUrl) return;
+  let _gws=null,_gwsRetry=0,_gwsTimer=null,_gwsStopped=false;
+  function _gwsDispatch(d){
+    if(!d||typeof d!=='object') return;
+    switch(d.cmd){
+      case 'shake': if(typeof window.triggerShake==='function')window.triggerShake(d.intensity,d.dur); break;
+      case 'flash': if(typeof window.triggerFlash==='function')window.triggerFlash(d.color,d.dur); break;
+      case 'blur':  if(typeof window.triggerBlur==='function')window.triggerBlur(d.amount,d.dur); break;
+      case 'rain':  if(typeof window.triggerRain==='function')window.triggerRain(d.emoji,d.count); break;
+      case 'borderAlert': if(typeof window.triggerBorderAlert==='function')window.triggerBorderAlert(d.color,d.dur); break;
+      case 'speak': if(typeof window.speak==='function')window.speak(d.text,{rate:d.rate,pitch:d.pitch,volume:d.volume,voice:d.voice}); break;
+      case 'setPose': {
+        if(d.name==null){activePose=null;poseBlend=0;if(typeof updateExprList==='function')updateExprList(0);}
+        else{const p=MD?.poses?.find(x=>x.name===d.name);if(p){activePose=p;poseBlend=0;}}
+      } break;
+      case 'chat': if(typeof _handleChatMsg==='function')_handleChatMsg(d.msg||''); break;
+    }
+  }
+  function _gwsConnect(){
+    if(_gwsStopped) return;
+    if(_gws&&_gws.readyState<WebSocket.CLOSING) return;
+    try{
+      _gws=new WebSocket(_wsUrl);
+      _gws.onopen=()=>{ _gwsRetry=0; };
+      _gws.onmessage=ev=>{ let d;try{d=JSON.parse(ev.data);}catch{return;} _gwsDispatch(d); };
+      _gws.onclose=()=>{
+        _gws=null; if(_gwsStopped) return;
+        const ms=Math.min(30000,1500*Math.pow(1.5,_gwsRetry++))+Math.random()*500;
+        clearTimeout(_gwsTimer); _gwsTimer=setTimeout(_gwsConnect,ms);
+      };
+      _gws.onerror=()=>{if(_gws&&_gws.readyState<WebSocket.CLOSING)try{_gws.close();}catch(_){}};
+    }catch(e){console.warn('[ws]',e);}
+  }
+  _gwsConnect();
+  window.addEventListener('pagehide',()=>{_gwsStopped=true;clearTimeout(_gwsTimer);if(_gws&&_gws.readyState<WebSocket.CLOSING)try{_gws.close();}catch(_){} });
 })();
 window.addEventListener('message',ev2=>{
   const d2=ev2.data;
