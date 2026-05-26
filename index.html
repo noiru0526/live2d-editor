@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?trackmouse=1</td><td>マウスカーソル十字線+座標オーバーレイ・?trackmousecolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotepopup=1</td><td>チャット画像URLを大型ポップアップ表示・triggerEmotePopup(src)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nametag=TEXT</td><td>ストリーマーネームタグバッジ・?nametagpos=bottomleft&?nametagcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8724,6 +8727,88 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-278: ?nametag=TEXT ストリーマーネームタグ（画面端に名前バッジを常時表示）
+// 例: ?nametag=noiru&nametagpos=bottomleft&nametagcolor=ff6699
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _t=_u.get('nametag'); if(!_t) return;
+  const _pos=_u.get('nametagpos')||'bottomleft';
+  const _col='#'+(_u.get('nametagcolor')||'ff6699');
+  const _d=document.createElement('div');
+  _d.id='niru-nametag';
+  const _posMap={bottomleft:{bottom:'18px',left:'18px'},bottomright:{bottom:'18px',right:'18px'},topleft:{top:'18px',left:'18px'},topright:{top:'18px',right:'18px'}};
+  const _p=_posMap[_pos]||_posMap.bottomleft;
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'140',padding:'6px 16px 6px 12px',
+    background:'rgba(0,0,0,0.55)',borderLeft:`4px solid ${_col}`,
+    color:'#fff',fontFamily:'sans-serif',fontSize:'18px',fontWeight:'bold',
+    borderRadius:'0 8px 8px 0',backdropFilter:'blur(4px)',
+    textShadow:`0 0 8px ${_col}`,letterSpacing:'1px',
+    ..._p
+  });
+  _d.textContent=decodeURIComponent(_t);
+  document.body.appendChild(_d);
+  window.setNametag=t=>{_d.textContent=t;};
+})();
+// Q-277: ?emotepopup=1 大型エモートポップアップ（チャットのemoteを大きく画面中央に表示）
+// 例: ?emotepopup=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('emotepopup')!=='1') return;
+  const _emoteRe=/https?:\/\/\S+\.(?:png|gif|webp)\b|:\w+:/gi;
+  const _pool=[];
+  function _showEmote(src){
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',zIndex:'155',left:'50%',top:'45%',
+      transform:'translate(-50%,-50%) scale(0)',
+      transition:'transform 0.15s cubic-bezier(.2,1.6,.4,1)',
+      pointerEvents:'none'
+    });
+    const _img=document.createElement('img');
+    _img.src=src; _img.style.cssText='width:160px;height:160px;object-fit:contain;filter:drop-shadow(0 0 12px rgba(255,255,255,0.7))';
+    _d.appendChild(_img); document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.transform='translate(-50%,-50%) scale(1)'; });
+    setTimeout(()=>{ _d.style.transform='translate(-50%,-50%) scale(0)'; setTimeout(()=>_d.remove(),200); },1800);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'){
+      const m=d.msg||'';
+      const found=m.match(_emoteRe);
+      if(found) found.forEach(s=>{ if(s.startsWith('http')) _showEmote(s); });
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='emotepopup'&&d.src) _showEmote(d.src);
+  });
+  window.triggerEmotePopup=src=>_showEmote(src);
+})();
+// Q-276: ?trackmouse=1 マウスカーソル追跡オーバーレイ（十字線+座標を表示）
+// 例: ?trackmouse=1&trackmousecolor=00ffff
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('trackmouse')!=='1') return;
+  const _col='#'+(_u.get('trackmousecolor')||'00ffff');
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'145',pointerEvents:'none'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  let _mx=window.innerWidth/2,_my=window.innerHeight/2;
+  window.addEventListener('mousemove',e=>{ _mx=e.clientX; _my=e.clientY; });
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _ctx.save();
+    _ctx.strokeStyle=_col; _ctx.lineWidth=1; _ctx.globalAlpha=0.55;
+    _ctx.beginPath(); _ctx.moveTo(_mx,0); _ctx.lineTo(_mx,_cv.height); _ctx.stroke();
+    _ctx.beginPath(); _ctx.moveTo(0,_my); _ctx.lineTo(_cv.width,_my); _ctx.stroke();
+    _ctx.globalAlpha=0.9;
+    _ctx.fillStyle=_col; _ctx.font='bold 11px monospace';
+    _ctx.fillText(`${Math.round(_mx)}, ${Math.round(_my)}`,_mx+8,_my-6);
+    _ctx.restore();
+    requestAnimationFrame(_draw);
+  })();
 })();
 // Q-273: ?godray=1 ゴッドレイ（天から差し込む光の筋エフェクト）
 // 例: ?godray=1&godraycolor=ffffaa&godraycount=5
