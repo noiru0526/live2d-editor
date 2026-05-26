@@ -6746,6 +6746,14 @@ function _handleChatMsg(rawMsg){
         else{const p=MD?.poses?.find(x=>x.name===d.name);if(p){activePose=p;poseBlend=0;}}
       } break;
       case 'chat': if(typeof _handleChatMsg==='function')_handleChatMsg(d.msg||''); break;
+      // Q-099: additional commands to match postMessage API
+      case 'setParam': if(typeof params!=='undefined'&&params[d.name]!==undefined){params[d.name].val=Math.max(params[d.name].min,Math.min(params[d.name].max,+d.value||0));} break;
+      case 'playClip': {const ci=(MD.animClips||[]).findIndex(c=>c.name===d.name);if(typeof switchClip==='function')switchClip(ci>=0?ci:-1);if(d.play!==false&&typeof toggleExportAnim==='function'&&!animPlaying)toggleExportAnim();} break;
+      case 'stopAnim': if(typeof toggleExportAnim==='function'&&animPlaying)toggleExportAnim(); break;
+      case 'playAnim': if(typeof toggleExportAnim==='function'&&!animPlaying)toggleExportAnim(); break;
+      case 'setGrade': if(typeof window.setGrade==='function')window.setGrade(d.hue,d.sat,d.bri,d.con); break;
+      case 'poptext': if(typeof window.showPopText==='function')window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size}); break;
+      case 'reset': if(typeof activePose!=='undefined'){activePose=null;poseBlend=0;for(const k of Object.keys(params))params[k].val=0;} break;
     }
   }
   function _gwsConnect(){
