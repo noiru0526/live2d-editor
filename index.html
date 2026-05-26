@@ -4458,6 +4458,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bubbles=1</td><td>泡エフェクト（浮き上がる水泡）・?bubblecount=30・?bubblecolor=80d4ff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?shootingstar=1</td><td>流れ星エフェクト・?starinterval=3000ms・?startrails=5・API: triggerShootingStar()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?aurora=1</td><td>オーロラエフェクト（波打つ光の帯）・?auroracolor=00ff88,7744ff（カンマ区切り複数色）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pomodoro=1</td><td>ポモドーロタイマー・?pomofocus=25・?pomobr=5・?pomopos=tr・クリックで停止/再開</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcount=1</td><td>チャット数カウンター・?chatcountwindow=60s・?chatcountpos=bl</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrorchat=1</td><td>最新チャットを大きく表示・?mirrordur=4000・?mirrorsize=32・?mirrorpos=center/top</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8639,6 +8642,131 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-189: ?pomodoro=1 ポモドーロタイマー（25分集中→5分休憩サイクル）
+// 例: ?pomodoro=1&pomofocus=25&pomobr=5&pomopos=tr
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('pomodoro')!=='1') return;
+  const _focusMins=Math.min(99,Math.max(1,parseInt(_usp.get('pomofocus'))||25));
+  const _breakMins=Math.min(30,Math.max(1,parseInt(_usp.get('pomobr'))||5));
+  const _pos=_usp.get('pomopos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='pomodoro-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'140px',background:'rgba(0,0,0,0.8)',borderRadius:'12px',
+    padding:'12px 14px',zIndex:'500',fontFamily:'monospace',
+    textAlign:'center',cursor:'pointer',userSelect:'none'
+  });
+  let _phase='focus',_secsLeft=_focusMins*60,_running=true,_cycles=0;
+  const _title=document.createElement('div');
+  Object.assign(_title.style,{fontSize:'12px',color:'#f9a',marginBottom:'4px'});
+  const _display=document.createElement('div');
+  Object.assign(_display.style,{fontSize:'32px',color:'#fff',fontWeight:'bold'});
+  const _info=document.createElement('div');
+  Object.assign(_info.style,{fontSize:'11px',color:'#888',marginTop:'4px'});
+  _wrap.appendChild(_title); _wrap.appendChild(_display); _wrap.appendChild(_info);
+  document.body.appendChild(_wrap);
+  function _fmt(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+  function _render(){
+    _title.textContent=_phase==='focus'?'🍅 集中中':'☕ 休憩中';
+    _display.textContent=_fmt(_secsLeft);
+    _info.textContent=`サイクル ${_cycles}回 | ${_running?'進行中':'一時停止'}`;
+    _wrap.style.borderLeft=_phase==='focus'?'3px solid #f9a':'3px solid #9cf';
+  }
+  _render();
+  let _interval=setInterval(()=>{
+    if(!_running) return;
+    _secsLeft--;
+    if(_secsLeft<=0){
+      if(_phase==='focus'){ _phase='break'; _secsLeft=_breakMins*60; _cycles++; }
+      else { _phase='focus'; _secsLeft=_focusMins*60; }
+      if(typeof window.showPopText==='function') window.showPopText(_phase==='break'?'休憩！':'集中！',{dur:3000});
+    }
+    _render();
+  },1000);
+  _wrap.addEventListener('click',()=>{ _running=!_running; _render(); });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='pomodorotoggle'){ _running=!_running; _render(); }
+    if(d.type==='noiru-cmd'&&d.cmd==='pomodororeset'){
+      _phase='focus'; _secsLeft=_focusMins*60; _running=true; _render();
+    }
+  });
+})();
+// Q-190: ?chatcount=1 チャットメッセージ数カウンター（配信中のチャット活発度を数値表示）
+// 例: ?chatcount=1&chatcountpos=bl&chatcountwindow=60
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatcount')!=='1') return;
+  const _win=Math.min(600,Math.max(10,parseInt(_usp.get('chatcountwindow'))||60));
+  const _pos=_usp.get('chatcountpos')||'bl';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='chatcount-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    background:'rgba(0,0,0,0.7)',borderRadius:'8px',padding:'8px 14px',
+    zIndex:'500',fontFamily:'monospace',pointerEvents:'none',textAlign:'center'
+  });
+  const _times=[];
+  let _total=0;
+  function _render(){
+    const now=Date.now();
+    while(_times.length&&_times[0]<now-_win*1000) _times.shift();
+    const rate=_times.length;
+    _wrap.innerHTML=`<div style="color:#aaf;font-size:11px;">${_win}秒チャット</div>
+      <div style="color:#fff;font-size:26px;font-weight:bold;">${rate}</div>
+      <div style="color:#888;font-size:11px;">累計 ${_total}</div>`;
+  }
+  document.body.appendChild(_wrap); _render();
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'){ _times.push(Date.now()); _total++; _render(); }
+  });
+})();
+// Q-191: ?mirrorchat=1 チャットミラー（最新チャットを大きく画面中央に一時表示）
+// 例: ?mirrorchat=1&mirrordur=4000&mirrorsize=36
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('mirrorchat')!=='1') return;
+  const _dur=Math.min(15000,Math.max(1000,parseInt(_usp.get('mirrordur'))||4000));
+  const _sz=Math.min(72,Math.max(14,parseInt(_usp.get('mirrorsize'))||32));
+  const _pos=_usp.get('mirrorpos')||'center';
+  const _wrap=document.createElement('div');
+  _wrap.id='mirrorchat-ov';
+  const _posStyle=_pos==='top'?'top:10%':'bottom:10%';
+  Object.assign(_wrap.style,{
+    position:'fixed',left:'5%',width:'90%',
+    textAlign:'center',zIndex:'999',pointerEvents:'none',
+    display:'none',transition:'opacity 0.3s'
+  });
+  _wrap.style.cssText+=';'+_posStyle;
+  const _user=document.createElement('div');
+  Object.assign(_user.style,{fontSize:(Math.max(12,_sz*0.5))+'px',color:'#ffd700',fontFamily:'sans-serif',fontWeight:'bold',marginBottom:'4px'});
+  const _msg=document.createElement('div');
+  Object.assign(_msg.style,{fontSize:_sz+'px',color:'#fff',fontFamily:'sans-serif',
+    background:'rgba(0,0,0,0.75)',padding:'8px 16px',borderRadius:'12px',
+    wordBreak:'break-word',display:'inline-block',maxWidth:'100%',
+    textShadow:'0 0 10px rgba(0,0,0,0.9)',boxSizing:'border-box'});
+  _wrap.appendChild(_user); _wrap.appendChild(_msg);
+  document.body.appendChild(_wrap);
+  let _hideTimer=0;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      _user.textContent=d.user||''; _msg.textContent=d.msg;
+      if(d.color) _user.style.color=d.color.startsWith('#')?d.color:'#'+d.color;
+      _wrap.style.display='block'; _wrap.style.opacity='1';
+      clearTimeout(_hideTimer);
+      _hideTimer=setTimeout(()=>{
+        _wrap.style.opacity='0';
+        setTimeout(()=>{ _wrap.style.display='none'; },300);
+      },_dur);
+    }
   });
 })();
 // Q-186: ?bubbles=1 泡エフェクト（水中の泡が浮き上がる）
