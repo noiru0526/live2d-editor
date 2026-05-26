@@ -4398,6 +4398,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?typingeffect=1</td><td>チャットバブルにタイピングアニメーション（+?typingspeed=30ms/字）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?followalert=1</td><td>フォロー通知エフェクト（紙吹雪＋ローワーサード・+?followsound=URL ?followexpr=ポーズ名）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avataranchor=bottom</td><td>アバター表示基準点（bottom/top/center・OBSでの配置を固定）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?subtitles=1</td><td>字幕オーバーレイ（TTS発話・speakコマンド・+?subtitlepos= ?subtitlecolor= ?subtitlesize=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotkey=F1:shake,F2:rain:🌸</td><td>カスタムホットキー（shake/flash/glitch/blur/rain/confetti/pose:[name]/clip:[name]）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?badgeol=URL</td><td>バッジオーバーレイ（画像を四隅に固定表示・+?badgepos=tr/tl/br/bl ?badgesize=48）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7489,6 +7492,97 @@ window.addEventListener('message',ev=>{
     _wrap.style.left='50%'; _wrap.style.transform='translateX(-50%)';
     _wrap.style.transformOrigin='top center';
   }
+})();
+// Q-129: ?subtitles=1 字幕オーバーレイ（TTS発話・noiru-cmd speak・postMessage subtitle を表示）
+// ?subtitlepos=bottom/top ?subtitlecolor=ffffff ?subtitlesize=18 ?subtitledur=5
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('subtitles')!=='1') return;
+  const _pos=_usp.get('subtitlepos')||'bottom';
+  const _col='#'+(_usp.get('subtitlecolor')||'ffffff');
+  const _sz=Math.min(48,Math.max(10,parseInt(_usp.get('subtitlesize'))||18));
+  const _dur=Math.min(30,Math.max(1,parseFloat(_usp.get('subtitledur'))||5));
+  const _ov=document.createElement('div');
+  _ov.id='subtitle-ov';
+  const _topOrBottom=_pos==='top'?'top:50px;bottom:auto;':'bottom:44px;top:auto;';
+  _ov.style.cssText=`position:fixed;${_topOrBottom}left:10%;right:10%;text-align:center;z-index:63;pointer-events:none;opacity:0;transition:opacity .3s;`;
+  _ov.innerHTML=`<div id="subtitle-text" style="display:inline-block;background:rgba(0,0,0,.65);border-radius:6px;padding:5px 16px;font-size:${_sz}px;color:${_col};max-width:100%;word-break:break-word;line-height:1.4;text-shadow:1px 1px 3px rgba(0,0,0,.9);backdrop-filter:blur(3px);"></div>`;
+  document.body.appendChild(_ov);
+  const _txt=document.getElementById('subtitle-text');
+  let _hideT=null;
+  window.showSubtitle=function(text){
+    if(!_txt) return;
+    _txt.textContent=text;
+    _ov.style.opacity='1';
+    if(_hideT) clearTimeout(_hideT);
+    _hideT=setTimeout(()=>{ _ov.style.opacity='0'; },_dur*1000);
+  };
+  // postMessage: {type:'noiru-cmd', cmd:'subtitle', text:'...'} or {type:'noiru-subtitle', text:'...'}
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-subtitle'&&d.text) window.showSubtitle(d.text);
+    else if(d.type==='noiru-cmd'&&d.cmd==='subtitle'&&d.text) window.showSubtitle(d.text);
+    // Also intercept TTS speak commands to auto-subtitle
+    else if(d.type==='noiru-cmd'&&d.cmd==='speak'&&d.text) window.showSubtitle(d.text);
+  });
+  // Hook SpeechSynthesisUtterance if TTS is enabled
+  const _origSpeak=speechSynthesis.speak.bind(speechSynthesis);
+  speechSynthesis.speak=function(utt){
+    if(utt instanceof SpeechSynthesisUtterance&&utt.text) window.showSubtitle(utt.text);
+    return _origSpeak(utt);
+  };
+})();
+// Q-130: ?hotkey=KEY:cmd カスタムホットキー（キーに任意のnoiru-cmdを割り当て）
+// 複数指定: ?hotkey=F1:shake,F2:flash,F3:rain:🌸 など
+// cmd形式: shake/flash/glitch/blur/rain[:emoji]/confetti/pose:[name]/clip:[name]
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('hotkey');if(!_raw) return;
+  const _map={};
+  _raw.split(',').forEach(item=>{
+    const ci=item.indexOf(':');if(ci<1) return;
+    const key=item.slice(0,ci).trim();
+    const cmd=item.slice(ci+1).trim();
+    if(key&&cmd) _map[key.toLowerCase()]=cmd;
+  });
+  if(!Object.keys(_map).length) return;
+  document.addEventListener('keydown',ev=>{
+    if(ev.target.tagName==='INPUT'||ev.target.tagName==='TEXTAREA') return;
+    const k=(ev.key||'').toLowerCase();
+    const cmd=_map[k];if(!cmd) return;
+    const [c,...args]=cmd.split(':');
+    if(c==='shake'&&typeof window.triggerShake==='function') window.triggerShake();
+    else if(c==='flash'&&typeof window.triggerFlash==='function') window.triggerFlash();
+    else if(c==='glitch'&&typeof window.triggerGlitch==='function') window.triggerGlitch();
+    else if(c==='blur'&&typeof window.triggerBlur==='function') window.triggerBlur();
+    else if(c==='rain'&&typeof window.triggerRain==='function') window.triggerRain(args[0]||'⭐',15);
+    else if(c==='confetti'&&typeof window.triggerConfetti==='function') window.triggerConfetti();
+    else if(c==='pose'&&args[0]&&typeof MD!=='undefined'){
+      const p=MD?.poses?.find(x=>x.name===args[0]);
+      if(p&&typeof activePose!=='undefined'){activePose=p;poseBlend=0;}
+    }
+    else if(c==='clip'&&args[0]&&typeof switchClip==='function'){
+      const ci=(MD?.animClips||[]).findIndex(x=>x.name===args[0]);
+      if(ci>=0)switchClip(ci);
+    }
+    else if(c==='subtitle'&&args[0]&&typeof window.showSubtitle==='function') window.showSubtitle(args.join(':'));
+  });
+})();
+// Q-131: ?badgeol=URL バッジオーバーレイ（URLの画像を右上などに固定表示）
+// ?badgepos=tr/tl/br/bl ?badgesize=48 ?badgeopacity=0.9 ?badgemargin=10
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('badgeol');if(!_url) return;
+  const _pos=_usp.get('badgepos')||'tr';
+  const _sz=Math.min(256,Math.max(16,parseInt(_usp.get('badgesize'))||48));
+  const _op=Math.min(1,Math.max(0,parseFloat(_usp.get('badgeopacity'))||0.9));
+  const _mg=Math.min(80,Math.max(0,parseInt(_usp.get('badgemargin'))||10));
+  const _img=document.createElement('img');
+  _img.src=_url; _img.alt='badge';
+  const top=_pos.startsWith('t')?`top:${_mg}px;bottom:auto;`:`top:auto;bottom:${_mg}px;`;
+  const lr=_pos.endsWith('r')?`right:${_mg}px;left:auto;`:`left:${_mg}px;right:auto;`;
+  _img.style.cssText=`position:fixed;${top}${lr}width:${_sz}px;height:${_sz}px;object-fit:contain;opacity:${_op};pointer-events:none;z-index:65;`;
+  document.body.appendChild(_img);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
