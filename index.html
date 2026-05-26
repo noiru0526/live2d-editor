@@ -4524,6 +4524,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?socialbanner=1</td><td>SNSフォロー促進バナー・?twitchname=・?twittername=・?discordinvite=・?socialinterval=30s</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlaytext2=TEXT:X:Y</td><td>任意座標テキスト・複数は|区切り・:COLOR:SIZE:FONTで追加スタイル</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?toucheffect=1</td><td>タッチ/クリックエフェクト・?touchtype=rings/sparks/hearts</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?motionapi=1</td><td>postMessageでLive2Dパラメータ直接制御（noiru-param/noiru-params/noiru-pose）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotemap=😊:pose</td><td>チャット絵文字→ポーズ切替マッピング・複数カンマ区切り</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?paramsmooth=0.15</td><td>追跡パラメータ平滑化係数（0.01=高応答・0.5=なめらか）・API: setParamSmooth(v)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8706,6 +8709,107 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-255: ?motionapi=1 モーションAPIリスナー（postMessageでLive2Dパラメータを直接制御）
+// postMessage {type:'noiru-param', param:'PARAM_NAME', value:0.5}
+// postMessage {type:'noiru-params', params:{PARAM_A:0.1, PARAM_B:-0.5}}
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('motionapi')!=='1') return;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-param'&&d.param!=null&&d.value!=null){
+      if(typeof M!=='undefined'&&M&&M.params){
+        const p=M.params[d.param];
+        if(p) p.val=Math.min(p.max??1,Math.max(p.min??-1,parseFloat(d.value)));
+        if(typeof ST!=='undefined') ST.cachedVerts=null;
+      }
+    }
+    if(d.type==='noiru-params'&&d.params){
+      if(typeof M!=='undefined'&&M&&M.params){
+        for(const [k,v] of Object.entries(d.params)){
+          const p=M.params[k];
+          if(p) p.val=Math.min(p.max??1,Math.max(p.min??-1,parseFloat(v)));
+        }
+        if(typeof ST!=='undefined') ST.cachedVerts=null;
+      }
+    }
+    if(d.type==='noiru-pose'&&d.pose){
+      if(typeof applyPose==='function') applyPose(d.pose);
+      else if(typeof activePose!=='undefined') {
+        window.activePose=d.pose;
+        if(typeof ST!=='undefined') ST.cachedVerts=null;
+      }
+    }
+  });
+  // Expose current params as query
+  window.getAvatarParams=function(){
+    if(typeof M==='undefined'||!M||!M.params) return {};
+    const out={};
+    for(const [k,p] of Object.entries(M.params)) out[k]=p.val;
+    return out;
+  };
+})();
+// Q-256: ?emotemap=EMOTE:POSE チャット絵文字でポーズを切替（絵文字→ポーズ名マッピング）
+// 例: ?emotemap=😊:smile,😢:sad,😠:angry,🎉:happy
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('emotemap'); if(!_raw) return;
+  const _map={};
+  _raw.split(',').forEach(pair=>{
+    const chars=[...pair]; // handle emoji properly
+    const colIdx=pair.lastIndexOf(':');
+    if(colIdx<0) return;
+    const emote=pair.slice(0,colIdx); const pose=pair.slice(colIdx+1);
+    if(emote&&pose) _map[emote.trim()]=pose.trim();
+  });
+  const _emojiRe=/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const emojis=d.msg.match(_emojiRe)||[];
+      for(const em of emojis){
+        const pose=_map[em];
+        if(pose){
+          // Switch pose
+          if(typeof applyPose==='function'){ applyPose(pose); break; }
+          if(typeof window.activePose!=='undefined'){ window.activePose=pose; break; }
+          window.postMessage({type:'noiru-cmd',cmd:'pose',name:pose},'*');
+          break;
+        }
+      }
+    }
+  });
+})();
+// Q-257: ?paramsmooth=N パラメータ平滑化係数上書き（追跡の滑らかさをURLで調整）
+// 例: ?paramsmooth=0.15（0.01=最高応答性・0.5=最高平滑）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _n=parseFloat(_usp.get('paramsmooth')); if(isNaN(_n)) return;
+  const _alpha=Math.min(0.99,Math.max(0.01,_n));
+  // Override S EMA smoothing factor when available
+  // This runs after initialization so we patch the update loop
+  let _patched=false;
+  function _tryPatch(){
+    if(_patched) return;
+    if(typeof window._EMA_ALPHA!=='undefined'){
+      window._EMA_ALPHA=_alpha; _patched=true; return;
+    }
+    // Try to find and override the smoothing in S object update
+    if(typeof window.S!=='undefined'&&window.S&&!_patched){
+      // Store for use by tracking update loop
+      window._paramSmoothOverride=_alpha;
+      _patched=true;
+    }
+  }
+  setTimeout(_tryPatch,1000);
+  setTimeout(_tryPatch,3000);
+  // Also expose as API
+  window.setParamSmooth=function(v){
+    const a=Math.min(0.99,Math.max(0.01,v));
+    if(typeof window._EMA_ALPHA!=='undefined') window._EMA_ALPHA=a;
+    window._paramSmoothOverride=a;
+  };
 })();
 // Q-252: ?socialbanner=1 SNSバナー（Twitch/Twitter等のフォローを促す帯表示）
 // 例: ?socialbanner=1&twitchname=noiru0526&twittername=noiru_vt
