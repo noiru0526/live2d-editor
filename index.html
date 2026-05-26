@@ -4379,6 +4379,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?theme=NAME</td><td>カラーテーマ一括設定（night/warm/cool/retro/vivid/ghost/forest）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mousetrack=1</td><td>マウスカーソル常時追跡（=head で頭も動く・+?mousetracksens=1.0）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
@@ -5978,6 +5979,23 @@ function applyPoseBlend(dt){
       _cv.style.opacity='';_cv.style.transition='';
       _cv.style.animation=`${_an} ${_dur}s cubic-bezier(.34,1.56,.64,1) both`;
       _cv.addEventListener('animationend',()=>{_cv.style.animation='';},{once:true});
+    })();
+    // Q-116: ?mousetrack=1 マウスカーソル常時追跡（クリック不要で視線・頭部をマウスに追従）
+    // ?mousetrack=head で頭も動く。?mousetracksens=0.5 感度調整（デフォルト1.0）
+    (()=>{
+      const _mt=usp.get('mousetrack');if(!_mt||_mt==='0') return;
+      const _mtHead=(_mt==='head');
+      const _sens=Math.min(2,Math.max(0.1,parseFloat(usp.get('mousetracksens'))||1.0));
+      _poiHead=_mtHead;_poiMaxT=999; // keep poi active indefinitely
+      document.addEventListener('mousemove',ev=>{
+        const _cv=document.getElementById('c');if(!_cv) return;
+        const r=_cv.getBoundingClientRect();
+        // Compute relative to window center when mouse is outside canvas
+        const cx=r.left+r.width/2,cy=r.top+r.height/2;
+        _poiX=Math.max(-1,Math.min(1,(ev.clientX-cx)/(r.width/2)*_sens));
+        _poiY=Math.max(-1,Math.min(1,-(ev.clientY-cy)/(r.height/2)*_sens));
+        _poiT=_poiMaxT;
+      },{passive:true});
     })();
     // POI (Point of Interest): ?poi=1 or ?poi=head — click/tap canvas to direct gaze
     (()=>{
