@@ -4401,6 +4401,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?subtitles=1</td><td>字幕オーバーレイ（TTS発話・speakコマンド・+?subtitlepos= ?subtitlecolor= ?subtitlesize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotkey=F1:shake,F2:rain:🌸</td><td>カスタムホットキー（shake/flash/glitch/blur/rain/confetti/pose:[name]/clip:[name]）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?badgeol=URL</td><td>バッジオーバーレイ（画像を四隅に固定表示・+?badgepos=tr/tl/br/bl ?badgesize=48）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rainbow=1</td><td>レインボーカラーシフト（+?rainbowspeed=6秒 ?rainbowsat=180）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bitstreak=1</td><td>ビッツ連続応援ボーナスエフェクト（+?bitstreakthresh=2回 ?bitstreakwindow=60秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatreaction=1</td><td>チャット盛り上がり検出（10秒内に?chatreactionthresh=8件→エフェクト・+?chatreactioneffect=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7583,6 +7586,92 @@ window.addEventListener('message',ev=>{
   const lr=_pos.endsWith('r')?`right:${_mg}px;left:auto;`:`left:${_mg}px;right:auto;`;
   _img.style.cssText=`position:fixed;${top}${lr}width:${_sz}px;height:${_sz}px;object-fit:contain;opacity:${_op};pointer-events:none;z-index:65;`;
   document.body.appendChild(_img);
+})();
+// Q-132: ?rainbow=1 アバターにレインボーカラーシフト（全色hue-rotate自動アニメ）
+// ?rainbowspeed=6 1周にかかる秒数 ?rainbowsat=180 彩度(%) ?rainbowop=0.6 強度（blend用）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('rainbow')!=='1') return;
+  const _spd=Math.min(30,Math.max(0.5,parseFloat(_usp.get('rainbowspeed'))||6));
+  const _sat=Math.min(300,Math.max(50,parseInt(_usp.get('rainbowsat'))||180));
+  const _cv=document.getElementById('c');if(!_cv) return;
+  // Get existing filters (don't overwrite grain/chroma/etc.)
+  const _origFilter=_cv.style.filter||'';
+  let _hue=0;
+  function _tick(t){
+    _hue=((t/(_spd*1000))*360)%360;
+    const h=`hue-rotate(${_hue.toFixed(1)}deg) saturate(${_sat}%)`;
+    // Prepend rainbow filter to existing filters
+    _cv.style.filter=_origFilter?`${h} ${_origFilter}`:h;
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
+})();
+// Q-133: ?bitstreak=1 Twitchビッツ連続応援検出（1分以内の複数ビッツでボーナスエフェクト）
+// ?bitstreakthresh=2 連続必要回数 ?bitstreakwindow=60 時間枠(秒)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('bitstreak')!=='1') return;
+  const _thresh=Math.min(10,Math.max(2,parseInt(_usp.get('bitstreakthresh'))||2));
+  const _win=Math.min(300,Math.max(10,parseInt(_usp.get('bitstreakwindow'))||60))*1000;
+  const _times=[];
+  function _onBits(amount){
+    const now=Date.now();
+    _times.push({t:now,v:amount});
+    // Remove old entries
+    while(_times.length&&now-_times[0].t>_win) _times.shift();
+    if(_times.length>=_thresh){
+      const total=_times.reduce((s,x)=>s+x.v,0);
+      // Trigger escalating effect based on streak count
+      if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+      if(typeof window.triggerShake==='function') window.triggerShake();
+      if(typeof window.showPopText==='function'){
+        const streak=_times.length;
+        window.showPopText(`x${streak} ビッツ連続！ ${total} bits 🔥`,{dur:3000,color:'ffd700',size:20});
+      }
+      _times.length=0; // reset after trigger
+    }
+  }
+  // Hook into Twitch bits events (from _handleIrcLine BITS event)
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-bits'&&typeof d.bits==='number') _onBits(d.bits);
+    if(d.type==='noiru-cmd'&&d.cmd==='bits') _onBits(parseInt(d.amount)||0);
+  });
+  // Also hook _handleChatMsg bits detection (BITS IRC tag)
+  const _origHook=window._bitHook;
+  window._bitHook=function(amount){ _onBits(amount); if(typeof _origHook==='function')_origHook(amount); };
+})();
+// Q-134: ?chatreaction=1 チャットメッセージ速度検知（盛り上がり検出→自動エフェクト）
+// 10秒以内に?chatreactionthresh=8 件以上でエフェクト発動
+// ?chatreactioneffect=confetti/shake/flash/rain:🔥（デフォルトconfetti）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatreaction')!=='1') return;
+  const _thresh=Math.min(50,Math.max(2,parseInt(_usp.get('chatreactionthresh'))||8));
+  const _win=10000; // 10 second window
+  const _eff=_usp.get('chatreactioneffect')||'confetti';
+  const _cd=Math.min(60,Math.max(5,parseInt(_usp.get('chatreactioncd'))||15))*1000;
+  const _times=[]; let _lastFired=0;
+  function _onMsg(){
+    const now=Date.now();
+    _times.push(now);
+    while(_times.length&&now-_times[0]>_win) _times.shift();
+    if(_times.length>=_thresh&&now-_lastFired>_cd){
+      _lastFired=now; _times.length=0;
+      const [c,...args]=_eff.split(':');
+      if(c==='confetti'&&typeof window.triggerConfetti==='function') window.triggerConfetti();
+      else if(c==='shake'&&typeof window.triggerShake==='function') window.triggerShake();
+      else if(c==='flash'&&typeof window.triggerFlash==='function') window.triggerFlash();
+      else if(c==='rain'&&typeof window.triggerRain==='function') window.triggerRain(args[0]||'🔥',20);
+      if(typeof window.showPopText==='function')
+        window.showPopText('チャット盛り上がり！ 🔥',{dur:2500,color:'ff8040',size:18});
+    }
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    _onMsg();
+  });
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
