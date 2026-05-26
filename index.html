@@ -4518,6 +4518,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?oscilloscope=1</td><td>音声オシロスコープ波形・?oscpos=bottom/top・?osccolor=00ff88・?osch=60</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spectrumring=1</td><td>円形スペクトラムリング・?ringcx=50・?ringcy=50・?ringr=80</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audiomood=1</td><td>音声から感情絵文字を推測表示（😴→😌→😊→😄→😤）・?moodpos=tl</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?brbscreen=1</td><td>BRB離席画面・?brbmsg=・?brbkey=F6・API: setBRB(bool)・postMessage brbon/brboff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?liveindicator=1</td><td>LIVE/OFF点滅バッジ・?liveindicatorpos=tr・?liveindicatoron=1・API: setLive(bool)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatvoice=KW:TEXT</td><td>チャットキーワードTTS（!hello:こんにちは,!bye:またね形式）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8699,6 +8702,109 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-249: ?brbscreen=1 BRBスクリーン（離席中画面・テキスト+背景色で自動切替）
+// 例: ?brbscreen=1&brbmsg=少し席を外します・?brbkey=F6
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('brbscreen')!=='1') return;
+  const _msg=_usp.get('brbmsg')||'BRB... 少し席を外します';
+  const _key=_usp.get('brbkey')||'F6';
+  const _bg=_usp.get('brbbg')||'rgba(10,10,40,0.95)';
+  const _ov=document.createElement('div');
+  _ov.id='brb-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'0',left:'0',width:'100%',height:'100%',
+    background:_bg,display:'none',zIndex:'9000',
+    justifyContent:'center',alignItems:'center',flexDirection:'column',
+    fontFamily:'sans-serif',pointerEvents:'none',transition:'opacity 0.5s'
+  });
+  _ov.innerHTML=`<div style="font-size:60px;margin-bottom:16px;">⏸️</div>
+    <div style="color:#fff;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(100,150,255,0.8);">${_msg}</div>
+    <div style="color:#666;font-size:14px;margin-top:12px;">（${_key}で戻る）</div>`;
+  document.body.appendChild(_ov);
+  let _brb=false;
+  function _toggle(){
+    _brb=!_brb;
+    _ov.style.display=_brb?'flex':'none';
+  }
+  document.addEventListener('keydown',e=>{ if(e.key===_key||e.code===_key) _toggle(); });
+  window.setBRB=function(v){ if(v!==_brb) _toggle(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='brbon'&&!_brb) _toggle();
+    if(d.type==='noiru-cmd'&&d.cmd==='brboff'&&_brb) _toggle();
+    if(d.type==='noiru-cmd'&&d.cmd==='brbtoggle') _toggle();
+  });
+})();
+// Q-250: ?liveindicator=1 LIVE/OFF表示インジケーター（配信中を示す赤点滅バッジ）
+// 例: ?liveindicator=1&liveindicatorpos=tr&liveindicatoron=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('liveindicator')!=='1') return;
+  const _pos=_usp.get('liveindicatorpos')||'tr';
+  const _initOn=_usp.get('liveindicatoron')!=='0';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='liveindicator-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    display:'flex',alignItems:'center',gap:'6px',
+    background:'rgba(0,0,0,0.75)',borderRadius:'20px',padding:'4px 12px',
+    zIndex:'500',fontFamily:'monospace',fontWeight:'bold',fontSize:'13px',
+    pointerEvents:'none'
+  });
+  const _dot=document.createElement('div');
+  Object.assign(_dot.style,{width:'10px',height:'10px',borderRadius:'50%',background:'#f00'});
+  const _label=document.createElement('div');
+  _label.style.color='#fff';
+  _wrap.appendChild(_dot); _wrap.appendChild(_label);
+  document.body.appendChild(_wrap);
+  const _style=document.createElement('style');
+  _style.textContent=`@keyframes _liveBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }`;
+  document.head.appendChild(_style);
+  let _live=_initOn;
+  function _update(){
+    if(_live){
+      _dot.style.background='#f00'; _dot.style.animation='_liveBlink 1.5s infinite';
+      _label.textContent='LIVE'; _label.style.color='#f66';
+    } else {
+      _dot.style.background='#555'; _dot.style.animation='none';
+      _label.textContent='OFF'; _label.style.color='#888';
+    }
+  }
+  _update();
+  window.setLive=function(v){ _live=!!v; _update(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='liveon') window.setLive(true);
+      if(d.cmd==='liveoff') window.setLive(false);
+    }
+  });
+})();
+// Q-251: ?chatvoice=WORD:TEXT チャットの特定ワードを音声読み上げ（特定キーワードでTTS発火）
+// 例: ?chatvoice=!hello:こんにちは,!bye:またね
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('chatvoice'); if(!_raw) return;
+  const _map={};
+  _raw.split(',').forEach(pair=>{
+    const idx=pair.indexOf(':'); if(idx<0) return;
+    _map[pair.slice(0,idx).toLowerCase()]=pair.slice(idx+1);
+  });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const m=d.msg.trim().toLowerCase();
+      const txt=_map[m];
+      if(txt&&window.speechSynthesis){
+        const utt=new SpeechSynthesisUtterance(txt);
+        utt.lang='ja-JP'; utt.rate=1.0;
+        window.speechSynthesis.speak(utt);
+      }
+    }
   });
 })();
 // Q-246: ?oscilloscope=1 オシロスコープ（音声波形のリアルタイムライン表示）
