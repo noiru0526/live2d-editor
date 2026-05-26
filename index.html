@@ -4303,6 +4303,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scale=N</td><td>アバタースケール（例: 1.5）/ ?x=N ?y=N: 位置オフセット(px)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?aspect=W:H</td><td>アスペクト比強制固定（例: 16:9 / 1:1 / 4:3）/ ?rounded=N: 角丸マスク（px or %）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
@@ -5855,6 +5856,27 @@ function applyPoseBlend(dt){
       // For transparent bg mode, also clip the entire body
       if(document.body.style.backgroundColor==='transparent'||document.body.style.backgroundColor==='')
         document.body.style.borderRadius=_rv;
+    })();
+    // Q-102: ?aspect=W:H アスペクト比強制固定（例: 16:9, 1:1, 4:3, 1.778）
+    (()=>{
+      const _raw=usp.get('aspect');if(!_raw) return;
+      let _r=NaN;
+      if(_raw.includes(':')){ const [a,b]=_raw.split(':'); _r=parseFloat(a)/parseFloat(b); }
+      else if(_raw.includes('/')){ const [a,b]=_raw.split('/'); _r=parseFloat(a)/parseFloat(b); }
+      else { _r=parseFloat(_raw); }
+      if(!isFinite(_r)||_r<=0) return;
+      // Patch global fitCanvas to use fixed ratio
+      window.fitCanvas=function(){
+        const _wrap=document.getElementById('wrap');
+        const _cv=document.getElementById('c');
+        const vw=window.innerWidth,vh=window.innerHeight;
+        let dw=vw,dh=vw/_r;
+        if(dh>vh){dh=vh;dw=vh*_r;}
+        dw=Math.round(dw);dh=Math.round(dh);
+        if(_cv){_cv.style.width=dw+'px';_cv.style.height=dh+'px';}
+        if(_wrap){_wrap.style.width=dw+'px';_wrap.style.height=dh+'px';}
+      };
+      window.fitCanvas();
     })();
     // Avatar transform: ?scale=N ?x=N ?y=N (applied to #wrap to compose with mirror)
     (()=>{
