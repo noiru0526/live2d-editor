@@ -6366,6 +6366,56 @@ function _handleChatMsg(rawMsg){
   // Cancel TTS on Esc key
   document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&_ttsUtter){speechSynthesis.cancel();_ttsSpeaking=false;}},{capture:true,passive:true});
 })();
+// Q-071: Chat auto-speak — ?autospeak=1 reads Twitch chat via TTS
+// Options: ?autospeakrate=1.1 ?autospeakpitch=1 ?autospeaklang=ja-JP ?autospeakmaxlen=80 ?autospeakskipbot=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('autospeak')!=='1') return;
+  if(!('speechSynthesis' in window)) return;
+  const _rate=Math.max(0.5,Math.min(3,parseFloat(_usp.get('autospeakrate'))||1.1));
+  const _pitch=Math.max(0,Math.min(2,parseFloat(_usp.get('autospeakpitch'))||1));
+  const _maxLen=Math.max(10,Math.min(300,parseInt(_usp.get('autospeakmaxlen'))||80));
+  const _skipBot=_usp.get('autospeakskipbot')==='1';
+  const _botNames=new Set(['nightbot','streamelements','streamlabs','moobot','fossabot','fossbot']);
+  // Queue and rate-limit
+  const _q=[];let _speaking=false;
+  function _next(){
+    if(_speaking||!_q.length) return;
+    const {user,text}=_q.shift();
+    if(typeof window.speak!=='function') return;
+    _speaking=true;
+    const full=user?`${user}：${text}`:text;
+    window.speak(full.slice(0,_maxLen+20),{rate:_rate,pitch:_pitch});
+    const _wait=setInterval(()=>{ if(!_ttsSpeaking){_speaking=false;clearInterval(_wait);setTimeout(_next,300);} },100);
+  }
+  // Listen for chat messages via the existing handler hook
+  const _origHandle=window._handleChatMsgSpeak; // slot for hooking
+  window._handleChatMsgForSpeak=function(rawMsg,user){
+    if(!rawMsg) return;
+    if(_skipBot&&user&&_botNames.has(user.toLowerCase())) return;
+    const clean=rawMsg.replace(/https?:\/\/\S+/g,'').trim().slice(0,_maxLen);
+    if(!clean) return;
+    if(_q.length<5) _q.push({user:user||'',text:clean}); // cap queue
+    _next();
+  };
+  // Patch Twitch IRC handler to call speak hook
+  const _origTwitch=window.addEventListener;
+  // Use message event to intercept noiru-chat events
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-chat'&&typeof window._handleChatMsgForSpeak==='function'){
+      window._handleChatMsgForSpeak(d.msg,d.user||d.display_name||'');
+    }
+  },{passive:true});
+  // Also hook into Twitch IRC onmessage by patching _handleChatMsg
+  const _origChatHandler=window._handleChatMsg;
+  if(typeof _origChatHandler==='function'){
+    window._handleChatMsg=function(rawMsg,user){
+      if(typeof _origChatHandler==='function')_origChatHandler(rawMsg,user);
+      window._handleChatMsgForSpeak(rawMsg,user||'');
+    };
+  }
+})();
 // Game WebSocket (?ws=URL) — external WS events → trigger shake/flash/blur/rain/speak/setPose
 (()=>{
   const _usp=new URLSearchParams(location.search);
@@ -6720,24 +6770,13 @@ window.addEventListener('message',ev=>{
     const next=candidates[Math.floor(Math.random()*candidates.length)];
     if(typeof _setPose==='function'){const i=all.indexOf(next);if(i>=0)_setPose(i);}
   }
-  // Hook into draw loop via per-frame ticker
-  const _orig=window._bpmDtHook;
-  window._bpmDtHook=function(dt){ if(_orig)_orig(dt); _tick(dt); };
-  // If BPM sync not active, hook directly
-  if(!window._bpmDtHook||window._bpmDtHook===_tick){
-    const _int=setInterval(()=>{if(typeof S==='undefined') return; clearInterval(_int);
-      const _savedBpApply=window._bpmApply||(()=>{});
-      window._bpmApply=function(){ _savedBpApply(); _tick(1/60); };
-    },200);
-  }
-  // Actually hook into the S.bp update path via requestAnimationFrame wrapper
+  // Use independent rAF loop for accurate dt — avoids double-call if ?bpmsync also active
   let _lastT=0;
-  function _rafHook(ts){
+  (function _rafHook(ts){
     if(_lastT) _tick((ts-_lastT)/1000);
     _lastT=ts;
     requestAnimationFrame(_rafHook);
-  }
-  requestAnimationFrame(_rafHook);
+  })(performance.now());
   // noiru-cmd: {cmd:'autoexpr-trigger'} — manually trigger a switch
   window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='autoexpr-trigger') return;
