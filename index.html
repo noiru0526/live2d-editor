@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?danmaku=1</td><td>ニコニコ風弾幕（チャットを画面横スクロール）・?danmakufontsize=18・fireDanmaku(t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rankbadge=RANK</td><td>ゲームランクバッジ・?rankbadgepos=topright&?rankbadgetitle=Game・setRankBadge(r,t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatterbox=1</td><td>チャット弾幕（ユーザー名付き）・?chatterboxopacity=0.7・sendDanmaku(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=N</td><td>大型カウントダウン（N秒）・?countdowntext=GO!&?countdowncolor=hex・pauseCountdown()/resumeCountdown()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?memorygame=1</td><td>チャット記憶ゲーム・postMsg{cmd:'memorygame',sequence:'12345'}</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?leaderboard=1</td><td>チャットポイントリーダーボード・?lbcmd=!point・addPoint(user,n)</td></tr>
@@ -8983,6 +8986,102 @@ window.addEventListener('message',ev=>{
       _d.style.display='none'; _active=false;
     }
   });
+})();
+// Q-290: ?chatterbox=1 チャッタービッツ（チャットの発言を画面上に流れるニコニコ風弾幕表示）
+// 例: ?chatterbox=1&chatterboxopacity=0.7
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chatterbox')!=='1') return;
+  const _opacity=parseFloat(_u.get('chatterboxopacity'))||0.75;
+  const _colors=['#fff','#ff8888','#88ffaa','#88ccff','#ffcc88','#cc88ff','#ff88cc'];
+  const _sizes=[14,15,16,18,20,22];
+  function _shoot(msg,user){
+    const _d=document.createElement('div');
+    const _col=_colors[Math.floor(Math.random()*_colors.length)];
+    const _sz=_sizes[Math.floor(Math.random()*_sizes.length)];
+    const _y=30+Math.random()*55; // 30-85% from top
+    Object.assign(_d.style,{
+      position:'fixed',right:'-60vw',zIndex:'152',
+      top:_y+'%',opacity:String(_opacity),
+      color:_col,fontSize:_sz+'px',fontFamily:'sans-serif',fontWeight:'bold',
+      textShadow:`1px 1px 0 rgba(0,0,0,0.6)`,whiteSpace:'nowrap',pointerEvents:'none',
+      transition:`right ${2+Math.random()*3}s linear`
+    });
+    _d.textContent=user?`${user}: ${msg}`:msg;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.right='110vw'; });
+    const dur=(2+Math.random()*3)*1000+300;
+    setTimeout(()=>_d.remove(),dur+100);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg) _shoot(d.msg,d.user);
+    if(d.type==='noiru-cmd'&&d.cmd==='danmaku'&&d.text) _shoot(d.text);
+  });
+  window.sendDanmaku=t=>_shoot(t);
+})();
+// Q-289: ?rankbadge=RANK ランクバッジ（配信者のゲームランクを画面端にバッジ表示）
+// 例: ?rankbadge=Diamond&rankbadgepos=topright&rankbadgetitle=Valorant
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _rank=_u.get('rankbadge'); if(!_rank) return;
+  const _pos=_u.get('rankbadgepos')||'topright';
+  const _title=_u.get('rankbadgetitle')||'RANK';
+  const _PALETTES={Iron:'#888',Bronze:'#cd7f32',Silver:'#c0c0c0',Gold:'#ffd700',Platinum:'#00ffcc',Diamond:'#00bfff',Master:'#ff44ff',Grandmaster:'#ff3300',Challenger:'#f4e04d',Radiant:'#ffe066'};
+  const _col=_PALETTES[_rank]||'#aaaaff';
+  const _d=document.createElement('div');
+  _d.id='niru-rankbadge';
+  const _posMap={topright:{top:'60px',right:'18px'},topleft:{top:'60px',left:'18px'},bottomright:{bottom:'80px',right:'18px'},bottomleft:{bottom:'80px',left:'18px'}};
+  const _p=_posMap[_pos]||_posMap.topright;
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'148',..._p,
+    background:`radial-gradient(circle at 40% 40%, ${_col}22, rgba(0,0,0,0.7))`,
+    border:`2px solid ${_col}`,borderRadius:'12px',padding:'8px 14px',
+    color:'#fff',fontFamily:'sans-serif',textAlign:'center',
+    boxShadow:`0 0 12px ${_col}66`,backdropFilter:'blur(4px)'
+  });
+  _d.innerHTML=`<div style="font-size:9px;color:${_col};text-transform:uppercase;letter-spacing:2px;">${decodeURIComponent(_title)}</div><div style="font-size:18px;font-weight:bold;margin-top:2px;text-shadow:0 0 8px ${_col};">${decodeURIComponent(_rank)}</div>`;
+  document.body.appendChild(_d);
+  window.setRankBadge=(r,t)=>{
+    const c2=_PALETTES[r]||'#aaaaff';
+    _d.innerHTML=`<div style="font-size:9px;color:${c2};text-transform:uppercase;letter-spacing:2px;">${t||_title}</div><div style="font-size:18px;font-weight:bold;margin-top:2px;text-shadow:0 0 8px ${c2};">${r}</div>`;
+    _d.style.border=`2px solid ${c2}`; _d.style.boxShadow=`0 0 12px ${c2}66`;
+  };
+})();
+// Q-288: ?danmaku=1 ニコニコ風弾幕モード（チャットをスクロールテキストとして表示）
+// 例: ?danmaku=1&danmakufontsize=20
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('danmaku')!=='1') return;
+  const _sz=parseInt(_u.get('danmakufontsize'))||18;
+  const _lanes=8;
+  const _laneY=Array.from({length:_lanes},(_,i)=>(i+0.5)/_lanes*80+5);
+  const _laneNext=new Array(_lanes).fill(0);
+  function _fire(msg){
+    const now=Date.now();
+    let lane=0; let earliest=Infinity;
+    _laneY.forEach((_,i)=>{ if(_laneNext[i]<earliest){ earliest=_laneNext[i]; lane=i; } });
+    const _d=document.createElement('div');
+    const _col=`hsl(${Math.random()*360|0},80%,75%)`;
+    Object.assign(_d.style,{
+      position:'fixed',top:_laneY[lane]+'%',right:'-50vw',zIndex:'153',
+      color:_col,fontSize:_sz+'px',fontFamily:'sans-serif',fontWeight:'bold',
+      textShadow:'1px 1px 2px rgba(0,0,0,0.8)',whiteSpace:'nowrap',pointerEvents:'none',
+      transition:'right 5s linear'
+    });
+    _d.textContent=msg;
+    document.body.appendChild(_d);
+    const w=Math.max(300,msg.length*_sz*0.6+200);
+    _laneNext[lane]=now+w/window.innerWidth*5000;
+    requestAnimationFrame(()=>{ _d.style.right='100vw'; });
+    setTimeout(()=>_d.remove(),5200);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg) _fire(d.msg);
+    if(d.type==='noiru-cmd'&&d.cmd==='danmaku2'&&d.text) _fire(d.text);
+  });
+  window.fireDanmaku=t=>_fire(t);
 })();
 // Q-285: ?countdown=N 大型カウントダウン（N秒からカウントダウン→終了テキスト表示）
 // 例: ?countdown=30&countdowntext=スタート！&countdowncolor=ff4400
