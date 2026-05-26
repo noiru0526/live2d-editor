@@ -4437,6 +4437,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatlog=1</td><td>チャットログサイドバー（+?chatlogpos=right/left ?chatlogwidth=220 ?chatlogmax=50）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotesonly=1</td><td>絵文字のみ大表示モード（+?emotesmax=3 ?emotessize=36）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?timedpop=14:30:TEXT</td><td>タイムドポップアップ（指定時刻に自動表示・複数カンマ区切り）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?speechcaption=1</td><td>音声認識リアルタイム字幕（Web Speech API）・?captionlang=ja-JP・?captionpos=bottom/top</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fireworks=1</td><td>打ち上げ花火エフェクト・?fwinterval=ms 発射間隔・?fwcount=N 発射数（0=無限）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?blizzard=1</td><td>吹雪エフェクト（雪が斜めに流れる）・?blizzardintensity=100（20〜200）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8619,6 +8622,168 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-168: ?speechcaption=1 音声認識リアルタイム字幕（Web Speech API → キャプション表示）
+// 例: ?speechcaption=1&captionlang=ja-JP&captionpos=bottom
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('speechcaption')!=='1') return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return;
+  const _lang=_usp.get('captionlang')||'ja-JP';
+  const _pos=_usp.get('captionpos')||'bottom';
+  const _style=_usp.get('captionstyle')||'';
+  const _ov=document.createElement('div');
+  _ov.id='speechcaption-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',
+    [_pos==='top'?'top':'bottom']:'10%',
+    left:'5%',width:'90%',
+    background:'rgba(0,0,0,0.72)',
+    color:'#fff',
+    fontSize:'1.5em',
+    fontFamily:'sans-serif',
+    padding:'8px 16px',
+    borderRadius:'8px',
+    textAlign:'center',
+    zIndex:'999',
+    pointerEvents:'none',
+    display:'none',
+    lineHeight:'1.4',
+    wordBreak:'break-word'
+  });
+  if(_style) _ov.style.cssText+=';'+_style;
+  document.body.appendChild(_ov);
+  let _hideTimer=0;
+  function _show(txt){
+    _ov.textContent=txt;
+    _ov.style.display='block';
+    clearTimeout(_hideTimer);
+    _hideTimer=setTimeout(()=>{ _ov.style.display='none'; },4000);
+  }
+  const _sr=new SR();
+  _sr.lang=_lang;
+  _sr.continuous=true;
+  _sr.interimResults=true;
+  _sr.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    const txt=(final||interim).trim();
+    if(txt) _show(txt);
+  };
+  _sr.onend=()=>{ try{_sr.start();}catch(e){} };
+  try{_sr.start();}catch(e){}
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='captionshow'&&d.text) _show(d.text);
+  });
+})();
+// Q-169: ?fireworks=1 打ち上げ花火エフェクト（画面上部から打ち上げ・爆発パーティクル）
+// 例: ?fireworks=1&fwcount=5&fwinterval=2000
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('fireworks')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='fireworks-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'998'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _parts=[];
+  const _rockets=[];
+  const _colors=['#ff4d4d','#ffbb33','#33ff99','#33ccff','#cc66ff','#ff66cc','#ffffff','#ffdd00'];
+  function _spawnRocket(){
+    const x=_cv.width*(0.15+Math.random()*0.7);
+    _rockets.push({x,y:_cv.height,vx:(Math.random()-0.5)*2,vy:-(10+Math.random()*6),color:_colors[Math.random()*_colors.length|0]});
+  }
+  function _explode(x,y,color){
+    const n=60+Math.random()*40|0;
+    for(let i=0;i<n;i++){
+      const ang=Math.random()*Math.PI*2;
+      const spd=1+Math.random()*5;
+      _parts.push({x,y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,alpha:1,color,size:2+Math.random()*2});
+    }
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_rockets.length-1;i>=0;i--){
+      const r=_rockets[i];
+      r.x+=r.vx; r.y+=r.vy; r.vy+=0.3;
+      _ctx.beginPath(); _ctx.arc(r.x,r.y,3,0,Math.PI*2);
+      _ctx.fillStyle=r.color; _ctx.fill();
+      if(r.vy>=0){ _explode(r.x,r.y,r.color); _rockets.splice(i,1); }
+    }
+    for(let i=_parts.length-1;i>=0;i--){
+      const p=_parts[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.vx*=0.98; p.alpha-=0.018;
+      if(p.alpha<=0){ _parts.splice(i,1); continue; }
+      _ctx.globalAlpha=p.alpha;
+      _ctx.beginPath(); _ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      _ctx.fillStyle=p.color; _ctx.fill();
+    }
+    _ctx.globalAlpha=1;
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+  const _interval=Math.max(500,parseInt(_usp.get('fwinterval'))||2500);
+  const _count=Math.min(20,parseInt(_usp.get('fwcount'))||0);
+  let _fired=0;
+  function _auto(){ _spawnRocket(); _fired++; if(_count>0&&_fired>=_count) clearInterval(_timer); }
+  const _timer=setInterval(_auto,_interval);
+  window.triggerFireworks=function(n=3){
+    for(let i=0;i<n;i++) setTimeout(_spawnRocket,i*300);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='fireworks') window.triggerFireworks(d.n||3);
+  });
+})();
+// Q-170: ?blizzard=1 吹雪エフェクト（雪が斜めに激しく流れる・intensity設定可）
+// 例: ?blizzard=1&blizzardintensity=80
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('blizzard')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='blizzard-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _intensity=Math.min(200,Math.max(20,parseInt(_usp.get('blizzardintensity'))||100));
+  const _flakes=[];
+  for(let i=0;i<_intensity;i++){
+    _flakes.push({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight,
+      r:0.5+Math.random()*2.5,
+      sx:2+Math.random()*3,
+      sy:3+Math.random()*5,
+      wo:Math.random()*Math.PI*2,
+      ws:0.04+Math.random()*0.04,
+      alpha:0.4+Math.random()*0.6
+    });
+  }
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const f of _flakes){
+      f.wo+=f.ws; f._wobble=(Math.sin(f.wo)*2.5);
+      f.x+=f.sx+f._wobble; f.y+=f.sy;
+      if(f.x>_cv.width+10) f.x=-10;
+      if(f.y>_cv.height+10){ f.y=-10; f.x=Math.random()*_cv.width; }
+      _ctx.globalAlpha=f.alpha;
+      _ctx.beginPath(); _ctx.arc(f.x,f.y,f.r,0,Math.PI*2);
+      _ctx.fillStyle='#d0eeff'; _ctx.fill();
+    }
+    _ctx.globalAlpha=1; _t++;
+    requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-167: ?timedpop=HH:MM:TEXT,HH:MM:TEXT タイムドポップアップ（指定時刻にテキスト表示）
 // 例: ?timedpop=14:30:配信開始！,15:00:休憩中
