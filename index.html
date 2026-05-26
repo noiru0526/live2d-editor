@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gradientbg=C1,C2</td><td>アニメーショングラジエント背景・?gradientbgspeed=8・setGradientBg(cols,spd)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spotlight=1</td><td>マウス追従スポットライト・?spotlightsize=200&?spotlightopacity=0.7・setSpotlightSize(n)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?giftbomb=1</td><td>ギフト爆発アニメ・postMsg{cmd:'giftbomb',count:25}・triggerGiftBomb(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neonborder=1</td><td>ネオンボーダー（音声連動グロー）・?neonbordercolor=hex&?neonborderwidth=6</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?starfield=1</td><td>スターフィールド飛行効果・?starfieldcount=120&?starfieldspeed=1.5</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spinroulette=A|B|C</td><td>スピンルーレット（!spinで起動）・?spinroulette=たこやき|ラーメン・spinRoulette()</td></tr>
@@ -9255,6 +9258,95 @@ window.addEventListener('message',ev=>{
   }
   _draw();
   window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-302: ?giftbomb=1 ギフトボム（サブ/ギフト爆発アニメーション・giftsで大量ギフトを演出）
+// 例: ?giftbomb=1  postMessage {type:'noiru-cmd',cmd:'giftbomb',count:25}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('giftbomb')!=='1') return;
+  const _ICONS=['🎁','🎀','⭐','✨','💝','🎊','🎉'];
+  function _bomb(n){
+    const count=Math.min(n||10,50);
+    for(let i=0;i<count;i++){
+      setTimeout(()=>{
+        const _d=document.createElement('div');
+        const _icon=_ICONS[Math.floor(Math.random()*_ICONS.length)];
+        const _x=20+Math.random()*60; const _y=20+Math.random()*60;
+        Object.assign(_d.style,{
+          position:'fixed',left:'50%',top:'50%',zIndex:'165',fontSize:'clamp(24px,3vw,40px)',
+          transform:'translate(-50%,-50%)',pointerEvents:'none',
+          transition:'all 1.2s cubic-bezier(.2,-.2,.7,1.1)',opacity:'1'
+        });
+        _d.textContent=_icon;
+        document.body.appendChild(_d);
+        requestAnimationFrame(()=>{
+          _d.style.left=_x+'%'; _d.style.top=_y+'%';
+          _d.style.transform=`translate(-50%,-50%) scale(${0.6+Math.random()*1}) rotate(${(Math.random()-0.5)*360}deg)`;
+        });
+        setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),300); },1000);
+      },i*60);
+    }
+    if(n>=20) showLowerThird&&showLowerThird(`🎁 ${n}件ギフト爆発！`,'#ff6699');
+  }
+  window.triggerGiftBomb=n=>_bomb(n);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='giftbomb') _bomb(+d.count||10);
+    if(d.type==='noiru-sub'&&d.gifted&&+d.gifted>4) _bomb(+d.gifted);
+  });
+})();
+// Q-301: ?spotlight=1 スポットライト（マウスカーソル追従のライトスポット）
+// 例: ?spotlight=1&spotlightsize=250&spotlightopacity=0.75
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('spotlight')!=='1') return;
+  const _sz=parseInt(_u.get('spotlightsize'))||200;
+  const _op=parseFloat(_u.get('spotlightopacity'))||0.7;
+  const _d=document.createElement('div');
+  _d.id='niru-spotlight';
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'150',pointerEvents:'none',
+    background:`radial-gradient(circle ${_sz}px at 50% 50%, transparent 0%, rgba(0,0,0,${_op}) ${_sz}px)`,
+    transition:'background 0.05s'
+  });
+  document.body.appendChild(_d);
+  let _mx=window.innerWidth/2,_my=window.innerHeight/2;
+  window.addEventListener('mousemove',e=>{ _mx=e.clientX; _my=e.clientY; });
+  (function _update(){
+    _d.style.background=`radial-gradient(circle ${_sz}px at ${_mx}px ${_my}px, transparent 0%, rgba(0,0,0,${_op}) ${_sz}px)`;
+    requestAnimationFrame(_update);
+  })();
+  window.setSpotlightSize=s=>{
+    const ns=Math.max(50,Math.min(600,s));
+    _d.style.background=`radial-gradient(circle ${ns}px at ${_mx}px ${_my}px, transparent 0%, rgba(0,0,0,${_op}) ${ns}px)`;
+  };
+})();
+// Q-300: ?gradientbg=COLOR1,COLOR2 アニメーショングラジエント背景（2色以上のグラデーションをゆっくり循環）
+// 例: ?gradientbg=ff6699,6699ff,99ff66&gradientbgspeed=8
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('gradientbg'); if(!_raw) return;
+  const _cols=_raw.split(',').map(c=>'#'+c.replace('#',''));
+  if(_cols.length<2) return;
+  const _speed=parseFloat(_u.get('gradientbgspeed'))||8;
+  const _d=document.createElement('div');
+  _d.id='niru-gradientbg';
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'130',pointerEvents:'none',
+    backgroundSize:'200% 200%',
+    background:`linear-gradient(135deg,${_cols.join(',')})`,
+    animation:`_gbganim ${_speed}s ease infinite`
+  });
+  if(!document.getElementById('_gbgstyle')){
+    const s=document.createElement('style'); s.id='_gbgstyle';
+    s.textContent='@keyframes _gbganim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}';
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(_d);
+  window.setGradientBg=(cols,spd)=>{
+    _d.style.background=`linear-gradient(135deg,${cols.map(c=>'#'+c.replace('#','')).join(',')})`;
+    _d.style.animation=`_gbganim ${spd||_speed}s ease infinite`;
+  };
 })();
 // Q-297: ?neonborder=1 ネオンボーダー（画面周囲をネオン色で縁取り・音声に反応して輝く）
 // 例: ?neonborder=1&neonbordercolor=00ffff&neonborderwidth=8
