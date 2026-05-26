@@ -4165,6 +4165,13 @@ canvas.mirrored{transform:scaleX(-1);}
 #watermark-ov span{font-family:'Segoe UI',sans-serif;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.3);}
 #streamtimer{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#a0ffc0;background:rgba(10,14,30,.75);border:1px solid rgba(78,255,160,.2);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.06em;backdrop-filter:blur(4px);}
 #streamtimer.show{display:block;}
+/* Goal bar (?twitchgoal=TEXT:CURRENT:MAX) */
+#goal-bar-ov{display:none;position:fixed;pointer-events:none;z-index:62;background:rgba(8,10,24,.92);border:1px solid rgba(78,124,255,.4);border-radius:6px;padding:6px 14px;min-width:200px;max-width:340px;}
+#goal-bar-ov.show{display:block;}
+#goal-label{font-family:'Segoe UI',sans-serif;font-size:11px;color:#a0c0ff;white-space:nowrap;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;}
+#goal-label span{color:#ffd060;}
+#goal-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+#goal-fill{height:100%;background:var(--goal-color,#4e7cff);border-radius:3px;transition:width .6s ease;}
 /* Lower third (?lowerthird=TEXT) */
 #lowerthird-ov{display:none;position:fixed;bottom:48px;left:0;pointer-events:none;z-index:61;max-width:80vw;}
 #lowerthird-ov.show{display:block;animation:ltSlideIn .5s cubic-bezier(.22,1,.36,1) both;}
@@ -4272,6 +4279,7 @@ ${includeCtrlPanel ? `
 <div id="death-counter"></div>
 <div id="songcard"><div class="sc-title" id="sc-title">曲名</div><div class="sc-artist" id="sc-artist">アーティスト</div></div>
 <div id="streamtimer"></div>
+<div id="goal-bar-ov"><div id="goal-label"><span id="goal-text"></span><span id="goal-nums"></span></div><div id="goal-track"><div id="goal-fill"></div></div></div>
 <div id="lowerthird-ov"><div id="lt-bar"></div><div id="lt-main"><div id="lt-name"></div><div id="lt-title"></div></div></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="watermark-ov"><span id="watermark-txt"></span></div>
@@ -4343,6 +4351,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idleexpr=p1,p2</td><td>アイドル時ランダム表情（非追跡時にランダム切替・+?idleexprdur=秒 ?idleexproff=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatemojirain=1</td><td>チャット絵文字レイン（Twitchチャットの絵文字を自動レイン・+?chatemojimax=2）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchgoal=TEXT:N:MAX</td><td>ゴールプログレスバー（サブ/フォロワー目標・+?twitchgoalpos=tl/tr/bl/br ?twitchgoalcolor=HEX）window.updateGoal(cur,max)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
@@ -7568,6 +7577,49 @@ window.addEventListener('message',ev=>{
   setInterval(_tick,1000);
   // Also expose for immediate trigger
   window.triggerIdleExpr=()=>{_lastChange=performance.now()-_dur*1000;_pick();};
+})();
+// Q-110: ?twitchgoal=TEXT:CURRENT:MAX ゴールプログレスバー（サブ目標・フォロワー目標など）
+// ?twitchgoalpos=tl/tr/bl/br ?twitchgoalcolor=HEX
+// API: window.updateGoal(current,max) / window.setGoalLabel(text)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('twitchgoal');if(!_raw) return;
+  const _parts=_raw.split(':');
+  const _label=_parts[0]||'目標';
+  const _cur=Math.max(0,parseFloat(_parts[1])||0);
+  const _max=Math.max(1,parseFloat(_parts[2])||100);
+  const _hex=(_usp.get('twitchgoalcolor')||'4e7cff').replace(/^#/,'');
+  const _pos=_usp.get('twitchgoalpos')||'tl';
+  const _ov=document.getElementById('goal-bar-ov');
+  const _fill=document.getElementById('goal-fill');
+  const _txt=document.getElementById('goal-text');
+  const _nums=document.getElementById('goal-nums');
+  if(!_ov||!_fill||!_txt||!_nums) return;
+  _ov.style.setProperty('--goal-color','#'+_hex);
+  const _posMap={tl:'top:10px;left:10px',tr:'top:10px;right:10px',bl:'bottom:10px;left:10px',br:'bottom:10px;right:10px'};
+  Object.assign(_ov.style,Object.fromEntries((_posMap[_pos]||_posMap.tl).split(';').filter(Boolean).map(p=>p.split(':').map(s=>s.trim())).map(([k,v])=>[k.replace(/-([a-z])/g,(_,c)=>c.toUpperCase()),v])));
+  let _c=_cur, _m=_max;
+  function _render(){
+    const pct=Math.min(100,Math.max(0,_c/_m*100));
+    _fill.style.width=pct.toFixed(1)+'%';
+    _txt.textContent=_label;
+    _nums.textContent=Math.round(_c)+'/'+Math.round(_m);
+  }
+  _render();_ov.classList.add('show');
+  window.updateGoal=function(cur,max){
+    _c=Math.max(0,Number(cur)||0);
+    if(max!=null) _m=Math.max(1,Number(max)||_m);
+    _render();
+    // Celebrate when goal reached
+    if(_c>=_m&&typeof window.triggerRain==='function') window.triggerRain('🎊',20);
+  };
+  window.setGoalLabel=function(text){_label=String(text||'');_render();};
+  // Listen for noiru-cmd goalUpdate
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='goalUpdate') return;
+    window.updateGoal(d.current,d.max);
+    if(d.label&&typeof window.setGoalLabel==='function') window.setGoalLabel(d.label);
+  });
 })();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
