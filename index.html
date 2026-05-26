@@ -4461,6 +4461,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pomodoro=1</td><td>ポモドーロタイマー・?pomofocus=25・?pomobr=5・?pomopos=tr・クリックで停止/再開</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcount=1</td><td>チャット数カウンター・?chatcountwindow=60s・?chatcountpos=bl</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrorchat=1</td><td>最新チャットを大きく表示・?mirrordur=4000・?mirrorsize=32・?mirrorpos=center/top</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbsplit=N</td><td>RGBチャンネル分離（色収差）・?rgbmode=static/wave/pulse・N=ピクセル量</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hologram=1</td><td>ホログラム投影風（スキャンライン+青みグロー）・?holocolor=00eeff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wobblewarp=1</td><td>ウォブルワープ変形・?warpamp=6・?warpspeed=1</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8643,6 +8646,121 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-192: ?rgbsplit=N RGBチャンネル分離エフェクト（chromatic aberration）
+// 例: ?rgbsplit=4&rgbmode=static （static/wave/pulse）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _n=parseFloat(_usp.get('rgbsplit')); if(!_n||isNaN(_n)) return;
+  const _mode=_usp.get('rgbmode')||'wave';
+  const _amount=Math.min(20,Math.max(1,_n));
+  const _canvas=document.getElementById('c');
+  if(!_canvas) return;
+  const _wrap=_canvas.parentElement||document.body;
+  Object.assign(_wrap.style,{position:'relative'});
+  // Create R/G/B pseudo-layers via CSS mix-blend-mode
+  const _style=document.createElement('style');
+  _style.id='rgbsplit-style';
+  document.head.appendChild(_style);
+  let _t=0;
+  function _frame(){
+    let dx=_amount, dy=0;
+    if(_mode==='wave'){
+      dx=Math.sin(_t*0.05)*_amount;
+      dy=Math.cos(_t*0.04)*_amount*0.3;
+    } else if(_mode==='pulse'){
+      const p=0.5+0.5*Math.sin(_t*0.08);
+      dx=_amount*p; dy=0;
+    }
+    _style.textContent=`
+      #c { filter: none; }
+      #c { text-shadow: none; }
+      body::before { content:''; position:fixed; top:${dy}px; left:${-dx}px; width:100%; height:100%;
+        background: inherit; mix-blend-mode: screen; pointer-events:none; opacity:0; }
+    `;
+    // Apply drop-shadow as RGB aberration approximation
+    const existing=(_canvas.dataset.baseFilter||'');
+    _canvas.style.filter=existing+
+      ` drop-shadow(${dx.toFixed(1)}px ${dy.toFixed(1)}px 0 rgba(255,0,0,0.45))`+
+      ` drop-shadow(${(-dx).toFixed(1)}px ${(-dy).toFixed(1)}px 0 rgba(0,180,255,0.45))`;
+    _canvas.dataset.rgbFilter=`drop-shadow(${dx.toFixed(1)}px ${dy.toFixed(1)}px 0 rgba(255,0,0,0.45)) drop-shadow(${(-dx).toFixed(1)}px ${(-dy).toFixed(1)}px 0 rgba(0,180,255,0.45))`;
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-193: ?hologram=1 ホログラムエフェクト（スキャンライン+青みがかったグリッチ投影風）
+// 例: ?hologram=1&holocolor=00eeff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('hologram')!=='1') return;
+  const _col=_usp.get('holocolor')||'00eeff';
+  const _r=parseInt(_col.slice(0,2),16)||0;
+  const _g=parseInt(_col.slice(2,4),16)||238;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  // CSS overlay with scanlines
+  const _style=document.createElement('style');
+  _style.textContent=`
+    @keyframes _holoScan { 0%{ top: -100%; } 100%{ top: 100%; } }
+    #hologram-scan { animation: _holoScan 4s linear infinite; }
+    @keyframes _holoFlicker { 0%,95%,100%{opacity:1} 96%,98%{opacity:0.85} 97%,99%{opacity:0.95} }
+    #hologram-wrap { animation: _holoFlicker 6s infinite; }
+  `;
+  document.head.appendChild(_style);
+  const _wrap=document.createElement('div');
+  _wrap.id='hologram-wrap';
+  Object.assign(_wrap.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'200'});
+  // Color tint
+  const _tint=document.createElement('div');
+  Object.assign(_tint.style,{position:'absolute',inset:'0',background:`rgba(${_r},${_g},${_b},0.07)`});
+  // Scanlines
+  const _lines=document.createElement('div');
+  Object.assign(_lines.style,{position:'absolute',inset:'0',
+    backgroundImage:`repeating-linear-gradient(to bottom, rgba(${_r},${_g},${_b},0.06) 0px, rgba(${_r},${_g},${_b},0.06) 1px, transparent 1px, transparent 4px)`});
+  // Sweep line
+  const _scan=document.createElement('div');
+  _scan.id='hologram-scan';
+  Object.assign(_scan.style,{position:'absolute',left:'0',width:'100%',height:'2px',
+    background:`linear-gradient(to right, transparent, rgba(${_r},${_g},${_b},0.8), transparent)`});
+  _wrap.appendChild(_tint); _wrap.appendChild(_lines); _wrap.appendChild(_scan);
+  document.body.appendChild(_wrap);
+  // Apply hue shift to canvas
+  const _cv=document.getElementById('c');
+  if(_cv) _cv.style.filter=(_cv.style.filter||'')+` hue-rotate(${_r<50&&_b>200?'180deg':'200deg'}) saturate(1.3) brightness(1.05)`;
+})();
+// Q-194: ?wobblewarp=1 ウォブルワープ（アバター全体が波のように揺れる変形）
+// 例: ?wobblewarp=1&warpamp=8&warpspeed=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('wobblewarp')!=='1') return;
+  const _amp=Math.min(30,Math.max(1,parseFloat(_usp.get('warpamp'))||6));
+  const _spd=Math.min(5,Math.max(0.1,parseFloat(_usp.get('warpspeed'))||1));
+  const _cv=document.getElementById('c');
+  if(!_cv) return;
+  const _parent=_cv.parentElement||document.body;
+  Object.assign(_parent.style,{overflow:'hidden'});
+  const _style=document.createElement('style');
+  _style.id='wobblewarp-style';
+  document.head.appendChild(_style);
+  let _t=0;
+  function _frame(){
+    // Use CSS clip-path polygon to create wobble distortion
+    const pts=[];
+    const steps=20;
+    // Top edge
+    for(let i=0;i<=steps;i++){
+      const x=i/steps*100;
+      const y=Math.sin(x*0.12+_t*_spd*0.04)*_amp;
+      pts.push(`${x.toFixed(1)}% ${y.toFixed(1)}px`);
+    }
+    // Right, bottom, left (simplified as straight)
+    pts.push('100% 100%','0% 100%');
+    _cv.style.clipPath=`polygon(${pts.join(',')})`;
+    // Also apply transform for side-to-side warp
+    const tx=Math.sin(_t*_spd*0.033)*_amp*0.5;
+    _cv.style.transform=(_cv.dataset.baseTransform||'')+` skewX(${(Math.sin(_t*_spd*0.025)*_amp*0.08).toFixed(3)}deg)`;
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-189: ?pomodoro=1 ポモドーロタイマー（25分集中→5分休憩サイクル）
 // 例: ?pomodoro=1&pomofocus=25&pomobr=5&pomopos=tr
