@@ -4470,6 +4470,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?speedlines=1</td><td>集中線エフェクト・?speedlinecolor・?speedlinealpha=0.25・API: triggerSpeedlines(ms)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?impacttext=KW:TEXT</td><td>漫画風インパクトテキスト（チャットキーワード連動）・複数カンマ区切り可</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?reactionboard=1</td><td>絵文字リアクション集計ボード・?reactionmax=5・?reactiondur=30s・?reactionpos=tr</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?customcss=URL</td><td>外部CSSファイルを動的ロード・API: loadCustomCSS(url)・postMessage loadcss</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?googlefont=NAME</td><td>Googleフォント動的ロード・?fontapply=chat/all/subtitle/overlay</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?obsscene=NAME</td><td>起動時にOBSを指定シーンへ切替・?obshost=・?obspassword=・API: obsSetScene(name)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8651,6 +8654,91 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-201: ?customcss=URL カスタムCSS動的ロード（外部CSSファイルをロードして適用）
+// 例: ?customcss=https://example.com/mystyle.css
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('customcss'); if(!_url) return;
+  const _link=document.createElement('link');
+  _link.rel='stylesheet'; _link.type='text/css';
+  _link.href=_url; document.head.appendChild(_link);
+  window.loadCustomCSS=function(url){
+    const l=document.createElement('link');
+    l.rel='stylesheet'; l.type='text/css'; l.href=url;
+    document.head.appendChild(l);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='loadcss'&&d.url) window.loadCustomCSS(d.url);
+  });
+})();
+// Q-202: ?googlefont=FONTNAME Googleフォントを動的ロードしてチャットバブルに適用
+// 例: ?googlefont=Noto+Sans+JP&fontapply=chat
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _font=_usp.get('googlefont'); if(!_font) return;
+  const _apply=(_usp.get('fontapply')||'chat').toLowerCase();
+  const _link=document.createElement('link');
+  _link.rel='stylesheet';
+  _link.href=`https://fonts.googleapis.com/css2?family=${encodeURIComponent(_font)}&display=swap`;
+  document.head.appendChild(_link);
+  const _fontName=_font.replace(/\+/g,' ');
+  const _style=document.createElement('style');
+  if(_apply==='all') _style.textContent=`* { font-family: "${_fontName}", sans-serif !important; }`;
+  else if(_apply==='chat') _style.textContent=`#chat-overlay, #cb-ov, .cbb { font-family: "${_fontName}", sans-serif !important; }`;
+  else if(_apply==='subtitle') _style.textContent=`#subtitle-ov, #speechcaption-ov { font-family: "${_fontName}", sans-serif !important; }`;
+  else if(_apply==='overlay') _style.textContent=`#lowerThirdOv, .pop-text, #streamtitle-ov, #marquee-inner { font-family: "${_fontName}", sans-serif !important; }`;
+  document.head.appendChild(_style);
+})();
+// Q-203: ?obsscene=NAME OBSシーンパラメータ（ページロード時に指定シーンへ自動切替）
+// 例: ?obsscene=配信中&obshost=ws://localhost:4455&obspassword=mypass
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _scene=_usp.get('obsscene'); if(!_scene) return;
+  const _host=_usp.get('obshost')||'ws://localhost:4455';
+  const _pass=_usp.get('obspassword')||'';
+  async function _sha256b64(str){
+    const enc=new TextEncoder(); const buf=enc.encode(str);
+    const hash=await crypto.subtle.digest('SHA-256',buf);
+    return btoa(String.fromCharCode(...new Uint8Array(hash)));
+  }
+  let _ws=null, _msgId=1;
+  function _send(type,data){ if(_ws&&_ws.readyState===1) _ws.send(JSON.stringify({op:6,d:{requestType:type,requestId:'r'+(++_msgId),...data}})); }
+  async function _connect(){
+    _ws=new WebSocket(_host);
+    _ws.onmessage=async e=>{
+      const m=JSON.parse(e.data);
+      if(m.op===0){
+        // Hello
+        const auth=m.d.authentication;
+        if(auth&&_pass){
+          const salt=auth.salt; const chall=auth.challenge;
+          const b64=await _sha256b64(_pass+salt);
+          const authStr=await _sha256b64(b64+chall);
+          _ws.send(JSON.stringify({op:1,d:{rpcVersion:1,authentication:authStr,eventSubscriptions:0}}));
+        } else {
+          _ws.send(JSON.stringify({op:1,d:{rpcVersion:1,eventSubscriptions:0}}));
+        }
+      }
+      if(m.op===2){
+        // Identified — switch scene
+        _send('SetCurrentProgramScene',{'d':{'sceneName':_scene}});
+        // Also fix: correct field is sceneName nested
+        setTimeout(()=>{
+          if(_ws&&_ws.readyState===1)
+            _ws.send(JSON.stringify({op:6,d:{requestType:'SetCurrentProgramScene',requestId:'rsc',sceneName:_scene}}));
+        },200);
+      }
+    };
+    _ws.onerror=()=>{};
+  }
+  _connect();
+  window.obsSetScene=function(name){ _send('SetCurrentProgramScene',{sceneName:name}); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='obsscene'&&d.name) window.obsSetScene(d.name);
   });
 })();
 // Q-198: ?speedlines=1 スピードライン（集中線・マンガ的な演出）
