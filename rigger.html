@@ -644,6 +644,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button onclick="clearOpacityKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
+        <!-- Extended settings collapsible section -->
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:5px 8px;cursor:pointer;background:#1a1a1a;border-top:1px solid #252525;border-bottom:1px solid #1e1e1e;margin-top:4px;font-size:9px;color:#686868;user-select:none">
+          <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
+          <span>拡張設定（合成/影/HSB/スケール）</span>
+        </div>
+        <div id="pp-ext-body" style="display:none">
         <div class="prop-row">
           <span class="prop-lbl">合成</span>
           <select class="prop-sel" id="pp-blend" onchange="applyPartBlend(this.value)">
@@ -734,6 +740,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(80,200,255,.07);border:1px dashed rgba(80,200,255,.25);color:#50a8cc;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
+        </div><!-- end pp-ext-body -->
         <div class="prop-row">
           <span class="prop-lbl">クリッピング</span>
           <select class="prop-sel" id="pp-clip" onchange="applyPartClip(this.value)">
@@ -3405,6 +3412,13 @@ function updatePartPropsUI() {
   }
 }
 
+function toggleExtProps() {
+  const body = document.getElementById('pp-ext-body');
+  const caret = document.getElementById('pp-ext-caret');
+  const shown = body.style.display !== 'none';
+  body.style.display = shown ? 'none' : '';
+  if (caret) caret.style.transform = shown ? '' : 'rotate(90deg)';
+}
 function applyPartName(v) {
   if (selPart<0||selPart>=parts.length) return;
   const name = v.trim();
