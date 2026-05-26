@@ -4298,6 +4298,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scale=N</td><td>アバタースケール（例: 1.5）/ ?x=N ?y=N: 位置オフセット(px)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
@@ -6483,6 +6484,42 @@ function _handleChatMsg(rawMsg){
     setInterval(()=>window.triggerRain(_em,_ct),_iv);
   }
 })();
+// Q-084: Ambient particle system (?particle=snow|cherry|sparkle|star)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _pt=_usp.get('particle'); if(!_pt) return;
+  const _n=Math.min(150,Math.max(1,parseInt(_usp.get('particlecount'))||40));
+  const _spd=Math.max(0.1,parseFloat(_usp.get('particlespeed'))||1);
+  const _cv=document.createElement('canvas');
+  _cv.id='particle-cv';
+  _cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50;';
+  document.body.appendChild(_cv);
+  const _rsz=()=>{_cv.width=window.innerWidth;_cv.height=window.innerHeight;};
+  _rsz(); window.addEventListener('resize',_rsz);
+  const _ctx=_cv.getContext('2d');
+  const W=()=>_cv.width, H=()=>_cv.height;
+  const rnd=()=>Math.random();
+
+  const DEFS={
+    snow:{mk:()=>({x:rnd()*W(),y:rnd()*H(),r:2+rnd()*5,vx:(rnd()-.5)*.4,vy:.25+rnd()*.6,op:.3+rnd()*.6,ph:rnd()*Math.PI*2}),
+      up:(p,t)=>{p.x+=(p.vx+Math.sin(t*.0009+p.ph)*.4)*_spd;p.y+=p.vy*_spd;if(p.y>H()+p.r){p.y=-p.r;p.x=rnd()*W();}if(p.x<-10)p.x=W()+5;if(p.x>W()+10)p.x=-5;},
+      dr:(p)=>{_ctx.beginPath();_ctx.arc(p.x,p.y,p.r,0,Math.PI*2);_ctx.fillStyle=`rgba(220,235,255,${p.op})`;_ctx.fill();}},
+    cherry:{mk:()=>({x:rnd()*W(),y:rnd()*H(),r:3+rnd()*5,ang:rnd()*Math.PI*2,av:(rnd()-.5)*.04,vx:.2+rnd()*.5,vy:.15+rnd()*.35,op:.35+rnd()*.5,ph:rnd()*Math.PI*2}),
+      up:(p,t)=>{p.x+=(p.vx+Math.sin(t*.0007+p.ph)*.5)*_spd;p.y+=p.vy*_spd;p.ang+=p.av;if(p.y>H()+p.r){p.y=-p.r;p.x=rnd()*W();}if(p.x>W()+10)p.x=-5;},
+      dr:(p)=>{_ctx.save();_ctx.translate(p.x,p.y);_ctx.rotate(p.ang);_ctx.beginPath();_ctx.arc(0,-p.r*.3,p.r,0,Math.PI*2);_ctx.moveTo(-p.r*.4,0);_ctx.arc(-p.r*.4,0,p.r*.6,0,Math.PI);_ctx.fillStyle=`rgba(255,170,190,${p.op})`;_ctx.fill();_ctx.restore();}},
+    sparkle:{mk:()=>({x:rnd()*W(),y:rnd()*H(),r:1.5+rnd()*3,vx:(rnd()-.5)*.3,vy:-(0.1+rnd()*.45),lf:rnd(),lfv:.006+rnd()*.01,h:rnd()*60+30}),
+      up:(p,t)=>{p.x+=p.vx*_spd;p.y+=p.vy*_spd;p.lf+=p.lfv;if(p.lf>=1){p.x=rnd()*W();p.y=rnd()*H();p.lf=0;p.vy=-(0.1+rnd()*.45);p.h=rnd()*60+30;}},
+      dr:(p)=>{const a=Math.sin(p.lf*Math.PI)*.9;if(a<.05)return;const r=p.r*(0.5+0.5*Math.sin(p.lf*Math.PI));_ctx.save();_ctx.translate(p.x,p.y);for(let i=0;i<4;i++){const ag=i*Math.PI/2;_ctx.beginPath();_ctx.moveTo(0,0);_ctx.lineTo(Math.cos(ag)*r*3,Math.sin(ag)*r*3);_ctx.strokeStyle=`hsla(${p.h},100%,82%,${a})`;_ctx.lineWidth=1;_ctx.stroke();}_ctx.restore();}},
+    star:{mk:()=>({x:rnd()*W(),y:rnd()*H(),r:1+rnd()*2,op:rnd(),opv:(rnd()>.5?1:-1)*(0.005+rnd()*.008),vx:(rnd()-.5)*.15,vy:(rnd()-.5)*.15}),
+      up:(p,t)=>{p.x+=p.vx*_spd;p.y+=p.vy*_spd;p.op+=p.opv;if(p.op>1){p.op=1;p.opv=-p.opv;}if(p.op<0){p.op=0;p.opv=-p.opv;p.x=rnd()*W();p.y=rnd()*H();}if(p.x<0||p.x>W())p.vx=-p.vx;if(p.y<0||p.y>H())p.vy=-p.vy;},
+      dr:(p)=>{_ctx.beginPath();_ctx.arc(p.x,p.y,p.r,0,Math.PI*2);_ctx.fillStyle=`rgba(255,255,200,${p.op})`;_ctx.fill();}},
+  };
+  const def=DEFS[_pt]||DEFS.snow;
+  const ps=Array.from({length:_n},()=>def.mk());
+  let _lt=0;
+  (function _lp(ts){const dt=ts-_lt;_lt=ts;_ctx.clearRect(0,0,W(),H());for(const p of ps){def.up(p,ts);def.dr(p,ts);}requestAnimationFrame(_lp);})(0);
+})();
+
 // Canvas border glow (?border=RRGGBB / ?border=RRGGBB&border_pulse=1)
 (()=>{
   const _usp=new URLSearchParams(location.search);
