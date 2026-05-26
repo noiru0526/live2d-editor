@@ -5834,7 +5834,8 @@ function buildParamsUI() {
       item.appendChild(lbl);
       const slider = document.createElement('input');
       slider.type='range'; slider.min='0'; slider.max='100'; slider.value=sv;
-      slider.oninput = () => updPrm(pn, slider.value);
+      slider.style.setProperty('--fill', sv + '%');
+      slider.oninput = () => { updPrm(pn, slider.value); slider.style.setProperty('--fill', slider.value + '%'); };
       item.appendChild(slider);
       body.appendChild(item);
     }
