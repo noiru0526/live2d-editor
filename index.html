@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?flicker=1</td><td>画面フリッカー（ホラー演出）・?flickerrate=0.04・triggerFlicker(ms)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?textglow=1</td><td>チャットテキスト発光・?textglowcolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?colorpicker=1</td><td>ドラッグ可能カラーピッカー（背景色/オーバーレイ色をライブ変更）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?alertbar=TEXT</td><td>スクロールアラートバー・?alertbarpos=top/bottom&?alertbarcolor=hex・setAlertBar(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatonly=KW</td><td>キーワードチャットフィルター表示・?chatonlypos=center・複数はパイプ区切り</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgparticles=C1,C2</td><td>浮遊グラデーションパーティクル背景・?bgparticlescount=16</td></tr>
@@ -10188,6 +10191,73 @@ window.addEventListener('message',ev=>{
     document.body.appendChild(_d);
     requestAnimationFrame(()=>{ _d.style.opacity='1'; });
     setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),300); },5000);
+  });
+})();
+// Q-344: ?colorpicker=1 ライブカラーピッカー（画面右にパネル表示・ドラッグで背景色変更）
+// 例: ?colorpicker=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('colorpicker')!=='1') return;
+  const _d=document.createElement('div');
+  _d.id='niru-colorpicker';
+  Object.assign(_d.style,{
+    position:'fixed',right:'8px',top:'50%',transform:'translateY(-50%)',zIndex:'160',
+    background:'rgba(20,20,30,0.85)',border:'1px solid rgba(255,255,255,0.2)',
+    borderRadius:'10px',padding:'10px',backdropFilter:'blur(6px)',userSelect:'none'
+  });
+  _d.innerHTML=`<div style="font-size:9px;color:#adf;margin-bottom:6px;text-align:center">BG COLOR</div>
+<input type="color" id="cp-bg" value="#000000" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px"><br>
+<div style="font-size:9px;color:#adf;margin:6px 0 4px;text-align:center">OVERLAY</div>
+<input type="color" id="cp-ov" value="#ffffff" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px">
+<div style="margin-top:8px;font-size:9px;color:#888;text-align:center">drag</div>`;
+  document.body.appendChild(_d);
+  document.getElementById('cp-bg').addEventListener('input',e=>{ document.body.style.background=e.target.value; });
+  document.getElementById('cp-ov').addEventListener('input',e=>{
+    const s=document.getElementById('niru-overlay-color')||document.createElement('style');
+    s.id='niru-overlay-color';
+    s.textContent=`.chat-bubble,.subtitle-box,.overlay-text{color:${e.target.value} !important}`;
+    document.head.appendChild(s);
+  });
+  // make draggable
+  let _dx=0,_dy=0,_drag=false;
+  _d.addEventListener('mousedown',e=>{ _drag=true; _dx=e.clientX-_d.offsetLeft; _dy=e.clientY-_d.offsetTop; _d.style.transform='none'; e.preventDefault(); });
+  document.addEventListener('mousemove',e=>{ if(_drag){ _d.style.right='auto'; _d.style.top=e.clientY-_dy+'px'; _d.style.left=e.clientX-_dx+'px'; } });
+  document.addEventListener('mouseup',()=>{ _drag=false; });
+})();
+// Q-343: ?textglow=1 チャットテキストグロー（チャットバブルに発光エフェクト）
+// 例: ?textglow=1&textglowcolor=00ffff
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('textglow')!=='1') return;
+  const _col='#'+(_u.get('textglowcolor')||'00ffff');
+  const _s=document.createElement('style');
+  _s.textContent=`.chat-bubble,.chat-wrap,.chat-item{text-shadow:0 0 8px ${_col},0 0 16px ${_col}66 !important;color:#fff !important;}`;
+  document.head.appendChild(_s);
+})();
+// Q-342: ?flicker=1 フリッカーエフェクト（画面が不規則にちらつく・ホラー演出）
+// 例: ?flicker=1&flickerrate=0.05
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('flicker')!=='1') return;
+  const _rate=parseFloat(_u.get('flickerrate'))||0.04;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',inset:'0',zIndex:'148',background:'#000',opacity:'0',pointerEvents:'none',transition:'opacity 0.03s'});
+  document.body.appendChild(_d);
+  (function _tick(){
+    if(Math.random()<_rate){
+      const dur=30+Math.random()*80;
+      _d.style.opacity=String(0.4+Math.random()*0.5);
+      setTimeout(()=>{ _d.style.opacity='0'; },dur);
+    }
+    setTimeout(_tick,80+Math.random()*120);
+  })();
+  window.triggerFlicker=(dur)=>{
+    _d.style.opacity='0.7';
+    setTimeout(()=>_d.style.opacity='0',dur||200);
+  };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='flicker') window.triggerFlicker(+d.dur||200);
   });
 })();
 // Q-339: ?alertbar=TEXT アラートバー（画面上部/下部に重要アナウンスをスクロール表示）
