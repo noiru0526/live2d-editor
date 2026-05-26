@@ -4527,6 +4527,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?motionapi=1</td><td>postMessageでLive2Dパラメータ直接制御（noiru-param/noiru-params/noiru-pose）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotemap=😊:pose</td><td>チャット絵文字→ポーズ切替マッピング・複数カンマ区切り</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?paramsmooth=0.15</td><td>追跡パラメータ平滑化係数（0.01=高応答・0.5=なめらか）・API: setParamSmooth(v)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?loadingscreen=1</td><td>ページ読み込み演出・?loadingmsg=・?loadingcolor=6af</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avatarurl=URL</td><td>アバターURL動的ロード・postMessage loadavatar で実行時切替</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fontsize=N</td><td>チャットフォントサイズ一括設定・?fontweight=bold・?fontcolor=fff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8709,6 +8712,84 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-258: ?loadingscreen=1 ローディングスクリーン（ページ読み込み中の演出）
+// 例: ?loadingscreen=1&loadingmsg=読み込み中...&loadingcolor=6af
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('loadingscreen')!=='1') return;
+  const _msg=_usp.get('loadingmsg')||'読み込み中...';
+  const _col=_usp.get('loadingcolor')||'6af';
+  const _ov=document.createElement('div');
+  _ov.id='loadingscreen-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'0',left:'0',width:'100%',height:'100%',
+    background:'rgba(0,0,20,0.97)',display:'flex',flexDirection:'column',
+    justifyContent:'center',alignItems:'center',zIndex:'99999',
+    fontFamily:'sans-serif',transition:'opacity 0.8s'
+  });
+  _ov.innerHTML=`
+    <div id="ls-spinner" style="width:48px;height:48px;border:4px solid rgba(255,255,255,0.1);
+      border-top-color:#${_col};border-radius:50%;margin-bottom:16px;"></div>
+    <div style="color:#${_col};font-size:18px;">${_msg}</div>
+    <div id="ls-bar" style="width:200px;height:4px;background:rgba(255,255,255,0.1);
+      border-radius:2px;margin-top:12px;overflow:hidden;">
+      <div id="ls-fill" style="width:0%;height:100%;background:#${_col};transition:width 0.3s;border-radius:2px;"></div>
+    </div>`;
+  document.body.appendChild(_ov);
+  const _style=document.createElement('style');
+  _style.textContent=`@keyframes _lsSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    #ls-spinner { animation: _lsSpin 0.8s linear infinite; }`;
+  document.head.appendChild(_style);
+  let _pct=0;
+  const _t=setInterval(()=>{ _pct=Math.min(95,_pct+5); const f=document.getElementById('ls-fill'); if(f) f.style.width=_pct+'%'; },100);
+  function _done(){
+    clearInterval(_t);
+    const f=document.getElementById('ls-fill'); if(f) f.style.width='100%';
+    setTimeout(()=>{ _ov.style.opacity='0'; setTimeout(()=>_ov.remove(),800); },300);
+  }
+  window.addEventListener('load',()=>{ setTimeout(_done,500); });
+  setTimeout(_done,5000);
+})();
+// Q-259: ?avatarurl=URL アバターURLから動的にモデルを再ロード（postMessageでURL変更可）
+// postMessage {type:'noiru-cmd', cmd:'loadavatar', url:'...'} で動的切替
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('avatarurl'); if(!_url) return;
+  // This queues a model reload via the existing loadModel mechanism
+  window.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(()=>{
+      // Attempt to use existing file input / load mechanism
+      if(typeof window._loadFromUrl==='function'){ window._loadFromUrl(_url); return; }
+      // Fallback: dispatch a custom event for the main app to handle
+      window.dispatchEvent(new CustomEvent('noiru-loadavatar',{detail:{url:_url}}));
+    },1000);
+  });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='loadavatar'&&d.url){
+      if(typeof window._loadFromUrl==='function') window._loadFromUrl(d.url);
+      else window.dispatchEvent(new CustomEvent('noiru-loadavatar',{detail:{url:d.url}}));
+    }
+  });
+})();
+// Q-260: ?fontsize=N チャットバブルのフォントサイズをURLで一括変更
+// 例: ?fontsize=16&fontweight=bold&fontcolor=fff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _sz=_usp.get('fontsize');
+  const _fw=_usp.get('fontweight');
+  const _fc=_usp.get('fontcolor');
+  if(!_sz&&!_fw&&!_fc) return;
+  const _rules=[];
+  if(_sz) _rules.push(`.cbb, #chat-overlay, #cb-ov { font-size: ${parseFloat(_sz)}px !important; }`);
+  if(_fw) _rules.push(`.cbb { font-weight: ${_fw} !important; }`);
+  if(_fc) _rules.push(`.cbb { color: #${_fc} !important; }`);
+  if(_rules.length){
+    const _style=document.createElement('style');
+    _style.textContent=_rules.join('\n');
+    document.head.appendChild(_style);
+  }
 })();
 // Q-255: ?motionapi=1 モーションAPIリスナー（postMessageでLive2Dパラメータを直接制御）
 // postMessage {type:'noiru-param', param:'PARAM_NAME', value:0.5}
