@@ -4162,12 +4162,15 @@ ${includeCtrlPanel ? `
 <button id="cp-btn" onclick="document.getElementById('cp-panel').style.display=document.getElementById('cp-panel').style.display==='block'?'none':'block'">🎛 コントロール</button>
 <div id="cp-panel">
   <h3>パラメータ制御</h3>
-  ${Object.entries(M.params).map(([k,p])=>`<div class="cp-row">
+  ${Object.entries(M.params).map(([k,p])=>{
+    const dflt=Math.max(p.min,Math.min(p.max,0));
+    return`<div class="cp-row">
     <label title="${k}">${p.lbl||k}</label>
     <input type="range" min="${p.min}" max="${p.max}" step="${p.step||0.01}" value="${p.val||0}"
       oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2);params['${k}'].val=parseFloat(this.value);">
     <span>${(p.val||0).toFixed(2)}</span>
-  </div>`).join('')}
+    <button title="リセット(${dflt.toFixed(2)})" onclick="(()=>{const sp=this.previousElementSibling;const inp=sp.previousElementSibling;const v=${dflt};inp.value=v;sp.textContent=v.toFixed(2);params['${k}'].val=v;})()" style="background:none;border:none;color:#4a6080;font-size:10px;cursor:pointer;padding:0 2px;line-height:1;" onmouseover="this.style.color='#80b0ff'" onmouseout="this.style.color='#4a6080'">↺</button>
+  </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:#6878a0;font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
   <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(78,124,255,.15);border:1px solid #3a4470;border-radius:3px;color:#80b0ff;font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
