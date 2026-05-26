@@ -52,15 +52,18 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .pi-dot.lock{background:#2a2a2a;border-color:#444}
 .pi-dot.locked{background:#f59e0b;border-color:#f59e0b}
 .pi-drag{display:none}
-.pv{font-size:12px;cursor:pointer;color:#484848;flex-shrink:0;width:16px;text-align:center}
-.pv.on{color:#909090}
-.pi-lock{display:none}
-.pn{flex:1;font-size:12px;color:#b0b0b0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv{font-size:11px;cursor:pointer;color:#585858;flex-shrink:0;width:16px;text-align:center;transition:color .1s}
+.pv:hover{color:#c0c0c0}
+.pv.on{color:#9090a0}
+.pi-lock{font-size:10px;cursor:pointer;color:#f59e0b;flex-shrink:0;transition:opacity .1s}
+.pi-lock:not(.on){display:none}
+.pn{flex:1;font-size:11px;color:#a8a8a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pi.sel .pn{color:#e8e8e8;font-weight:600}
+.pi.in-group .pn{padding-left:12px}
 .pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#2c2c2c;border:1px solid #383838}
 .pi-clip-badge{font-size:8px;color:#60a5fa;opacity:.7;flex-shrink:0}
 .pi-phys-badge{font-size:8px;color:#a78bfa;opacity:.7;flex-shrink:0}
-.pi-zidx{font-size:10px;color:#484848;flex-shrink:0;cursor:pointer;min-width:28px;text-align:right;font-family:monospace;user-select:none;padding-right:4px}
+.pi-zidx{font-size:9px;color:#565656;flex-shrink:0;cursor:pointer;min-width:24px;text-align:right;font-family:monospace;user-select:none;padding-right:6px}
 .pi-zidx:hover{color:#e07840}
 .pi-clr{width:9px;height:9px;border-radius:50%;border:1px solid #484848;flex-shrink:0;cursor:pointer;transition:transform .1s}
 .pi-clr:hover{transform:scale(1.4)}
@@ -3184,7 +3187,8 @@ function updatePartsUI() {
     d.appendChild(nameSpan);
     const lockSpan = document.createElement('span');
     lockSpan.className='pi-lock'+(pt.locked?' on':'');
-    lockSpan.textContent=pt.locked?'🔒':'';
+    lockSpan.textContent='🔒';
+    lockSpan.style.display = pt.locked ? '' : 'none';
     lockSpan.onclick=(e)=>togLockItem(i,e); d.appendChild(lockSpan);
     if (pt.clipTo) { const b=document.createElement('span'); b.className='pi-clip-badge'; b.textContent='✂'; b.title='クリッピングマスク有効'; d.appendChild(b); }
     if (pt.physics?.enabled) { const b=document.createElement('span'); b.className='pi-phys-badge'; b.textContent='〜'; b.title='物理シミュレーション有効'; d.appendChild(b); }
