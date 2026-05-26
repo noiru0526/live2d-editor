@@ -3912,8 +3912,35 @@ function _showEmbedCode(filePath) {
     <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
     <div style="color:#8898c0;margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:#0e1120;border:1px solid #3a4470;color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
+    <div style="color:#8898c0;margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:#a0b0c0;">
+      <label><input type="checkbox" id="obsq-bg" style="margin-right:2px;"> bg=00ff00 (クロマキー)</label>
+      <label><input type="checkbox" id="obsq-mirror" style="margin-right:2px;"> mirror=1</label>
+      <label><input type="checkbox" id="obsq-lowcpu" style="margin-right:2px;"> lowcpu=1</label>
+      <label><input type="checkbox" id="obsq-autoplay" style="margin-right:2px;"> autoplay=1</label>
+      <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-twitch" style="margin-right:2px;"> twitch=<input id="obsq-tch" type="text" placeholder="ch名" style="width:60px;background:#0e1120;border:1px solid #3a4470;color:#c8d4f0;border-radius:2px;padding:1px 4px;font-size:9px;"></label>
+      <label><input type="checkbox" id="obsq-stats" style="margin-right:2px;"> stats=1</label>
+      <label><input type="checkbox" id="obsq-emotioncolor" style="margin-right:2px;"> emotioncolor=1</label>
+    </div>
+    <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
   `;
   document.body.appendChild(dlg);
+  // Wire up checkboxes to update OBS URL
+  function _updateObsUrl(){
+    const ps=[];
+    if(dlg.querySelector('#obsq-bg').checked) ps.push('bg=00ff00');
+    if(dlg.querySelector('#obsq-mirror').checked) ps.push('mirror=1');
+    if(dlg.querySelector('#obsq-lowcpu').checked) ps.push('lowcpu=1');
+    if(dlg.querySelector('#obsq-autoplay').checked) ps.push('autoplay=1');
+    const tch=dlg.querySelector('#obsq-tch').value.trim();
+    if(dlg.querySelector('#obsq-twitch').checked&&tch) ps.push('twitch='+encodeURIComponent(tch));
+    if(dlg.querySelector('#obsq-stats').checked) ps.push('stats=1');
+    if(dlg.querySelector('#obsq-emotioncolor').checked) ps.push('emotioncolor=1');
+    dlg.querySelector('#obs-url-out').value=fileUrl+(ps.length?'?'+ps.join('&'):'');
+  }
+  dlg.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',_updateObsUrl));
+  dlg.querySelector('#obsq-tch').addEventListener('input',_updateObsUrl);
 }
 
 function genAvatarHTML() {
