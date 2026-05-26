@@ -4407,6 +4407,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bggradient=C1:C2</td><td>グラジェント背景（?bggradangle=135 角度・例: ?bggradient=1a1a3e:3e1a3e）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?titlecard=TEXT</td><td>起動時タイトルカード表示（+?titlecardsub= ?titlecarddur=3 ?titlecardsize=48 ?titlecardcolor=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlay2=URL</td><td>第2オーバーレイ画像（+?overlay2opacity= ?overlay2size= ?overlay2blend=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?moodring=1</td><td>感情インジケーター（画面端に表情グラジェントバー・+?moodringpos=left/right ?moodringsize=8）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?alertqueue=1</td><td>エフェクトキュー（同時発生エフェクトを順番に実行・+?alertqueuegap=500ms）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cmdprefix=PREFIX</td><td>チャットコマンドプレフィックス変更（デフォルト! → 任意）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7716,6 +7719,74 @@ window.addEventListener('message',ev=>{
   _img.src=_url; _img.alt='';
   _img.style.cssText=`position:fixed;inset:0;width:${_sz};height:${_sz};object-fit:contain;opacity:${_op};pointer-events:none;z-index:66;mix-blend-mode:${_blend};margin:auto;`;
   document.body.appendChild(_img);
+})();
+// Q-138: ?moodring=1 感情インジケーター（画面端に表情グラジェントバー）
+// ?moodringpos=left/right ?moodringsize=8 ?moodringlean=1.0
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('moodring')!=='1') return;
+  const _pos=_usp.get('moodringpos')||'left';
+  const _sz=Math.min(30,Math.max(3,parseInt(_usp.get('moodringsize'))||8));
+  const _ov=document.createElement('div');
+  _ov.id='moodring-ov';
+  const _side=_pos==='right'?'right:0;left:auto;':'left:0;right:auto;';
+  _ov.style.cssText=`position:fixed;${_side}top:0;height:100%;width:${_sz}px;pointer-events:none;z-index:62;transition:background .5s;`;
+  document.body.appendChild(_ov);
+  function _update(){
+    // Map emotion values to colors:
+    // Neutral: cool blue, Smile: warm pink/red, Surprise: bright yellow, Blink: dark, Mouth: green
+    const smile=typeof S!=='undefined'?Math.max(0,S.me||0):0;
+    const surp=typeof S!=='undefined'?Math.max(0,S.ja||0):0; // jawOpen as surprise proxy
+    const blinkAvg=typeof S!=='undefined'?(((S.bl||0)+(S.br||0))/2):0;
+    // Combine into a hue: neutral=220(blue) → smile=340(pink) → surprise=50(yellow)
+    const h=220 + smile*120 + surp*50 - blinkAvg*40;
+    const s=40+smile*60+surp*30;
+    const l=Math.round(30+smile*20+surp*10-blinkAvg*10);
+    _ov.style.background=`linear-gradient(to bottom, hsl(${Math.round(h)},${Math.round(s)}%,${l}%), hsl(${Math.round(h+30)},${Math.round(s+10)}%,${l+10}%))`;
+    requestAnimationFrame(_update);
+  }
+  requestAnimationFrame(_update);
+})();
+// Q-139: ?alertqueue=1 エフェクトキュー（同時発生するエフェクトを順番に実行）
+// ?alertqueuegap=500 ms間隔
+// 既存のtrigger*関数をラップしてキューに入れる
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('alertqueue')!=='1') return;
+  const _gap=Math.min(5000,Math.max(100,parseInt(_usp.get('alertqueuegap'))||500));
+  const _q=[];let _running=false;
+  function _drain(){
+    if(_q.length===0){_running=false;return;}
+    _running=true;
+    const fn=_q.shift();
+    fn();
+    setTimeout(_drain,_gap);
+  }
+  function _wrap(name){
+    const orig=window[name];if(typeof orig!=='function') return;
+    window[name]=function(...args){_q.push(()=>orig.apply(this,args));if(!_running)_drain();}
+  }
+  window.addEventListener('load',()=>{
+    ['triggerShake','triggerFlash','triggerBlur','triggerGlitch','triggerBorderAlert','triggerConfetti'].forEach(_wrap);
+  });
+})();
+// Q-140: ?cmdprefix=PREFIX チャットコマンドのプレフィックス変更（デフォルト ! → 任意の文字列）
+// 例: ?cmdprefix=/ → /shake, /love:rain など
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _prefix=_usp.get('cmdprefix');if(!_prefix) return;
+  // Wait for _chatTriggers to be initialized, then patch trigger matching
+  window.addEventListener('load',()=>{
+    if(!Array.isArray(window._chatTriggers)) return;
+    // Replace any triggers that start with '!' with the new prefix
+    window._chatTriggers=window._chatTriggers.map(t=>{
+      if(t.keyword&&t.keyword.startsWith('!')){
+        return {...t, keyword:_prefix+t.keyword.slice(1)};
+      }
+      return t;
+    });
+    window._chatCmdPrefix=_prefix;
+  });
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
