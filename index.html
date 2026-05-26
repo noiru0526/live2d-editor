@@ -4168,6 +4168,9 @@ ${includeCtrlPanel ? `
       oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2);params['${k}'].val=parseFloat(this.value);">
     <span>${(p.val||0).toFixed(2)}</span>
   </div>`).join('')}
+  <h3 style="margin-top:10px;">ポーズスロット <span style="color:#6878a0;font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
+  <div id="ps-list"></div>
+  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(78,124,255,.15);border:1px solid #3a4470;border-radius:3px;color:#80b0ff;font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
@@ -4680,10 +4683,13 @@ function draw(ts){
   if(!S.ablink){S.ablinkT-=dt;if(S.ablinkT<=0){S.ablink=true;S.ablinkP=0;S.ablinkT=3+Math.random()*5;}}
   else{S.ablinkP+=dt/.10;if(S.ablinkP>=1){S.ablink=false;S.ablinkP=0;}}
   const ab=S.ablink?Math.sin(S.ablinkP*Math.PI):0;
-  S.bp+=dt*.38;S.ip+=dt*.22;
+  // Q-063: audio-reactive breathing — scale speed/amplitude with smoothed mic level
+  if(_audioBreathe&&audioActive){_abLevel+=(getAudioLevel()-_abLevel)*Math.min(1,dt*3);}
+  const _abSpd=_audioBreathe?1+_abLevel*1.2:1; // up to 2.2× speed at full volume
+  S.bp+=dt*.38*_abSpd;S.ip+=dt*.22;
   // Emotion-driven breath scale: smile/surprise amplify body movement
-  const _emoBoost=1+S.me*.4+Math.max(0,S.mo-.3)*.3;
-  // Multi-frequency breathing (scaled by emotion)
+  const _emoBoost=(1+S.me*.4+Math.max(0,S.mo-.3)*.3)*(1+(_audioBreathe?_abLevel*.5:0));
+  // Multi-frequency breathing (scaled by emotion + audio)
   const breathX=(Math.sin(S.bp)*.22+Math.sin(S.bp*.617)*.10)*_emoBoost;
   const breathY=(Math.sin(S.bp*.79)*.14+Math.sin(S.bp*.523)*.06)*_emoBoost;
   const breathZ=(Math.sin(S.bp*.45)*.08)*_emoBoost;
@@ -4935,6 +4941,9 @@ class OneEuroFilter{
 }
 const _detectFps=(()=>{const _u=new URLSearchParams(location.search);if(_u.get('lowcpu')==='1')return 15;const _f=parseInt(_u.get('fps'),10);return(_f>=5&&_f<60)?_f:0;})(); // 0=no limit; fps>=60 treated as unlimited
 const _fadeinSec=(()=>{const _n=parseFloat(new URLSearchParams(location.search).get('fadein'));return(_n>0&&_n<=30)?_n:0;})();
+// Q-063: audio-reactive breathing — ?audiobreathe=1 scales breath speed/amplitude with mic/BGM level
+const _audioBreathe=(new URLSearchParams(location.search)).get('audiobreathe')==='1';
+let _abLevel=0; // smoothed audio level for breathing (separate from mouth audio)
 async function initTracking(){
   const _lp=document.getElementById('load-prog');
   const _setP=(pct,msg)=>{if(_lp)_lp.style.width=pct+'%';if(loadMsg&&msg)loadMsg.textContent=msg;};
@@ -5268,21 +5277,89 @@ document.addEventListener('keydown',ev=>{
   // S: screenshot (save canvas as PNG)
   if ((ev.key==='s'||ev.key==='S') && !ev.ctrlKey && !ev.altKey && !ev.metaKey && !ev.repeat &&
       !(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement)) {
-    const _cv=document.getElementById('c');
-    if(_cv) try{_cv.toBlob(blob=>{
-      try{
-        if(!blob){console.warn('screenshot: toBlob returned null');return;}
-        const _u=URL.createObjectURL(blob);
-        const _a=document.createElement('a');
-        _a.href=_u; _a.download='avatar_'+(Date.now())+'.png';
-        document.body.appendChild(_a); _a.click(); document.body.removeChild(_a);
-        setTimeout(()=>URL.revokeObjectURL(_u),5000);
-        if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='📸 screenshot saved';setTimeout(()=>exprHUD.style.display='none',1200);}
-      }catch(e2){console.error('screenshot download failed:',e2);}
-    },'image/png');}catch(e){console.error('screenshot failed:',e);}
+    const _transp = ev.shiftKey;
+    _doScreenshot(_transp);
     ev.preventDefault();
   }
 });
+// Q-064: transparent PNG export — Shift+S / window.saveTransparentPNG() / noiru-cmd screenshot
+function _doScreenshot(transparent, filename){
+  const _cv=document.getElementById('c');
+  if(!_cv) return;
+  // For transparent: draw canvas onto offscreen canvas with alpha, without page background
+  const _save=()=>{
+    let src=_cv;
+    if(transparent){
+      const off=document.createElement('canvas');
+      off.width=_cv.width; off.height=_cv.height;
+      const ctx2=off.getContext('2d',{alpha:true});
+      ctx2.clearRect(0,0,off.width,off.height);
+      ctx2.drawImage(_cv,0,0);
+      src=off;
+    }
+    src.toBlob(blob=>{
+      if(!blob) return;
+      const u=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=u; a.download=filename||(transparent?'avatar_transparent_':'avatar_')+Date.now()+'.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(u),5000);
+      if(exprHUD){exprHUD.style.display='block';exprHUD.textContent=transparent?'📸 透過PNG保存':'📸 screenshot saved';setTimeout(()=>exprHUD.style.display='none',1200);}
+    },'image/png');
+  };
+  _save();
+}
+window.saveTransparentPNG=function(filename){_doScreenshot(true,filename);};
+window.saveScreenshot=function(filename){_doScreenshot(false,filename);};
+// Q-065: Named Pose Slots — save/restore arbitrary param snapshots to localStorage
+(()=>{
+  const LS_KEY='avatarPoseSlots_${M.id||'default'}';
+  let _slots=[];
+  try{_slots=JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{}
+  if(!Array.isArray(_slots))_slots=[];
+  function _persist(){try{localStorage.setItem(LS_KEY,JSON.stringify(_slots));}catch{}}
+  function _captureParams(){const o={};for(const[k,p]of Object.entries(params))o[k]=p.val;return o;}
+  function _applyParams(snap){for(const[k,v]of Object.entries(snap)){if(params[k])params[k].val=v;}_renderCpSliders();}
+  function _renderCpSliders(){
+    document.querySelectorAll('#cp-panel input[type=range]').forEach(inp=>{
+      const m=inp.getAttribute('oninput').match(/params\['([^']+)'\]/);
+      if(m&&params[m[1]]){inp.value=params[m[1]].val;inp.nextElementSibling.textContent=params[m[1]].val.toFixed(2);}
+    });
+  }
+  function _renderPsList(){
+    const el=document.getElementById('ps-list');if(!el)return;
+    el.innerHTML=_slots.map((s,i)=>`<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;">
+      <input type="text" value="${(s.name||'スロット '+(i+1)).replace(/"/g,'&quot;')}"
+        style="flex:1;background:#0d1020;border:1px solid #2a3060;color:#c8d4f0;border-radius:3px;padding:1px 4px;font-size:10px;min-width:0;"
+        onchange="_slots[${i}].name=this.value;_persist();">
+      <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(78,124,255,.2);border:1px solid #3a4470;border-radius:3px;color:#80b0ff;font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
+      <button onclick="_psSave(${i})" title="上書き保存" style="background:rgba(255,200,80,.1);border:1px solid #5a4a20;border-radius:3px;color:#ffd060;font-size:10px;padding:1px 5px;cursor:pointer;">💾</button>
+      <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid #5a2020;border-radius:3px;color:#ff8080;font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
+    </div>`).join('');
+  }
+  window._psAddSlot=function(){
+    _slots.push({name:'スロット '+(_slots.length+1),params:_captureParams()});
+    _persist();_renderPsList();
+    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='💾 スロット追加';setTimeout(()=>exprHUD.style.display='none',800);}
+  };
+  window._psSave=function(i){if(!_slots[i])return;_slots[i].params=_captureParams();_persist();
+    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='💾 '+(_slots[i].name||'スロット '+(i+1));setTimeout(()=>exprHUD.style.display='none',800);}
+  };
+  window._psLoad=function(i){if(!_slots[i])return;_applyParams(_slots[i].params);
+    if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='▶ '+(_slots[i].name||'スロット '+(i+1));setTimeout(()=>exprHUD.style.display='none',800);}
+  };
+  // Alt+1〜9 to load slot 0〜8
+  document.addEventListener('keydown',ev=>{
+    if(!ev.altKey||ev.ctrlKey||ev.metaKey||ev.repeat) return;
+    if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
+    const n=parseInt(ev.key);if(!(n>=1&&n<=9)) return;
+    if(_slots[n-1]){_psLoad(n-1);ev.preventDefault();}
+  },{passive:false});
+  // Render once CP panel is visible
+  const _cpBtn=document.getElementById('cp-btn');
+  if(_cpBtn)_cpBtn.addEventListener('click',()=>_renderPsList(),{passive:true});
+  _renderPsList();
+})();
 // Screen effects: Shake (J), Flash (F), Blur (B)
 (()=>{
   const _wrap=document.getElementById('wrap');
@@ -6576,6 +6653,11 @@ window.addEventListener('message',ev=>{
   window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='poptext') return;
     if(typeof window.showPopText==='function') window.showPopText(d.text,{dur:d.dur,color:d.color,size:d.size});
+  },{passive:true});
+  // noiru-cmd: {cmd:'screenshot', transparent:true, filename:'out.png'}
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='screenshot') return;
+    if(typeof _doScreenshot==='function') _doScreenshot(!!d.transparent, d.filename);
   },{passive:true});
 })();
 // Death counter: ?deathcounter=N (?deathcounterpos= ?deathcounterlabel= ?deathcounterkey=`)
