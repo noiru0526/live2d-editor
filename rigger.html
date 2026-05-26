@@ -66,6 +66,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .pi.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
 .pi.multi-sel{background:rgba(59,130,246,.1);border-left-color:#3b82f6}
 .pi.drag-over{background:rgba(224,120,64,.08);border-left-color:#e07840;border-left-style:dashed}
+.pi.drag-over-parent{background:rgba(80,180,255,.12);border-left-color:#50b4ff;border-left-style:solid;outline:1px dashed rgba(80,180,255,.5)}
 /* Cubism status dot column */
 .pi-dots{display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0;padding:0 4px;align-self:stretch}
 .pi-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;border:1px solid #444;flex-shrink:0}
@@ -3192,7 +3193,7 @@ function showAlignMenu(e) {
   const xs = targets.map(_cx), ys = targets.map(_cy);
   const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
   const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
-  showCtxMenu(e.clientX, e.clientY, [
+  showRigCtxMenu(e.clientX, e.clientY, [
     { icon:'⬤', label:'左端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=minX)) },
     { icon:'⬤', label:'右端揃え', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=maxX)) },
     { icon:'⬤', label:'中央揃え（横）', action:()=>_applyAlign(ts=>ts.forEach(p=>p.x=cx)) },
@@ -3246,20 +3247,55 @@ function updatePartsUI() {
     d.className = 'pi' + (i===selPart?' sel':'') + (selParts.has(i)&&i!==selPart?' multi-sel':'') + (pt.groupId?' in-group':'');
     if (depth > 0) d.style.paddingLeft = (depth * 14) + 'px';
     d.draggable = true;
-    d.ondragstart = () => { dragSrcIdx=i; };
-    d.ondragover = (e) => { e.preventDefault(); d.classList.add('drag-over'); };
-    d.ondragleave = () => d.classList.remove('drag-over');
+    d.ondragstart = (e) => { dragSrcIdx=i; e.dataTransfer.effectAllowed='move'; };
+    d.ondragover = (e) => {
+      e.preventDefault();
+      d.classList.remove('drag-over', 'drag-over-parent');
+      d.classList.add(e.shiftKey ? 'drag-over-parent' : 'drag-over');
+    };
+    d.ondragleave = () => d.classList.remove('drag-over', 'drag-over-parent');
     d.ondrop = (e) => {
-      e.preventDefault(); d.classList.remove('drag-over');
+      e.preventDefault(); d.classList.remove('drag-over', 'drag-over-parent');
       if (dragSrcIdx<0||dragSrcIdx===i) return;
       saveState();
-      const [moved] = parts.splice(dragSrcIdx,1);
-      parts.splice(i,0,moved);
-      selPart=i; selParts.clear(); selParts.add(i);
-      parts.forEach((p,idx)=>p.zIndex=idx);
+      const srcPart = parts[dragSrcIdx];
+      if (e.shiftKey) {
+        // Reparent: set parentId of dragged part to target part id
+        const tgtPart = parts[i];
+        // Cycle check: target cannot be a descendant of src
+        let check = tgtPart;
+        let cyclic = false;
+        for (let iter = 0; iter < 100; iter++) {
+          if (!check || !check.parentId) break;
+          if (check.parentId === srcPart.id) { cyclic = true; break; }
+          check = parts.find(p => p.id === check.parentId);
+        }
+        if (cyclic) { setStatus('循環参照になるため設定できません'); return; }
+        srcPart.parentId = tgtPart.id;
+        setStatus(`「${srcPart.name}」の親を「${tgtPart.name}」に設定`);
+      } else {
+        // Reorder (z-order)
+        const [moved] = parts.splice(dragSrcIdx,1);
+        parts.splice(i,0,moved);
+        selPart = i < dragSrcIdx ? i : Math.max(0, i-1);
+        selParts.clear(); selParts.add(selPart);
+        parts.forEach((p,idx)=>p.zIndex=idx);
+      }
       updatePartsUI(); render(); dragSrcIdx=-1;
     };
     d.onclick = (e) => selPartClick(i, e.shiftKey);
+    d.oncontextmenu = (e) => {
+      e.preventDefault();
+      const parentPart = pt.parentId ? parts.find(p => p.id === pt.parentId) : null;
+      const items = [
+        {icon:'⧉', label:'複製', action:()=>{selPart=i;dupPart();}},
+        {icon:'✕', label:'削除', action:()=>{selPart=i;delPart();}},
+        null,
+        ...(pt.parentId ? [{icon:'⬆', label:`親「${parentPart?.name||'?'}」を解除`, action:()=>{saveState();pt.parentId=null;updatePartsUI();render();setStatus(`「${pt.name}」の親を解除`);}}] : []),
+        {icon:'💡', label:'Shift+ドロップで親子関係を設定', disabled:true},
+      ].filter(Boolean);
+      showRigCtxMenu(e.clientX, e.clientY, items);
+    };
     // Tree expand/collapse caret
     if (hasChildren) {
       const caret = document.createElement('span');
@@ -5580,7 +5616,7 @@ function buildLPDeformerTree() {
           action: () => { if (_hasCircularParent(d.id, d2.id, deformers)) { setStatus('循環参照は設定できません'); return; } saveState(); (d.type==='bone'?d.parentId=d2.id:d.parentDeformerId=d2.id); buildLPDeformerTree(); buildDeformerTree(); render(); }
         }))
       ];
-      showCtxMenu(e.clientX, e.clientY, items);
+      showRigCtxMenu(e.clientX, e.clientY, items);
     };
     row.ondragstart = (e) => { _defLPDragSrc = idx; e.dataTransfer.effectAllowed = 'move'; row.style.opacity = '.5'; };
     row.ondragend = () => { _defLPDragSrc = null; row.style.opacity = ''; buildLPDeformerTree(); };
