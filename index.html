@@ -4503,6 +4503,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?clicker=1</td><td>チャット連打ゲーム・?clickdur=30s・?clickcmd=!click・API: startClicker()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tapscore=1</td><td>タップスコアランキング・?tapcmd=!tap・?tapscoretime=60s・?tapscorepos=tr</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?catchgame=1</td><td>落下物キャッチゲーム（顔追跡でカゴ操作）・ライフ3・スコア表示</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?toastnotif=1</td><td>トースト通知（postMessage noiru-toast）・?toastpos=br・API: showToast(title,body,icon)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursoreffect=1</td><td>マウスカーソルパーティクル・?cursortype=stars/fire/hearts/sparkles</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idlescreen=1</td><td>アイドル時「お待ちください」画面・?idlescreentime=120s・?idlescreenmsg=</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8685,6 +8688,118 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-234: ?toastnotif=1 トースト通知（右下にポップアップするOSライクな通知）
+// postMessage {type:'noiru-toast', title, body, icon, dur} で表示
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('toastnotif')!=='1') return;
+  const _pos=_usp.get('toastpos')||'br';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _container=document.createElement('div');
+  _container.id='toast-container';
+  Object.assign(_container.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    display:'flex',flexDirection:'column',gap:'8px',zIndex:'10000',
+    pointerEvents:'none',maxWidth:'300px'
+  });
+  document.body.appendChild(_container);
+  function _show(title,body,icon,dur){
+    const t=document.createElement('div');
+    Object.assign(t.style,{
+      background:'rgba(20,20,30,0.95)',borderRadius:'10px',
+      padding:'12px 16px',color:'#fff',fontFamily:'sans-serif',
+      boxShadow:'0 4px 16px rgba(0,0,0,0.5)',borderLeft:'3px solid #6af',
+      transition:'opacity 0.4s,transform 0.4s',opacity:'0',
+      transform:'translateX(40px)'
+    });
+    t.innerHTML=`<div style="display:flex;align-items:center;gap:10px;">
+      ${icon?`<span style="font-size:24px;">${icon}</span>`:''}
+      <div><div style="font-weight:bold;font-size:14px;">${title||''}</div>
+      <div style="color:#aaa;font-size:12px;margin-top:2px;">${body||''}</div></div>
+    </div>`;
+    _container.appendChild(t);
+    requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(0)'; });
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),400); },dur||4000);
+  }
+  window.showToast=_show;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-toast') _show(d.title,d.body,d.icon,d.dur);
+    if(d.type==='noiru-sub') _show('🎉 サブスクありがとう！',d.user||'','🎊',5000);
+    if(d.type==='noiru-follow') _show('💜 フォローありがとう！',d.user||'','💜',4000);
+    if(d.type==='noiru-raid') _show('⚔️ レイドありがとう！',d.from+' ('+d.viewers+'人)','⚔️',6000);
+  });
+})();
+// Q-235: ?cursoreffect=1 マウスカーソルエフェクト（カーソルの後にパーティクルが残る）
+// 例: ?cursoreffect=1&cursortype=stars/fire/hearts/sparkles
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('cursoreffect')!=='1') return;
+  const _type=_usp.get('cursortype')||'sparkles';
+  const _cv=document.createElement('canvas');
+  _cv.id='cursoreffect-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'10001'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _parts=[];
+  const _typeMap={
+    stars:['⭐','✨','🌟'],fire:['🔥','✨','💥'],hearts:['❤','💕','💗'],
+    sparkles:['✨','💫','⚡']
+  };
+  const _syms=_typeMap[_type]||_typeMap.sparkles;
+  document.addEventListener('mousemove',e=>{
+    if(Math.random()>0.4) return;
+    _parts.push({x:e.clientX,y:e.clientY,sym:_syms[Math.random()*_syms.length|0],
+      vx:(Math.random()-0.5)*3,vy:-1-Math.random()*2,alpha:1,sz:14+Math.random()*10});
+  });
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_parts.length-1;i>=0;i--){
+      const p=_parts[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.alpha-=0.025;
+      if(p.alpha<=0){ _parts.splice(i,1); continue; }
+      _ctx.globalAlpha=p.alpha; _ctx.font=p.sz+'px serif';
+      _ctx.fillText(p.sym,p.x,p.y);
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-236: ?idlescreen=1 アイドルスクリーンセーバーメッセージ（長時間無音のとき「少々お待ちください」）
+// 例: ?idlescreen=1&idlescreenmsg=少々お待ちください&idlescreentime=120
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('idlescreen')!=='1') return;
+  const _idleTime=Math.max(10,parseInt(_usp.get('idlescreentime'))||120)*1000;
+  const _msg=_usp.get('idlescreenmsg')||'少々お待ちください…';
+  const _ov=document.createElement('div');
+  _ov.id='idlescreen-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'0',left:'0',width:'100%',height:'100%',
+    background:'rgba(0,0,0,0.85)',display:'none',zIndex:'9998',
+    justifyContent:'center',alignItems:'center',flexDirection:'column',
+    fontFamily:'sans-serif',pointerEvents:'none'
+  });
+  _ov.innerHTML=`<div id="idsm-dots" style="font-size:60px;margin-bottom:20px;">⏳</div>
+    <div style="color:#ccc;font-size:24px;">${_msg}</div>`;
+  document.body.appendChild(_ov);
+  let _timer=0;
+  const _dots=['⏳','⌛'];
+  let _dotIdx=0;
+  function _resetIdle(){
+    clearTimeout(_timer);
+    _ov.style.display='none';
+    _timer=setTimeout(()=>{
+      _ov.style.display='flex';
+      setInterval(()=>{ const el=document.getElementById('idsm-dots'); if(el) el.textContent=_dots[_dotIdx++%_dots.length]; },1000);
+    },_idleTime);
+  }
+  ['mousemove','keydown','click','touchstart','message'].forEach(ev=>
+    window.addEventListener(ev,_resetIdle)
+  );
+  _resetIdle();
 })();
 // Q-231: ?clicker=1 連打ゲーム（視聴者が!clickとチャットして合計クリック数を競う）
 // 例: ?clicker=1&clickdur=30&clickcmd=!click
