@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingicons=1</td><td>フローティングSNSアイコン（Twitch/Twitter/YouTube/Discord）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?energybar=1</td><td>音声エナジーバー（MAX=flash）・?energybarpos=left/right/top/bottom&?energybarcolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpoll2=A|B</td><td>2択チャット投票(!a/!b)・?chatpoll2dur=30</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gradientbg=C1,C2</td><td>アニメーショングラジエント背景・?gradientbgspeed=8・setGradientBg(cols,spd)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spotlight=1</td><td>マウス追従スポットライト・?spotlightsize=200&?spotlightopacity=0.7・setSpotlightSize(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?giftbomb=1</td><td>ギフト爆発アニメ・postMsg{cmd:'giftbomb',count:25}・triggerGiftBomb(n)</td></tr>
@@ -9320,6 +9323,119 @@ window.addEventListener('message',ev=>{
     const ns=Math.max(50,Math.min(600,s));
     _d.style.background=`radial-gradient(circle ${ns}px at ${_mx}px ${_my}px, transparent 0%, rgba(0,0,0,${_op}) ${ns}px)`;
   };
+})();
+// Q-305: ?chatpoll2=A|B シンプル2択チャット投票（!aまたは!bで投票・タイマー付き）
+// 例: ?chatpoll2=賛成|反対&chatpoll2dur=30
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatpoll2'); if(!_raw) return;
+  const _opts=decodeURIComponent(_raw).split('|').slice(0,2);
+  if(_opts.length<2) return;
+  const _dur=parseInt(_u.get('chatpoll2dur'))||30;
+  let _votes=[0,0]; const _voted=new Set(); let _timer=_dur; let _active=true;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',zIndex:'150',background:'rgba(0,0,0,0.7)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:'12px',padding:'12px 18px',color:'#fff',fontFamily:'sans-serif',minWidth:'260px',textAlign:'center',backdropFilter:'blur(6px)'});
+  document.body.appendChild(_d);
+  function _render(){
+    const total=_votes[0]+_votes[1]||1;
+    const p0=Math.round(_votes[0]/total*100); const p1=Math.round(_votes[1]/total*100);
+    _d.innerHTML=`<div style="font-size:12px;color:#adf;margin-bottom:8px;font-weight:bold;">📊 投票 — 残り${_timer}秒</div>
+<div style="display:flex;gap:8px;margin-bottom:6px">
+<div style="flex:${_votes[0]||1};background:#3498db;border-radius:4px;padding:4px 8px;font-size:13px;text-align:center;min-width:30px">!a ${_opts[0]}<br><span style="font-size:11px;opacity:0.8">${_votes[0]} (${p0}%)</span></div>
+<div style="flex:${_votes[1]||1};background:#e74c3c;border-radius:4px;padding:4px 8px;font-size:13px;text-align:center;min-width:30px">!b ${_opts[1]}<br><span style="font-size:11px;opacity:0.8">${_votes[1]} (${p1}%)</span></div>
+</div>`;
+  }
+  _render();
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(!_active) return;
+    if(d.type==='noiru-chat'&&d.msg&&d.user){
+      const m=d.msg.trim().toLowerCase();
+      if(!_voted.has(d.user)&&(m==='!a'||m==='!b')){
+        _voted.add(d.user); _votes[m==='!a'?0:1]++; _render();
+      }
+    }
+  });
+  const _iv=setInterval(()=>{
+    _timer--; _render();
+    if(_timer<=0){
+      clearInterval(_iv); _active=false;
+      const winner=_votes[0]>=_votes[1]?_opts[0]:_opts[1];
+      _d.innerHTML=`<div style="font-size:14px;color:#ffe600;font-weight:bold;">🏆 結果: ${winner}</div><div style="font-size:11px;margin-top:4px;color:#adf">${_opts[0]}: ${_votes[0]}票 / ${_opts[1]}: ${_votes[1]}票</div>`;
+      showPopText&&showPopText(`勝利: ${winner}`,'#ffe600');
+      setTimeout(()=>_d.remove(),8000);
+    }
+  },1000);
+})();
+// Q-304: ?energybar=1 エナジーバー（音量でゲージが溜まり自動放電するRP演出）
+// 例: ?energybar=1&energybarpos=left&energybarcolor=00ffcc
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('energybar')!=='1') return;
+  const _pos=_u.get('energybarpos')||'left';
+  const _col='#'+(_u.get('energybarcolor')||'00ffcc');
+  const _d=document.createElement('div');
+  const _isV=_pos==='left'||_pos==='right';
+  const _posStyle=_pos==='left'?{left:'8px',top:'50%',transform:'translateY(-50%)'}:
+                  _pos==='right'?{right:'8px',top:'50%',transform:'translateY(-50%)'}:
+                  _pos==='top'?{top:'8px',left:'50%',transform:'translateX(-50%)'}:
+                  {bottom:'8px',left:'50%',transform:'translateX(-50%)'};
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'148',..._posStyle,
+    width:_isV?'14px':'120px',height:_isV?'120px':'14px',
+    background:'rgba(0,0,0,0.5)',borderRadius:'7px',border:`1px solid ${_col}44`,overflow:'hidden',
+    boxShadow:`0 0 6px ${_col}44`
+  });
+  const _fill=document.createElement('div');
+  Object.assign(_fill.style,{
+    position:'absolute',bottom:_isV?'0':'0',left:'0',
+    width:_isV?'100%':'0%',height:_isV?'0%':'100%',
+    background:`linear-gradient(${_isV?'0deg':'90deg'},${_col},${_col}aa)`,
+    borderRadius:'7px',transition:'width 0.1s,height 0.1s',
+    boxShadow:`0 0 8px ${_col}`
+  });
+  _d.appendChild(_fill); document.body.appendChild(_d);
+  let _e=0;
+  (function _tick(){
+    const lvl=typeof getAudioLevel==='function'?getAudioLevel():0;
+    _e=Math.min(100,_e+(lvl/100)*1.5);
+    _e=Math.max(0,_e-0.08);
+    if(_isV) _fill.style.height=_e+'%'; else _fill.style.width=_e+'%';
+    if(_e>=99){ triggerFlash&&triggerFlash(); _e=0; }
+    requestAnimationFrame(_tick);
+  })();
+})();
+// Q-303: ?floatingicons=1 フローティングSNSアイコン（Twitch/Twitter/YouTubeアイコンが漂う）
+// 例: ?floatingicons=1&floatingiconlinks=https://twitch.tv/noiru,https://twitter.com/noiru
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('floatingicons')!=='1') return;
+  const _linksRaw=_u.get('floatingiconlinks')||'';
+  const _ICONS=[
+    {name:'Twitch',emoji:'🟣',color:'#9146FF'},
+    {name:'Twitter/X',emoji:'🐦',color:'#1DA1F2'},
+    {name:'YouTube',emoji:'📺',color:'#FF0000'},
+    {name:'Discord',emoji:'💬',color:'#7289DA'},
+  ];
+  _ICONS.forEach((ic,idx)=>{
+    const _d=document.createElement('div');
+    const _x=5+idx*22;
+    Object.assign(_d.style,{
+      position:'fixed',left:_x+'%',bottom:'20px',zIndex:'148',
+      background:`${ic.color}22`,border:`1px solid ${ic.color}88`,
+      borderRadius:'10px',padding:'6px 10px',color:'#fff',
+      fontFamily:'sans-serif',fontSize:'12px',display:'flex',alignItems:'center',gap:'5px',
+      animation:`_fiFloat ${3+idx*0.7}s ease-in-out infinite alternate`,
+      backdropFilter:'blur(4px)',cursor:'default',userSelect:'none'
+    });
+    _d.innerHTML=`${ic.emoji} <span style="font-size:10px;opacity:0.85">${ic.name}</span>`;
+    document.body.appendChild(_d);
+  });
+  if(!document.getElementById('_fistyle')){
+    const s=document.createElement('style'); s.id='_fistyle';
+    s.textContent='@keyframes _fiFloat{from{transform:translateY(0)}to{transform:translateY(-8px)}}';
+    document.head.appendChild(s);
+  }
 })();
 // Q-300: ?gradientbg=COLOR1,COLOR2 アニメーショングラジエント背景（2色以上のグラデーションをゆっくり循環）
 // 例: ?gradientbg=ff6699,6699ff,99ff66&gradientbgspeed=8
