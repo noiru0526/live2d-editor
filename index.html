@@ -5653,6 +5653,36 @@ function applyPoseBlend(dt){
         _go.style.backdropFilter=_buildGrade(hue??0,sat??100,bri??100,con??100);
       };
     })();
+    // Q-072: Emotion color grading — ?emotioncolor=1 applies subtle dynamic color based on expression
+    (()=>{
+      if(usp.get('emotioncolor')!=='1') return;
+      const _ec=document.createElement('div');
+      _ec.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:92;transition:backdrop-filter .4s ease;';
+      document.body.appendChild(_ec);
+      let _ehue=0,_esat=100,_ebri=100;
+      // Smooth emotion color targets
+      function _emColorTick(){
+        if(typeof S==='undefined'){requestAnimationFrame(_emColorTick);return;}
+        const smile=Math.max(0,S.me||0);
+        const surprise=Math.max(0,(S.mo||0)-.4)/.6;
+        const blush=Math.max(0,S.ck||0);
+        // Target grade values
+        const th=smile*18 + surprise*(-35) + blush*25;
+        const ts=100+smile*20+blush*15;
+        const tb=100+smile*4+surprise*5;
+        // EMA smooth toward targets
+        _ehue+=( th-_ehue)*.06;
+        _esat+=(ts-_esat)*.06;
+        _ebri+=(tb-_ebri)*.06;
+        const parts=[];
+        if(Math.abs(_ehue)>0.3)parts.push(`hue-rotate(${_ehue.toFixed(1)}deg)`);
+        if(Math.abs(_esat-100)>0.5)parts.push(`saturate(${_esat.toFixed(1)}%)`);
+        if(Math.abs(_ebri-100)>0.3)parts.push(`brightness(${_ebri.toFixed(1)}%)`);
+        _ec.style.backdropFilter=parts.join(' ')||'none';
+        requestAnimationFrame(_emColorTick);
+      }
+      requestAnimationFrame(_emColorTick);
+    })();
     // Vignette overlay: ?vignette=0.0-1.0 (dark corners)
     (()=>{
       const _raw=usp.get('vignette');if(_raw===null) return;
