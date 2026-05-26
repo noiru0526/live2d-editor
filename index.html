@@ -4390,6 +4390,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mousetrack=1</td><td>マウスカーソル常時追跡（=head で頭も動く・+?mousetracksens=1.0）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wobble=1</td><td>常時微振動ゆらぎ（+?wobbleamp=3px ?wobblespeed=1.0）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spotlight=1</td><td>スポットライト効果（+?spotlightcolor=ffffff ?spotlightsize=60 ?spotlightopacity=0.55）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7269,6 +7271,54 @@ window.addEventListener('message',ev=>{
   }
   _owsConnect();
   window.addEventListener('pagehide',()=>{_owsStopped=true;clearTimeout(_owsTimer);if(_ows&&_ows.readyState<WebSocket.CLOSING)try{_ows.close();}catch(_){} });
+})();
+// Q-121: ?wobble=1 アバター常時微振動（ゆらぎ・生きている感を演出）
+// ?wobblespeed=1.0 速さ(0.1〜5.0) ?wobbleamp=3 振幅px(1〜20)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('wobble')!=='1') return;
+  const _amp=Math.min(20,Math.max(1,parseFloat(_usp.get('wobbleamp'))||3));
+  const _spd=Math.min(5,Math.max(0.1,parseFloat(_usp.get('wobblespeed'))||1.0));
+  const _wrap=document.getElementById('wrap');
+  if(!_wrap) return;
+  // Use multiple frequency sinusoids to create organic wobble
+  const _f1=_spd*0.13, _f2=_spd*0.23, _f3=_spd*0.31;
+  const _p1=Math.random()*Math.PI*2, _p2=Math.random()*Math.PI*2, _p3=Math.random()*Math.PI*2;
+  let _orig='';
+  function _tick(t){
+    const tx=Math.sin(t*_f1+_p1)*_amp*0.6 + Math.sin(t*_f2+_p2)*_amp*0.3;
+    const ty=Math.sin(t*_f2+_p2)*_amp*0.5 + Math.sin(t*_f3+_p3)*_amp*0.2;
+    const rot=(Math.sin(t*_f1*0.7+_p3)*0.4).toFixed(3);
+    _wrap.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) rotate(${rot}deg)`;
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
+})();
+// Q-122: ?spotlight=1 スポットライト効果（アバター周囲にラジアルグラジェント光源）
+// ?spotlightcolor=ffffff スポット色(hex) ?spotlightsize=60 サイズ% ?spotlightopacity=0.55 不透明度
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('spotlight')!=='1') return;
+  const _col='#'+(_usp.get('spotlightcolor')||'ffffff');
+  const _sz=Math.min(120,Math.max(10,parseFloat(_usp.get('spotlightsize'))||60));
+  const _op=Math.min(1,Math.max(0,parseFloat(_usp.get('spotlightopacity'))||0.55));
+  const _ov=document.createElement('div');
+  _ov.id='spotlight-ov';
+  _ov.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:91;`;
+  _ov.style.background=`radial-gradient(ellipse ${_sz}% ${_sz*1.2}% at 50% 60%, ${_col}${Math.round(_op*255).toString(16).padStart(2,'0')} 0%, transparent 70%)`;
+  document.body.appendChild(_ov);
+  // Animate spotlight slowly following head X
+  let _tx=50;
+  function _tick(){
+    if(typeof S!=='undefined'){
+      // S.hx is -1(left) to 1(right), map to 30%–70% horizontal
+      const target=50 + (S.hx||0)*20;
+      _tx += (target-_tx)*0.04;
+    }
+    _ov.style.background=`radial-gradient(ellipse ${_sz}% ${_sz*1.2}% at ${_tx.toFixed(1)}% 60%, ${_col}${Math.round(_op*255).toString(16).padStart(2,'0')} 0%, transparent 70%)`;
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
