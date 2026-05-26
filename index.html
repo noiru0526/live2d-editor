@@ -4485,6 +4485,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?beatflash=1</td><td>ビートフラッシュ（音量閾値超えで画面フラッシュ）・?beatthresh=0.55・?beatcolor=ffffff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bassboost=1</td><td>バス音量連動アバター揺れ・?bassamp=12・?bassfreqbin=4（低周波ビン数）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audiocolorshift=1</td><td>音量連動カラーシフト・?audiohue=180・?audiobg=1 背景色・?audioglow=1 グロー</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?slideshow=URL1,URL2</td><td>画像スライドショー・?slidedur=5s・?slidepos=tr・?slidesize=180px</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpinboard=1</td><td>チャットピンボード（!pinコマンドで留める）・?pincmd=!pin・?pinmax=5・?pinpos=tl</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?snapshot=KEY</td><td>キーでアバターPNGダウンロード・?snapshotname=名前・API: triggerSnapshot()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8666,6 +8669,120 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-216: ?slideshow=URL1,URL2 画像スライドショーオーバーレイ（複数画像を定期切替）
+// 例: ?slideshow=img1.png,img2.png&slidedur=5&slidepos=tr&slidesize=200
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('slideshow'); if(!_raw) return;
+  const _urls=_raw.split(',').filter(Boolean);
+  if(!_urls.length) return;
+  const _dur=Math.min(60,Math.max(1,parseInt(_usp.get('slidedur'))||5))*1000;
+  const _pos=_usp.get('slidepos')||'tr';
+  const _sz=Math.min(600,Math.max(40,parseInt(_usp.get('slidesize'))||180));
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='slideshow-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:_sz+'px',height:_sz+'px',zIndex:'500',overflow:'hidden',
+    borderRadius:'8px',boxShadow:'0 2px 12px rgba(0,0,0,0.5)'
+  });
+  const _img=document.createElement('img');
+  Object.assign(_img.style,{width:'100%',height:'100%',objectFit:'cover',transition:'opacity 0.5s'});
+  _wrap.appendChild(_img);
+  document.body.appendChild(_wrap);
+  let _idx=0;
+  function _next(){
+    _img.style.opacity='0';
+    setTimeout(()=>{
+      _img.src=_urls[_idx%_urls.length];
+      _idx++;
+      _img.style.opacity='1';
+    },500);
+  }
+  _img.src=_urls[0]; _img.style.opacity='1'; _idx=1;
+  setInterval(_next,_dur);
+  window.nextSlide=function(){ clearInterval(); _next(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='nextslide') _next();
+  });
+})();
+// Q-217: ?chatpinboard=1 チャットピンボード（視聴者のチャットをピン留め・コレクション表示）
+// !pin コマンドでメッセージをピン留め。クリックで削除可能
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatpinboard')!=='1') return;
+  const _cmd=(_usp.get('pincmd')||'!pin').toLowerCase();
+  const _max=Math.min(10,Math.max(1,parseInt(_usp.get('pinmax'))||5));
+  const _pos=_usp.get('pinpos')||'tl';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _board=document.createElement('div');
+  _board.id='pinboard-ov';
+  Object.assign(_board.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'220px',zIndex:'500',fontFamily:'sans-serif',
+    display:'flex',flexDirection:'column',gap:'4px'
+  });
+  document.body.appendChild(_board);
+  const _pins=[];
+  function _render(){
+    _board.innerHTML='';
+    _pins.forEach((p,i)=>{
+      const d=document.createElement('div');
+      Object.assign(d.style,{background:'rgba(0,0,0,0.75)',borderLeft:'3px solid '+(p.color||'#9af'),
+        borderRadius:'4px',padding:'4px 8px',cursor:'pointer',transition:'opacity 0.2s'});
+      d.innerHTML=`<div style="color:${p.color||'#9af'};font-size:11px;">${p.user}</div>
+        <div style="color:#fff;font-size:12px;">${p.msg}</div>`;
+      d.onclick=()=>{ _pins.splice(i,1); _render(); };
+      _board.appendChild(d);
+    });
+  }
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const trimmed=d.msg.trim();
+      if(trimmed.toLowerCase().startsWith(_cmd)){
+        const msg=trimmed.slice(_cmd.length).trim()||trimmed;
+        _pins.unshift({user:d.user||'',msg,color:d.color});
+        if(_pins.length>_max) _pins.pop();
+        _render();
+      }
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='pinboard'&&d.msg){
+      _pins.unshift({user:d.user||'',msg:d.msg,color:d.color});
+      if(_pins.length>_max) _pins.pop();
+      _render();
+    }
+  });
+  _render();
+})();
+// Q-218: ?snapshot=KEY キーを押すとアバターのスナップショットをダウンロード
+// 例: ?snapshot=F9&snapshotname=noiru
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _key=_usp.get('snapshot'); if(!_key) return;
+  const _name=(_usp.get('snapshotname')||'avatar');
+  function _capture(){
+    const _canvas=document.getElementById('c');
+    if(!_canvas) return;
+    try{
+      const url=_canvas.toDataURL('image/png');
+      const a=document.createElement('a');
+      const ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      a.download=`${_name}-${ts}.png`;
+      a.href=url; a.click();
+    } catch(e){}
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.key===_key||(e.code&&e.code===_key)) _capture();
+  });
+  window.triggerSnapshot=_capture;
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='snapshot') _capture();
   });
 })();
 // Q-213: ?beatflash=1 ビートフラッシュ（音量が閾値を超えるたびに画面をフラッシュ）
