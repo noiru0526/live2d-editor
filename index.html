@@ -4337,6 +4337,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgimage=URL</td><td>背景画像URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgvideo=URL</td><td>背景動画URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgblur=N</td><td>背景ブラー（背景画像/動画をぼかす・px単位）/ ?letterbox=1: シネマ黒帯（+?letterboxsize=12）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgparallax=1</td><td>背景パララックス（頭の動きに合わせて背景が逆方向に移動・+?bgparallaxstrength=30）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?micthresh=T:EFF</td><td>マイク音量閾値エフェクト（例: 0.7:shake,0.9:rain:🎉）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoduck=1</td><td>BGM自動ダッキング（TTS発話・驚き時BGM音量自動減衰 +?autoduckratio=0.15）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
@@ -5979,6 +5980,27 @@ function applyPoseBlend(dt){
       _cv.style.opacity='';_cv.style.transition='';
       _cv.style.animation=`${_an} ${_dur}s cubic-bezier(.34,1.56,.64,1) both`;
       _cv.addEventListener('animationend',()=>{_cv.style.animation='';},{once:true});
+    })();
+    // Q-117: ?bgparallax=1 背景パララックス（頭の動きに合わせて背景が逆方向に動く）
+    // ?bgparallaxstrength=30（移動量px・デフォルト30）
+    (()=>{
+      const _usp=new URLSearchParams(location.search);
+      if(_usp.get('bgparallax')!=='1') return;
+      const _str=Math.min(100,Math.max(1,parseFloat(_usp.get('bgparallaxstrength'))||30));
+      let _px=0,_py=0;
+      function _plxTick(){
+        requestAnimationFrame(_plxTick);
+        if(typeof S==='undefined') return;
+        const tx=-(S.hx||0)*_str;
+        const ty=(S.hy||0)*_str*0.5;
+        _px+=( tx-_px)*0.08;_py+=(ty-_py)*0.08;
+        // Apply to body background position or video
+        document.body.style.backgroundPosition=`calc(50% + ${_px.toFixed(1)}px) calc(50% + ${_py.toFixed(1)}px)`;
+        // Also move dynamically added video backgrounds
+        const vbg=document.querySelector('video[style*="z-index:-1"]');
+        if(vbg) vbg.style.transform=`translate(${_px.toFixed(1)}px,${_py.toFixed(1)}px) scale(1.08)`;
+      }
+      requestAnimationFrame(_plxTick);
     })();
     // Q-116: ?mousetrack=1 マウスカーソル常時追跡（クリック不要で視線・頭部をマウスに追従）
     // ?mousetrack=head で頭も動く。?mousetracksens=0.5 感度調整（デフォルト1.0）
