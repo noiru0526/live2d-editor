@@ -4452,6 +4452,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?heartfall=1</td><td>ハート落下エフェクト・?heartcount=20・?heartsize=20・API: triggerHeartfall(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtitle=TEXT</td><td>配信タイトル常時表示・?streamtitlepos=top/bottom・?titlefont=22・?streamtitlecolor</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emoteroulette=1</td><td>エモートルーレット（チャット絵文字をプールしてrouletteコマンドでBIG表示）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?qrcode=URL</td><td>QRコードオーバーレイ・?qrsize=120・?qrpos=br/bl/tr/tl・API: setQRUrl(url)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?noisegate=1</td><td>ノイズゲート（小さい音では口を閉じる）・?noisethresh=0.04・?gateattack=60・?gaterelease=200</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avatarframe=URL</td><td>PNG装飾枠オーバーレイ・?frameopacity=1・?frameblend=normal・?framescale=1</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8633,6 +8636,92 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-183: ?qrcode=URL QRコードオーバーレイ（URLをQRコード化して画面に表示）
+// 例: ?qrcode=https://twitch.tv/noiru0526&qrsize=120&qrpos=br
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('qrcode'); if(!_url) return;
+  const _sz=Math.min(300,Math.max(60,parseInt(_usp.get('qrsize'))||120));
+  const _pos=_usp.get('qrpos')||'br';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='qrcode-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:_sz+'px',height:_sz+'px',zIndex:'500',background:'#fff',
+    padding:'6px',borderRadius:'6px',boxShadow:'0 2px 8px rgba(0,0,0,0.4)',
+    pointerEvents:'none'
+  });
+  // QR code via Google Charts API (no external library needed)
+  const _img=document.createElement('img');
+  _img.style.cssText='width:100%;height:100%;display:block;';
+  const _apiUrl='https://chart.googleapis.com/chart?cht=qr&chs='+_sz+'x'+_sz+'&chl='+encodeURIComponent(_url)+'&choe=UTF-8';
+  _img.src=_apiUrl;
+  _img.alt='QR';
+  _wrap.appendChild(_img);
+  document.body.appendChild(_wrap);
+  window.setQRUrl=function(url){ _img.src='https://chart.googleapis.com/chart?cht=qr&chs='+_sz+'x'+_sz+'&chl='+encodeURIComponent(url)+'&choe=UTF-8'; };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='qrcode'&&d.url) window.setQRUrl(d.url);
+  });
+})();
+// Q-184: ?noisegate=1 ノイズゲート（小さい音声のとき口を完全に閉じる）
+// 例: ?noisegate=1&noisethresh=0.05
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('noisegate')!=='1') return;
+  const _thresh=Math.min(0.5,Math.max(0.01,parseFloat(_usp.get('noisethresh'))||0.04));
+  const _attackMs=Math.max(20,parseInt(_usp.get('gateattack'))||60);
+  const _releaseMs=Math.max(100,parseInt(_usp.get('gaterelease'))||200);
+  let _gateOpen=false, _lastChange=0;
+  const _origGetAudioLevel=window.getAudioLevel;
+  if(typeof _origGetAudioLevel!=='function') return;
+  let _openFactor=0;
+  function _gateTick(){
+    const lvl=_origGetAudioLevel();
+    const now=performance.now();
+    if(lvl>=_thresh){
+      if(!_gateOpen){ _gateOpen=true; _lastChange=now; }
+      _openFactor=Math.min(1,_openFactor+(now-_lastChange)/(_attackMs||1));
+      _lastChange=now;
+    } else {
+      if(_gateOpen){ _gateOpen=false; _lastChange=now; }
+      _openFactor=Math.max(0,_openFactor-(now-_lastChange)/(_releaseMs||1));
+      _lastChange=now;
+    }
+    window.getAudioLevel=function(){ return _origGetAudioLevel()*_openFactor; };
+    requestAnimationFrame(_gateTick);
+  }
+  _gateTick();
+})();
+// Q-185: ?avatarframe=URL アバターフレーム（PNG装飾枠をアバター上にオーバーレイ）
+// 例: ?avatarframe=https://example.com/frame.png&frameopacity=0.9
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _furl=_usp.get('avatarframe'); if(!_furl) return;
+  const _opacity=Math.min(1,Math.max(0,parseFloat(_usp.get('frameopacity'))||1));
+  const _blend=_usp.get('frameblend')||'normal';
+  const _scale=Math.min(2,Math.max(0.5,parseFloat(_usp.get('framescale'))||1));
+  const _img=document.createElement('img');
+  _img.id='avatarframe-ov';
+  Object.assign(_img.style,{
+    position:'fixed',top:'0',left:'0',width:'100%',height:'100%',
+    objectFit:'contain',pointerEvents:'none',zIndex:'150',
+    opacity:_opacity,mixBlendMode:_blend,
+    transform:`scale(${_scale})`,transformOrigin:'center center'
+  });
+  _img.src=_furl;
+  document.body.appendChild(_img);
+  window.setAvatarFrame=function(url,opacity){
+    _img.src=url;
+    if(opacity!=null) _img.style.opacity=opacity;
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='avatarframe'&&d.url) window.setAvatarFrame(d.url,d.opacity);
   });
 })();
 // Q-180: ?heartfall=1 ハートが降り注ぐエフェクト（配信中の応援演出）
