@@ -4310,6 +4310,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?grain=1</td><td>フィルムグレイン効果（+?grain_opacity=0.0-1.0 ?grain_fps=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?chroma=1</td><td>色収差効果（+?chroma_px=N ?chroma_anim=1でアニメーション）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?pip=1</td><td>ピクチャーインピクチャー自動起動（⧉PiPボタンも追加・window.openAvatarPiP()で制御）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgimage=URL</td><td>背景画像URL（起動時適用。実行時オーバーライド）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgvideo=URL</td><td>背景動画URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -5729,6 +5731,12 @@ function applyPoseBlend(dt){
       document.body.style.backgroundColor=bgHex;
       const ld=document.getElementById('loading');if(ld)ld.style.backgroundColor=bgHex;
     }
+    // Q-091: ?bgimage=URL 背景画像URLパラメータ（HTTPSまたは相対パス）
+    const _bgi=usp.get('bgimage');
+    if(_bgi){document.body.style.backgroundImage="url('"+_bgi.replace(/'/g,"\\'")+"')";document.body.style.backgroundSize='cover';document.body.style.backgroundPosition='center';}
+    // Q-091: ?bgvideo=URL 背景動画URLパラメータ（実行時オーバーライド）
+    const _bgv=usp.get('bgvideo');
+    if(_bgv){const _bvEl=document.createElement('video');_bvEl.autoplay=true;_bvEl.loop=true;_bvEl.muted=true;_bvEl.playsInline=true;_bvEl.src=_bgv;_bvEl.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;';document.body.appendChild(_bvEl);}
     const npText=usp.get('nameplate');
     if(npText){
       const np=document.getElementById('nameplate');
@@ -6254,8 +6262,12 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
     // PRIVMSG with bits tag
     const m=rest.match(/^:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
     if(!m||!_chSet.has(m[2])) return;
-    window.postMessage({type:'noiru-chat',source:'twitch',channel:m[2],user:m[1],msg:m[3]},'*');
-    const tags2=_parseTags(tagsRaw);const bits=parseInt(tags2['bits']||'0',10);
+    // Q-092: extract user color + display-name from IRC tags
+    const tags2=_parseTags(tagsRaw);
+    const _userColor=tags2['color']||'';
+    const _dispName=tags2['display-name']||m[1];
+    window.postMessage({type:'noiru-chat',source:'twitch',channel:m[2],user:_dispName,msg:m[3],color:_userColor},'*');
+    const bits=parseInt(tags2['bits']||'0',10);
     if(bits>=_bitsThresh){if(typeof window.triggerFlash==='function')window.triggerFlash('ff40c0',0.2);if(typeof window.triggerRain==='function')window.triggerRain('💎',Math.min(50,Math.floor(bits/10)));}
   }
   function _twitchConnect(){
@@ -6463,7 +6475,7 @@ function _handleChatMsg(rawMsg){
     if(!msg) return;
     const cb=document.createElement('div');
     cb.className='cb';
-    if(d.user){const s=document.createElement('span');s.className='cu';s.textContent=d.user+':';cb.appendChild(s);}
+    if(d.user){const s=document.createElement('span');s.className='cu';s.textContent=d.user+':';if(d.color&&/^#[0-9a-fA-F]{6}$/.test(d.color))s.style.color=d.color;cb.appendChild(s);}
     cb.appendChild(document.createTextNode(msg));
     _cm.appendChild(cb);
     while(_cm.children.length>_MAX) _cm.removeChild(_cm.firstChild);
