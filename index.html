@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?followmilestone=N</td><td>フォロワーマイルストーンバー・?followmilestonecurrent=750・setFollowCount(n)/addFollower()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glassmorph=1</td><td>グラスモーフィズムスタイル（すりガラス）・?glassmorphblur=8&?glassmorphopacity=0.2</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?matrixrain=1</td><td>マトリックス文字雨・?matrixraincolor=00ff44&?matrixrainopacity=0.25</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pixelate=N</td><td>ピクセレートフィルター（N=ブロックサイズ）・togglePixelate()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?shaketext=TEXT</td><td>震えるテキストオーバーレイ・?shaketextcolor=hex&?shaketextsize=28・setShakeText(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowbattery=1</td><td>低バッテリー警告バッジ（配信ネタ）・?lowbatteryval=5・setLowBattery(n)</td></tr>
@@ -9100,6 +9103,90 @@ window.addEventListener('message',ev=>{
   _d.textContent=decodeURIComponent(_txt);
   document.body.appendChild(_d);
   window.setShakeText=t=>{ _d.textContent=t; };
+})();
+// Q-296: ?matrixrain=1 マトリックス雨エフェクト（緑の流れ落ちるコード）
+// 例: ?matrixrain=1&matrixraincolor=00ff44&matrixrainopacity=0.3
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('matrixrain')!=='1') return;
+  const _col=_u.get('matrixraincolor')||'00ff44';
+  const _op=parseFloat(_u.get('matrixrainopacity'))||0.25;
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'140',opacity:String(_op),pointerEvents:'none'});
+  _cv.width=Math.floor(window.innerWidth/14); _cv.height=Math.floor(window.innerHeight/14);
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _CHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+  const _cols=_cv.width;
+  const _drops=new Array(_cols).fill(1);
+  _ctx.font=`1px monospace`;
+  function _draw(){
+    _ctx.fillStyle='rgba(0,0,0,0.1)';
+    _ctx.fillRect(0,0,_cv.width,_cv.height);
+    _ctx.fillStyle='#'+_col;
+    _ctx.font=`1px monospace`;
+    for(let i=0;i<_drops.length;i++){
+      const c=_CHARS[Math.floor(Math.random()*_CHARS.length)];
+      _ctx.fillText(c,i,_drops[i]);
+      if(_drops[i]>_cv.height&&Math.random()>0.975) _drops[i]=0;
+      _drops[i]++;
+    }
+  }
+  setInterval(_draw,50);
+  window.addEventListener('resize',()=>{ _cv.width=Math.floor(window.innerWidth/14); _cv.height=Math.floor(window.innerHeight/14); _drops.length=_cv.width; _drops.fill(1); });
+})();
+// Q-295: ?glassmorph=1 グラスモーフィズムスタイル（チャット・オーバーレイをすりガラス風に変換）
+// 例: ?glassmorph=1&glassmorphblur=8&glassmorphopacity=0.25
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('glassmorph')!=='1') return;
+  const _blur=parseFloat(_u.get('glassmorphblur'))||8;
+  const _op=parseFloat(_u.get('glassmorphopacity'))||0.2;
+  const _s=document.createElement('style');
+  _s.textContent=`
+  #chat-container,#chat-wrap,.chat-bubble,.lower-third,.subtitle-box,.overlay-panel{
+    background:rgba(255,255,255,${_op}) !important;
+    backdrop-filter:blur(${_blur}px) saturate(1.4) !important;
+    -webkit-backdrop-filter:blur(${_blur}px) saturate(1.4) !important;
+    border:1px solid rgba(255,255,255,0.35) !important;
+    box-shadow:0 4px 24px rgba(0,0,0,0.18) !important;
+  }`;
+  document.head.appendChild(_s);
+  window.setGlassmorph=(bl,op)=>{
+    _s.textContent=_s.textContent.replace(/blur\([^)]+\)/g,`blur(${bl}px)`).replace(/rgba\(255,255,255,[^)]+\) !important;(\s*background)/,`rgba(255,255,255,${op}) !important;$1`);
+  };
+})();
+// Q-294: ?followmilestone=TARGET フォロワーマイルストーンバー（目標フォロワー数への進捗）
+// 例: ?followmilestone=1000&followmilestonepos=top&followmilestonecurrent=750
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _target=parseInt(_u.get('followmilestone')); if(!_target) return;
+  let _current=parseInt(_u.get('followmilestonecurrent'))||0;
+  const _pos=_u.get('followmilestonepos')||'top';
+  const _d=document.createElement('div');
+  const _posStyle=_pos==='bottom'?{bottom:'0',left:'0',right:'0'}:{top:'0',left:'0',right:'0'};
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',..._posStyle,padding:'0'});
+  _d.innerHTML=`<div style="position:relative;height:24px;background:rgba(0,0,0,0.5);">
+<div id="fm-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#ec4899);transition:width 0.5s"></div>
+<div id="fm-txt" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;font-family:sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.7);">フォロワー 0 / ${_target.toLocaleString()}</div>
+</div>`;
+  document.body.appendChild(_d);
+  const _fill=document.getElementById('fm-fill');
+  const _txt=document.getElementById('fm-txt');
+  function _update(){
+    const pct=Math.min(100,Math.round(_current/_target*100));
+    _fill.style.width=pct+'%';
+    _txt.textContent=`フォロワー ${_current.toLocaleString()} / ${_target.toLocaleString()} (${pct}%)`;
+    if(_current>=_target){ triggerConfetti&&triggerConfetti(); showPopText&&showPopText('目標達成！🎉','#ec4899'); }
+  }
+  _update();
+  window.setFollowCount=n=>{ _current=n; _update(); };
+  window.addFollower=n=>{ _current+=(n||1); _update(); };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='setfollow') { _current=+d.count; _update(); }
+    if(d.type==='noiru-sub'||d.type==='noiru-follow') { _current++; _update(); }
+  });
 })();
 // Q-291: ?pixelate=N ピクセレートエフェクト（Nサイズのドット調フィルター・アバターに適用）
 // 例: ?pixelate=8（低いほど荒い）
