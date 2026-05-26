@@ -4687,6 +4687,8 @@ function draw(ts){
   if(_audioBreathe&&audioActive){_abLevel+=(getAudioLevel()-_abLevel)*Math.min(1,dt*3);}
   const _abSpd=_audioBreathe?1+_abLevel*1.2:1; // up to 2.2× speed at full volume
   S.bp+=dt*.38*_abSpd;S.ip+=dt*.22;
+  // Q-067: BPM sync hook — beat pulse applied after main param update
+  if(typeof window._bpmDtHook==='function') window._bpmDtHook(dt);
   // Emotion-driven breath scale: smile/surprise amplify body movement
   const _emoBoost=(1+S.me*.4+Math.max(0,S.mo-.3)*.3)*(1+(_audioBreathe?_abLevel*.5:0));
   // Multi-frequency breathing (scaled by emotion + audio)
@@ -4944,6 +4946,39 @@ const _fadeinSec=(()=>{const _n=parseFloat(new URLSearchParams(location.search).
 // Q-063: audio-reactive breathing — ?audiobreathe=1 scales breath speed/amplitude with mic/BGM level
 const _audioBreathe=(new URLSearchParams(location.search)).get('audiobreathe')==='1';
 let _abLevel=0; // smoothed audio level for breathing (separate from mouth audio)
+// Q-067: BPM sync — ?bpmsync=120 makes avatar bob/nod on every beat
+(()=>{
+  const _bpmRaw=parseFloat((new URLSearchParams(location.search)).get('bpmsync'));
+  if(!(_bpmRaw>=20&&_bpmRaw<=300)) return;
+  const _bpmPeriod=60/_bpmRaw; // seconds per beat
+  let _bpmPhase=0, _bpmT=0;
+  window._bpmTick=function(dt){
+    _bpmT+=dt;
+    _bpmPhase=(_bpmT%_bpmPeriod)/_bpmPeriod; // 0→1 per beat
+  };
+  // Inject a beat pulse into S.bp so breathing locks to BPM
+  // Called from draw loop — overrides natural breath phase increment
+  window._bpmApply=function(){
+    if(typeof S==='undefined'||typeof params==='undefined') return;
+    const pulse=Math.pow(Math.max(0,Math.sin(_bpmPhase*Math.PI*2)),.5); // sharp on-beat
+    // Add beat-locked head nod: gentle Y oscillation on beat
+    const nudge=pulse*.06;
+    if(params.headY) params.headY.val=(params.headY.val||0)+nudge;
+    if(params.body) params.body.val=(params.body.val||0)+pulse*.04;
+  };
+  // Patch draw loop: called after each frame
+  const _origRAF=window.requestAnimationFrame.bind(window);
+  let _patchDone=false;
+  const _patch=setInterval(()=>{
+    if(typeof S==='undefined'||_patchDone) return;
+    _patchDone=true; clearInterval(_patch);
+    // Hook into S.bp update
+    const _origBpUpdate=window._bpmTick; // already stored
+    // Override: intercept the animation frame step
+    // We use a global dt hook instead
+    window._bpmDtHook=function(dt){ window._bpmTick(dt); window._bpmApply(); };
+  },200);
+})();
 async function initTracking(){
   const _lp=document.getElementById('load-prog');
   const _setP=(pct,msg)=>{if(_lp)_lp.style.width=pct+'%';if(loadMsg&&msg)loadMsg.textContent=msg;};
@@ -5254,7 +5289,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:10px;padding:20px 28px;max-width:420px;color:#cdd6f4;font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:#a0c0ff;">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid #1a2a4a;padding-top:8px;font-size:9px;color:#4a6080;line-height:1.7;"><strong style="color:#4e7cff">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:#4a6080;">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -6658,6 +6693,52 @@ window.addEventListener('message',ev=>{
   window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='screenshot') return;
     if(typeof _doScreenshot==='function') _doScreenshot(!!d.transparent, d.filename);
+  },{passive:true});
+})();
+// Q-068: Auto random expression — ?autoexpr=30 switches pose every N seconds
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _iv=parseFloat(_usp.get('autoexpr'));if(!(_iv>=1&&_iv<=3600)) return;
+  const _listRaw=_usp.get('autoexprlist'); // comma-separated pose names to limit selection
+  let _t=_iv; // countdown
+  function _tick(dt){
+    _t-=dt; if(_t>0) return;
+    _t=_iv+(Math.random()-.5)*_iv*.2; // ±10% jitter to feel natural
+    // Find eligible poses
+    const all=typeof EXPR_POSES!=='undefined'?EXPR_POSES:[];
+    if(!all.length) return;
+    let pool=all;
+    if(_listRaw){const names=_listRaw.split(',').map(s=>s.trim().toLowerCase());pool=all.filter(p=>names.includes((p.name||'').toLowerCase()));}
+    if(!pool.length) return;
+    // Pick a random pose different from current
+    const cur=typeof activePose!=='undefined'?activePose:null;
+    let candidates=pool.filter(p=>p!==cur);
+    if(!candidates.length) candidates=pool;
+    const next=candidates[Math.floor(Math.random()*candidates.length)];
+    if(typeof _setPose==='function'){const i=all.indexOf(next);if(i>=0)_setPose(i);}
+  }
+  // Hook into draw loop via per-frame ticker
+  const _orig=window._bpmDtHook;
+  window._bpmDtHook=function(dt){ if(_orig)_orig(dt); _tick(dt); };
+  // If BPM sync not active, hook directly
+  if(!window._bpmDtHook||window._bpmDtHook===_tick){
+    const _int=setInterval(()=>{if(typeof S==='undefined') return; clearInterval(_int);
+      const _savedBpApply=window._bpmApply||(()=>{});
+      window._bpmApply=function(){ _savedBpApply(); _tick(1/60); };
+    },200);
+  }
+  // Actually hook into the S.bp update path via requestAnimationFrame wrapper
+  let _lastT=0;
+  function _rafHook(ts){
+    if(_lastT) _tick((ts-_lastT)/1000);
+    _lastT=ts;
+    requestAnimationFrame(_rafHook);
+  }
+  requestAnimationFrame(_rafHook);
+  // noiru-cmd: {cmd:'autoexpr-trigger'} — manually trigger a switch
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='autoexpr-trigger') return;
+    _t=0;
   },{passive:true});
 })();
 // Death counter: ?deathcounter=N (?deathcounterpos= ?deathcounterlabel= ?deathcounterkey=`)
