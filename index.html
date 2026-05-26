@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?alertbar=TEXT</td><td>スクロールアラートバー・?alertbarpos=top/bottom&?alertbarcolor=hex・setAlertBar(t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatonly=KW</td><td>キーワードチャットフィルター表示・?chatonlypos=center・複数はパイプ区切り</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgparticles=C1,C2</td><td>浮遊グラデーションパーティクル背景・?bgparticlescount=16</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrormode=1</td><td>アバター左右反転・toggleMirror()・postMsg cmd:'togglemirror'</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splitscreen=URL</td><td>左右スプリットスクリーン（画像またはiframe）・?splitside=right/left</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashimage=URL</td><td>スプラッシュ画像オーバーレイ・postMsg{cmd:'splashimage',url,dur}・showSplashImage(url,dur)</td></tr>
@@ -10122,6 +10125,102 @@ window.addEventListener('message',ev=>{
     _wrap.style[_side==='right'?'left':'right']='0';
     _wrap.style.position='fixed';
   }
+})();
+// Q-341: ?bgparticles=COLOR1,COLOR2 背景浮遊パーティクル（グラデーション丸がゆっくり漂う）
+// 例: ?bgparticles=ff6699,9966ff&bgparticlescount=20
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('bgparticles'); if(!_raw) return;
+  const _cols=_raw.split(',').map(c=>'#'+c.replace('#',''));
+  const _count=parseInt(_u.get('bgparticlescount'))||16;
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'131',pointerEvents:'none',opacity:'0.35'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _particles=Array.from({length:_count},(_,i)=>({
+    x:Math.random()*_cv.width,y:Math.random()*_cv.height,
+    r:20+Math.random()*80,
+    vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,
+    col:_cols[i%_cols.length],
+    phase:Math.random()*Math.PI*2
+  }));
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const t=Date.now()/3000;
+    _particles.forEach(p=>{
+      p.x+=p.vx+(Math.cos(t+p.phase)*0.1); p.y+=p.vy+(Math.sin(t+p.phase)*0.1);
+      if(p.x<-p.r) p.x=_cv.width+p.r; if(p.x>_cv.width+p.r) p.x=-p.r;
+      if(p.y<-p.r) p.y=_cv.height+p.r; if(p.y>_cv.height+p.r) p.y=-p.r;
+      const g=_ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      g.addColorStop(0,p.col+'aa'); g.addColorStop(1,p.col+'00');
+      _ctx.beginPath(); _ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      _ctx.fillStyle=g; _ctx.fill();
+    });
+    requestAnimationFrame(_draw);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-340: ?chatonly=FILTER チャットフィルター表示（特定キーワード含むメッセージだけ画面に大表示）
+// 例: ?chatonly=質問|question&chatonlypos=center
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatonly'); if(!_raw) return;
+  const _kws=decodeURIComponent(_raw).split('|').map(k=>k.toLowerCase());
+  const _pos=_u.get('chatonlypos')||'center';
+  const _posMap={center:{top:'50%',left:'50%',transform:'translate(-50%,-50%)'},
+    topright:{top:'60px',right:'18px',transform:''},bottomleft:{bottom:'60px',left:'18px',transform:''}};
+  const _p=_posMap[_pos]||_posMap.center;
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type!=='noiru-chat'||!d.msg) return;
+    const msg=(d.msg||'').toLowerCase();
+    if(!_kws.some(k=>msg.includes(k))) return;
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',zIndex:'157',maxWidth:'60%',
+      background:'rgba(0,0,0,0.7)',border:'2px solid rgba(255,200,0,0.5)',borderRadius:'12px',
+      padding:'10px 16px',color:'#fff',fontFamily:'sans-serif',
+      boxShadow:'0 0 16px rgba(255,200,0,0.3)',backdropFilter:'blur(4px)',
+      opacity:'0',transition:'opacity 0.25s',..._p
+    });
+    _d.innerHTML=`<div style="font-size:11px;color:#ffd700;margin-bottom:4px;font-weight:bold;">${d.user||'?'}</div><div style="font-size:clamp(14px,2vw,22px)">${d.msg}</div>`;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),300); },5000);
+  });
+})();
+// Q-339: ?alertbar=TEXT アラートバー（画面上部/下部に重要アナウンスをスクロール表示）
+// 例: ?alertbar=本日20時配信予定！&alertbarpos=top&alertbarcolor=ff4400
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=_u.get('alertbar'); if(!_txt) return;
+  const _pos=_u.get('alertbarpos')||'top';
+  const _col='#'+(_u.get('alertbarcolor')||'ff4400');
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',[_pos==='bottom'?'bottom':'top']:'0',left:'0',right:'0',
+    zIndex:'157',background:`rgba(0,0,0,0.85)`,
+    borderBottom:_pos!=='bottom'?`2px solid ${_col}`:'none',
+    borderTop:_pos==='bottom'?`2px solid ${_col}`:'none',
+    overflow:'hidden',height:'28px',display:'flex',alignItems:'center',
+    pointerEvents:'none'
+  });
+  const _inner=document.createElement('div');
+  const _decoded=decodeURIComponent(_txt)+'　　　　'+decodeURIComponent(_txt);
+  Object.assign(_inner.style,{
+    whiteSpace:'nowrap',color:'#fff',fontFamily:'sans-serif',fontSize:'13px',fontWeight:'bold',
+    animation:`_alertscroll ${_decoded.length*0.18}s linear infinite`,
+    paddingLeft:'100%',display:'inline-block'
+  });
+  _inner.innerHTML=`<span style="color:${_col};margin-right:8px;">●</span>${_decoded}`;
+  _d.appendChild(_inner); document.body.appendChild(_d);
+  if(!document.getElementById('_alertbstyle')){
+    const s=document.createElement('style'); s.id='_alertbstyle';
+    s.textContent='@keyframes _alertscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}';
+    document.head.appendChild(s);
+  }
+  window.setAlertBar=t=>{ _inner.innerHTML=`<span style="color:${_col};margin-right:8px;">●</span>${t}`; };
 })();
 // Q-336: ?mirrormode=1 ミラーモード（アバターを左右反転）
 // 例: ?mirrormode=1  toggleMirror() で切り替え
