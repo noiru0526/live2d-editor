@@ -4309,6 +4309,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?scanlines=1</td><td>CRTスキャンライン効果（+?scanlines_opacity=0.0-1.0 ?scanlines_gap=2-8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?grain=1</td><td>フィルムグレイン効果（+?grain_opacity=0.0-1.0 ?grain_fps=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?chroma=1</td><td>色収差効果（+?chroma_px=N ?chroma_anim=1でアニメーション）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?pip=1</td><td>ピクチャーインピクチャー自動起動（⧉PiPボタンも追加・window.openAvatarPiP()で制御）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -5309,6 +5310,36 @@ function _setPose(idx){
   _autoExprManualUntil=performance.now()+6000;
   if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+(activePose?activePose.name:'デフォルト');setTimeout(()=>exprHUD.style.display='none',1500);}
 }
+// Q-090: Picture-in-Picture mode (?pip=1 auto-opens on first click; button always shown unless ?noui=1)
+(()=>{
+  const _cv=document.getElementById('c');if(!_cv||!('captureStream' in _cv)) return;
+  let _pipVid=null;
+  window.openAvatarPiP=async function(){
+    if(document.pictureInPictureElement){try{await document.exitPictureInPicture();}catch(_){}return;}
+    try{
+      const _stream=_cv.captureStream(30);
+      _pipVid=document.createElement('video');_pipVid.srcObject=_stream;_pipVid.autoplay=true;_pipVid.muted=true;_pipVid.style.display='none';
+      document.body.appendChild(_pipVid);
+      await _pipVid.play();
+      await _pipVid.requestPictureInPicture();
+      _pipVid.addEventListener('leavepictureinpicture',()=>{_pipVid?.remove();_pipVid=null;},{once:true});
+      if(typeof exprHUD!=='undefined'&&exprHUD){exprHUD.style.display='block';exprHUD.textContent='⧉ PiP モード 開始';setTimeout(()=>exprHUD.style.display='none',1500);}
+    }catch(e){
+      _pipVid?.remove();_pipVid=null;
+      if(typeof exprHUD!=='undefined'&&exprHUD){exprHUD.style.display='block';exprHUD.textContent='PiP: '+e.message.slice(0,40);setTimeout(()=>exprHUD.style.display='none',2500);}
+    }
+  };
+  const _usp2=new URLSearchParams(location.search);
+  if(_usp2.get('noui')!=='1'){
+    const _pbtn=document.createElement('button');
+    _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
+    _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 10px;color:#a0d0ff;font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+    _pbtn.onclick=window.openAvatarPiP;
+    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#a0d0ff';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
+    document.body.appendChild(_pbtn);
+  }
+  if(_usp2.get('pip')==='1') document.addEventListener('click',()=>window.openAvatarPiP(),{once:true});
+})();
 // Natural speed variation (subtle ±8% sine wave)
 let _speedVary=false, _speedVaryT=0;
 (()=>{
