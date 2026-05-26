@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?countdown=N</td><td>大型カウントダウン（N秒）・?countdowntext=GO!&?countdowncolor=hex・pauseCountdown()/resumeCountdown()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?memorygame=1</td><td>チャット記憶ゲーム・postMsg{cmd:'memorygame',sequence:'12345'}</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?leaderboard=1</td><td>チャットポイントリーダーボード・?lbcmd=!point・addPoint(user,n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashtext=1</td><td>定期スプラッシュテキスト・?splashtextlist=A|B|C&?splashinterval=20・triggerSplashText(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatspeed=1</td><td>チャット速度(メッセージ/分)表示・?chatspeedpos=topright</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hypemeter=1</td><td>チャット連動ハイプゲージ（MAX=confetti）・?hypemetermax=100・addHypeCustom(n)</td></tr>
@@ -8920,6 +8923,103 @@ window.addEventListener('message',ev=>{
     _val.textContent=_times.length;
     _val.style.color=_times.length>30?'#ff4444':_times.length>10?'#ffaa00':'#00c8ff';
   },1000);
+})();
+// Q-287: ?leaderboard=1 チャットポイントリーダーボード（コマンドでポイント加算・上位5名表示）
+// 例: ?leaderboard=1  チャットで "!point" → +1pt
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('leaderboard')!=='1') return;
+  const _cmd=_u.get('lbcmd')||'!point';
+  const _scores={};
+  const _d=document.createElement('div');
+  _d.id='niru-leaderboard';
+  Object.assign(_d.style,{position:'fixed',top:'60px',right:'18px',zIndex:'148',background:'rgba(0,0,0,0.65)',border:'1px solid rgba(255,200,0,0.35)',borderRadius:'10px',padding:'10px 14px',color:'#fff',fontFamily:'sans-serif',fontSize:'13px',minWidth:'160px',backdropFilter:'blur(4px)'});
+  document.body.appendChild(_d);
+  function _render(){
+    const sorted=Object.entries(_scores).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const medals=['🥇','🥈','🥉','4','5'];
+    _d.innerHTML='<div style="font-size:10px;color:#ffd700;margin-bottom:6px;font-weight:bold;">TOP CHAT</div>'+
+      (sorted.length?sorted.map((e,i)=>`<div style="margin:2px 0;display:flex;justify-content:space-between;gap:10px"><span>${medals[i]} ${e[0].slice(0,12)}</span><span style="color:#ffd700">${e[1]}</span></div>`).join(''):'<div style="color:rgba(255,255,255,0.4);font-size:11px;">まだなし</div>');
+  }
+  _render();
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&d.msg.trim()===_cmd){
+      const u=d.user||'?'; _scores[u]=(_scores[u]||0)+1; _render();
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='addpoint'&&d.user){
+      _scores[d.user]=(_scores[d.user]||0)+(+d.amount||1); _render();
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='resetleaderboard'){ Object.keys(_scores).forEach(k=>delete _scores[k]); _render(); }
+  });
+  window.addPoint=(u,n)=>{ _scores[u]=(_scores[u]||0)+(n||1); _render(); };
+})();
+// Q-286: ?memorygame=1 チャット記憶ゲーム（配信者が出題、視聴者が正解を当てる）
+// 例: ?memorygame=1  postMessage {type:'noiru-cmd',cmd:'memorygame',sequence:'12345'}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('memorygame')!=='1') return;
+  let _seq=''; let _active=false;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:'165',display:'none',textAlign:'center',pointerEvents:'none'});
+  document.body.appendChild(_d);
+  function _show(seq){
+    _seq=seq; _active=false;
+    _d.style.display='block';
+    _d.innerHTML=`<div style="font-size:clamp(36px,8vw,72px);font-weight:bold;color:#fff;text-shadow:0 0 20px #00aaff,0 0 40px #0055ff;letter-spacing:4px;font-family:monospace;">${seq}</div>
+<div style="color:rgba(255,255,255,0.7);font-size:16px;margin-top:8px;">この並びを覚えて！</div>`;
+    setTimeout(()=>{
+      _d.innerHTML='<div style="font-size:clamp(36px,8vw,72px);font-weight:bold;color:rgba(255,255,255,0.15);font-family:monospace;">?????</div><div style="color:#adf;font-size:16px;margin-top:8px;">チャットで答えを入力！</div>';
+      _active=true;
+    },3500);
+    setTimeout(()=>{ _d.style.display='none'; _active=false; },15000);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='memorygame'&&d.sequence) _show(d.sequence);
+    if(_active&&d.type==='noiru-chat'&&d.msg&&d.msg.trim()===_seq){
+      showPopText&&showPopText(`${d.user} 正解！`,`#00ff88`);
+      triggerConfetti&&triggerConfetti();
+      _d.style.display='none'; _active=false;
+    }
+  });
+})();
+// Q-285: ?countdown=N 大型カウントダウン（N秒からカウントダウン→終了テキスト表示）
+// 例: ?countdown=30&countdowntext=スタート！&countdowncolor=ff4400
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _secs=parseInt(_u.get('countdown')); if(!_secs||_secs<=0) return;
+  const _endTxt=decodeURIComponent(_u.get('countdowntext')||'');
+  const _col='#'+(_u.get('countdowncolor')||'ff4400');
+  let _rem=_secs; let _running=true;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',left:'50%',top:'50%',transform:'translate(-50%,-50%)',zIndex:'160',textAlign:'center',pointerEvents:'none',fontFamily:'monospace'});
+  _d.innerHTML=`<div id="cd-num" style="font-size:clamp(60px,15vw,140px);font-weight:900;color:${_col};text-shadow:0 0 30px ${_col}55,0 0 60px ${_col}33;transition:transform 0.1s">${_rem}</div>`;
+  document.body.appendChild(_d);
+  const _num=document.getElementById('cd-num');
+  const _iv=setInterval(()=>{
+    if(!_running) return;
+    _rem--;
+    if(_rem<=0){
+      clearInterval(_iv);
+      _num.style.fontSize='clamp(40px,10vw,90px)';
+      _num.textContent=_endTxt||'START!';
+      _num.style.color='#00ff88'; _num.style.textShadow='0 0 30px #00ff8855';
+      setTimeout(()=>_d.remove(),3000);
+    } else {
+      _num.textContent=_rem;
+      _num.style.transform='scale(1.3)';
+      setTimeout(()=>_num.style.transform='scale(1)',100);
+      if(_rem<=5) _num.style.color='#ff2200';
+    }
+  },1000);
+  window.pauseCountdown=()=>{ _running=false; };
+  window.resumeCountdown=()=>{ _running=true; };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='countdownpause') _running=false;
+    if(d.type==='noiru-cmd'&&d.cmd==='countdownresume') _running=true;
+  });
 })();
 // Q-282: ?splashtext=1 スプラッシュテキスト（定期的にランダムな応援メッセージをポップ表示）
 // 例: ?splashtext=1&splashtextlist=がんばれ！|いいね！|神プレイ！&splashinterval=30
