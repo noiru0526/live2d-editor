@@ -4467,6 +4467,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatraffle=1</td><td>チャット抽選・?rafflecmd=!raffle・?rafflewin=1・API: startRaffle/stopRaffle</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wordguess=WORD:HINT</td><td>ワードクイズ（チャットで回答）・複数カンマ区切り・API: startWordGuess()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbattle=1</td><td>チャットバトル（2チーム対抗）・?teamA=・?teamB=・?battlecmd=!red,!blue</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?speedlines=1</td><td>集中線エフェクト・?speedlinecolor・?speedlinealpha=0.25・API: triggerSpeedlines(ms)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?impacttext=KW:TEXT</td><td>漫画風インパクトテキスト（チャットキーワード連動）・複数カンマ区切り可</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?reactionboard=1</td><td>絵文字リアクション集計ボード・?reactionmax=5・?reactiondur=30s・?reactionpos=tr</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8649,6 +8652,171 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-198: ?speedlines=1 スピードライン（集中線・マンガ的な演出）
+// 例: ?speedlines=1&speedlinecolor=ffffff&speedlinealpha=0.4
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('speedlines')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='speedlines-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'200'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _col=_usp.get('speedlinecolor')||'ffffff';
+  const _r=parseInt(_col.slice(0,2),16)||255;
+  const _g=parseInt(_col.slice(2,4),16)||255;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  const _alpha=Math.min(1,Math.max(0.05,parseFloat(_usp.get('speedlinealpha'))||0.25));
+  const _n=Math.min(120,Math.max(20,parseInt(_usp.get('speedlinecount'))||60));
+  let _active=false, _fadeAlpha=0;
+  const _lines=[];
+  for(let i=0;i<_n;i++){
+    const ang=(i/_n)*Math.PI*2;
+    _lines.push({ang,width:0.5+Math.random()*2.5,len:0.3+Math.random()*0.5,start:0.1+Math.random()*0.2});
+  }
+  function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    if(_fadeAlpha<=0) return;
+    const cx=_cv.width/2,cy=_cv.height/2;
+    const maxR=Math.sqrt(cx*cx+cy*cy);
+    for(const l of _lines){
+      const r0=maxR*l.start; const r1=maxR*(l.start+l.len);
+      _ctx.beginPath();
+      _ctx.moveTo(cx+Math.cos(l.ang)*r0,cy+Math.sin(l.ang)*r0);
+      _ctx.lineTo(cx+Math.cos(l.ang)*r1,cy+Math.sin(l.ang)*r1);
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${_fadeAlpha*_alpha})`;
+      _ctx.lineWidth=l.width; _ctx.stroke();
+    }
+    if(_active) requestAnimationFrame(_draw);
+    else {
+      _fadeAlpha-=0.04;
+      if(_fadeAlpha>0) requestAnimationFrame(_draw);
+      else _ctx.clearRect(0,0,_cv.width,_cv.height);
+    }
+  }
+  window.triggerSpeedlines=function(dur=2000){
+    _active=true; _fadeAlpha=1; _draw();
+    setTimeout(()=>{ _active=false; },dur);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='speedlines') window.triggerSpeedlines(d.dur||2000);
+  });
+  // Auto-trigger on shake
+  const _origShake=window.triggerShake;
+  if(typeof _origShake==='function'){
+    window.triggerShake=function(...args){ _origShake(...args); window.triggerSpeedlines(800); };
+  }
+})();
+// Q-199: ?impacttext=1 インパクトテキスト（チャットの特定ワードで漫画風テキスト）
+// 例: ?impacttext=すごい:すごい！,ワオ:WOW！
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('impacttext'); if(!_raw) return;
+  const _triggers=[];
+  _raw.split(',').forEach(pair=>{
+    const idx=pair.indexOf(':');
+    if(idx<0) return;
+    _triggers.push({keyword:pair.slice(0,idx).toLowerCase(),text:pair.slice(idx+1)});
+  });
+  if(!_triggers.length) return;
+  const _cv=document.createElement('canvas');
+  _cv.id='impacttext-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'998'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  let _items=[];
+  function _spawnText(text){
+    const colors=['#ff3300','#ff9900','#ffff00','#00ff66','#00cfff','#ff00ff'];
+    _items.push({text,x:_cv.width/2,y:_cv.height/2,scale:0,alpha:1,
+      col:colors[Math.random()*colors.length|0],t:0});
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_items.length-1;i>=0;i--){
+      const it=_items[i]; it.t++;
+      it.scale=Math.min(1,it.t/8)*(1+Math.sin(it.t*0.15)*0.05);
+      it.alpha=it.t<8?1:Math.max(0,1-(it.t-8)/30);
+      if(it.alpha<=0){ _items.splice(i,1); continue; }
+      const sz=Math.min(_cv.width*0.25,80)*it.scale;
+      _ctx.save();
+      _ctx.globalAlpha=it.alpha;
+      _ctx.translate(it.x,it.y);
+      _ctx.font=`bold ${sz}px Impact, sans-serif`;
+      _ctx.textAlign='center'; _ctx.textBaseline='middle';
+      _ctx.strokeStyle='#000'; _ctx.lineWidth=sz*0.12;
+      _ctx.strokeText(it.text,0,0);
+      _ctx.fillStyle=it.col; _ctx.fillText(it.text,0,0);
+      _ctx.restore();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const m=d.msg.toLowerCase();
+      for(const t of _triggers) if(m.includes(t.keyword)){ _spawnText(t.text); break; }
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='impacttext'&&d.text) _spawnText(d.text);
+  });
+})();
+// Q-200: ?reactionboard=1 リアクションボード（絵文字リアクションをリアルタイムで集計表示）
+// 視聴者がチャットに絵文字を打つとカウントアップ
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('reactionboard')!=='1') return;
+  const _maxShown=Math.min(8,Math.max(2,parseInt(_usp.get('reactionmax'))||5));
+  const _dur=Math.min(60,Math.max(5,parseInt(_usp.get('reactiondur'))||30))*1000;
+  const _pos=_usp.get('reactionpos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='reactionboard-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    background:'rgba(0,0,0,0.75)',borderRadius:'12px',padding:'10px 14px',
+    zIndex:'500',fontFamily:'sans-serif',pointerEvents:'none',minWidth:'130px'
+  });
+  document.body.appendChild(_wrap);
+  const _counts={};
+  const _emojiRe=/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  function _render(){
+    const sorted=Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,_maxShown);
+    if(!sorted.length){ _wrap.style.display='none'; return; }
+    _wrap.style.display='block';
+    const maxVal=sorted[0][1]||1;
+    _wrap.innerHTML='<div style="color:#aaf;font-size:11px;margin-bottom:6px;">リアクション</div>'+
+      sorted.map(([em,n])=>{
+        const pct=(n/maxVal*100).toFixed(0);
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-size:20px;">${em}</span>
+          <div style="flex:1;background:#333;border-radius:4px;height:8px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:#6af;transition:width 0.3s;"></div>
+          </div>
+          <span style="color:#fff;font-size:12px;min-width:24px;text-align:right;">${n}</span>
+        </div>`;
+      }).join('');
+  }
+  let _resetTimer=0;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const found=d.msg.match(_emojiRe);
+      if(found){
+        found.forEach(em=>{ _counts[em]=(_counts[em]||0)+1; });
+        _render();
+        clearTimeout(_resetTimer);
+        _resetTimer=setTimeout(()=>{ Object.keys(_counts).forEach(k=>delete _counts[k]); _render(); },_dur);
+      }
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='reactionclear'){ Object.keys(_counts).forEach(k=>delete _counts[k]); _render(); }
+  });
+  _render();
 })();
 // Q-195: ?chatraffle=1 チャットじゃんけん/抽選（参加者を集めてランダムに当選者を選ぶ）
 // 例: ?chatraffle=1&rafflecmd=!raffle&rafflewin=1
