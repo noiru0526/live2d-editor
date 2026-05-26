@@ -4449,6 +4449,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?marquee=TEXT</td><td>流れるテロップ・?marqueespeed=2・?marqueebg・?marqueecolor・?marqueepos=bottom/top</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?subgoal=TARGET</td><td>サブスク目標ゲージ・?subcurrent=N・?subgoaltitle=・?subgoalpos=tr/tl/br/bl</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?healthbar=MAX</td><td>HPゲージ・?hpcurrent=N・?hpname=・?hpcolor=・API: setHP/damageHP/healHP</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?heartfall=1</td><td>ハート落下エフェクト・?heartcount=20・?heartsize=20・API: triggerHeartfall(n)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtitle=TEXT</td><td>配信タイトル常時表示・?streamtitlepos=top/bottom・?titlefont=22・?streamtitlecolor</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emoteroulette=1</td><td>エモートルーレット（チャット絵文字をプールしてrouletteコマンドでBIG表示）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8631,6 +8634,134 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-180: ?heartfall=1 ハートが降り注ぐエフェクト（配信中の応援演出）
+// 例: ?heartfall=1&heartcount=30&heartsize=24
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('heartfall')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='heartfall-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _n=Math.min(60,Math.max(5,parseInt(_usp.get('heartcount'))||20));
+  const _sz=Math.min(48,Math.max(8,parseInt(_usp.get('heartsize'))||20));
+  const _hearts=[];
+  const _cols=['#ff6699','#ff99cc','#ff4488','#ffaad4','#ff3377','#ffbbdd'];
+  for(let i=0;i<_n;i++){
+    _hearts.push({
+      x:Math.random()*window.innerWidth,
+      y:-Math.random()*window.innerHeight,
+      sz:_sz*0.7+Math.random()*_sz*0.6,
+      spd:1+Math.random()*2,
+      swing:Math.random()*4-2,
+      phase:Math.random()*Math.PI*2,
+      col:_cols[Math.random()*_cols.length|0],
+      alpha:0.5+Math.random()*0.5,
+      rot:Math.random()*Math.PI*0.4-0.2
+    });
+  }
+  function _drawHeart(ctx,x,y,sz,col,alpha,rot){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
+    ctx.globalAlpha=alpha; ctx.fillStyle=col;
+    ctx.beginPath();
+    ctx.moveTo(0,-sz*0.25);
+    ctx.bezierCurveTo(sz*0.5,-sz*0.8, sz,-sz*0.3, 0, sz*0.6);
+    ctx.bezierCurveTo(-sz,-sz*0.3, -sz*0.5,-sz*0.8, 0,-sz*0.25);
+    ctx.fill(); ctx.restore();
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const h of _hearts){
+      h.phase+=0.04;
+      h.x+=Math.sin(h.phase)*h.swing;
+      h.y+=h.spd;
+      if(h.y>_cv.height+30){ h.y=-20; h.x=Math.random()*_cv.width; }
+      _drawHeart(_ctx,h.x,h.y,h.sz,h.col,h.alpha,h.rot);
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+  window.triggerHeartfall=function(n=15){
+    for(let i=0;i<Math.min(30,n);i++)
+      _hearts[i%_hearts.length].y=-20;
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='heartfall') window.triggerHeartfall(d.n||15);
+  });
+})();
+// Q-181: ?streamtitle=TEXT 配信タイトルオーバーレイ（画面上部にタイトルを常時表示）
+// 例: ?streamtitle=今日もゲームするよ！&titlefont=28
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _txt=_usp.get('streamtitle'); if(!_txt) return;
+  const _pos=_usp.get('streamtitlepos')||'top';
+  const _sz=Math.min(64,Math.max(12,parseInt(_usp.get('titlefont'))||22));
+  const _bg=_usp.get('streamtitlebg')||'rgba(0,0,0,0.6)';
+  const _col=_usp.get('streamtitlecolor')||'#ffffff';
+  const _el=document.createElement('div');
+  _el.id='streamtitle-ov';
+  Object.assign(_el.style,{
+    position:'fixed', [_pos==='bottom'?'bottom':'top']:'0', left:'0', width:'100%',
+    background:_bg, color:_col, fontSize:_sz+'px',
+    fontFamily:'sans-serif', fontWeight:'bold', textAlign:'center',
+    padding:'6px 12px', zIndex:'290', pointerEvents:'none',
+    textShadow:'0 0 8px rgba(0,0,0,0.8)', boxSizing:'border-box'
+  });
+  _el.textContent=_txt;
+  document.body.appendChild(_el);
+  window.setStreamTitle=t=>{ _el.textContent=t; };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='streamtitle'&&d.text) _el.textContent=d.text;
+  });
+})();
+// Q-182: ?emoteroulette=1 エモートルーレット（視聴者チャットからランダムにエモートを選んでBIG表示）
+// postMessage {type:'noiru-chat', msg:'...'} または noiru-cmd roulette で発動
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('emoteroulette')!=='1') return;
+  const _pool=[];
+  const _ov=document.createElement('div');
+  _ov.id='emoteroulette-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+    fontSize:'80px',zIndex:'999',display:'none',pointerEvents:'none',
+    textAlign:'center', filter:'drop-shadow(0 0 10px rgba(255,200,0,0.8))'
+  });
+  document.body.appendChild(_ov);
+  let _spinning=false, _timer=0;
+  function _spin(emotes){
+    if(_spinning) return;
+    if(!emotes||!emotes.length) return;
+    _spinning=true; _ov.style.display='block';
+    let _cnt=0; const _max=20;
+    const _t=setInterval(()=>{
+      _ov.textContent=emotes[Math.random()*emotes.length|0];
+      _cnt++;
+      if(_cnt>_max){
+        clearInterval(_t);
+        setTimeout(()=>{ _ov.style.display='none'; _spinning=false; },2000);
+      }
+    },50+(_cnt/_max)*100);
+  }
+  const _emojiRe=/(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const found=d.msg.match(_emojiRe);
+      if(found) found.forEach(em=>{ if(!_pool.includes(em)) _pool.push(em); });
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='roulette'){
+      if(_pool.length) _spin(_pool);
+      else if(d.emotes) _spin(d.emotes.split(','));
+    }
+  });
+  window.triggerEmoteRoulette=function(emotes){ _spin(emotes||_pool); };
 })();
 // Q-177: ?marquee=TEXT テキストマーキー（画面下部を流れるテロップ）
 // 例: ?marquee=配信中！チャンネル登録お願いします&marqueespeed=3
