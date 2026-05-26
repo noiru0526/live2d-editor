@@ -4346,6 +4346,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursor=✨</td><td>絵文字カーソル（+?cursorsize=24）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcmd=!hi:shake</td><td>カスタムチャットコマンド（!hi:shake,!love:rain:💗,!wave:pose:wavename,!clip:clip:clipname）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
@@ -6356,6 +6357,25 @@ function initChatTriggers(){
     },600));
   }
 })();
+// Q-111: ?chatcmd=!hi:shake,!love:rain:💗,!wave:pose:wave URLカスタムチャットコマンド
+// 形式: keyword:effect[:arg] カンマ区切り複数可
+// effects: shake/flash/rain[:emoji]/blur/glitch/border/pose:name/clip:name/poptext:text
+(()=>{
+  const _raw=(new URLSearchParams(location.search)).get('chatcmd');if(!_raw) return;
+  const _cmds=[];
+  _raw.split(',').forEach(entry=>{
+    entry=entry.trim();if(!entry) return;
+    const _sep=entry.indexOf(':');if(_sep<1) return;
+    const kw=entry.slice(0,_sep).trim().toLowerCase();
+    const rest=entry.slice(_sep+1).trim();
+    if(kw&&rest) _cmds.push({keyword:kw,effect:rest});
+  });
+  if(_cmds.length){
+    window.addEventListener('load',()=>setTimeout(()=>{
+      _cmds.forEach(c=>{if(!_chatTriggers.some(t=>t.keyword===c.keyword))_chatTriggers.push(c);});
+    },800));
+  }
+})();
 window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
 
 // Twitch IRC direct connection (?twitch=ch or ?twitch=ch1,ch2,ch3)
@@ -6550,6 +6570,10 @@ function _handleChatMsg(rawMsg){
       else if(eff==='shake'){ if(typeof window.triggerShake==='function')window.triggerShake(); }
       else if(eff==='blur'){ if(typeof window.triggerBlur==='function')window.triggerBlur(); }
       else if(eff==='border'){ if(typeof window.triggerBorderAlert==='function')window.triggerBorderAlert(); }
+      else if(eff==='glitch'){ if(typeof window.triggerGlitch==='function')window.triggerGlitch(); }
+      else if(eff.startsWith('poptext:')||eff.startsWith('pop:')){ const txt=eff.split(':').slice(1).join(':'); if(typeof window.showPopText==='function')window.showPopText(txt||'💬',{}); }
+      else if(eff.startsWith('pose:')){ const pn=eff.slice(5); const p=MD?.poses?.find(x=>x.name===pn); if(p&&typeof activePose!=='undefined'){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},5000);} }
+      else if(eff.startsWith('clip:')&&typeof switchClip==='function'){ const cn=eff.slice(5);const ci=(MD.animClips||[]).findIndex(c=>c.name===cn);if(ci>=0)switchClip(ci); }
     }
     break;
   }
