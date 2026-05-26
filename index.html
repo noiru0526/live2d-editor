@@ -4314,6 +4314,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scale=N</td><td>アバタースケール（例: 1.5）/ ?x=N ?y=N: 位置オフセット(px)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?aspect=W:H</td><td>アスペクト比強制固定（例: 16:9 / 1:1 / 4:3）/ ?rounded=N: 角丸マスク（px or %）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scrollzoom=1</td><td>マウスホイールでアバターズーム（ダブルクリックでリセット）/ ?heartbeat=BPM: 心拍パルス（+?heartbeatintensity=0.025）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
@@ -5974,6 +5975,50 @@ function applyPoseBlend(dt){
     if(img.complete) _done();
   }); }
 }
+// Q-108a: ?scrollzoom=1 マウスホイールでアバターズーム（Ctrl+スクロールでの誤作動防止）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('scrollzoom')!=='1') return;
+  const _cv=document.getElementById('c');
+  const _wr=document.getElementById('wrap');
+  if(!_cv||!_wr) return;
+  let _z=1;
+  _cv.addEventListener('wheel',ev=>{
+    if(ev.ctrlKey) return; // don't interfere with browser zoom
+    ev.preventDefault();
+    _z=Math.max(0.2,Math.min(4,_z*(ev.deltaY<0?1.08:0.93)));
+    _wr.style.transform=_wr.dataset.baseTransform?`${_wr.dataset.baseTransform} scale(${_z.toFixed(3)})`:`scale(${_z.toFixed(3)})`;
+    _wr.style.transformOrigin='center';
+  },{passive:false});
+  // Double-click to reset zoom
+  _cv.addEventListener('dblclick',()=>{_z=1;_wr.style.transform=_wr.dataset.baseTransform||'';});
+})();
+// Q-108b: ?heartbeat=BPM 心拍パルスアニメーション（アバターが心拍に合わせて脈打つ）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _bpm=parseFloat(_usp.get('heartbeat'));
+  if(!(_bpm>0)) return;
+  const _intensity=Math.min(0.15,Math.max(0.002,parseFloat(_usp.get('heartbeatintensity'))||0.025));
+  const _wr=document.getElementById('wrap');if(!_wr) return;
+  const _interval=60000/_bpm; // ms per beat
+  let _lastBeat=performance.now();
+  function _beatTick(now){
+    const phase=(now-_lastBeat)/_interval;
+    if(phase>=1) _lastBeat=now-((phase%1)*_interval);
+    const p=phase%1;
+    // Two-peak heartbeat waveform: lub (0.05) + dub (0.25), fast decay
+    const lub=Math.max(0,1-Math.abs(p-0.05)/0.06);
+    const dub=Math.max(0,1-Math.abs(p-0.25)/0.07)*0.6;
+    const pulse=Math.max(lub,dub);
+    const sc=1+_intensity*pulse;
+    const base=_wr.dataset.baseTransform||'';
+    _wr.style.transform=base?`${base} scale(${sc.toFixed(4)})`:`scale(${sc.toFixed(4)})`;
+    requestAnimationFrame(_beatTick);
+  }
+  requestAnimationFrame(_beatTick);
+  // API: window.setHeartbeat(bpm) — dynamically update BPM
+  window.setHeartbeat=function(bpm){if(bpm>0&&bpm<300)Object.defineProperty(window,'_hbBPM',{value:bpm,writable:true,configurable:true});};
+})();
 // postMessage API: {type:'set',param:'headX',value:0.5} or {type:'pose',name:'smile'}
 window.addEventListener('message',e=>{
   try{
