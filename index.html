@@ -4488,6 +4488,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?slideshow=URL1,URL2</td><td>画像スライドショー・?slidedur=5s・?slidepos=tr・?slidesize=180px</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpinboard=1</td><td>チャットピンボード（!pinコマンドで留める）・?pincmd=!pin・?pinmax=5・?pinpos=tl</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?snapshot=KEY</td><td>キーでアバターPNGダウンロード・?snapshotname=名前・API: triggerSnapshot()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatmacro=CMD:ACT</td><td>チャットマクロ（!cmd:shake+confetti形式）・複数カンマ区切り</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchvip=1</td><td>TwitchVIP初発言を特別エフェクト・?vipeffect=flash/confetti/fireworks/none</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tts2=1</td><td>ユーザーごとに異なるTTS音声・?ttsvoices=名前1,名前2（speechSynthesis.getVoices準拠）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8670,6 +8673,101 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-219: ?chatmacro=CMD:ACTION チャットマクロ（コマンドをアクションにマッピング）
+// 例: ?chatmacro=!shock:shake,!wow:confetti+flash,!love:heartfall
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('chatmacro'); if(!_raw) return;
+  const _macros={};
+  _raw.split(',').forEach(item=>{
+    const idx=item.indexOf(':'); if(idx<0) return;
+    const cmd=item.slice(0,idx).trim().toLowerCase();
+    const actions=item.slice(idx+1).trim().split('+').map(a=>a.trim().toLowerCase());
+    _macros[cmd]=actions;
+  });
+  const _actionMap={
+    shake:()=>typeof window.triggerShake==='function'&&window.triggerShake(),
+    flash:()=>typeof window.triggerFlash==='function'&&window.triggerFlash(),
+    confetti:()=>typeof window.triggerConfetti==='function'&&window.triggerConfetti(),
+    fireworks:()=>typeof window.triggerFireworks==='function'&&window.triggerFireworks(),
+    heartfall:()=>typeof window.triggerHeartfall==='function'&&window.triggerHeartfall(),
+    glitch:()=>typeof window.triggerGlitch==='function'&&window.triggerGlitch(),
+    rain:()=>typeof window.triggerRain==='function'&&window.triggerRain(),
+    shockwave:()=>typeof window.triggerShockwave==='function'&&window.triggerShockwave(),
+    speedlines:()=>typeof window.triggerSpeedlines==='function'&&window.triggerSpeedlines(),
+    shootingstar:()=>typeof window.triggerShootingStar==='function'&&window.triggerShootingStar(),
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const cmd=d.msg.trim().toLowerCase();
+      const actions=_macros[cmd];
+      if(actions) actions.forEach(a=>{ const fn=_actionMap[a]; if(fn) fn(); });
+    }
+  });
+})();
+// Q-220: ?twitchvip=1 Twitch VIPユーザー検知（バッジ付きのチャットを特別扱い）
+// VIPの発言で特別エフェクト・名前をゴールドで強調表示
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('twitchvip')!=='1') return;
+  const _effect=_usp.get('vipeffect')||'flash'; // flash/confetti/fireworks/none
+  const _known=new Set();
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.badges&&d.user){
+      const badges=typeof d.badges==='string'?d.badges:JSON.stringify(d.badges);
+      if(badges.includes('vip')||badges.includes('broadcaster')||badges.includes('moderator')){
+        if(!_known.has(d.user)){
+          _known.add(d.user);
+          if(_effect==='flash'&&typeof window.triggerFlash==='function') window.triggerFlash();
+          if(_effect==='confetti'&&typeof window.triggerConfetti==='function') window.triggerConfetti();
+          if(_effect==='fireworks'&&typeof window.triggerFireworks==='function') window.triggerFireworks();
+        }
+        // Highlight in chat
+        setTimeout(()=>{
+          document.querySelectorAll('.cbb').forEach(el=>{
+            if(el.dataset.user===d.user||el.querySelector?.('.cbb-user')?.textContent===d.user){
+              el.style.borderColor='#ffd700'; el.style.boxShadow='0 0 8px #ffd700';
+            }
+          });
+        },50);
+      }
+    }
+  });
+})();
+// Q-221: ?tts2=VOICE TTSに複数音声を割り当て（ユーザーごと・ランダムで異なる声）
+// 例: ?tts2=1&ttsvoices=ja-JP-Wavenet-A,ja-JP-Standard-B
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('tts2')!=='1') return;
+  const _voiceNames=(_usp.get('ttsvoices')||'').split(',').filter(Boolean);
+  const _userVoice={};
+  const _origSpeak=window.speechSynthesis?.speak?.bind(window.speechSynthesis);
+  if(!_origSpeak||!_voiceNames.length) return;
+  function _getVoiceForUser(user){
+    if(!_userVoice[user]){
+      const voices=window.speechSynthesis.getVoices();
+      const filtered=voices.filter(v=>_voiceNames.some(n=>v.name.includes(n)||v.lang.includes(n)));
+      const pool=filtered.length?filtered:voices;
+      _userVoice[user]=pool[Object.keys(_userVoice).length%pool.length];
+    }
+    return _userVoice[user];
+  }
+  window._tts2LastUser=null;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.user) window._tts2LastUser=d.user;
+  });
+  window.speechSynthesis.speak=function(utt){
+    const user=window._tts2LastUser;
+    if(user){
+      const v=_getVoiceForUser(user);
+      if(v) utt.voice=v;
+    }
+    _origSpeak(utt);
+  };
 })();
 // Q-216: ?slideshow=URL1,URL2 画像スライドショーオーバーレイ（複数画像を定期切替）
 // 例: ?slideshow=img1.png,img2.png&slidedur=5&slidepos=tr&slidesize=200
