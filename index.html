@@ -4497,6 +4497,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ripple=1</td><td>クリック波紋エフェクト・?ripplecolor=80d4ff・?ripplemax=8・API: triggerRipple(x,y)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrorball=1</td><td>ミラーボール光点エフェクト・?mbspeed=1.5・?mbdots=60</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?prismatic=1</td><td>プリズム虹色光線・?prismaticspeed=0.8・?prismaticwidth=60</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?analogclock=1</td><td>アナログ時計（針+透明背景）・?clockpos=tr・?clocksize=80</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stopwatch=1</td><td>ストップウォッチ（クリックで開始/停止）・?stopwatchpos=tc・?stopwatchkey=キー</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?flipclock=1</td><td>フリップ時計（レトロなカード表示）・?flipclockpos=bl・?flipclocksize=1</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8679,6 +8682,147 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-228: ?analogclock=1 アナログ時計ウィジェット（針で時刻表示・透明背景）
+// 例: ?analogclock=1&clockpos=tr&clocksize=80
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('analogclock')!=='1') return;
+  const _sz=Math.min(200,Math.max(40,parseInt(_usp.get('clocksize'))||80));
+  const _pos=_usp.get('clockpos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _cv=document.createElement('canvas');
+  _cv.id='analogclock-cv';
+  _cv.width=_sz; _cv.height=_sz;
+  Object.assign(_cv.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:_sz+'px',height:_sz+'px',zIndex:'500',pointerEvents:'none'
+  });
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _cx=_sz/2,_cy=_sz/2,_r=_sz/2-4;
+  function _draw(){
+    const now=new Date();
+    const s=now.getSeconds(),m=now.getMinutes(),h=now.getHours()%12;
+    _ctx.clearRect(0,0,_sz,_sz);
+    // Face
+    _ctx.beginPath(); _ctx.arc(_cx,_cy,_r,0,Math.PI*2);
+    _ctx.fillStyle='rgba(0,0,0,0.5)'; _ctx.fill();
+    _ctx.strokeStyle='rgba(255,255,255,0.6)'; _ctx.lineWidth=2; _ctx.stroke();
+    // Hour ticks
+    for(let i=0;i<12;i++){
+      const a=(i/12)*Math.PI*2;
+      const r1=_r*0.85; const r2=_r*0.95;
+      _ctx.beginPath();
+      _ctx.moveTo(_cx+Math.cos(a)*r1,_cy+Math.sin(a)*r1);
+      _ctx.lineTo(_cx+Math.cos(a)*r2,_cy+Math.sin(a)*r2);
+      _ctx.strokeStyle='rgba(255,255,255,0.5)'; _ctx.lineWidth=1.5; _ctx.stroke();
+    }
+    function _hand(ang,len,w,col){
+      _ctx.save(); _ctx.translate(_cx,_cy); _ctx.rotate(ang);
+      _ctx.beginPath(); _ctx.moveTo(0,_r*0.15); _ctx.lineTo(0,-len);
+      _ctx.strokeStyle=col; _ctx.lineWidth=w; _ctx.lineCap='round'; _ctx.stroke();
+      _ctx.restore();
+    }
+    _hand((h/12+m/720)*Math.PI*2-Math.PI/2,_r*0.55,3,'rgba(255,255,255,0.9)');
+    _hand((m/60+s/3600)*Math.PI*2-Math.PI/2,_r*0.72,2,'rgba(200,220,255,0.9)');
+    _hand((s/60)*Math.PI*2-Math.PI/2,_r*0.78,1,'rgba(255,100,80,0.9)');
+    // Center dot
+    _ctx.beginPath(); _ctx.arc(_cx,_cy,3,0,Math.PI*2);
+    _ctx.fillStyle='#fff'; _ctx.fill();
+  }
+  setInterval(_draw,1000); _draw();
+})();
+// Q-229: ?stopwatch=1 ストップウォッチ（クリックで開始/停止・Rキーでリセット）
+// 例: ?stopwatch=1&stopwatchpos=tc&stopwatchkey=F7
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('stopwatch')!=='1') return;
+  const _pos=_usp.get('stopwatchpos')||'tc';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b'); const _isC=_pos.includes('c');
+  const _resetKey=_usp.get('stopwatchkey')||'';
+  const _wrap=document.createElement('div');
+  _wrap.id='stopwatch-ov';
+  const _posStyle=_isC?'left:50%;transform:translateX(-50%)':(_isR?'right:16px':'left:16px');
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',
+    background:'rgba(0,0,0,0.8)',borderRadius:'10px',
+    padding:'8px 16px',zIndex:'500',fontFamily:'monospace',
+    fontSize:'28px',color:'#fff',cursor:'pointer',userSelect:'none'
+  });
+  _wrap.style.cssText+=';'+_posStyle;
+  document.body.appendChild(_wrap);
+  let _running=false,_elapsed=0,_startTime=0;
+  function _fmt(ms){
+    const cs=Math.floor(ms/10)%100;
+    const s=Math.floor(ms/1000)%60;
+    const m=Math.floor(ms/60000)%60;
+    const h=Math.floor(ms/3600000);
+    return (h?h+':':'')+(m<10&&h?'0':'')+m+':'+(s<10?'0':'')+s+'.'+(cs<10?'0':'')+cs;
+  }
+  function _render(){ _wrap.textContent=_fmt(_running?performance.now()-_startTime+_elapsed:_elapsed); }
+  _render();
+  const _id=setInterval(()=>{ if(_running) _render(); },33);
+  _wrap.addEventListener('click',()=>{
+    if(_running){ _elapsed+=performance.now()-_startTime; _running=false; }
+    else { _startTime=performance.now(); _running=true; }
+    _render();
+  });
+  function _reset(){ _running=false; _elapsed=0; _render(); }
+  if(_resetKey) document.addEventListener('keydown',e=>{ if(e.key===_resetKey||e.code===_resetKey) _reset(); });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='swstart'&&!_running){ _startTime=performance.now(); _running=true; }
+      if(d.cmd==='swstop'&&_running){ _elapsed+=performance.now()-_startTime; _running=false; }
+      if(d.cmd==='swreset') _reset();
+    }
+  });
+})();
+// Q-230: ?flipclock=1 フリップ時計（レトロな反転カードで時刻表示）
+// 例: ?flipclock=1&flipclockpos=bl&flipclocksize=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('flipclock')!=='1') return;
+  const _sz=Math.min(3,Math.max(0.5,parseFloat(_usp.get('flipclocksize'))||1));
+  const _pos=_usp.get('flipclockpos')||'bl';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='flipclock-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    display:'flex',gap:'4px',zIndex:'500',pointerEvents:'none',
+    transform:`scale(${_sz})`,transformOrigin:(_isB?'bottom':'top')+' '+(_isR?'right':'left')
+  });
+  document.body.appendChild(_wrap);
+  function _card(val,id){
+    const c=document.createElement('div');
+    c.id='fc-'+id;
+    Object.assign(c.style,{
+      width:'40px',height:'56px',background:'#111',borderRadius:'6px',
+      display:'flex',alignItems:'center',justifyContent:'center',
+      color:'#fff',fontSize:'36px',fontFamily:'monospace',fontWeight:'bold',
+      boxShadow:'0 2px 8px rgba(0,0,0,0.5)',border:'1px solid #333',
+      position:'relative',overflow:'hidden'
+    });
+    c.textContent=String(val).padStart(2,'0');
+    return c;
+  }
+  const _sep=document.createElement('div');
+  Object.assign(_sep.style,{color:'#fff',fontSize:'36px',fontFamily:'monospace',alignSelf:'center',margin:'0 2px'});
+  _sep.textContent=':';
+  const _hEl=_card(0,'h'); const _mEl=_card(0,'m'); const _sEl=_card(0,'s');
+  const _sep2=_sep.cloneNode(true);
+  _wrap.appendChild(_hEl); _wrap.appendChild(_sep); _wrap.appendChild(_mEl); _wrap.appendChild(_sep2); _wrap.appendChild(_sEl);
+  let _ph=-1,_pm=-1,_ps=-1;
+  function _update(){
+    const n=new Date();
+    const h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+    if(h!==_ph){ _hEl.textContent=String(h).padStart(2,'0'); _ph=h; }
+    if(m!==_pm){ _mEl.textContent=String(m).padStart(2,'0'); _pm=m; }
+    if(s!==_ps){ _sEl.textContent=String(s).padStart(2,'0'); _ps=s; }
+  }
+  setInterval(_update,500); _update();
 })();
 // Q-225: ?ripple=1 波紋エフェクト（クリックした場所に水面の波紋が広がる）
 // 例: ?ripple=1&ripplecolor=80d4ff&ripplemax=8
