@@ -7200,6 +7200,12 @@ window.addEventListener('message',ev=>{
   (_usp.get('obsclips')||'').split(',').forEach(pair=>{
     const i=pair.indexOf(':');if(i>0)_clipSceneMap[pair.slice(0,i).trim()]=pair.slice(i+1).trim();
   });
+  // Q-120: ?scenenames=Scene1:表示名,Scene2:雑談 シーン切替時テキスト表示
+  const _sceneNameMap={};
+  (_usp.get('scenenames')||'').split(',').forEach(pair=>{
+    const i=pair.indexOf(':');if(i>0)_sceneNameMap[pair.slice(0,i).trim()]=pair.slice(i+1).trim();
+  });
+  const _sceneAnn=_usp.get('sceneann')||'lowerthird'; // lowerthird or poptext
   async function _auth(pw,salt,challenge){
     const enc=new TextEncoder();
     const _hash=async b=>{const h=await crypto.subtle.digest('SHA-256',enc.encode(b));return btoa(String.fromCharCode(...new Uint8Array(h)));};
@@ -7218,6 +7224,15 @@ window.addEventListener('message',ev=>{
     if(clipName&&typeof switchClip==='function'){
       const ci=(MD.animClips||[]).findIndex(c=>c.name===clipName);
       if(ci>=0)switchClip(ci);else if(clipName==='default'||clipName==='__default__')switchClip(-1);
+    }
+    // Q-120: show scene name annotation
+    const dispName=_sceneNameMap[name];
+    if(dispName){
+      if(_sceneAnn==='poptext'&&typeof window.showPopText==='function'){
+        window.showPopText(dispName,{dur:3000,color:'80d0ff',size:18});
+      } else if(typeof window.showLowerThird==='function'){
+        window.showLowerThird(dispName,'',3);
+      }
     }
   }
   let _ows=null,_owsRetry=0,_owsTimer=null,_owsStopped=false,_reqId=1;
