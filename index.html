@@ -4317,7 +4317,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
-      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?subtext=0 ?giftemoji=🎁 ?bitseffect=100）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?subtext=0 ?giftemoji=🎁 ?bitseffect=100 ?alertsound=URL ?raidsound=URL ?alertvolume=0.8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?showchat=1</td><td>チャット表示オーバーレイ（+?chatpos=tl/tr/bl/br ?chatwidth=N ?chatmax=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?scanlines=1</td><td>CRTスキャンライン効果（+?scanlines_opacity=0.0-1.0 ?scanlines_gap=2-8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?grain=1</td><td>フィルムグレイン効果（+?grain_opacity=0.0-1.0 ?grain_fps=N）</td></tr>
@@ -6319,6 +6319,15 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
   const _subText=_usp2.get('subtext')!=='0'; // show popup text by default when subeffect=1
   const _giftEmoji=_usp2.get('giftemoji')||'🎁';
   const _bitsThresh=Math.max(1,parseInt(_usp2.get('bitseffect')||'100',10)||100);
+  // Q-107: ?alertsound=URL サブ/ビッツ時アラートサウンド (?raidsound=URL ?alertvolume=N)
+  const _alertVol=Math.min(1,Math.max(0,parseFloat(_usp2.get('alertvolume'))||0.8));
+  function _mkSound(urlParam){
+    const u=_usp2.get(urlParam);if(!u) return null;
+    const a=new Audio(u);a.preload='auto';a.volume=_alertVol;return a;
+  }
+  const _subSound=_mkSound('alertsound');
+  const _raidSoundEl=_mkSound('raidsound')||_mkSound('alertsound');
+  const _playAlert=(el)=>{if(!el) return;try{el.currentTime=0;el.play().catch(()=>{});}catch(_){}};
   // Q-093: ?raideffect=1 レイドエフェクト (?raidpose=ポーズ名)
   const _raidEffect=_usp2.get('raideffect')==='1';
   const _raidPoseName=_usp2.get('raidpose')||'';
@@ -6356,6 +6365,7 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
         window.showPopText(giver?(giver+' がサブ！('+tier+')'):'新しいサブ！',{dur:3000,color:'ffd060',size:17});
     }
     if(_subPoseName){const p=MD?.poses?.find(x=>x.name===_subPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},5000);}}
+    _playAlert(_subSound);
   }
   function _fireRaid(tags){
     if(!_raidEffect) return;
@@ -6367,6 +6377,7 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
     if(typeof window.triggerShake==='function') window.triggerShake();
     if(_raidPoseName){const p=MD?.poses?.find(x=>x.name===_raidPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},8000);}}
     if(typeof window.showPopText==='function'){const n=tags['display-name']||tags['login']||'';window.showPopText(n?(n+' がレイド！'+cnt+'人'):('レイド！'+cnt+'人'),{dur:4000,color:'cc80ff',size:22});}
+    _playAlert(_raidSoundEl);
   }
   function _handleIrcLine(line){
     if(!line) return;
