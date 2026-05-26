@@ -4307,6 +4307,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?showchat=1</td><td>チャット表示オーバーレイ（+?chatpos=tl/tr/bl/br ?chatwidth=N ?chatmax=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?scanlines=1</td><td>CRTスキャンライン効果（+?scanlines_opacity=0.0-1.0 ?scanlines_gap=2-8）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?grain=1</td><td>フィルムグレイン効果（+?grain_opacity=0.0-1.0 ?grain_fps=N）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?chroma=1</td><td>色収差効果（+?chroma_px=N ?chroma_anim=1でアニメーション）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -6978,6 +6980,36 @@ window.addEventListener('message',ev=>{
   _el.id='scanlines-ov';
   _el.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:51;background:repeating-linear-gradient(to bottom,transparent,transparent ${_gap-1}px,rgba(0,0,0,${_op}) ${_gap-1}px,rgba(0,0,0,${_op}) ${_gap}px);`;
   document.body.appendChild(_el);
+})();
+// Q-088: ?grain=1 フィルムグレイン効果 (?grain_opacity=0.0-1.0 ?grain_fps=N)
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('grain')!=='1') return;
+  const _op=Math.min(1,Math.max(0,parseFloat(_u.get('grain_opacity'))||0.07));
+  const _fps=Math.min(30,Math.max(1,parseInt(_u.get('grain_fps'))||8));
+  const _SIZE=180;
+  const _cv=document.createElement('canvas');
+  _cv.width=_SIZE; _cv.height=_SIZE;
+  _cv.style.cssText=`position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:52;opacity:${_op};mix-blend-mode:overlay;image-rendering:pixelated;`;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _tick=()=>{
+    const d=_ctx.createImageData(_SIZE,_SIZE);const b=d.data;
+    for(let i=0;i<b.length;i+=4){const v=Math.random()*255|0;b[i]=v;b[i+1]=v;b[i+2]=v;b[i+3]=255;}
+    _ctx.putImageData(d,0,0);
+  };
+  _tick(); setInterval(_tick,1000/_fps);
+})();
+// Q-089: ?chroma=1 色収差（クロマティックアベレーション） (?chroma_px=N ?chroma_anim=1)
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chroma')!=='1') return;
+  const _px=Math.min(12,Math.max(0.5,parseFloat(_u.get('chroma_px'))||3));
+  const _w=document.getElementById('wrap');if(!_w) return;
+  const _anim=_u.get('chroma_anim')==='1';
+  const _apply=(px)=>{_w.style.filter=`drop-shadow(${px}px 0 0 rgba(255,40,40,.65)) drop-shadow(${-px}px 0 0 rgba(40,90,255,.65))`;};
+  if(_anim){let _t=0;const _loop=()=>{_t+=0.025;_apply(_px*(0.4+0.6*Math.abs(Math.sin(_t))));requestAnimationFrame(_loop);};requestAnimationFrame(_loop);}
+  else _apply(_px);
 })();
 // Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
 (()=>{
