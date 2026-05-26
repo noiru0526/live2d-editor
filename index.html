@@ -4428,6 +4428,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?danmaku=1</td><td>弾幕チャット（コメントが画面を横スクロール・+?danmakuspeed=6 ?danmakusize=18 ?danmakurows=6）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatfilter=word1,word2</td><td>チャットフィルター（ブロックワード）/ ?chatallowonly= ホワイトリストモード</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?starfield=1</td><td>スターフィールド背景（宇宙空間・+?starcount=100 ?starspeed=1.0 ?starcolor=ffffff）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?matrixrain=1</td><td>マトリックスレイン背景（+?matrixcolor=00ff41 ?matrixspeed=1 ?matrixfont=16）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?popupcard=1</td><td>ポップアップ通知カード（window.showPopupCard()・noiru-cmd popupcard・+?popupcardpos= ?popupcardwidth=280）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashscreen=URL</td><td>起動時スプラッシュ画像（+?splashdur=3秒 ?splashfade=1秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8357,6 +8360,86 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_tick);
   }
   requestAnimationFrame(_tick);
+})();
+// Q-159: ?matrixrain=1 マトリックスレイン背景（緑の文字が降る）
+// ?matrixcolor=00ff41 文字色 ?matrixspeed=1 速さ ?matrixfont=16 フォントサイズ
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('matrixrain')!=='1') return;
+  const _col='#'+(_usp.get('matrixcolor')||'00ff41');
+  const _spd=Math.min(5,Math.max(0.2,parseFloat(_usp.get('matrixspeed'))||1));
+  const _fs=Math.min(32,Math.max(8,parseInt(_usp.get('matrixfont'))||16));
+  const _cv=document.createElement('canvas');
+  _cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;';
+  document.body.appendChild(_cv);
+  const ctx=_cv.getContext('2d');
+  let W=0,H=0,cols=0;
+  const drops=[];
+  const _CHARS='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function _resize(){
+    W=_cv.width=window.innerWidth; H=_cv.height=window.innerHeight;
+    cols=Math.floor(W/_fs);
+    drops.length=0; for(let i=0;i<cols;i++) drops.push(Math.random()*-H/_fs);
+  }
+  _resize(); window.addEventListener('resize',_resize);
+  const _interval=1000/(30*_spd);
+  let _last=0;
+  function _tick(t){
+    requestAnimationFrame(_tick);
+    if(t-_last<_interval) return; _last=t;
+    ctx.fillStyle='rgba(0,0,0,0.05)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=_col; ctx.font=`${_fs}px monospace`;
+    for(let i=0;i<cols;i++){
+      const ch=_CHARS[Math.floor(Math.random()*_CHARS.length)];
+      ctx.fillText(ch,i*_fs,drops[i]*_fs);
+      if(drops[i]*_fs>H&&Math.random()>0.975) drops[i]=0;
+      drops[i]+=1;
+    }
+  }
+  requestAnimationFrame(_tick);
+})();
+// Q-160: ?popupcard=1 ポップアップ通知カード（画像+テキスト）
+// window.showPopupCard({img,title,body,dur}) または noiru-cmd popupcard
+// ?popupcardpos=tr/tl/br/bl ?popupcardwidth=280
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('popupcard')!=='1') return;
+  const _pos=_usp.get('popupcardpos')||'tr';
+  const _mw=Math.min(500,Math.max(160,parseInt(_usp.get('popupcardwidth'))||280));
+  const top=_pos.startsWith('t')?'top:14px;bottom:auto;':'top:auto;bottom:14px;';
+  const lr=_pos.endsWith('r')?'right:14px;left:auto;':'left:14px;right:auto;';
+  let _hideT=null;
+  const _card=document.createElement('div');
+  _card.id='popup-card-ov';
+  _card.style.cssText=`position:fixed;${top}${lr}width:${_mw}px;z-index:73;background:rgba(8,12,24,.92);border:1px solid rgba(78,124,255,.4);border-radius:10px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.8);opacity:0;transition:opacity .3s,transform .3s;transform:translateY(-10px);pointer-events:none;backdrop-filter:blur(6px);`;
+  document.body.appendChild(_card);
+  window.showPopupCard=function({img='',title='',body='',dur=5,color=''}={}){
+    _card.innerHTML=(img?`<img src="${img}" style="width:100%;height:80px;object-fit:cover;display:block;">`:'')
+      +`<div style="padding:8px 12px;"><div style="font-size:13px;font-weight:700;color:${color?'#'+color:'#e0e8ff'};margin-bottom:3px;">${title}</div>`
+      +(body?`<div style="font-size:11px;color:#8090b0;line-height:1.5;">${body}</div>`:'')+'</div>';
+    _card.style.opacity='1'; _card.style.transform='translateY(0)';
+    if(_hideT) clearTimeout(_hideT);
+    _hideT=setTimeout(()=>{ _card.style.opacity='0'; _card.style.transform='translateY(-10px)'; },dur*1000);
+  };
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd'||d.cmd!=='popupcard') return;
+    window.showPopupCard(d);
+  });
+})();
+// Q-161: ?splashscreen=URL 起動時スプラッシュスクリーン（画像全画面表示→フェードアウト）
+// ?splashdur=3 表示秒数 ?splashfade=1 フェード秒数
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('splashscreen');if(!_url) return;
+  const _dur=Math.min(30,Math.max(0.5,parseFloat(_usp.get('splashdur'))||3));
+  const _fade=Math.min(5,Math.max(0.1,parseFloat(_usp.get('splashfade'))||1));
+  const _ov=document.createElement('div');
+  _ov.style.cssText=`position:fixed;inset:0;z-index:200;background:#000 center/contain no-repeat;background-image:url('${_url.replace(/'/g,"\\'")}');transition:opacity ${_fade}s ease;`;
+  document.body.appendChild(_ov);
+  setTimeout(()=>{
+    _ov.style.opacity='0';
+    setTimeout(()=>_ov.remove(),_fade*1000+100);
+  },_dur*1000);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
