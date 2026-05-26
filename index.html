@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?noiseburst=1</td><td>静電ノイズバースト・postMsg{cmd:'noiseburst',dur:300}・triggerNoiseBurst(ms)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?geometricbg=1</td><td>幾何学図形漂う背景・?geometricbgcount=18&?geometricbgcolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatquote=1</td><td>チャット名言自動抽出表示・?chatquoteinterval=45&?chatquotemin=6</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?warpspeed=1</td><td>ワープ速度線エフェクト・?warpspeedcount=60&?warpspeedcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?inkdrop=1</td><td>クリックでインク広がりリップル・?inkdropcolor=hex・triggerInkDrop(x,y)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?crtoff=1</td><td>CRTオフアニメ（キーL or postMsg cmd:'crtoff'）・triggerCRTOff()</td></tr>
@@ -9454,6 +9457,110 @@ window.addEventListener('message',ev=>{
     if(d.type==='noiru-cmd'&&d.cmd==='inkdrop') _drop(d.x||window.innerWidth/2,d.y||window.innerHeight/2);
   });
   window.triggerInkDrop=(x,y)=>_drop(x||window.innerWidth/2,y||window.innerHeight/2);
+})();
+// Q-311: ?chatquote=1 チャット名言抽出（一定時間後にランダムなチャットを大きく表示）
+// 例: ?chatquote=1&chatquoteinterval=60&chatquotemin=8
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chatquote')!=='1') return;
+  const _interval=parseInt(_u.get('chatquoteinterval'))||45;
+  const _minLen=parseInt(_u.get('chatquotemin'))||6;
+  const _msgs=[];
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&d.msg.length>=_minLen&&!d.msg.startsWith('!')){
+      _msgs.push({user:d.user,msg:d.msg});
+      if(_msgs.length>100) _msgs.shift();
+    }
+  });
+  setInterval(()=>{
+    if(_msgs.length<3) return;
+    const item=_msgs[Math.floor(Math.random()*_msgs.length)];
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',inset:'0',zIndex:'162',display:'flex',flexDirection:'column',
+      alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.6)',
+      backdropFilter:'blur(4px)',opacity:'0',transition:'opacity 0.4s',pointerEvents:'none'
+    });
+    _d.innerHTML=`<div style="font-size:clamp(18px,3vw,32px);color:#fff;font-family:sans-serif;font-style:italic;text-align:center;max-width:70%;text-shadow:0 2px 8px rgba(0,0,0,0.8);line-height:1.5;">"${item.msg}"</div>
+<div style="color:#adf;font-size:14px;margin-top:10px;font-weight:bold;">— ${item.user}</div>`;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),450); },4000);
+  },_interval*1000);
+})();
+// Q-310: ?geometricbg=1 幾何学図形背景（回転するポリゴンやラインが漂う）
+// 例: ?geometricbg=1&geometricbgcount=20&geometricbgcolor=6644ff
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('geometricbg')!=='1') return;
+  const _count=parseInt(_u.get('geometricbgcount'))||18;
+  const _col=_u.get('geometricbgcolor')||'4466ff';
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'132',pointerEvents:'none',opacity:'0.18'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _shapes=Array.from({length:_count},()=>({
+    x:Math.random()*_cv.width,y:Math.random()*_cv.height,
+    r:20+Math.random()*60,sides:3+Math.floor(Math.random()*5),
+    angle:Math.random()*Math.PI*2,speed:(Math.random()-0.5)*0.01,
+    vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3
+  }));
+  function _polygon(ctx,x,y,r,n,a){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const theta=a+(i/n)*2*Math.PI;
+      i===0?ctx.moveTo(x+r*Math.cos(theta),y+r*Math.sin(theta)):ctx.lineTo(x+r*Math.cos(theta),y+r*Math.sin(theta));
+    }
+    ctx.closePath();
+  }
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _shapes.forEach(s=>{
+      s.angle+=s.speed; s.x+=s.vx; s.y+=s.vy;
+      if(s.x<-s.r) s.x=_cv.width+s.r; if(s.x>_cv.width+s.r) s.x=-s.r;
+      if(s.y<-s.r) s.y=_cv.height+s.r; if(s.y>_cv.height+s.r) s.y=-s.r;
+      _ctx.strokeStyle='#'+_col; _ctx.lineWidth=1.5;
+      _polygon(_ctx,s.x,s.y,s.r,s.sides,s.angle);
+      _ctx.stroke();
+    });
+    requestAnimationFrame(_draw);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-309: ?noiseburst=1 ノイズバースト（postMessageで短い静電ノイズを発火）
+// 例: ?noiseburst=1  postMessage{type:'noiru-cmd',cmd:'noiseburst'}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('noiseburst')!=='1') return;
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'168',pointerEvents:'none',opacity:'0',transition:'opacity 0.05s'});
+  _cv.width=Math.floor(window.innerWidth/3); _cv.height=Math.floor(window.innerHeight/3);
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  let _active=false;
+  function _burst(dur){
+    if(_active) return; _active=true;
+    _cv.style.opacity='0.65';
+    let frames=0; const maxFrames=Math.round((dur||300)/16);
+    (function _f(){
+      const id=_ctx.createImageData(_cv.width,_cv.height);
+      for(let i=0;i<id.data.length;i+=4){
+        const v=Math.random()*255|0;
+        id.data[i]=v; id.data[i+1]=v; id.data[i+2]=v; id.data[i+3]=180;
+      }
+      _ctx.putImageData(id,0,0);
+      if(++frames<maxFrames) requestAnimationFrame(_f);
+      else { _cv.style.opacity='0'; _active=false; }
+    })();
+  }
+  window.triggerNoiseBurst=d=>_burst(d||300);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='noiseburst') _burst(+d.dur||300);
+  });
+  window.addEventListener('resize',()=>{ _cv.width=Math.floor(window.innerWidth/3); _cv.height=Math.floor(window.innerHeight/3); });
 })();
 // Q-306: ?warpspeed=1 ワープスピード（横に走る速度線で高速移動感を演出）
 // 例: ?warpspeed=1&warpspeedcount=60&warpspeedcolor=ffffff
