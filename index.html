@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrormode=1</td><td>アバター左右反転・toggleMirror()・postMsg cmd:'togglemirror'</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splitscreen=URL</td><td>左右スプリットスクリーン（画像またはiframe）・?splitside=right/left</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashimage=URL</td><td>スプラッシュ画像オーバーレイ・postMsg{cmd:'splashimage',url,dur}・showSplashImage(url,dur)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?moonphase=1</td><td>月齢バッジ（現在の月相）・?moonphasepos=topright</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatrank=1</td><td>チャットユーザーランク自動付与・?chatrankshow=1でバッジ表示・getChatRanks()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glassshard=1</td><td>ガラス割れ亀裂（キーG or cmd:'glassshard'）・triggerGlassShard()</td></tr>
@@ -10059,6 +10062,85 @@ window.addEventListener('message',ev=>{
     }
   });
   window.getChatRanks=()=>Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([u,n])=>({user:u,count:n,rank:_getrank(n).label}));
+})();
+// Q-338: ?splashimage=URL スプラッシュ画像（postMessageやコマンドで一時的に画像を表示）
+// 例: ?splashimage=1  postMessage{type:'noiru-cmd',cmd:'splashimage',url:'https://...',dur:3000}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('splashimage')!=='1'&&!_u.get('splashimage')) return;
+  const _defaultUrl=_u.get('splashimage')!=='1'?decodeURIComponent(_u.get('splashimage')||''):'';
+  function _show(url,dur){
+    if(!url) return;
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',inset:'0',zIndex:'163',display:'flex',alignItems:'center',justifyContent:'center',
+      background:'rgba(0,0,0,0.5)',opacity:'0',transition:'opacity 0.3s',pointerEvents:'none'
+    });
+    const img=document.createElement('img');
+    img.src=url;
+    Object.assign(img.style,{maxWidth:'70%',maxHeight:'70%',objectFit:'contain',
+      filter:'drop-shadow(0 0 20px rgba(255,255,255,0.3))',borderRadius:'8px'});
+    _d.appendChild(img); document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),350); },dur||3000);
+  }
+  if(_defaultUrl) _show(_defaultUrl,3000);
+  window.showSplashImage=(url,dur)=>_show(url,dur);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='splashimage'&&d.url) _show(d.url,+d.dur||3000);
+  });
+})();
+// Q-337: ?splitscreen=URL スプリットスクリーン（左右に分割して別画像/iframeを表示）
+// 例: ?splitscreen=https://example.com/img.png
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _url=_u.get('splitscreen'); if(!_url) return;
+  const _side=_u.get('splitside')||'right';
+  const _wrap=document.getElementById('wrap')||document.body;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',top:'0',[_side==='left'?'right':'left']:'0',
+    width:'50%',height:'100%',zIndex:'135',overflow:'hidden',
+    borderLeft:_side==='right'?'2px solid rgba(255,255,255,0.2)':'none',
+    borderRight:_side==='left'?'2px solid rgba(255,255,255,0.2)':'none'
+  });
+  const decodedUrl=decodeURIComponent(_url);
+  const isImg=/\.(png|jpg|jpeg|gif|webp|svg)(\?|$)/i.test(decodedUrl);
+  if(isImg){
+    const img=document.createElement('img');
+    img.src=decodedUrl; Object.assign(img.style,{width:'100%',height:'100%',objectFit:'contain',background:'rgba(0,0,0,0.5)'});
+    _d.appendChild(img);
+  } else {
+    const ifr=document.createElement('iframe');
+    ifr.src=decodedUrl; Object.assign(ifr.style,{width:'100%',height:'100%',border:'none',background:'#000'});
+    _d.appendChild(ifr);
+  }
+  document.body.appendChild(_d);
+  if(_wrap&&_wrap.style){
+    _wrap.style.width='50%';
+    _wrap.style[_side==='right'?'left':'right']='0';
+    _wrap.style.position='fixed';
+  }
+})();
+// Q-336: ?mirrormode=1 ミラーモード（アバターを左右反転）
+// 例: ?mirrormode=1  toggleMirror() で切り替え
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('mirrormode')!=='1') return;
+  const _s=document.createElement('style');
+  _s.id='niru-mirrormode';
+  _s.textContent='#live2dcanvas,#wrap canvas{transform:scaleX(-1)}';
+  document.head.appendChild(_s);
+  let _on=true;
+  window.toggleMirror=()=>{
+    _on=!_on;
+    _s.textContent=_on?'#live2dcanvas,#wrap canvas{transform:scaleX(-1)}':'';
+  };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='togglemirror') window.toggleMirror();
+  });
 })();
 // Q-333: ?moonphase=1 月齢表示（現在の月相をバッジとして画面に表示）
 // 例: ?moonphase=1&moonphasepos=topright
