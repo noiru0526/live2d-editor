@@ -4390,6 +4390,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mousetrack=1</td><td>マウスカーソル常時追跡（=head で頭も動く・+?mousetracksens=1.0）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
@@ -5989,6 +5990,37 @@ function applyPoseBlend(dt){
       _cv.style.opacity='';_cv.style.transition='';
       _cv.style.animation=`${_an} ${_dur}s cubic-bezier(.34,1.56,.64,1) both`;
       _cv.addEventListener('animationend',()=>{_cv.style.animation='';},{once:true});
+    })();
+    // Q-119: ?fadekey=KEY アバターフェード切替キー（?fadedur=秒・?hidekey=KEY 瞬間非表示）
+    (()=>{
+      const _usp=new URLSearchParams(location.search);
+      const _fk=(_usp.get('fadekey')||'').trim();
+      const _hk=(_usp.get('hidekey')||'').trim();
+      if(!_fk&&!_hk) return;
+      const _dur=Math.min(10,Math.max(0.1,parseFloat(_usp.get('fadedur'))||0.5));
+      const _cv=document.getElementById('c');if(!_cv) return;
+      let _visible=true;
+      document.addEventListener('keydown',ev=>{
+        if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.repeat) return;
+        if(document.activeElement instanceof HTMLInputElement||document.activeElement instanceof HTMLTextAreaElement) return;
+        if(_fk&&ev.key===_fk){
+          _visible=!_visible;
+          _cv.style.transition=`opacity ${_dur}s ease`;
+          _cv.style.opacity=_visible?'1':'0';
+          ev.preventDefault();
+        } else if(_hk&&ev.key===_hk){
+          _visible=!_visible;
+          _cv.style.transition='none';
+          _cv.style.opacity=_visible?'1':'0';
+          ev.preventDefault();
+        }
+      });
+      // API: window.setAvatarVisible(bool)
+      window.setAvatarVisible=function(v){
+        _visible=!!v;
+        _cv.style.transition=`opacity ${_dur}s ease`;
+        _cv.style.opacity=_visible?'1':'0';
+      };
     })();
     // Q-117: ?bgparallax=1 背景パララックス（頭の動きに合わせて背景が逆方向に動く）
     // ?bgparallaxstrength=30（移動量px・デフォルト30）
