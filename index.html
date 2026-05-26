@@ -4392,6 +4392,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mousetrack=1</td><td>マウスカーソル常時追跡（=head で頭も動く・+?mousetracksens=1.0）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wobble=1</td><td>常時微振動ゆらぎ（+?wobbleamp=3px ?wobblespeed=1.0）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spotlight=1</td><td>スポットライト効果（+?spotlightcolor=ffffff ?spotlightsize=60 ?spotlightopacity=0.55）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?dropshadow=1</td><td>アバタードロップシャドウ（+?shadowcolor=000000 ?shadowblur=15 ?shadowx=0 ?shadowy=8）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?confetti=1</td><td>起動時紙吹雪（window.triggerConfetti()・noiru-cmd confetti・+?confetticount=80 ?confettidur=4）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neonborder=RRGGBB</td><td>ネオン発光ボーダー（+?neonpulse=1 点滅・?neonspeed=2秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7319,6 +7322,91 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_tick);
   }
   requestAnimationFrame(_tick);
+})();
+// Q-123: ?dropshadow=1 アバタードロップシャドウ（CSS filter）
+// ?shadowcolor=000000 影色(hex) ?shadowblur=15 ぼかし ?shadowx=0 ?shadowy=8 オフセット
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('dropshadow')!=='1') return;
+  const _col='#'+(_usp.get('shadowcolor')||'000000');
+  const _blur=Math.min(60,Math.max(0,parseFloat(_usp.get('shadowblur'))||15));
+  const _sx=parseFloat(_usp.get('shadowx'))||0;
+  const _sy=parseFloat(_usp.get('shadowy'))||8;
+  const _cv=document.getElementById('c');
+  if(_cv) _cv.style.filter=`drop-shadow(${_sx}px ${_sy}px ${_blur}px ${_col})`;
+})();
+// Q-124: ?confetti=1 紙吹雪エフェクト（window.triggerConfetti()・noiru-cmd confetti）
+// ?confetticount=80 枚数 ?confettidur=4 秒数
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _count=Math.min(200,Math.max(10,parseInt(_usp.get('confetticount'))||80));
+  const _dur=Math.min(10,Math.max(1,parseFloat(_usp.get('confettidur'))||4));
+  const _COLORS=['#ff4e6a','#ffd700','#4eaaff','#a8ff6e','#ff9800','#c46eff','#fff'];
+  function _fire(){
+    const cv=document.createElement('canvas');
+    cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:98;';
+    document.body.appendChild(cv);
+    const W=window.innerWidth,H=window.innerHeight;
+    cv.width=W;cv.height=H;
+    const ctx=cv.getContext('2d');
+    const pieces=Array.from({length:_count},()=>({
+      x:Math.random()*W, y:-10-Math.random()*50,
+      w:6+Math.random()*8, h:3+Math.random()*5,
+      col:_COLORS[Math.floor(Math.random()*_COLORS.length)],
+      vx:(Math.random()-.5)*3, vy:2+Math.random()*3,
+      rot:Math.random()*Math.PI*2, vr:(Math.random()-.5)*.2
+    }));
+    const end=performance.now()+_dur*1000;
+    function frame(now){
+      ctx.clearRect(0,0,W,H);
+      const alive=pieces.filter(p=>{
+        p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.rot+=p.vr;
+        if(p.y>H+20) return false;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle=p.col; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+        return true;
+      });
+      pieces.length=0; pieces.push(...alive);
+      if(alive.length>0&&now<end+2000) requestAnimationFrame(frame);
+      else cv.remove();
+    }
+    requestAnimationFrame(frame);
+  }
+  window.triggerConfetti=_fire;
+  if(_usp.get('confetti')==='1') setTimeout(_fire,500);
+  // noiru-cmd confetti
+  window.addEventListener('message',ev=>{
+    if(ev.data?.type==='noiru-cmd'&&ev.data?.cmd==='confetti') _fire();
+  });
+})();
+// Q-125: ?neonborder=COLOR ネオン発光ボーダー（多重グロー・アニメ）
+// ?neonpulse=1 点滅アニメ ?neonspeed=2 速さ(秒)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _nb=_usp.get('neonborder');if(!_nb) return;
+  const _col='#'+_nb;
+  const _pulse=_usp.get('neonpulse')==='1';
+  const _spd=Math.min(10,Math.max(0.5,parseFloat(_usp.get('neonspeed'))||2));
+  const _ov=document.getElementById('border-glow');
+  if(!_ov) return;
+  const _r=parseInt(_nb.slice(0,2)||'ff',16);
+  const _g=parseInt(_nb.slice(2,4)||'ff',16);
+  const _b=parseInt(_nb.slice(4,6)||'ff',16);
+  function _applyGlow(op){
+    _ov.style.background='none';
+    _ov.style.outline='none';
+    _ov.style.boxShadow=[
+      `inset 0 0 ${Math.round(30*op)}px rgba(${_r},${_g},${_b},${(0.5*op).toFixed(2)})`,
+      `inset 0 0 ${Math.round(60*op)}px rgba(${_r},${_g},${_b},${(0.3*op).toFixed(2)})`,
+      `0 0 ${Math.round(20*op)}px rgba(${_r},${_g},${_b},${(0.6*op).toFixed(2)})`,
+      `0 0 ${Math.round(40*op)}px rgba(${_r},${_g},${_b},${(0.3*op).toFixed(2)})`,
+    ].join(',');
+  }
+  if(_pulse){
+    let _t0=performance.now();
+    function _tick(t){ _applyGlow(0.5+0.5*Math.sin((t-_t0)/_spd/1000*Math.PI*2)); requestAnimationFrame(_tick); }
+    requestAnimationFrame(_tick);
+  } else { _applyGlow(1); }
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
