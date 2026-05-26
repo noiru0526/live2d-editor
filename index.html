@@ -4530,6 +4530,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?loadingscreen=1</td><td>ページ読み込み演出・?loadingmsg=・?loadingcolor=6af</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avatarurl=URL</td><td>アバターURL動的ロード・postMessage loadavatar で実行時切替</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fontsize=N</td><td>チャットフォントサイズ一括設定・?fontweight=bold・?fontcolor=fff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?sakuramode=1</td><td>桜の花びら（?snowmode=1で雪片）・ピンク/白の粒子が舞い落ちる</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?halloweenmode=1</td><td>ハロウィーンモード（コウモリ飛来+オレンジテーマ）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?christmasmode=1</td><td>クリスマスモード（雪+アイコン降下+赤緑テーマ+バナー）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8712,6 +8715,154 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-261: ?sakuramode=1 桜モード（ピンクの花びらが散る・春の演出）
+// ?snowmode=1 でも流用可（白い雪片に切替）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _sakura=_usp.get('sakuramode')==='1';
+  const _snow=_usp.get('snowmode')==='1';
+  if(!_sakura&&!_snow) return;
+  const _cv=document.createElement('canvas');
+  _cv.id='sakura-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _n=_sakura?40:80;
+  const _petals=[];
+  for(let i=0;i<_n;i++){
+    _petals.push({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight,
+      r:_sakura?(4+Math.random()*8):(2+Math.random()*4),
+      spd:0.5+Math.random()*1.5,
+      phase:Math.random()*Math.PI*2,
+      rot:Math.random()*Math.PI*2,
+      rotSpd:(Math.random()-0.5)*0.05,
+      swing:Math.random()*3+1,
+      alpha:0.5+Math.random()*0.5
+    });
+  }
+  function _drawPetal(ctx,x,y,r,rot,col){
+    ctx.save(); ctx.translate(x,y); ctx.rotate(rot);
+    if(_sakura){
+      // Petal shape
+      ctx.beginPath();
+      ctx.moveTo(0,-r); ctx.bezierCurveTo(r,-r,r,r*0.5,0,r);
+      ctx.bezierCurveTo(-r,r*0.5,-r,-r,0,-r);
+      ctx.fillStyle=col; ctx.fill();
+    } else {
+      // Snowflake / circle
+      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+      ctx.fillStyle=col; ctx.fill();
+    }
+    ctx.restore();
+  }
+  const _col=_sakura?'rgba(255,180,200,alpha)':'rgba(220,240,255,alpha)';
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const p of _petals){
+      p.phase+=0.02; p.rot+=p.rotSpd;
+      p.x+=Math.sin(p.phase)*p.swing; p.y+=p.spd;
+      if(p.y>_cv.height+20){ p.y=-20; p.x=Math.random()*_cv.width; }
+      _ctx.globalAlpha=p.alpha;
+      _drawPetal(_ctx,p.x,p.y,p.r,p.rot,_col.replace('alpha',p.alpha.toString()));
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-262: ?halloweenmode=1 ハロウィーンモード（🦇コウモリ飛来+オレンジ色テーマ）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('halloweenmode')!=='1') return;
+  // Orange tint overlay
+  const _tint=document.createElement('div');
+  Object.assign(_tint.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',
+    background:'rgba(80,30,0,0.08)',pointerEvents:'none',zIndex:'96'});
+  document.body.appendChild(_tint);
+  // Bats flying
+  const _cv=document.createElement('canvas');
+  _cv.id='halloween-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _bats=[];
+  for(let i=0;i<12;i++){
+    _bats.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight*0.6,
+      vx:(-1-Math.random()*2)*(Math.random()<0.5?1:-1),vy:(Math.random()-0.5),
+      phase:Math.random()*Math.PI*2,sz:8+Math.random()*12});
+  }
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _t++;
+    for(const b of _bats){
+      b.phase+=0.15; b.x+=b.vx; b.y+=Math.sin(b.phase*0.3)*0.5+b.vy;
+      if(b.x<-30) b.x=_cv.width+20;
+      if(b.x>_cv.width+30) b.x=-20;
+      if(b.y<0) b.vy=Math.abs(b.vy);
+      if(b.y>_cv.height*0.7) b.vy=-Math.abs(b.vy);
+      // Draw bat
+      _ctx.save(); _ctx.translate(b.x,b.y);
+      _ctx.font=b.sz*2+'px serif';
+      _ctx.textAlign='center'; _ctx.textBaseline='middle';
+      _ctx.globalAlpha=0.7;
+      _ctx.fillText('🦇',0,0);
+      _ctx.restore();
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
+  // Apply spooky CSS
+  const _style=document.createElement('style');
+  _style.textContent=`.cbb { border-color: #ff6600 !important; } #chat-overlay { color: #ff9900 !important; }`;
+  document.head.appendChild(_style);
+})();
+// Q-263: ?christmasmode=1 クリスマスモード（雪+ツリー飾り+赤緑テーマ）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('christmasmode')!=='1') return;
+  // Snow is handled by ?blizzard or ?snow — add light snow
+  const _cv=document.createElement('canvas');
+  _cv.id='xmas-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _icons=['❄','⭐','🎄','🎅','🎁','🔔'];
+  const _flakes=[];
+  for(let i=0;i<30;i++){
+    _flakes.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+      icon:_icons[Math.floor(Math.random()*_icons.length)],
+      sz:12+Math.random()*16,spd:0.3+Math.random()*0.8,
+      phase:Math.random()*Math.PI*2,swing:1+Math.random()*2,alpha:0.6+Math.random()*0.4});
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const f of _flakes){
+      f.phase+=0.02; f.y+=f.spd;
+      f.x+=Math.sin(f.phase)*f.swing;
+      if(f.y>_cv.height+20){ f.y=-20; f.x=Math.random()*_cv.width; }
+      _ctx.globalAlpha=f.alpha;
+      _ctx.font=f.sz+'px serif'; _ctx.textAlign='center';
+      _ctx.fillText(f.icon,f.x,f.y);
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
+  // Red/green theme
+  const _style=document.createElement('style');
+  _style.textContent=`.cbb { border-color: #cc0000 !important; background: rgba(0,40,0,0.8) !important; }`;
+  document.head.appendChild(_style);
+  // Christmas banner
+  if(typeof window.showLowerThird==='function')
+    setTimeout(()=>{ window.showLowerThird('🎄 Merry Christmas! 🎅','',8); },2000);
 })();
 // Q-258: ?loadingscreen=1 ローディングスクリーン（ページ読み込み中の演出）
 // 例: ?loadingscreen=1&loadingmsg=読み込み中...&loadingcolor=6af
