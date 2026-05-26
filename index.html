@@ -313,6 +313,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-hq" onclick="toggleHQRender()" title="高品質レンダリング ON/OFF（三角形サブディビジョン・重い）" style="color:#ffe090;">✨ HQ</button>
   <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
   <button class="tbtn" onclick="showPNGSequenceDialog()" title="アニメーション区間をPNGシーケンスとして書き出し">🖼 PNG列</button>
+  <button class="tbtn" onclick="showGIFExportDialog()" title="アニメーションをGIFとして書き出し（WebCodecs不要・純JS）" style="color:#80ffb0;">🎞 GIF</button>
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
   <button class="tbtn" id="btn-histogram" onclick="toggleHistogramPanel()" title="パラメータKF値ヒストグラム表示" style="color:#ffd080;">📊 ヒスト</button>
@@ -4319,8 +4320,9 @@ const DPR=window.devicePixelRatio||1;
 const W=canvas.width,H=canvas.height; // logical size
 canvas.width=W*DPR; canvas.height=H*DPR;
 canvas.style.width=W+'px'; canvas.style.height=H+'px';
-// ?mirror=1: flip canvas horizontally for OBS layout (display-only, no coordinate impact in OBS browser source)
-if((new URLSearchParams(location.search)).get('mirror')==='1') canvas.classList.add('mirrored');
+// ?mirror=1: flip canvas horizontally for OBS layout + flip face tracking X axis
+const _mirrorX=(new URLSearchParams(location.search)).get('mirror')==='1';
+if(_mirrorX) canvas.classList.add('mirrored');
 const SENS=${sens};
 const LOOP_FADE_IN=${exportFadeIn};
 const LOOP_FADE_OUT=${exportFadeOut};
@@ -5108,6 +5110,8 @@ async function initTracking(){
           const lE=lm[234],rE=lm[454];
           rhz=Math.max(-1,Math.min(1,(Math.atan2(rE.y-lE.y,rE.x-lE.x)-_faceOffsetZ)*S_*curSensZ));
         }
+        // Q-078: ?mirror=1 flips tracking X so avatar matches visual direction
+        if(_mirrorX){ rhx=-rhx; }
         // BlendShape-based blink/mouth (more accurate than geometric EAR)
         const rbl=Math.max(0,Math.min(1,(bs.eyeBlinkLeft??0)*1.3*S_));
         const rbr=Math.max(0,Math.min(1,(bs.eyeBlinkRight??0)*1.3*S_));
@@ -5134,6 +5138,7 @@ async function initTracking(){
           const leY=(leH>0.001)?(li.y-(leT.y+leB.y)/2)/leH*2:0;
           rex=Math.max(-1,Math.min(1,(reX+leX)/2*-1.5*S_*curSensEye));
           rey=Math.max(-1,Math.min(1,(reY+leY)/2*1.5*S_*curSensEye));
+          if(_mirrorX) rex=-rex;
         }
         // Mouth shape A/I/U/E/O from BlendShapes
         const shapeA=Math.max(0,Math.min(1,(bs.jawOpen??0)*S_));
@@ -19842,6 +19847,224 @@ function showPNGSequenceDialog() {
     document.getElementById('lbl-status').textContent = `PNGシーケンス書き出し完了: ${totalFrames+1}フレーム`;
   };
   mo.onclick = e => { if (e.target===mo) mo.remove(); };
+}
+
+// ==================== GIF EXPORT (Q-077) ====================
+// Pure-JS GIF89a encoder — no external libraries
+function _makeGIF(frames, w, h, fps) {
+  const delayCs = Math.max(2, Math.round(100 / fps));
+  const TRANS = 255; // palette index used for transparent pixels
+
+  // 256-color palette: 216 web-safe (6×6×6) + 39 grays + 1 transparent placeholder
+  const pal = new Uint8Array(768);
+  let pi = 0;
+  for (let r=0;r<6;r++) for (let g=0;g<6;g++) for (let b=0;b<6;b++) {
+    pal[pi++]=r*51; pal[pi++]=g*51; pal[pi++]=b*51;
+  }
+  for (let i=0;i<39;i++) {
+    const v=Math.round(i*255/38); pal[pi++]=v; pal[pi++]=v; pal[pi++]=v;
+  }
+  pal[pi++]=0; pal[pi++]=0; pal[pi++]=0; // index 255 = transparent slot
+
+  function nearestIdx(r,g,b) {
+    const ri=Math.min(5,Math.round(r/51)), gi=Math.min(5,Math.round(g/51)), bi=Math.min(5,Math.round(b/51));
+    const wi=ri*36+gi*6+bi;
+    // check if a gray is closer
+    const lum=Math.round((r*.299+g*.587+b*.114)*38/255);
+    const gi2=216+Math.min(38,lum), gv=pal[gi2*3];
+    const wv=pal[wi*3],wg2=pal[wi*3+1],wb=pal[wi*3+2];
+    return ((r-gv)**2+(g-gv)**2+(b-gv)**2) < ((r-wv)**2+(g-wg2)**2+(b-wb)**2) ? gi2 : wi;
+  }
+
+  function quantize(rgba) {
+    const idx=new Uint8Array(w*h);
+    for (let i=0;i<w*h;i++) {
+      if (rgba[i*4+3]<64) { idx[i]=TRANS; continue; }
+      idx[i]=nearestIdx(rgba[i*4],rgba[i*4+1],rgba[i*4+2]);
+    }
+    return idx;
+  }
+
+  function lzwEncode(indices) {
+    const CLEAR=256,EOI=257;
+    let nc=258,cl=9;
+    const tab=new Map(), bits=[]; let buf=0,nb=0;
+    const push=c=>{ buf|=c<<nb; nb+=cl; while(nb>=8){bits.push(buf&0xFF);buf>>>=8;nb-=8;} };
+    const reset=()=>{ tab.clear(); nc=258; cl=9; };
+    push(CLEAR);
+    let prev=indices[0];
+    for (let i=1;i<indices.length;i++) {
+      const c=indices[i], key=prev*256+c;
+      if (tab.has(key)) { prev=tab.get(key); }
+      else {
+        push(prev);
+        if (nc<4096) { tab.set(key,nc++); if(nc>(1<<cl)&&cl<12)cl++; }
+        if (nc>=4096) { push(CLEAR); reset(); }
+        prev=c;
+      }
+    }
+    push(prev); push(EOI);
+    if (nb>0) bits.push(buf&0xFF);
+    const out=[8]; // minCodeSize=8
+    for (let i=0;i<bits.length;) { const n=Math.min(255,bits.length-i); out.push(n); for(let j=0;j<n;j++) out.push(bits[i++]); }
+    out.push(0);
+    return out;
+  }
+
+  const out=[];
+  const B=v=>out.push(v&0xFF), W=v=>{B(v);B(v>>8);}, S=s=>{for(let i=0;i<s.length;i++)B(s.charCodeAt(i));};
+  S('GIF89a'); W(w); W(h); B(0); B(0); B(0); // header, no global CT
+  B(0x21);B(0xFF);B(11);S('NETSCAPE2.0');B(3);B(1);W(0);B(0); // loop forever
+  for (const frame of frames) {
+    const idx=quantize(frame);
+    B(0x21);B(0xF9);B(4);B(0x05);W(delayCs);B(TRANS);B(0); // GCE with transparency
+    B(0x2C);W(0);W(0);W(w);W(h);B(0x80|7); // image descriptor, local CT 256
+    for (let i=0;i<768;i++) out.push(pal[i]); // local color table
+    const ld=lzwEncode(idx); for(const b of ld) out.push(b);
+  }
+  B(0x3B);
+  return new Uint8Array(out);
+}
+
+function showGIFExportDialog() {
+  const dur = M.animation?.duration || 3;
+  const li = (M.animation?.loopIn ?? 0).toFixed(3);
+  const lo = (M.animation?.loopOut ?? dur).toFixed(3);
+  const mo = document.createElement('div');
+  mo.className = 'mo';
+  mo.innerHTML = `<div style="background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;padding:16px;width:320px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h3 style="font-size:13px;color:#cdd6f4;margin:0;">🎞 GIF書き出し</h3>
+      <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div style="font-size:9px;color:#6080a0;margin-bottom:10px;">アニメーション区間をGIF89aとして書き出します。ファイルサイズ削減のため低FPS・小サイズを推奨。</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">開始 (s)</label>
+        <input id="gf-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">終了 (s)</label>
+        <input id="gf-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">FPS</label>
+        <select id="gf-fps" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
+          <option value="5">5 fps</option>
+          <option value="8">8 fps</option>
+          <option value="10">10 fps</option>
+          <option value="12" selected>12 fps</option>
+          <option value="15">15 fps</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">最大幅 (px)</label>
+        <select id="gf-w" style="width:100%;background:#1a1e2e;border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
+          <option value="240">240</option>
+          <option value="320">320</option>
+          <option value="480" selected>480</option>
+          <option value="640">640</option>
+          <option value="0">オリジナルサイズ</option>
+        </select>
+      </div>
+    </div>
+    <div id="gf-preview" style="font-size:9px;color:#60a0d0;margin-bottom:8px;"></div>
+    <div id="gf-progress" style="display:none;margin-bottom:6px;">
+      <div style="font-size:9px;color:#ffd060;margin-bottom:3px;" id="gf-prog-text">フレームキャプチャ中...</div>
+      <div style="height:4px;background:#1a1e2e;border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:#4e7cff;width:0%;transition:width .1s;"></div></div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="gf-start-btn" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
+      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#1e1e2e;border:1px solid #2a2a4a;color:#808090;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+
+  const updatePreview = () => {
+    const s=parseFloat(mo.querySelector('#gf-start').value)||0;
+    const e=parseFloat(mo.querySelector('#gf-end').value)||dur;
+    const fps=parseInt(mo.querySelector('#gf-fps').value)||12;
+    const mw=parseInt(mo.querySelector('#gf-w').value)||0;
+    const frames=Math.round((e-s)*fps);
+    const cv=document.getElementById('c');
+    const sw=mw>0?Math.min(mw,cv?.width||mw):cv?.width||480;
+    const sh=Math.round(sw*(cv?.height||sw)/(cv?.width||sw));
+    mo.querySelector('#gf-preview').textContent=`${frames}フレーム (${(e-s).toFixed(1)}s × ${fps}fps) — ${sw}×${sh}px — 推定${Math.round(frames*sw*sh/1024/4)}KB〜`;
+  };
+  mo.querySelectorAll('#gf-start,#gf-end,#gf-fps,#gf-w').forEach(el=>el.oninput=updatePreview);
+  updatePreview();
+
+  mo.querySelector('#gf-start-btn').onclick = async () => {
+    const startT=parseFloat(mo.querySelector('#gf-start').value)||0;
+    const endT=parseFloat(mo.querySelector('#gf-end').value)||dur;
+    const fps=parseInt(mo.querySelector('#gf-fps').value)||12;
+    const maxW=parseInt(mo.querySelector('#gf-w').value)||0;
+    if (endT<=startT) { alert('終了時刻は開始より大きくしてください'); return; }
+    const btn=mo.querySelector('#gf-start-btn');
+    const prog=mo.querySelector('#gf-progress');
+    const progText=mo.querySelector('#gf-prog-text');
+    const progBar=mo.querySelector('#gf-prog-bar');
+    btn.disabled=true; prog.style.display='block';
+
+    const mainCv=document.getElementById('c');
+    const origW=mainCv.width, origH=mainCv.height;
+    const outW=maxW>0?Math.min(maxW,origW):origW;
+    const outH=Math.round(outW*origH/origW);
+    const off=document.createElement('canvas');
+    off.width=outW; off.height=outH;
+    const ctx2=off.getContext('2d',{willReadFrequently:true});
+
+    const dt=1/fps, totalFrames=Math.round((endT-startT)*fps);
+    const savedT=ST.animPlayhead;
+    const savedVals=Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
+    const rawFrames=[];
+
+    for (let i=0;i<=totalFrames;i++) {
+      const t=Math.min(startT+i*dt,endT);
+      ST.animPlayhead=t; applyPlayheadToParams();
+      await new Promise(r=>requestAnimationFrame(r));
+      ST.cachedVerts=null; redraw();
+      await new Promise(r=>requestAnimationFrame(r));
+      ctx2.clearRect(0,0,outW,outH);
+      ctx2.drawImage(mainCv,0,0,outW,outH);
+      rawFrames.push(ctx2.getImageData(0,0,outW,outH).data);
+      const pct=Math.round(i/(totalFrames+1)*60);
+      progText.textContent=`フレームキャプチャ中: ${i}/${totalFrames+1}`;
+      progBar.style.width=pct+'%';
+      await new Promise(r=>setTimeout(r,8));
+    }
+
+    // Restore state
+    ST.animPlayhead=savedT;
+    for (const [k,v] of Object.entries(savedVals)) M.params[k].val=v;
+    ST.cachedVerts=null; redraw(); drawMultiTimeline();
+
+    progText.textContent='GIFエンコード中（数秒かかります）...';
+    progBar.style.width='65%';
+    await new Promise(r=>setTimeout(r,30));
+
+    let gif;
+    try {
+      gif=_makeGIF(rawFrames,outW,outH,fps);
+    } catch(err) {
+      alert('GIFエンコードに失敗しました: '+err.message);
+      btn.disabled=false; prog.style.display='none';
+      return;
+    }
+
+    progBar.style.width='100%';
+    progText.textContent=`完了: ${(gif.byteLength/1024).toFixed(1)}KB`;
+
+    const blob=new Blob([gif],{type:'image/gif'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='animation.gif'; a.click();
+    URL.revokeObjectURL(url);
+
+    document.getElementById('lbl-status').textContent=`GIF書き出し完了: ${outW}×${outH} ${totalFrames+1}フレーム ${(gif.byteLength/1024).toFixed(1)}KB`;
+    btn.disabled=false;
+  };
+  mo.onclick=e=>{ if(e.target===mo) mo.remove(); };
 }
 
 // ==================== VIDEO RECORDING ====================
