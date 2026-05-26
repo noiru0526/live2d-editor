@@ -4307,7 +4307,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
-      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?subtext=0 ?giftemoji=🎁 ?bitseffect=100）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?showchat=1</td><td>チャット表示オーバーレイ（+?chatpos=tl/tr/bl/br ?chatwidth=N ?chatmax=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?scanlines=1</td><td>CRTスキャンライン効果（+?scanlines_opacity=0.0-1.0 ?scanlines_gap=2-8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?grain=1</td><td>フィルムグレイン効果（+?grain_opacity=0.0-1.0 ?grain_fps=N）</td></tr>
@@ -6282,6 +6282,8 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
   const _usp2=new URLSearchParams(location.search);
   const _subEffect=_usp2.get('subeffect')==='1';
   const _subPoseName=_usp2.get('subpose')||'';
+  const _subText=_usp2.get('subtext')!=='0'; // show popup text by default when subeffect=1
+  const _giftEmoji=_usp2.get('giftemoji')||'🎁';
   const _bitsThresh=Math.max(1,parseInt(_usp2.get('bitseffect')||'100',10)||100);
   // Q-093: ?raideffect=1 レイドエフェクト (?raidpose=ポーズ名)
   const _raidEffect=_usp2.get('raideffect')==='1';
@@ -6289,8 +6291,36 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
   function _parseTags(raw){const t={};(raw||'').split(';').forEach(p=>{const [k,v]=p.split('=');if(k)t[k]=v||'';});return t;}
   function _fireSub(tags){
     if(!_subEffect) return;
-    if(typeof window.triggerRain==='function') window.triggerRain('⭐',20);
-    if(typeof window.triggerFlash==='function') window.triggerFlash('ffc000',0.3);
+    const mid=(tags['msg-id']||'').toLowerCase();
+    const giver=tags['display-name']||tags['login']||'';
+    const plan=tags['msg-param-sub-plan']||'1000';
+    const tier=plan==='Prime'?'Prime':plan==='3000'?'Tier3':plan==='2000'?'Tier2':'Tier1';
+    if(mid==='submysterygift'){
+      // Mystery gift: N subs to community
+      const cnt=parseInt(tags['msg-param-mass-gift-count']||'1',10)||1;
+      const rainN=Math.min(80,cnt*4);
+      if(typeof window.triggerRain==='function') window.triggerRain(_giftEmoji,rainN);
+      if(typeof window.triggerFlash==='function') window.triggerFlash('00ffcc',0.4);
+      if(typeof window.triggerShake==='function'&&cnt>=5) window.triggerShake();
+      if(_subText&&typeof window.showPopText==='function')
+        window.showPopText(giver?(giver+' が '+cnt+' 人にサブギフト！🎊'):(cnt+' サブギフト！🎊'),{dur:4000,color:'00ffcc',size:20});
+    } else if(mid==='subgift'){
+      // Single gift sub
+      const recip=tags['msg-param-recipient-display-name']||tags['msg-param-recipient-user-name']||'';
+      if(typeof window.triggerRain==='function') window.triggerRain(_giftEmoji,15);
+      if(typeof window.triggerFlash==='function') window.triggerFlash('40ff80',0.25);
+      if(_subText&&typeof window.showPopText==='function')
+        window.showPopText(giver&&recip?(giver+' → '+recip+' サブギフト！'):('サブギフト！'),{dur:3500,color:'40ff80',size:18});
+    } else {
+      // Regular sub / resub
+      const months=parseInt(tags['msg-param-cumulative-months']||'0',10)||0;
+      if(typeof window.triggerRain==='function') window.triggerRain('⭐',20);
+      if(typeof window.triggerFlash==='function') window.triggerFlash('ffc000',0.3);
+      if(_subText&&months>1&&typeof window.showPopText==='function')
+        window.showPopText(giver?(giver+' '+months+'ヶ月継続！('+tier+')'):(months+'ヶ月継続！'),{dur:3000,color:'ffd060',size:17});
+      else if(_subText&&typeof window.showPopText==='function')
+        window.showPopText(giver?(giver+' がサブ！('+tier+')'):'新しいサブ！',{dur:3000,color:'ffd060',size:17});
+    }
     if(_subPoseName){const p=MD?.poses?.find(x=>x.name===_subPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},5000);}}
   }
   function _fireRaid(tags){
