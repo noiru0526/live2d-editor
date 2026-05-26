@@ -21,7 +21,8 @@ function createWindow() {
     width: 1400, height: 860,
     minWidth: 900, minHeight: 600,
     title: 'Live2D Editor — noiru',
-    backgroundColor: '#1a1e2e',
+    backgroundColor: '#1e1e1e',
+    icon: path.join(__dirname, process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -138,7 +139,7 @@ function createRiggerWindow() {
     width: 1600, height: 960,
     minWidth: 1100, minHeight: 650,
     title: 'Live2D Rigger — noiru',
-    backgroundColor: '#12151f',
+    backgroundColor: '#1e1e1e',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
