@@ -60,6 +60,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .pn{flex:1;font-size:11px;color:#a8a8a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pi.sel .pn{color:#e8e8e8;font-weight:600}
 .pi.in-group .pn{padding-left:12px}
+.pi-caret{font-size:9px;color:#555;width:13px;text-align:center;flex-shrink:0;cursor:pointer;user-select:none;transition:color .1s;line-height:1;margin-right:1px}
+.pi-caret:hover{color:#a0a0a0}
 .pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#2c2c2c;border:1px solid #383838}
 .pi-clip-badge{font-size:8px;color:#60a5fa;opacity:.7;flex-shrink:0}
 .pi-phys-badge{font-size:8px;color:#a78bfa;opacity:.7;flex-shrink:0}
@@ -611,6 +613,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div style="border-bottom:1px solid #252525;margin:-8px -10px 8px;padding:0">
           <div class="ci-row"><span class="ci-lbl">名前</span><input type="text" id="pp-name" class="ci-inp" onblur="applyPartName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" placeholder="パーツ名"></div>
           <div class="ci-row"><span class="ci-lbl">ID</span><span id="pp-id" class="ci-ro" title="自動生成ID"></span></div>
+          <div class="ci-row"><span class="ci-lbl">親パーツ</span><select class="ci-sel" id="ci-parent" onchange="applyPartParent(this.value)"><option value="">なし（ルート）</option></select></div>
           <div class="ci-row"><span class="ci-lbl">パーツ</span><select class="ci-sel" id="ci-group" onchange="applyPartGroup(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">デフォーマ</span><select class="ci-sel" id="ci-deformer" onchange="applyPartDeformer(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
@@ -1110,6 +1113,7 @@ let pendingImg = null, pendingDataURL = null;
 let expressions = [], activeExprIdx = -1;
 let groups = [], customParams = {};
 const collapsedGroups = new Set();
+const collapsedPartNodes = new Set();
 let deformers = [], selDeformer = -1;
 const collapsedDeformers = new Set();
 let paramBindings = {}; // { srcParam: [{target, srcMin, srcMax, dstMin, dstMax}] }
@@ -1203,6 +1207,7 @@ class Part {
     this.clipTo = null;
     this.groupId = null;
     this.deformerId = null;
+    this.parentId = null;
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
     this.altTextures = []; // [{name, dataURL, img}]
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
@@ -1390,6 +1395,7 @@ class Part {
       clipTo: this.clipTo,
       groupId: this.groupId,
       deformerId: this.deformerId,
+      parentId: this.parentId || null,
       physics: {...this.physics},
       opacityKFs: this.opacityKFs,
       hueKFs: this.hueKFs, satKFs: this.satKFs, briKFs: this.briKFs,
@@ -1419,6 +1425,7 @@ class Part {
     p.clipTo = o.clipTo || null;
     p.groupId = o.groupId || null;
     p.deformerId = o.deformerId || null;
+    p.parentId = o.parentId || null;
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.opacityKFs = o.opacityKFs || {};
     p.hueKFs = o.hueKFs || {}; p.satKFs = o.satKFs || {}; p.briKFs = o.briKFs || {};
@@ -3116,9 +3123,10 @@ function updatePartsUI() {
   const seenGroups = new Set();
   const seenDeformers = new Set();
 
-  function makePartItem(pt, i) {
+  function makePartItem(pt, i, depth=0, hasChildren=false) {
     const d = document.createElement('div');
     d.className = 'pi' + (i===selPart?' sel':'') + (selParts.has(i)&&i!==selPart?' multi-sel':'') + (pt.groupId?' in-group':'');
+    if (depth > 0) d.style.paddingLeft = (depth * 14) + 'px';
     d.draggable = true;
     d.ondragstart = () => { dragSrcIdx=i; };
     d.ondragover = (e) => { e.preventDefault(); d.classList.add('drag-over'); };
@@ -3134,6 +3142,15 @@ function updatePartsUI() {
       updatePartsUI(); render(); dragSrcIdx=-1;
     };
     d.onclick = (e) => selPartClick(i, e.shiftKey);
+    // Tree expand/collapse caret
+    if (hasChildren) {
+      const caret = document.createElement('span');
+      caret.className = 'pi-caret';
+      const collapsed = collapsedPartNodes.has(pt.id);
+      caret.textContent = collapsed ? '▶' : '▼';
+      caret.onclick = (e) => { e.stopPropagation(); if (collapsedPartNodes.has(pt.id)) collapsedPartNodes.delete(pt.id); else collapsedPartNodes.add(pt.id); updatePartsUI(); };
+      d.appendChild(caret);
+    }
     // Cubism-style status dot column
     const dotWrap = document.createElement('span');
     dotWrap.className = 'pi-dots';
@@ -3225,10 +3242,9 @@ function updatePartsUI() {
     return d;
   }
 
-  // Render deformers without children first (no parts assigned yet)
+  // Render deformers without child parts first
   deformers.forEach((def, di) => {
-    const hasKids = parts.some(p => p.deformerId === def.id);
-    if (hasKids) return; // will be shown when first child part appears
+    if (parts.some(p => p.deformerId === def.id)) return;
     const collapsed = collapsedDeformers.has(def.id);
     const dh = document.createElement('div');
     dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : def.type==='bone' ? ' bone' : '') + (di === selDeformer ? ' sel' : '');
@@ -3240,58 +3256,68 @@ function updatePartsUI() {
     seenDeformers.add(def.id);
   });
 
-  parts.forEach((pt, i) => {
-    // Apply search filter: skip parts that don't match (but always show selected)
-    if (partsFilter && !pt.name.toLowerCase().includes(partsFilter) && i !== selPart && !selParts.has(i)) return;
-    // Apply color label filter
-    if (partsColorFilter && i !== selPart && !selParts.has(i)) {
-      if (partsColorFilter === '__none__' ? pt.colorLabel : pt.colorLabel !== partsColorFilter) return;
-    }
-    // Deformer header
-    if (pt.deformerId && !seenDeformers.has(pt.deformerId)) {
-      const def = deformers.find(d => d.id === pt.deformerId);
-      if (def) {
-        seenDeformers.add(pt.deformerId);
-        const di = deformers.indexOf(def);
-        const collapsed = collapsedDeformers.has(pt.deformerId);
-        const count = parts.filter(p => p.deformerId === pt.deformerId).length;
-        const dh = document.createElement('div');
-        dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : def.type==='bone' ? ' bone' : '') + (di === selDeformer ? ' sel' : '');
-        const defIcon2 = def.type==='rotation'?'⟳':def.type==='bone'?'🦴':'⬡';
-        dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${defIcon2} ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
-        dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
-        dh.onclick = () => selectDeformer(di);
-        list.appendChild(dh);
+  // Recursive tree renderer
+  function renderPartsAtLevel(treeParentId, depth) {
+    parts.forEach((pt, i) => {
+      if ((pt.parentId || null) !== (treeParentId || null)) return;
+      // Search / color label filters
+      if (partsFilter && !pt.name.toLowerCase().includes(partsFilter) && i !== selPart && !selParts.has(i)) return;
+      if (partsColorFilter && i !== selPart && !selParts.has(i)) {
+        if (partsColorFilter === '__none__' ? pt.colorLabel : pt.colorLabel !== partsColorFilter) return;
       }
-      if (collapsedDeformers.has(pt.deformerId)) return;
-    } else if (pt.deformerId && collapsedDeformers.has(pt.deformerId)) {
-      return; // collapsed deformer
-    }
-
-    if (pt.groupId) {
-      const grp = groups.find(g => g.id === pt.groupId);
-      if (grp && !seenGroups.has(pt.groupId)) {
-        seenGroups.add(pt.groupId);
-        const collapsed = collapsedGroups.has(pt.groupId);
-        const count = parts.filter(p => p.groupId === pt.groupId).length;
-        const gh = document.createElement('div'); gh.className = 'pgroup';
-        gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-dup" title="グループを複製（全パーツをコピー）" style="background:none;border:none;color:#60a0d0;cursor:pointer;font-size:9px;padding:0 2px;">⧉</button><button class="pgroup-del" title="グループを削除">✕</button>`;
-        gh.querySelector('.pgroup-dup').onclick = (e) => { e.stopPropagation(); duplicateGroup(grp.id); };
-        gh.querySelector('.pgroup-del').onclick = (e) => { e.stopPropagation(); deleteGroup(grp.id); };
-        gh.onclick = (e) => {
-          if(e.ctrlKey||e.metaKey){
-            const anyCollapsed=groups.some(g=>collapsedGroups.has(g.id));
-            if(anyCollapsed){groups.forEach(g=>collapsedGroups.delete(g.id));setStatus('全グループ展開');}
-            else{groups.forEach(g=>collapsedGroups.add(g.id));setStatus('全グループ折りたたみ');}
-            updatePartsUI();
-          } else { toggleGroup(grp.id); }
-        };
-        list.appendChild(gh);
+      // Deformer header (root level only)
+      if (depth === 0 && pt.deformerId && !seenDeformers.has(pt.deformerId)) {
+        const def = deformers.find(d => d.id === pt.deformerId);
+        if (def) {
+          seenDeformers.add(pt.deformerId);
+          const di = deformers.indexOf(def);
+          const collapsed = collapsedDeformers.has(pt.deformerId);
+          const count = parts.filter(p => p.deformerId === pt.deformerId).length;
+          const dh = document.createElement('div');
+          dh.className = 'pdef' + (def.type==='rotation' ? ' rotation' : def.type==='bone' ? ' bone' : '') + (di === selDeformer ? ' sel' : '');
+          const defIcon2 = def.type==='rotation'?'⟳':def.type==='bone'?'🦴':'⬡';
+          dh.innerHTML = `<span class="pdef-caret">${collapsed?'▶':'▼'}</span><span class="pdef-name">${defIcon2} ${def.name}</span><span class="pdef-count">${count}</span><button class="pdef-del" title="削除">✕</button>`;
+          dh.querySelector('.pdef-del').onclick = (e) => { e.stopPropagation(); deleteDeformer(di); };
+          dh.onclick = () => selectDeformer(di);
+          list.appendChild(dh);
+        }
+        if (collapsedDeformers.has(pt.deformerId)) return;
+      } else if (depth === 0 && pt.deformerId && collapsedDeformers.has(pt.deformerId)) {
+        return;
       }
-      if (collapsedGroups.has(pt.groupId)) return;
-    }
-    list.appendChild(makePartItem(pt, i));
-  });
+      // Group header (root level only)
+      if (depth === 0 && pt.groupId) {
+        const grp = groups.find(g => g.id === pt.groupId);
+        if (grp && !seenGroups.has(pt.groupId)) {
+          seenGroups.add(pt.groupId);
+          const collapsed = collapsedGroups.has(pt.groupId);
+          const count = parts.filter(p => p.groupId === pt.groupId).length;
+          const gh = document.createElement('div'); gh.className = 'pgroup';
+          gh.innerHTML = `<span class="pgroup-caret">${collapsed?'▶':'▼'}</span><span class="pgroup-name">📁 ${grp.name}</span><span class="pgroup-count">${count}</span><button class="pgroup-dup" title="グループを複製（全パーツをコピー）" style="background:none;border:none;color:#60a0d0;cursor:pointer;font-size:9px;padding:0 2px;">⧉</button><button class="pgroup-del" title="グループを削除">✕</button>`;
+          gh.querySelector('.pgroup-dup').onclick = (e) => { e.stopPropagation(); duplicateGroup(grp.id); };
+          gh.querySelector('.pgroup-del').onclick = (e) => { e.stopPropagation(); deleteGroup(grp.id); };
+          gh.onclick = (e) => {
+            if(e.ctrlKey||e.metaKey){
+              const anyCollapsed=groups.some(g=>collapsedGroups.has(g.id));
+              if(anyCollapsed){groups.forEach(g=>collapsedGroups.delete(g.id));setStatus('全グループ展開');}
+              else{groups.forEach(g=>collapsedGroups.add(g.id));setStatus('全グループ折りたたみ');}
+              updatePartsUI();
+            } else { toggleGroup(grp.id); }
+          };
+          list.appendChild(gh);
+        }
+        if (collapsedGroups.has(pt.groupId)) return;
+      }
+      // Render this part with tree depth
+      const hasChildren = parts.some(p => (p.parentId || null) === pt.id);
+      list.appendChild(makePartItem(pt, i, depth, hasChildren));
+      // Recurse into children
+      if (hasChildren && !collapsedPartNodes.has(pt.id)) {
+        renderPartsAtLevel(pt.id, depth + 1);
+      }
+    });
+  }
+  renderPartsAtLevel(null, 0);
 
   document.getElementById('sb').textContent = parts.length>0
     ? `${parts.length}パーツ | ${groups.length}グループ | モード:${mode} | Ctrl+Z:元に戻す`
@@ -3359,6 +3385,13 @@ function updatePartPropsUI() {
     grpSel.value = pt.groupId || '';
     const ciGrp = document.getElementById('ci-group');
     if (ciGrp) { ciGrp.innerHTML = grpSel.innerHTML; ciGrp.value = pt.groupId || ''; }
+    // Parent part dropdown (tree hierarchy)
+    const ciParent = document.getElementById('ci-parent');
+    if (ciParent) {
+      ciParent.innerHTML = '<option value="">なし（ルート）</option>';
+      parts.forEach(p => { if (p.id === pt.id) return; const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; ciParent.appendChild(o); });
+      ciParent.value = pt.parentId || '';
+    }
     // CI opacity sync
     const ciOp = document.getElementById('ci-op'); const ciOpV = document.getElementById('ci-op-v');
     if (ciOp) { ciOp.value = op; if(ciOpV) ciOpV.textContent = op+'%'; }
@@ -3424,6 +3457,20 @@ function applyPartName(v) {
   if (!name || name === parts[selPart].name) return;
   saveState();
   parts[selPart].name = name;
+  updatePartsUI();
+}
+function applyPartParent(pid) {
+  if (selPart<0||selPart>=parts.length) return;
+  const pt = parts[selPart];
+  // Guard against circular reference
+  if (pid && pid === pt.id) return;
+  let check = pid ? parts.find(p => p.id === pid) : null;
+  while (check) {
+    if (check.id === pt.id) return; // circular
+    check = check.parentId ? parts.find(p => p.id === check.parentId) : null;
+  }
+  saveState();
+  pt.parentId = pid || null;
   updatePartsUI();
 }
 function applyPartZOrder(v) {
