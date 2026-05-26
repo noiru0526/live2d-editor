@@ -4347,6 +4347,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ticker=TEXT</td><td>画面下部スクロールテキスト（+?tickerspeed=80 ?tickercolor= ?tickerbg=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcmd=!hi:shake</td><td>カスタムチャットコマンド（!hi:shake,!love:rain:💗,!wave:pose:wavename,!clip:clip:clipname）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?reactioncooldown=N</td><td>グローバルエフェクトクールダウン（N秒間は連続エフェクトをブロック・スパム防止）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
@@ -5635,6 +5636,28 @@ window.saveScreenshot=function(filename){_doScreenshot(false,filename);};
     else if(ev.key==='b'||ev.key==='B'){window.triggerBlur();ev.preventDefault();}
     else if(ev.key==='g'||ev.key==='G'){window.triggerGlitch();ev.preventDefault();}
   });
+})();
+// Q-112: ?reactioncooldown=N グローバルエフェクトクールダウン（N秒間は連続エフェクトをブロック）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _cd=parseFloat(_usp.get('reactioncooldown'));
+  if(!(_cd>0)) return;
+  const _cdMs=Math.min(30000,_cd*1000);
+  let _lastFired=0;
+  const _fns=['triggerShake','triggerFlash','triggerBlur','triggerGlitch','triggerRain','triggerBorderAlert'];
+  function _wrap(name){
+    const orig=window[name];if(typeof orig!=='function') return;
+    window[name]=function(...args){
+      const now=Date.now();
+      if(now-_lastFired<_cdMs) return; // on cooldown
+      _lastFired=now;
+      return orig.apply(this,args);
+    };
+  }
+  // Apply wrappers after effects are initialized (they may be defined later)
+  window.addEventListener('load',()=>_fns.forEach(_wrap));
+  // Also try immediately in case already defined
+  _fns.forEach(_wrap);
 })();
 // Keyup: release Shift+1〜9 momentary pose → restore default
 let _momentaryPoseKey=null; // '1'〜'9' or null
