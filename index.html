@@ -757,6 +757,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div class="mcfg-row"><button onclick="showMouthShapeSetup()">口形 A/I/U セットアップ</button></div>
       <div class="mcfg-row"><button onclick="showEyeLookSetup()" style="color:#a0ffd0;">目線（eyeX/Y）セットアップ</button></div>
       <div class="mcfg-row"><button onclick="deformQC()" style="color:#ffd060;" title="変形データの問題を自動検出">🔍 変形QCチェック</button></div>
+      <div class="mcfg-row"><button onclick="showModelQC()" style="color:#80ffcc;" title="モデル全体の品質チェック（メッシュ・頂点・パラメータ・サマリー）">📋 モデルQCレポート</button></div>
       <div class="mcfg-row"><button onclick="clearAllDef()" style="color:#f08080">全変形データ削除</button></div>
       <div class="mcfg-row"><button onclick="fullAutoRig()" style="color:#c0ff80;background:#1a2010;border-color:#3a5020;" title="顔パーツに自動リグ（デフォーマー一括配置）">🤖 自動リグ（デフォーマー一括配置）</button></div>
       </div><!-- preset-body -->
@@ -11033,6 +11034,80 @@ function deformQC() {
   }
   if (issues.length===0) alert('✅ 変形QCに問題はありませんでした！');
   else alert(`⚠️ ${issues.length} 件の問題:\n\n${issues.slice(0,12).join('\n')}${issues.length>12?`\n...他${issues.length-12}件`:''}`);
+}
+
+// Q-113: モデルQCレポート（メッシュ品質・頂点・パラメータ使用率サマリー）
+function showModelQC() {
+  const warns=[],infos=[],oks=[];
+  const parts=M.parts||[];
+  let totalVerts=0,totalTris=0,totalDef=0;
+  // --- Mesh checks ---
+  for(const p of parts){
+    const nv=p.mesh?.verts?.length||0;
+    const nt=p.mesh?.tris?.length||0;
+    totalVerts+=nv;totalTris+=nt;
+    if(nv===0) warns.push(`⚠️ パーツ「${p.name}」: 頂点なし`);
+    else if(nt===0) warns.push(`⚠️ パーツ「${p.name}」: 三角形なし（${nv}頂点が孤立）`);
+    else {
+      // Isolated vertices (not referenced in any tri)
+      const used=new Set(p.mesh.tris.flat());
+      const isolated=p.mesh.verts.filter((_,i)=>!used.has(i)).length;
+      if(isolated>0) warns.push(`⚠️ パーツ「${p.name}」: 孤立頂点 ${isolated}個`);
+      // Degenerate triangles (area≈0 at rest)
+      let degen=0;
+      for(const [i0,i1,i2] of p.mesh.tris){
+        const v0=p.mesh.verts[i0],v1=p.mesh.verts[i1],v2=p.mesh.verts[i2];
+        if(!v0||!v1||!v2) continue;
+        const area=Math.abs((v1.x-v0.x)*(v2.y-v0.y)-(v2.x-v0.x)*(v1.y-v0.y));
+        if(area<0.1) degen++;
+      }
+      if(degen>0) warns.push(`⚠️ パーツ「${p.name}」: 縮退三角形 ${degen}個`);
+      // Count def keys
+      totalDef+=Object.keys(p.def||{}).length;
+    }
+  }
+  // --- Parameter checks ---
+  const params=Object.entries(M.params||{});
+  let unusedParams=0,totalKfs=0;
+  for(const [name,param] of params){
+    const kfs=param.kfs||[];
+    totalKfs+=kfs.length;
+    const hasAnyDef=parts.some(p=>kfs.some(k=>p.def?.[(name+':'+k)]));
+    const inAnim=Object.keys(M.animation?.tracks||{}).includes(name)||
+      (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).includes(name));
+    if(!hasAnyDef&&!inAnim) unusedParams++;
+  }
+  if(unusedParams>0) infos.push(`ℹ️ 未使用パラメータ: ${unusedParams}個（変形なし・アニメなし）`);
+  // --- Deformer checks ---
+  const defs=M.deformers||[];
+  const defIds=new Set(defs.map(d=>d.id));
+  for(const d of defs){
+    if(d.parentId&&!defIds.has(d.parentId)) warns.push(`⚠️ デフォーマー「${d.name}」: 親デフォーマーID不明`);
+    if((d.type==='warp'||d.type==='rotation')&&(!d.cols||!d.rows||d.cols<2||d.rows<2))
+      warns.push(`⚠️ デフォーマー「${d.name}」: グリッドが小さすぎる(${d.cols}×${d.rows})`);
+  }
+  // --- OK items ---
+  if(parts.length>0) oks.push(`✅ パーツ数: ${parts.length}`);
+  if(totalVerts>0) oks.push(`✅ 総頂点数: ${totalVerts} / 三角形: ${totalTris}`);
+  if(totalKfs>0) oks.push(`✅ パラメータ ${params.length}個 / KFキー ${totalKfs}個`);
+  if(defs.length>0) oks.push(`✅ デフォーマー: ${defs.length}個`);
+  if(totalDef>0) oks.push(`✅ 変形データ: ${totalDef}キー`);
+  const lines=[
+    `<strong style="color:#80ffcc;font-size:13px">📋 モデルQCレポート</strong>`,
+    `<span style="color:#3a6a4a;font-size:10px">パーツ ${parts.length} / パラメータ ${params.length} / デフォーマー ${defs.length}</span>`,
+    '',
+    ...(warns.length?['<strong style="color:#ffd060">警告</strong>',...warns.map(w=>`<span style="color:#ffd060">${w}</span>`),'']: ['<span style="color:#60d890">⚠️ 警告なし</span>','']),
+    ...(infos.length?[...infos.map(i=>`<span style="color:#a0c0ff">${i}</span>`),'']: []),
+    ...(oks.length?['<strong style="color:#60d890">OK</strong>',...oks.map(o=>`<span style="color:#60d890">${o}</span>`)]: []),
+  ];
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML=`<div style="background:#0e1120;border:1px solid rgba(80,200,140,.4);border-radius:10px;padding:18px 22px;max-width:480px;width:90vw;max-height:70vh;overflow-y:auto;font-size:11px;font-family:monospace;line-height:1.9;color:#c8d4f0;">
+    ${lines.join('<br>')}<br>
+    <button onclick="this.closest('div').parentElement.remove()" style="margin-top:10px;background:#2a3050;border:1px solid #3a4878;color:#80a0ff;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;">閉じる</button>
+  </div>`;
+  ov.addEventListener('click',ev=>{if(ev.target===ov)ov.remove();});
+  document.body.appendChild(ov);
 }
 
 function addNewPart() {
