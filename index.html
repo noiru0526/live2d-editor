@@ -4339,7 +4339,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mute=1</td><td>BGMをミュート</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fps=N</td><td>顔追跡FPS上限（例: 15・30）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ws=URL</td><td>ゲームWS連携（shake/flash/blur/rain/speak/setPose）</td></tr>
-      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?obsws=URL</td><td>OBS WS v5連携（+?obspassword=PW ?obsscenes=場面:表情）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?obsws=URL</td><td>OBS WS v5連携（+?obspassword=PW ?obsscenes=場面:表情 ?obsclips=場面:クリップ名）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?sync=CH</td><td>マルチタブ同期（+?syncrole=leader/follower）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbubble=1</td><td>チャット吹き出し表示（+?chatbubble_time=秒 ?chatbubble_pos=tc/tl/tr/bc/bl/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rain=emoji</td><td>絵文字レイン自動ループ（+?raincount=15 ?raininterval=8）</td></tr>
@@ -6846,7 +6846,12 @@ window.addEventListener('message',ev=>{
   // Parse scene→pose map: "Scene1:happy,Scene2:sad"
   const _sceneMap={};
   (_usp.get('obsscenes')||'').split(',').forEach(pair=>{
-    const [sc,pn]=pair.split(':');if(sc&&pn)_sceneMap[sc.trim()]=pn.trim();
+    const i=pair.indexOf(':');if(i>0)_sceneMap[pair.slice(0,i).trim()]=pair.slice(i+1).trim();
+  });
+  // Q-098: Parse scene→clip map: "Scene1:clipname,Scene2:default"
+  const _clipSceneMap={};
+  (_usp.get('obsclips')||'').split(',').forEach(pair=>{
+    const i=pair.indexOf(':');if(i>0)_clipSceneMap[pair.slice(0,i).trim()]=pair.slice(i+1).trim();
   });
   async function _auth(pw,salt,challenge){
     const enc=new TextEncoder();
@@ -6860,6 +6865,12 @@ window.addEventListener('message',ev=>{
     if(poseName){
       const p=MD?.poses?.find(x=>x.name===poseName);
       if(p){activePose=p;poseBlend=0;if(typeof updateExprList==='function'){const idx=MD.poses.indexOf(p);updateExprList(idx+1);}}
+    }
+    // Q-098: switch animation clip on scene change
+    const clipName=_clipSceneMap[name];
+    if(clipName&&typeof switchClip==='function'){
+      const ci=(MD.animClips||[]).findIndex(c=>c.name===clipName);
+      if(ci>=0)switchClip(ci);else if(clipName==='default'||clipName==='__default__')switchClip(-1);
     }
   }
   let _ows=null,_owsRetry=0,_owsTimer=null,_owsStopped=false,_reqId=1;
