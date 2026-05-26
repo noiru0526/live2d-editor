@@ -4476,6 +4476,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?birthdaymode=1</td><td>誕生日モード（虹色バナー+紙吹雪+レインボーフィルタ）・?birthdayname=</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?livenotif=1</td><td>配信開始/終了通知・?livestart=シーン名・?livestop=・?livemsgon=・?livemsgoff=</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?paletteswap=PRESET</td><td>カラーテーマ一括変更（sakura/ocean/forest/sunset/midnight/neon）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bounce=1</td><td>音声連動バウンス（上下弾み）・?bounceamp=10・?bouncespd=2</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?breathe=1</td><td>呼吸アニメーション（自然な拡縮）・?breatherate=0.25・?breatheamp=0.012</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?headbob=1</td><td>ヘッドボブ（音声連動頭振り）・?bobintensity=12・?bobmode=smooth/beat</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8658,6 +8661,86 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-207: ?bounce=1 バウンスアニメーション（アバターが音声に合わせて上下に弾む）
+// 例: ?bounce=1&bounceamp=12&bouncespd=2.5
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('bounce')!=='1') return;
+  const _amp=Math.min(40,Math.max(1,parseFloat(_usp.get('bounceamp'))||10));
+  const _spd=Math.min(8,Math.max(0.1,parseFloat(_usp.get('bouncespd'))||2));
+  const _wrap=document.getElementById('wrap'); if(!_wrap) return;
+  let _t=0;
+  function _frame(){
+    let lvl=0;
+    if(typeof window.getAudioLevel==='function') lvl=Math.min(1,window.getAudioLevel()*2);
+    const base=Math.abs(Math.sin(_t*_spd*0.04))*_amp;
+    const extra=lvl*_amp*0.6;
+    const ty=-(base+extra);
+    const sx=1+lvl*0.03;
+    const existing=_wrap.dataset.baseTransform||'';
+    _wrap.style.transform=existing+`translateY(${ty.toFixed(2)}px) scaleX(${(1+(lvl*0.02)).toFixed(3)}) scaleY(${(1-lvl*0.015).toFixed(3)})`;
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-208: ?breathe=1 呼吸アニメーション（胸が微妙に拡縮する自然な呼吸感）
+// 例: ?breathe=1&breatherate=0.3&breatheamp=0.015
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('breathe')!=='1') return;
+  const _rate=Math.min(2,Math.max(0.05,parseFloat(_usp.get('breatherate'))||0.25));
+  const _amp=Math.min(0.05,Math.max(0.002,parseFloat(_usp.get('breatheamp'))||0.012));
+  // Try to set Live2D breath parameter if available
+  let _t=0;
+  function _frame(){
+    const breath=Math.sin(_t*_rate*0.04);
+    // Inject into Live2D param PARAM_BREATH if exists
+    if(typeof M!=='undefined'&&M&&M.params){
+      const bp=M.params['PARAM_BREATH']||M.params['ParamBreath']||M.params['breath'];
+      if(bp){ bp.val=Math.max(bp.min||0,Math.min(bp.max||1,(bp.max||1)*0.5+breath*(bp.max||1)*_amp*20)); }
+    }
+    // Fallback: subtle scale on wrap
+    const _wrap=document.getElementById('wrap');
+    if(_wrap&&(!M||!M.params)){
+      const sc=1+breath*_amp;
+      _wrap.style.transform=(_wrap.dataset.baseTransform||'')+`scale(${sc.toFixed(4)},${(1+breath*_amp*0.8).toFixed(4)})`;
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-209: ?headbob=1 ヘッドボブ（音声・音楽に合わせてアバターが頭を振る）
+// 例: ?headbob=1&bobintensity=15&bobmode=beat
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('headbob')!=='1') return;
+  const _intensity=Math.min(30,Math.max(1,parseFloat(_usp.get('bobintensity'))||12));
+  const _mode=_usp.get('bobmode')||'smooth'; // smooth/beat
+  let _t=0;
+  // Try to inject into head rotation param
+  function _frame(){
+    let lvl=0;
+    if(typeof window.getAudioLevel==='function') lvl=Math.min(1,window.getAudioLevel()*2.5);
+    let angle=0;
+    if(_mode==='beat'){
+      angle=Math.sin(_t*0.15)*_intensity*Math.max(0.1,lvl);
+    } else {
+      angle=Math.sin(_t*0.08)*_intensity*0.5+lvl*_intensity*0.5*Math.sin(_t*0.2);
+    }
+    // Inject into S smoothed head if available (override additive)
+    if(typeof S!=='undefined'&&S){
+      if(typeof S.hz==='number') S.hz=(S.hz||0)*0.7+angle*0.3;
+    }
+    // Fallback: CSS rotation on wrap
+    const _wrap=document.getElementById('wrap');
+    if(_wrap&&(typeof S==='undefined'||!S)){
+      const existing=_wrap.dataset.baseTransform||'';
+      _wrap.style.transform=existing+`rotateZ(${(angle*0.3).toFixed(2)}deg)`;
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-204: ?birthdaymode=1 誕生日モード（虹色テキスト・紙吹雪・特別メッセージ）
 // 例: ?birthdaymode=1&birthdayname=noiru
