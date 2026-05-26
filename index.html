@@ -4325,6 +4325,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?pip=1</td><td>ピクチャーインピクチャー自動起動（⧉PiPボタンも追加・window.openAvatarPiP()で制御）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgimage=URL</td><td>背景画像URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgvideo=URL</td><td>背景動画URL（起動時適用。実行時オーバーライド）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgblur=N</td><td>背景ブラー（背景画像/動画をぼかす・px単位）/ ?letterbox=1: シネマ黒帯（+?letterboxsize=12）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?micthresh=T:EFF</td><td>マイク音量閾値エフェクト（例: 0.7:shake,0.9:rain:🎉）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoduck=1</td><td>BGM自動ダッキング（TTS発話・驚き時BGM音量自動減衰 +?autoduckratio=0.15）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
@@ -5755,6 +5756,27 @@ function applyPoseBlend(dt){
     // Q-091: ?bgvideo=URL 背景動画URLパラメータ（実行時オーバーライド）
     const _bgv=usp.get('bgvideo');
     if(_bgv){const _bvEl=document.createElement('video');_bvEl.autoplay=true;_bvEl.loop=true;_bvEl.muted=true;_bvEl.playsInline=true;_bvEl.src=_bgv;_bvEl.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;';document.body.appendChild(_bvEl);}
+    // Q-106: ?bgblur=N 背景ブラー（背景画像/動画をぼかす、px単位）
+    const _bgBlur=parseFloat(usp.get('bgblur'));
+    if(_bgBlur>0&&isFinite(_bgBlur)){
+      const _blurStyle=document.createElement('style');
+      _blurStyle.textContent=`body::before{content:'';position:fixed;inset:-${Math.ceil(_bgBlur*2)}px;background:inherit;filter:blur(${_bgBlur}px);z-index:-2;background-size:cover;background-position:center;background-repeat:no-repeat;}body{background-attachment:fixed;}`;
+      document.head.appendChild(_blurStyle);
+      // For video bg: wrap in a container with blur
+      const _bvElBg=document.querySelector('video[style*="z-index:-1"]');
+      if(_bvElBg) _bvElBg.style.filter=`blur(${_bgBlur}px)`;
+      // blur dynamically added video
+      const _bgObs=new MutationObserver(muts=>{for(const m of muts)for(const n of m.addedNodes){if(n.tagName==='VIDEO'&&n.style.zIndex==='-1')n.style.filter=`blur(${_bgBlur}px)`;}});
+      _bgObs.observe(document.body,{childList:true});
+    }
+    // Q-106: ?letterbox=1 シネマレターボックス（上下黒帯）?letterboxsize=N%（デフォルト12）
+    const _lb=usp.get('letterbox');
+    if(_lb==='1'||_lb==='true'){
+      const _lbs=Math.min(25,Math.max(3,parseFloat(usp.get('letterboxsize'))||12));
+      const _lbEl=document.createElement('div');
+      _lbEl.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:95;background:linear-gradient(to bottom,rgba(0,0,0,1) 0%,rgba(0,0,0,1) ${_lbs}%,transparent ${_lbs}%,transparent ${100-_lbs}%,rgba(0,0,0,1) ${100-_lbs}%,rgba(0,0,0,1) 100%);`;
+      document.body.appendChild(_lbEl);
+    }
     const npText=usp.get('nameplate');
     if(npText){
       const np=document.getElementById('nameplate');
