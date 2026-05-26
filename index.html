@@ -4165,6 +4165,15 @@ canvas.mirrored{transform:scaleX(-1);}
 #watermark-ov span{font-family:'Segoe UI',sans-serif;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.3);}
 #streamtimer{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#a0ffc0;background:rgba(10,14,30,.75);border:1px solid rgba(78,255,160,.2);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.06em;backdrop-filter:blur(4px);}
 #streamtimer.show{display:block;}
+/* Lower third (?lowerthird=TEXT) */
+#lowerthird-ov{display:none;position:fixed;bottom:48px;left:0;pointer-events:none;z-index:61;max-width:80vw;}
+#lowerthird-ov.show{display:block;animation:ltSlideIn .5s cubic-bezier(.22,1,.36,1) both;}
+@keyframes ltSlideIn{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes ltSlideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(-110%);opacity:0}}
+#lt-bar{height:4px;width:100%;background:var(--lt-color,#4e7cff);}
+#lt-main{background:rgba(8,10,24,.92);padding:6px 20px 6px 14px;display:flex;flex-direction:column;gap:2px;}
+#lt-name{font-family:'Segoe UI',sans-serif;font-size:16px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.02em;}
+#lt-title{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--lt-color,#4e7cff);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;}
 #ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
 #ticker-ov.show{display:flex;align-items:center;}
 #ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:#a0d0ff;letter-spacing:.04em;}
@@ -4263,6 +4272,7 @@ ${includeCtrlPanel ? `
 <div id="death-counter"></div>
 <div id="songcard"><div class="sc-title" id="sc-title">曲名</div><div class="sc-artist" id="sc-artist">アーティスト</div></div>
 <div id="streamtimer"></div>
+<div id="lowerthird-ov"><div id="lt-bar"></div><div id="lt-main"><div id="lt-name"></div><div id="lt-title"></div></div></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
 <div id="watermark-ov"><span id="watermark-txt"></span></div>
 <div id="poptext-ov"></div>
@@ -4328,6 +4338,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hotword=w:eff</td><td>チャットホットワードエフェクト（rain/rain:🎊/flash/shake/blur/border、複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
@@ -6929,6 +6940,10 @@ window.addEventListener('message',ev=>{
     case 'roulette':
       if(typeof window.triggerRoulette==='function') window.triggerRoulette(d.options);
       reply({ok:true}); break;
+    case 'lowerthird':
+      if(d.hide){if(typeof window.hideLowerThird==='function')window.hideLowerThird();}
+      else if(typeof window.showLowerThird==='function') window.showLowerThird(d.name||d.text,d.title,d.dur);
+      reply({ok:true}); break;
     default: reply({ok:false,error:'unknown command'});
   }
 });
@@ -7384,6 +7399,43 @@ window.addEventListener('message',ev=>{
     _raf=requestAnimationFrame(_tick);
   });
   window.addEventListener('pagehide',()=>cancelAnimationFrame(_raf));
+})();
+// Lower third (?lowerthird=TEXT ?lowerthirdtitle=SUB ?lowerthirdcolor=RRGGBB ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br)
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _name=_usp.get('lowerthird');if(!_name) return;
+  const _sub=_usp.get('lowerthirdtitle')||'';
+  const _hex=(_usp.get('lowerthirdcolor')||'4e7cff').replace(/^#/,'');
+  const _dur=parseFloat(_usp.get('lowerthirddur'))||0; // 0=forever
+  const _pos=_usp.get('lowerthirdpos')||'bl';
+  const _ov=document.getElementById('lowerthird-ov');
+  const _nm=document.getElementById('lt-name');
+  const _ti=document.getElementById('lt-title');
+  const _br=document.getElementById('lt-bar');
+  if(!_ov||!_nm||!_ti||!_br) return;
+  _ov.style.setProperty('--lt-color','#'+_hex);
+  _nm.textContent=_name;
+  _ti.textContent=_sub;_ti.style.display=_sub?'block':'none';
+  if(_pos==='bc'){_ov.style.left='50%';_ov.style.transform='translateX(-50%)';}
+  else if(_pos==='br'){_ov.style.left='auto';_ov.style.right='0';}
+  _ov.classList.add('show');
+  if(_dur>0) setTimeout(()=>{
+    _ov.style.animation='ltSlideOut .5s ease forwards';
+    setTimeout(()=>{_ov.classList.remove('show');},500);
+  },_dur*1000);
+  // API: window.showLowerThird(name,title,dur) / window.hideLowerThird()
+  window.showLowerThird=function(name,title,dur){
+    _nm.textContent=name||'';
+    _ti.textContent=title||'';_ti.style.display=title?'block':'none';
+    _ov.style.animation='';_ov.offsetWidth; // reflow
+    _ov.style.animation='ltSlideIn .5s cubic-bezier(.22,1,.36,1) both';
+    _ov.classList.add('show');
+    if(dur>0) setTimeout(window.hideLowerThird,dur*1000);
+  };
+  window.hideLowerThird=function(){
+    _ov.style.animation='ltSlideOut .5s ease forwards';
+    setTimeout(()=>{_ov.classList.remove('show');},500);
+  };
 })();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
