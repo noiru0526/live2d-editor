@@ -4512,6 +4512,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gamestatus=1</td><td>ゲームステータス（noiru-gameでtitle/score/level/health/custom表示）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fpsmonitor=1</td><td>FPSモニター・?fpspos=tl・緑/黄/赤で色変化</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?latencycheck=1</td><td>postMessage往復レイテンシ計測・?latencypos=br</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neontext=TEXT</td><td>ネオン発光テキスト・?neontextcolor=00eeff・?neontextsize=48・?neontextpos=tc</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlayswitch=1</td><td>複数オーバーレイのキー切替・?oslist=ID1,ID2・?oskey=Tab</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatwords=1</td><td>チャット頻出単語クラウド・?wordmax=8・?wordpos=br</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8694,6 +8697,117 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-243: ?neontext=TEXT ネオン発光テキスト（グロー付きの目立つラベル常時表示）
+// 例: ?neontext=LIVE&neontextpos=tc&neontextcolor=ff00cc
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _txt=_usp.get('neontext'); if(!_txt) return;
+  const _col=_usp.get('neontextcolor')||'00eeff';
+  const _sz=Math.min(96,Math.max(16,parseInt(_usp.get('neontextsize'))||48));
+  const _pos=_usp.get('neontextpos')||'tc';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b'); const _isC=_pos.includes('c');
+  const _el=document.createElement('div');
+  _el.id='neontext-ov';
+  const _posStyle=_isC?'left:50%;transform:translateX(-50%)':(_isR?'right:16px':'left:16px');
+  Object.assign(_el.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',
+    fontSize:_sz+'px',fontFamily:'sans-serif',fontWeight:'900',
+    color:'#'+_col,letterSpacing:'0.1em',
+    textShadow:`0 0 10px #${_col}, 0 0 20px #${_col}, 0 0 40px #${_col}, 0 0 60px #${_col}`,
+    zIndex:'500',pointerEvents:'none',userSelect:'none'
+  });
+  _el.style.cssText+=';'+_posStyle;
+  _el.textContent=_txt;
+  document.body.appendChild(_el);
+  // Pulse animation
+  const _style=document.createElement('style');
+  _style.textContent=`@keyframes _neonPulse {
+    0%,100%{ opacity:1 }
+    50%{ opacity:0.8; filter:brightness(1.3) }
+  }
+  #neontext-ov { animation: _neonPulse 3s ease-in-out infinite; }`;
+  document.head.appendChild(_style);
+  window.setNeonText=t=>{ _el.textContent=t; };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='neontext'&&d.text) _el.textContent=d.text;
+  });
+})();
+// Q-244: ?overlayswitch=1 オーバーレイ表示切替（複数のオーバーレイをキーで順番に切替）
+// 例: ?overlayswitch=1&oslist=chatlog,schedule,scoreboard&oskey=Tab
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('overlayswitch')!=='1') return;
+  const _list=(_usp.get('oslist')||'').split(',').filter(Boolean);
+  if(!_list.length) return;
+  const _key=_usp.get('oskey')||'Tab';
+  let _current=-1;
+  function _show(idx){
+    _list.forEach((id,i)=>{
+      const el=document.getElementById(id+'-ov')||document.getElementById(id);
+      if(el) el.style.display=(i===idx)?'':'none';
+    });
+    _current=idx;
+  }
+  function _next(){
+    _show((_current+1)%_list.length);
+  }
+  // Init: show first, hide rest
+  setTimeout(()=>{ _show(0); },500);
+  document.addEventListener('keydown',e=>{
+    if(e.key===_key){ e.preventDefault(); _next(); }
+  });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='osswitch') _next();
+    if(d.type==='noiru-cmd'&&d.cmd==='osshow'&&d.id){
+      const idx=_list.indexOf(d.id);
+      if(idx>=0) _show(idx);
+    }
+  });
+})();
+// Q-245: ?chatwords=1 チャット単語クラウド（頻出単語を大きく表示するワードクラウド風）
+// 例: ?chatwords=1&wordmax=10&wordpos=br
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatwords')!=='1') return;
+  const _max=Math.min(20,Math.max(3,parseInt(_usp.get('wordmax'))||8));
+  const _pos=_usp.get('wordpos')||'br';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='chatwords-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'200px',height:'140px',overflow:'hidden',
+    background:'rgba(0,0,0,0.5)',borderRadius:'10px',padding:'8px',
+    zIndex:'500',fontFamily:'sans-serif',pointerEvents:'none'
+  });
+  document.body.appendChild(_wrap);
+  const _counts={};
+  const _stopwords=new Set('は|が|を|に|の|で|と|も|や|て|て|から|まで|より|でも|でも|けど|そして|でも|あの|この|その|いい|よく|また|ない|する|した|してる|されて|してる|ます|です|ました|ません|こと|もの|ところ|わ|よ|ね|な'.split('|'));
+  function _render(){
+    const sorted=Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,_max);
+    if(!sorted.length) return;
+    const maxC=sorted[0][1]||1;
+    _wrap.innerHTML=sorted.map(([w,n])=>{
+      const sz=12+Math.round((n/maxC)*20);
+      const colors=['#6af','#ffd700','#f88','#8f8','#c8f','#fa0'];
+      const col=colors[Math.abs(w.charCodeAt(0))%colors.length];
+      return `<span style="display:inline-block;font-size:${sz}px;color:${col};margin:2px 3px;opacity:${0.5+n/maxC*0.5};">${w}</span>`;
+    }).join('');
+  }
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const words=d.msg.match(/[぀-ヿ一-龯\w]{2,}/gu)||[];
+      words.forEach(w=>{
+        if(!_stopwords.has(w)&&w.length>=2) _counts[w]=(_counts[w]||0)+1;
+      });
+      _render();
+    }
+  });
+  _render();
 })();
 // Q-240: ?gamestatus=1 ゲームステータス表示（外部から受け取ったゲーム情報を画面に表示）
 // postMessage {type:'noiru-game', title, score, level, health, custom}
