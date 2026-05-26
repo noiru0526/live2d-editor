@@ -4395,6 +4395,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?dropshadow=1</td><td>アバタードロップシャドウ（+?shadowcolor=000000 ?shadowblur=15 ?shadowx=0 ?shadowy=8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?confetti=1</td><td>起動時紙吹雪（window.triggerConfetti()・noiru-cmd confetti・+?confetticount=80 ?confettidur=4）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neonborder=RRGGBB</td><td>ネオン発光ボーダー（+?neonpulse=1 点滅・?neonspeed=2秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?typingeffect=1</td><td>チャットバブルにタイピングアニメーション（+?typingspeed=30ms/字）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?followalert=1</td><td>フォロー通知エフェクト（紙吹雪＋ローワーサード・+?followsound=URL ?followexpr=ポーズ名）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avataranchor=bottom</td><td>アバター表示基準点（bottom/top/center・OBSでの配置を固定）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -6851,6 +6854,35 @@ function _handleChatMsg(rawMsg){
     if(!_showing){_show(user,msg,color);}else if(_queue.length<3){_queue.push({user,msg,color});}
   });
 })();
+// Q-126: ?typingeffect=1 チャットバブルにタイピングアニメーション（文字が1字ずつ現れる）
+// ?typingspeed=30 1文字あたりのms（デフォルト30ms）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('typingeffect')!=='1') return;
+  const _spd=Math.min(200,Math.max(5,parseInt(_usp.get('typingspeed'))||30));
+  const _ov=document.getElementById('cb-ov');if(!_ov) return;
+  // MutationObserver: watch for new .cbb elements added to chat bubble overlay
+  const _obs=new MutationObserver(muts=>{
+    for(const mut of muts){
+      for(const node of mut.addedNodes){
+        if(node.nodeType!==1) continue;
+        const bubble=node.classList?.contains('cbb')?node:node.querySelector?.('.cbb');
+        if(!bubble) continue;
+        // Extract full text (preserve user span)
+        const userSpan=bubble.querySelector('.cbu');
+        let textNode=null;
+        for(const c of bubble.childNodes){ if(c.nodeType===3&&c.textContent.trim()){textNode=c;break;} }
+        if(!textNode) continue;
+        const fullText=textNode.textContent;
+        textNode.textContent='';
+        let i=0;
+        function _type(){ if(i<fullText.length){textNode.textContent+=fullText[i++]; setTimeout(_type,_spd);} }
+        _type();
+      }
+    }
+  });
+  _obs.observe(_ov,{childList:true,subtree:true});
+})();
 // Emoji rain — window.triggerRain(emoji, count) + ?rain=emoji auto-loop
 (()=>{
   const _rc=document.getElementById('rain-container');
@@ -7407,6 +7439,56 @@ window.addEventListener('message',ev=>{
     function _tick(t){ _applyGlow(0.5+0.5*Math.sin((t-_t0)/_spd/1000*Math.PI*2)); requestAnimationFrame(_tick); }
     requestAnimationFrame(_tick);
   } else { _applyGlow(1); }
+})();
+// Q-127: window.triggerFollowAlert(name) フォロー通知エフェクト（ローワーサード＋エフェクト）
+// ?followalert=1 で有効化。noiru-cmd followAlert:{name:'ユーザー名'}
+// ?followsound=URL でサウンド再生
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('followalert')!=='1') return;
+  const _snd=_usp.get('followsound');
+  const _sndEl=_snd?(()=>{const a=new Audio(_snd);a.preload='auto';a.volume=0.8;return a;})():null;
+  const _followexpr=_usp.get('followexpr'); // optional pose name on follow
+  function _fire(name){
+    // Flash effect
+    if(typeof window.triggerFlash==='function') window.triggerFlash();
+    // Confetti burst
+    if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+    // Lower third: "♥ name さんがフォロー！"
+    if(typeof window.showLowerThird==='function'){
+      window.showLowerThird('♥ '+name+' さんがフォロー！','フォローありがとう！',4);
+    } else if(typeof window.showPopText==='function'){
+      window.showPopText('♥ '+name+' さんがフォロー！',{dur:4000,color:'ff6bb5',size:22});
+    }
+    // Sound
+    if(_sndEl){try{_sndEl.currentTime=0;_sndEl.play().catch(()=>{});}catch(_){}}
+    // Optional expression
+    if(_followexpr&&typeof MD!=='undefined'){
+      const p=MD?.poses?.find(x=>x.name===_followexpr);
+      if(p&&typeof activePose!=='undefined'){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;},3000);}
+    }
+  }
+  window.triggerFollowAlert=_fire;
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd') return;
+    if(d.cmd==='followAlert') _fire(d.name||'');
+  });
+})();
+// Q-128: ?avataranchor=bottom/top/center アバター表示基準点設定（OBS配置しやすくする）
+// デフォルトは center。bottom: 下端固定（バストアップ配信向け）、top: 上端固定
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _anc=_usp.get('avataranchor');if(!_anc) return;
+  const _wrap=document.getElementById('wrap');if(!_wrap) return;
+  if(_anc==='bottom'){
+    _wrap.style.position='fixed'; _wrap.style.bottom='0'; _wrap.style.top='auto';
+    _wrap.style.left='50%'; _wrap.style.transform='translateX(-50%)';
+    _wrap.style.transformOrigin='bottom center';
+  } else if(_anc==='top'){
+    _wrap.style.position='fixed'; _wrap.style.top='0'; _wrap.style.bottom='auto';
+    _wrap.style.left='50%'; _wrap.style.transform='translateX(-50%)';
+    _wrap.style.transformOrigin='top center';
+  }
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
