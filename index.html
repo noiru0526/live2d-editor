@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?colorize=HUE</td><td>アバター色相回転(0-360)・?colorizeanim=1で自動循環・setColorize(h)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?konamicode=1</td><td>コナミコード↑↑↓↓←→←→BA でエフェクト・?konamieffect=confetti/rainbow</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pingpong=1</td><td>顔追跡ピンポンミニゲーム（顔の上下でパドル操作）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spintext=TEXT</td><td>3DスピンテキストY軸回転・?spintextcolor=hex&?spintextpos=top/center・setSpinText(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?zoomeffect=1</td><td>postMsg zoomin/zoomout/zoompulse アバタースケール・triggerZoom(scale)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?customemoji=C:URL</td><td>チャット内カスタム絵文字・?customemoji=niru:URL|lul:URL2</td></tr>
@@ -9907,6 +9910,85 @@ window.addEventListener('message',ev=>{
       if(d.cmd==='zoomreset') _setZoom(1,0.4);
       if(d.cmd==='zoompulse') _setZoom(1.15,0.1);
     }
+  });
+})();
+// Q-332: ?pingpong=1 顔追跡ピンポン（顔の上下でパドルを操作するミニゲーム）
+// 例: ?pingpong=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('pingpong')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.width=320; _cv.height=200;
+  Object.assign(_cv.style,{position:'fixed',bottom:'60px',right:'18px',zIndex:'165',
+    border:'1px solid rgba(0,200,255,0.4)',borderRadius:'6px',background:'rgba(0,0,0,0.75)'});
+  document.body.appendChild(_cv);
+  const _c=_cv.getContext('2d');
+  let py=80,by=100,bx=160,vx=2,vy=1.5,score=0,cpu=100;
+  const PW=8,PH=36,BR=6;
+  function _draw(){
+    // AI cpu paddle
+    cpu+=(by-cpu)*0.05;
+    // face tracking player paddle
+    if(typeof S!=='undefined'&&S.hy!==undefined) py=Math.max(0,Math.min(_cv.height-PH,(S.hy+0.5)*_cv.height-PH/2));
+    // ball
+    bx+=vx; by+=vy;
+    if(by<BR||by>_cv.height-BR) vy=-vy;
+    // player paddle collision
+    if(bx-BR<PW+8&&by>py&&by<py+PH) { vx=Math.abs(vx)+0.1; vy+=(by-(py+PH/2))*0.05; }
+    // cpu paddle collision
+    if(bx+BR>_cv.width-PW-8&&by>cpu&&by<cpu+PH) { vx=-(Math.abs(vx)+0.1); }
+    // out
+    if(bx<0) { score=0; bx=160; by=100; vx=2; vy=1.5; }
+    if(bx>_cv.width) { score++; bx=160; by=100; vx=-2; vy=1.5; }
+    // render
+    _c.fillStyle='rgba(0,0,0,0.85)'; _c.fillRect(0,0,_cv.width,_cv.height);
+    _c.fillStyle='#00ccff'; _c.fillRect(8,py,PW,PH); // player
+    _c.fillStyle='#ff4466'; _c.fillRect(_cv.width-16,cpu,PW,PH); // cpu
+    _c.fillStyle='#fff'; _c.beginPath(); _c.arc(bx,by,BR,0,Math.PI*2); _c.fill(); // ball
+    _c.fillStyle='rgba(255,255,255,0.6)'; _c.font='10px monospace'; _c.fillText(`SCORE: ${score}`,_cv.width/2-28,14);
+    requestAnimationFrame(_draw);
+  }
+  _draw();
+})();
+// Q-331: ?konamicode=1 コナミコードイースターエッグ（↑↑↓↓←→←→BA で特別エフェクト）
+// 例: ?konamicode=1&konamieffect=confetti
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('konamicode')!=='1') return;
+  const _fx=_u.get('konamieffect')||'rainbow';
+  const _CODE=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'];
+  let _idx=0;
+  window.addEventListener('keydown',e=>{
+    if(e.code===_CODE[_idx]){ _idx++; } else { _idx=e.code===_CODE[0]?1:0; }
+    if(_idx>=_CODE.length){
+      _idx=0;
+      triggerConfetti&&triggerConfetti();
+      showPopText&&showPopText('🎮 KONAMI CODE！','#ffe600');
+      if(_fx==='rainbow'){
+        const s=document.createElement('style'); s.textContent='*{filter:hue-rotate(0deg);animation:_kmrb 2s linear forwards}@keyframes _kmrb{to{filter:hue-rotate(360deg)}}'; document.head.appendChild(s);
+        setTimeout(()=>s.remove(),2100);
+      }
+      if(_fx==='shake') typeof triggerShake==='function'&&triggerShake();
+    }
+  });
+})();
+// Q-330: ?colorize=HUE アバター色相回転（CSSフィルターで色調変換・0-360度）
+// 例: ?colorize=180&colorizeanim=1（colorizeanim=1で自動循環）
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _hue=_u.get('colorize'); if(_hue===null) return;
+  const _anim=_u.get('colorizeanim')==='1';
+  const _s=document.createElement('style');
+  if(_anim){
+    _s.textContent='#live2dcanvas,#wrap canvas{filter:hue-rotate(0deg);animation:_clrzA 6s linear infinite}@keyframes _clrzA{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}';
+  } else {
+    _s.textContent=`#live2dcanvas,#wrap canvas{filter:hue-rotate(${parseInt(_hue)||0}deg)}`;
+  }
+  document.head.appendChild(_s);
+  window.setColorize=h=>{ _s.textContent=`#live2dcanvas,#wrap canvas{filter:hue-rotate(${h}deg)}`; };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='colorize') window.setColorize(+d.hue||0);
   });
 })();
 // Q-327: ?spintext=TEXT 3Dスピンテキスト（Y軸回転するタイトルテキスト）
