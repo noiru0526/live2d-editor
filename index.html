@@ -4315,6 +4315,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgimage=URL</td><td>背景画像URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgvideo=URL</td><td>背景動画URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?micthresh=T:EFF</td><td>マイク音量閾値エフェクト（例: 0.7:shake,0.9:rain:🎉）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?autoduck=1</td><td>BGM自動ダッキング（TTS発話・驚き時BGM音量自動減衰 +?autoduckratio=0.15）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -6712,6 +6713,30 @@ function _handleChatMsg(rawMsg){
       window._handleChatMsgForSpeak(rawMsg,user||'');
     };
   }
+})();
+// Q-100: ?autoduck=1 BGM自動ダッキング（TTS発話・驚き時にBGM音量を自動減衰）
+// ?autoduckratio=0.15 (min volume during duck, 0-1), ?autoduckspeed=0.05 (EMA speed)
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('autoduck')!=='1') return;
+  const _bgm=document.getElementById('bgm-audio');if(!_bgm) return;
+  const _ratio=Math.min(1,Math.max(0,parseFloat(_u.get('autoduckratio'))||0.15));
+  const _spd=Math.min(0.5,Math.max(0.005,parseFloat(_u.get('autoduckspeed'))||0.05));
+  let _curVol=_bgm.volume,_baseVol=_bgm.volume;
+  // Wait for _startDraw to set initial volume before hooking
+  window.addEventListener('load',()=>setTimeout(()=>{
+    _baseVol=_bgm.volume;_curVol=_baseVol;
+    function _tick(){
+      let _target=_baseVol;
+      if(typeof _ttsSpeaking!=='undefined'&&_ttsSpeaking) _target=_baseVol*_ratio;
+      else if(typeof S!=='undefined'&&S.ck>0.45) _target=_baseVol*Math.max(_ratio,1-S.ck);
+      else if(typeof _abLevel!=='undefined'&&_abLevel>0.7) _target=_baseVol*(1-(_abLevel-0.7)*1.5);
+      _curVol+=(_target-_curVol)*_spd;
+      if(!isNaN(_curVol))_bgm.volume=Math.max(0,Math.min(1,_curVol));
+      requestAnimationFrame(_tick);
+    }
+    requestAnimationFrame(_tick);
+  },3000));
 })();
 // Q-097: ?speakintro=TEXT 起動時TTS読み上げ（ユーザー操作後・または?tts=1が有効な場合は2秒後に自動実行）
 (()=>{
