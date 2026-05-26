@@ -756,6 +756,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div class="mcfg-row"><button onclick="addVTuberParams()" style="color:#a0d0ff;">+ VTuberパラメータ追加</button></div>
       <div class="mcfg-row"><button onclick="showMouthShapeSetup()">口形 A/I/U セットアップ</button></div>
       <div class="mcfg-row"><button onclick="showEyeLookSetup()" style="color:#a0ffd0;">目線（eyeX/Y）セットアップ</button></div>
+      <div class="mcfg-row"><button onclick="scaleModelAll()" style="color:#ffc080;" title="全パーツのメッシュ頂点をセンターから拡縮（モデル全体サイズ変更）">⤢ モデル全体スケール</button></div>
       <div class="mcfg-row"><button onclick="deformQC()" style="color:#ffd060;" title="変形データの問題を自動検出">🔍 変形QCチェック</button></div>
       <div class="mcfg-row"><button onclick="showModelQC()" style="color:#80ffcc;" title="モデル全体の品質チェック（メッシュ・頂点・パラメータ・サマリー）">📋 モデルQCレポート</button></div>
       <div class="mcfg-row"><button onclick="clearAllDef()" style="color:#f08080">全変形データ削除</button></div>
@@ -4413,6 +4414,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?voicechanger=1</td><td>TTS音声ピッチ変換（+?vcmode=chipmunk/robot/deep/none ?vcpitch=1.5）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?alerthistory=1</td><td>エフェクト履歴ログ（最後N件・+?alerthistorymax=5 ?alerthistorypos=tr）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotecounter=1</td><td>チャット絵文字使用回数ランキング（+?emotecountermax=5 ?emotecounterpos=bl）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?screensaver=1</td><td>スクリーンセーバー（無活動後パーティクル表示・+?ssidleafter=120秒 ?ssparticle=star/snow）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fixedtext=TEXT</td><td>固定テキストオーバーレイ（+?ftx=50% ?fty=90% ?ftsize=16 ?ftcolor= ?ftbold=1 ?ftbg=1）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7895,6 +7898,80 @@ window.addEventListener('message',ev=>{
     _render();
   });
   _render();
+})();
+// Q-144: ?screensaver=1 スクリーンセーバーモード（無活動N秒後に星・パーティクルアニメ開始）
+// ?ssidleafter=120 秒 ?ssparticle=star/snow/sparkle
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('screensaver')!=='1') return;
+  const _idleMs=Math.min(600,Math.max(10,parseInt(_usp.get('ssidleafter'))||120))*1000;
+  const _type=_usp.get('ssparticle')||'star';
+  let _idleTimer=null,_ssActive=false,_ssCanvas=null,_ssRAF=null;
+  function _startSS(){
+    if(_ssActive) return; _ssActive=true;
+    _ssCanvas=document.createElement('canvas');
+    _ssCanvas.style.cssText='position:fixed;inset:0;width:100%;height:100%;z-index:99;pointer-events:none;';
+    document.body.appendChild(_ssCanvas);
+    const W=window.innerWidth,H=window.innerHeight;
+    _ssCanvas.width=W;_ssCanvas.height=H;
+    const ctx=_ssCanvas.getContext('2d');
+    const particles=Array.from({length:80},()=>({
+      x:Math.random()*W,y:Math.random()*H,r:1+Math.random()*2,
+      vx:(Math.random()-.5)*.4,vy:.1+Math.random()*.4,
+      alpha:Math.random(),dalpha:.005+Math.random()*.01,
+      hue:Math.floor(Math.random()*360)
+    }));
+    function _frame(){
+      ctx.clearRect(0,0,W,H);
+      particles.forEach(p=>{
+        p.x+=p.vx;p.y+=p.vy;p.alpha+=p.dalpha;
+        if(p.alpha>1||p.alpha<0) p.dalpha*=-1;
+        if(p.y>H+10) p.y=-5;
+        if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+        ctx.globalAlpha=Math.max(0,Math.min(1,p.alpha));
+        ctx.fillStyle=_type==='snow'?`rgba(220,240,255,${p.alpha})`:`hsl(${p.hue},80%,70%)`;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+        ctx.globalAlpha=1;
+      });
+      _ssRAF=requestAnimationFrame(_frame);
+    }
+    _ssRAF=requestAnimationFrame(_frame);
+  }
+  function _stopSS(){
+    if(!_ssActive) return; _ssActive=false;
+    if(_ssRAF) cancelAnimationFrame(_ssRAF);
+    if(_ssCanvas){_ssCanvas.remove();_ssCanvas=null;}
+  }
+  function _resetIdle(){
+    _stopSS(); clearTimeout(_idleTimer);
+    _idleTimer=setTimeout(_startSS,_idleMs);
+  }
+  ['mousemove','keydown','click','touchstart','message'].forEach(e=>document.addEventListener(e,_resetIdle,{passive:true}));
+  _resetIdle();
+})();
+// Q-145: ?fixedtext=TEXT 固定テキストオーバーレイ（フリーポジション・スタイル全カスタム）
+// ?ftx=50% ?fty=90% ?ftsize=16 ?ftcolor=ffffff ?ftbg=0 ?ftalign=center ?ftbold=0
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _text=_usp.get('fixedtext');if(!_text) return;
+  const _x=_usp.get('ftx')||'50%';
+  const _y=_usp.get('fty')||'90%';
+  const _sz=Math.min(96,Math.max(8,parseInt(_usp.get('ftsize'))||16));
+  const _col='#'+(_usp.get('ftcolor')||'ffffff');
+  const _bg=_usp.get('ftbg')==='1';
+  const _align=_usp.get('ftalign')||'center';
+  const _bold=_usp.get('ftbold')==='1';
+  const _el=document.createElement('div');
+  const _bgStyle=_bg?'background:rgba(0,0,0,.6);border-radius:4px;padding:3px 10px;':'';
+  _el.style.cssText=`position:fixed;left:${_x};top:${_y};transform:translate(-50%,-50%);z-index:64;pointer-events:none;font-size:${_sz}px;color:${_col};text-align:${_align};${_bold?'font-weight:700;':''}${_bgStyle}white-space:pre-line;text-shadow:1px 1px 4px rgba(0,0,0,.8);`;
+  _el.textContent=decodeURIComponent(_text.replace(/\\n/g,'\n'));
+  document.body.appendChild(_el);
+  // Allow dynamic update via postMessage
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-cmd'&&d.cmd==='fixedtext'&&typeof d.text==='string')
+      _el.textContent=d.text;
+  });
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
@@ -11838,6 +11915,54 @@ function deformQC() {
   }
   if (issues.length===0) alert('✅ 変形QCに問題はありませんでした！');
   else alert(`⚠️ ${issues.length} 件の問題:\n\n${issues.slice(0,12).join('\n')}${issues.length>12?`\n...他${issues.length-12}件`:''}`);
+}
+
+// Q-146: モデル全体スケール（全パーツの頂点をセンターから等比拡縮）
+function scaleModelAll() {
+  const scaleStr=prompt('スケール倍率を入力（例: 0.8で縮小・1.2で拡大）:', '1.0');
+  if(scaleStr===null) return;
+  const scale=parseFloat(scaleStr);
+  if(!isFinite(scale)||scale<=0){alert('無効な値です');return;}
+  if(scale===1.0) return;
+  pushAnimUndo();
+  // Compute bounding center across all parts
+  let sumX=0,sumY=0,cnt=0;
+  for(const part of M.parts){
+    for(const v of part.mesh.verts){sumX+=v[0];sumY+=v[1];cnt++;}
+  }
+  if(cnt===0){alert('頂点がありません');return;}
+  const cx=sumX/cnt, cy=sumY/cnt;
+  // Scale all vertices around center
+  for(const part of M.parts){
+    for(const v of part.mesh.verts){
+      v[0]=cx+(v[0]-cx)*scale;
+      v[1]=cy+(v[1]-cy)*scale;
+    }
+    // Also scale deformation data (KF values in def)
+    for(const [,defArr] of Object.entries(part.def||{})){
+      if(!Array.isArray(defArr)) continue;
+      for(const frame of defArr){
+        if(Array.isArray(frame)){
+          for(const d of frame){
+            if(Array.isArray(d)&&d.length>=2){d[0]*=scale;d[1]*=scale;}
+          }
+        }
+      }
+    }
+  }
+  // Scale deformer control points
+  for(const def of M.deformers||[]){
+    if(def.type==='warp'&&Array.isArray(def.pts)){
+      for(const p of def.pts){p[0]=cx+(p[0]-cx)*scale;p[1]=cy+(p[1]-cy)*scale;}
+    } else if((def.type==='rotate'||def.type==='bone')&&def.x!==undefined){
+      def.x=cx+(def.x-cx)*scale; def.y=cy+(def.y-cy)*scale;
+    }
+  }
+  // Scale landmark markers
+  for(const [k,v] of Object.entries(ST.markers||{})){
+    if(v&&typeof v.x==='number'){v.x=cx+(v.x-cx)*scale;v.y=cy+(v.y-cy)*scale;}
+  }
+  ST.cachedVerts=null; redraw(); renderDeformerList();
 }
 
 // Q-113: モデルQCレポート（メッシュ品質・頂点・パラメータ使用率サマリー）
