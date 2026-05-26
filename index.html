@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neonborder=1</td><td>ネオンボーダー（音声連動グロー）・?neonbordercolor=hex&?neonborderwidth=6</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?starfield=1</td><td>スターフィールド飛行効果・?starfieldcount=120&?starfieldspeed=1.5</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spinroulette=A|B|C</td><td>スピンルーレット（!spinで起動）・?spinroulette=たこやき|ラーメン・spinRoulette()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?followmilestone=N</td><td>フォロワーマイルストーンバー・?followmilestonecurrent=750・setFollowCount(n)/addFollower()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glassmorph=1</td><td>グラスモーフィズムスタイル（すりガラス）・?glassmorphblur=8&?glassmorphopacity=0.2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?matrixrain=1</td><td>マトリックス文字雨・?matrixraincolor=00ff44&?matrixrainopacity=0.25</td></tr>
@@ -9155,6 +9158,128 @@ window.addEventListener('message',ev=>{
   window.setGlassmorph=(bl,op)=>{
     _s.textContent=_s.textContent.replace(/blur\([^)]+\)/g,`blur(${bl}px)`).replace(/rgba\(255,255,255,[^)]+\) !important;(\s*background)/,`rgba(255,255,255,${op}) !important;$1`);
   };
+})();
+// Q-299: ?spinroulette=A|B|C ルーレット（選択肢をスピンして1つ選ぶ・チャット!spin or postMessageで起動）
+// 例: ?spinroulette=たこやき|ラーメン|寿司|カレー
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('spinroulette'); if(!_raw) return;
+  const _opts=decodeURIComponent(_raw).split('|').filter(Boolean);
+  if(_opts.length<2) return;
+  const _overlay=document.createElement('div');
+  Object.assign(_overlay.style,{position:'fixed',inset:'0',zIndex:'175',background:'rgba(0,0,0,0.7)',display:'none',alignItems:'center',justifyContent:'center',flexDirection:'column'});
+  _overlay.innerHTML=`<div id="sr-title" style="color:#fff;font-size:18px;font-family:sans-serif;margin-bottom:12px;font-weight:bold;">ルーレット</div>
+<canvas id="sr-cv" width="300" height="300"></canvas>
+<div id="sr-result" style="color:#ffe600;font-size:24px;font-family:sans-serif;font-weight:bold;margin-top:14px;min-height:32px;text-shadow:0 0 12px #ffe600;"></div>
+<button id="sr-close" style="margin-top:12px;padding:6px 18px;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:6px;cursor:pointer;font-size:13px;">閉じる</button>`;
+  document.body.appendChild(_overlay);
+  document.getElementById('sr-close').onclick=()=>{ _overlay.style.display='none'; };
+  const _cv=document.getElementById('sr-cv');
+  const _ctx=_cv.getContext('2d');
+  const _result=document.getElementById('sr-result');
+  const _colors=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63'];
+  let _spinning=false; let _angle=0; let _vel=0;
+  function _draw(a){
+    const n=_opts.length; const arc=2*Math.PI/n;
+    _ctx.clearRect(0,0,300,300);
+    _opts.forEach((opt,i)=>{
+      const start=a+i*arc; const end=start+arc;
+      _ctx.beginPath(); _ctx.moveTo(150,150); _ctx.arc(150,150,130,start,end); _ctx.closePath();
+      _ctx.fillStyle=_colors[i%_colors.length]; _ctx.fill();
+      _ctx.save(); _ctx.translate(150,150); _ctx.rotate(start+arc/2);
+      _ctx.textAlign='right'; _ctx.fillStyle='#fff'; _ctx.font='bold 14px sans-serif';
+      _ctx.fillText(opt.slice(0,10),122,5); _ctx.restore();
+    });
+    // pointer
+    _ctx.beginPath(); _ctx.moveTo(150,14); _ctx.lineTo(158,28); _ctx.lineTo(142,28); _ctx.closePath();
+    _ctx.fillStyle='#ffe600'; _ctx.fill();
+  }
+  function _spin(){
+    if(_spinning) return;
+    _spinning=true; _result.textContent='';
+    _vel=0.18+Math.random()*0.12;
+    let a=_angle;
+    (function _loop(){
+      a+=_vel; _vel*=0.985; _draw(a);
+      if(_vel>0.001){ requestAnimationFrame(_loop); }
+      else {
+        _angle=a%(2*Math.PI); _spinning=false;
+        const n=_opts.length; const arc=2*Math.PI/n;
+        const norm=((2*Math.PI)-(_angle%(2*Math.PI)))%(2*Math.PI);
+        const idx=Math.floor(norm/arc)%n;
+        _result.textContent=`🎯 ${_opts[idx]}`;
+        showPopText&&showPopText(_opts[idx],'#ffe600');
+      }
+    })();
+  }
+  _draw(_angle);
+  window.spinRoulette=()=>{ _overlay.style.display='flex'; _spin(); };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='spinroulette') window.spinRoulette();
+    if(d.type==='noiru-chat'&&d.msg&&d.msg.trim()==='!spin') window.spinRoulette();
+  });
+})();
+// Q-298: ?starfield=1 スターフィールド（星空を飛び抜けるような速度線効果）
+// 例: ?starfield=1&starfieldcount=120&starfieldspeed=2
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('starfield')!=='1') return;
+  const _count=parseInt(_u.get('starfieldcount'))||120;
+  const _speed=parseFloat(_u.get('starfieldspeed'))||1.5;
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'139',pointerEvents:'none',opacity:'0.6'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _cx=_cv.width/2,_cy=_cv.height/2;
+  const _stars=Array.from({length:_count},()=>({
+    x:(Math.random()-0.5)*_cv.width,y:(Math.random()-0.5)*_cv.height,
+    z:Math.random()*_cv.width,pz:0
+  }));
+  function _draw(){
+    _ctx.fillStyle='rgba(0,0,0,0.15)';
+    _ctx.fillRect(0,0,_cv.width,_cv.height);
+    _stars.forEach(s=>{
+      s.pz=s.z; s.z-=_speed;
+      if(s.z<=0){ s.x=(Math.random()-0.5)*_cv.width; s.y=(Math.random()-0.5)*_cv.height; s.z=_cv.width; s.pz=s.z; return; }
+      const px=s.x/_cv.width*200+_cx; const py=s.y/_cv.height*200+_cy;
+      const sx=s.x/s.z*200+_cx; const sy=s.y/s.z*200+_cy;
+      const ppx=s.x/s.pz*200+_cx; const ppy=s.y/s.pz*200+_cy;
+      const r=Math.min(2.5,(1-s.z/_cv.width)*3+0.3);
+      _ctx.strokeStyle=`rgba(255,255,255,${(1-s.z/_cv.width)*0.8+0.1})`;
+      _ctx.lineWidth=r;
+      _ctx.beginPath(); _ctx.moveTo(ppx,ppy); _ctx.lineTo(sx,sy); _ctx.stroke();
+    });
+    requestAnimationFrame(_draw);
+  }
+  _draw();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-297: ?neonborder=1 ネオンボーダー（画面周囲をネオン色で縁取り・音声に反応して輝く）
+// 例: ?neonborder=1&neonbordercolor=00ffff&neonborderwidth=8
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('neonborder')!=='1') return;
+  const _col='#'+(_u.get('neonbordercolor')||'00ffff');
+  const _w=parseInt(_u.get('neonborderwidth'))||6;
+  const _d=document.createElement('div');
+  _d.id='niru-neonborder';
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'149',pointerEvents:'none',
+    border:`${_w}px solid ${_col}`,borderRadius:'0',
+    boxShadow:`inset 0 0 ${_w*3}px ${_col}, 0 0 ${_w*3}px ${_col}`,
+    transition:'opacity 0.08s,box-shadow 0.08s'
+  });
+  document.body.appendChild(_d);
+  let _h=0;
+  (function _tick(){
+    const lvl=typeof getAudioLevel==='function'?getAudioLevel():0;
+    _h=(_h*0.85)+(lvl/100*0.15);
+    const glow=_w*3+_h*_w*12;
+    _d.style.boxShadow=`inset 0 0 ${glow}px ${_col},0 0 ${glow}px ${_col}`;
+    requestAnimationFrame(_tick);
+  })();
 })();
 // Q-294: ?followmilestone=TARGET フォロワーマイルストーンバー（目標フォロワー数への進捗）
 // 例: ?followmilestone=1000&followmilestonepos=top&followmilestonecurrent=750
