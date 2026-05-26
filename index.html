@@ -4515,6 +4515,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neontext=TEXT</td><td>ネオン発光テキスト・?neontextcolor=00eeff・?neontextsize=48・?neontextpos=tc</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlayswitch=1</td><td>複数オーバーレイのキー切替・?oslist=ID1,ID2・?oskey=Tab</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatwords=1</td><td>チャット頻出単語クラウド・?wordmax=8・?wordpos=br</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?oscilloscope=1</td><td>音声オシロスコープ波形・?oscpos=bottom/top・?osccolor=00ff88・?osch=60</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spectrumring=1</td><td>円形スペクトラムリング・?ringcx=50・?ringcy=50・?ringr=80</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audiomood=1</td><td>音声から感情絵文字を推測表示（😴→😌→😊→😄→😤）・?moodpos=tl</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8697,6 +8700,132 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-246: ?oscilloscope=1 オシロスコープ（音声波形のリアルタイムライン表示）
+// 例: ?oscilloscope=1&oscpos=bottom&osccolor=00ff88
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('oscilloscope')!=='1') return;
+  const _pos=_usp.get('oscpos')||'bottom';
+  const _col=_usp.get('osccolor')||'00ff88';
+  const _h=Math.min(120,Math.max(20,parseInt(_usp.get('osch'))||60));
+  const _cv=document.createElement('canvas');
+  _cv.id='oscilloscope-cv';
+  _cv.height=_h;
+  Object.assign(_cv.style,{
+    position:'fixed',[_pos==='top'?'top':'bottom']:'0',left:'0',width:'100%',
+    height:_h+'px',pointerEvents:'none',zIndex:'300'
+  });
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; }
+  window.addEventListener('resize',_resize); _resize();
+  const _r=parseInt(_col.slice(0,2),16)||0;
+  const _g=parseInt(_col.slice(2,4),16)||255;
+  const _b=parseInt(_col.slice(4,6),16)||136;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_h);
+    _ctx.beginPath();
+    if(window.audioAnalyser){
+      const buf=new Uint8Array(window.audioAnalyser.fftSize||2048);
+      window.audioAnalyser.getByteTimeDomainData(buf);
+      const step=_cv.width/buf.length;
+      for(let i=0;i<buf.length;i++){
+        const y=(buf[i]/128-1)*(_h/2)+_h/2;
+        i===0?_ctx.moveTo(0,y):_ctx.lineTo(i*step,y);
+      }
+    } else {
+      // Fallback: noise
+      const lvl=typeof window.getAudioLevel==='function'?window.getAudioLevel():0;
+      for(let i=0;i<_cv.width;i+=4){
+        const y=_h/2+(Math.random()-0.5)*lvl*_h;
+        i===0?_ctx.moveTo(0,y):_ctx.lineTo(i,y);
+      }
+    }
+    _ctx.strokeStyle=`rgb(${_r},${_g},${_b})`; _ctx.lineWidth=1.5; _ctx.stroke();
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-247: ?spectrumring=1 スペクトラムリング（音声周波数が円形に広がるビジュアライザー）
+// 例: ?spectrumring=1&ringcx=50&ringcy=50
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('spectrumring')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='spectrumring-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'95'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _cxPct=parseFloat(_usp.get('ringcx'))||50;
+  const _cyPct=parseFloat(_usp.get('ringcy'))||50;
+  const _baseR=Math.min(120,Math.max(30,parseInt(_usp.get('ringr'))||80));
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const cx=_cv.width*_cxPct/100, cy=_cv.height*_cyPct/100;
+    if(window.audioAnalyser){
+      const bins=64;
+      const buf=new Uint8Array(window.audioAnalyser.frequencyBinCount);
+      window.audioAnalyser.getByteFrequencyData(buf);
+      _ctx.beginPath();
+      for(let i=0;i<bins;i++){
+        const ang=(i/bins)*Math.PI*2-Math.PI/2;
+        const v=buf[Math.floor(i/bins*buf.length)]/255;
+        const r=_baseR+v*_baseR*0.8;
+        const x=cx+Math.cos(ang)*r; const y=cy+Math.sin(ang)*r;
+        i===0?_ctx.moveTo(x,y):_ctx.lineTo(x,y);
+      }
+      _ctx.closePath();
+      const grd=_ctx.createRadialGradient(cx,cy,_baseR*0.5,cx,cy,_baseR*1.8);
+      grd.addColorStop(0,'rgba(100,220,255,0.3)'); grd.addColorStop(1,'rgba(100,100,255,0)');
+      _ctx.fillStyle=grd; _ctx.fill();
+      _ctx.strokeStyle='rgba(100,220,255,0.7)'; _ctx.lineWidth=2; _ctx.stroke();
+    } else {
+      const lvl=typeof window.getAudioLevel==='function'?window.getAudioLevel():0;
+      _ctx.beginPath(); _ctx.arc(cx,cy,_baseR+lvl*30,0,Math.PI*2);
+      _ctx.strokeStyle=`rgba(100,220,255,${0.3+lvl*0.5})`; _ctx.lineWidth=2; _ctx.stroke();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-248: ?audiomood=1 オーディオムード（音声の大きさ/パターンから感情を推測して表示）
+// 例: ?audiomood=1&moodpos=tl
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('audiomood')!=='1') return;
+  const _pos=_usp.get('moodpos')||'tl';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _el=document.createElement('div');
+  _el.id='audiomood-ov';
+  Object.assign(_el.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    background:'rgba(0,0,0,0.7)',borderRadius:'10px',padding:'8px 14px',
+    zIndex:'500',fontFamily:'sans-serif',fontSize:'24px',pointerEvents:'none',
+    textAlign:'center'
+  });
+  _el.textContent='😐';
+  document.body.appendChild(_el);
+  const _hist=[];
+  function _frame(){
+    const lv=typeof window.getAudioLevel==='function'?window.getAudioLevel():0;
+    _hist.push(lv); if(_hist.length>30) _hist.shift();
+    const avg=_hist.reduce((s,v)=>s+v,0)/_hist.length;
+    const variance=_hist.reduce((s,v)=>s+(v-avg)*(v-avg),0)/_hist.length;
+    let mood='😐';
+    if(avg<0.02) mood='😴';
+    else if(avg<0.1&&variance<0.005) mood='😌';
+    else if(avg<0.2) mood='😊';
+    else if(avg<0.35&&variance<0.02) mood='😄';
+    else if(avg<0.35&&variance>0.02) mood='🤣';
+    else if(avg>=0.35&&variance<0.03) mood='😤';
+    else if(avg>=0.35&&variance>0.03) mood='😲';
+    if(_el.textContent!==mood) _el.textContent=mood;
+    requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-243: ?neontext=TEXT ネオン発光テキスト（グロー付きの目立つラベル常時表示）
 // 例: ?neontext=LIVE&neontextpos=tc&neontextcolor=ff00cc
