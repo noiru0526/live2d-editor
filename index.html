@@ -4491,6 +4491,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatmacro=CMD:ACT</td><td>チャットマクロ（!cmd:shake+confetti形式）・複数カンマ区切り</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchvip=1</td><td>TwitchVIP初発言を特別エフェクト・?vipeffect=flash/confetti/fireworks/none</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tts2=1</td><td>ユーザーごとに異なるTTS音声・?ttsvoices=名前1,名前2（speechSynthesis.getVoices準拠）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?webhookout=URL</td><td>Discord Webhook通知・?webhookevents=sub,raid,follow,bits</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatexport=1</td><td>チャットCSVエクスポート・?chatexportkey=F8・API: exportChat()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamlog=1</td><td>ストリームイベントログ（サブスク/フォロー/ビッツ記録）・?streamlogpos=bl・?streamlogmax=8</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8672,6 +8675,99 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-222: ?webhookout=URL イベントをDiscord/Webhook通知（サブスク・レイド等でDiscordに送信）
+// 例: ?webhookout=https://discord.com/api/webhooks/...&webhookevents=sub,raid,follow
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('webhookout'); if(!_url) return;
+  const _events=(_usp.get('webhookevents')||'sub,raid,follow').split(',').map(s=>s.trim());
+  function _send(content){
+    try{
+      fetch(_url,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({content,username:'Live2D Avatar',avatar_url:''})
+      }).catch(()=>{});
+    } catch(e){}
+  }
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-sub'&&_events.includes('sub')) _send(`🎉 新規サブスク: ${d.user||''}様 (${d.tier||'Tier1'})`);
+    if(d.type==='noiru-raid'&&_events.includes('raid')) _send(`⚔️ レイド: ${d.from||''}さんが${d.viewers||'?'}人で来てくれた！`);
+    if(d.type==='noiru-follow'&&_events.includes('follow')) _send(`💜 新規フォロー: ${d.user||''}様`);
+    if(d.type==='noiru-bits'&&_events.includes('bits')) _send(`💎 ビッツ応援: ${d.user||''}様 ${d.bits||'?'}bits`);
+    if(d.type==='noiru-cmd'&&d.cmd==='webhooktest') _send('👋 テスト通知 from Live2D Avatar');
+  });
+})();
+// Q-223: ?chatexport=1 チャットエクスポート（セッション中のチャットをCSVでダウンロード）
+// Fキーまたは?chatexportkey=KEYでダウンロード
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatexport')!=='1') return;
+  const _key=_usp.get('chatexportkey')||'F8';
+  const _log=[];
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      _log.push({time:new Date().toISOString(),user:d.user||'',msg:d.msg.replace(/"/g,'""')});
+    }
+  });
+  function _download(){
+    if(!_log.length) return;
+    const rows=['time,user,message'].concat(
+      _log.map(r=>`"${r.time}","${r.user}","${r.msg}"`)
+    );
+    const blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`chat-${Date.now()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.addEventListener('keydown',ev=>{
+    if(ev.key===_key||ev.code===_key) _download();
+  });
+  window.exportChat=_download;
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='exportchat') _download();
+  });
+})();
+// Q-224: ?streamlog=1 ストリームイベントログ（サブスク・フォロー・ビッツをタイムスタンプ記録）
+// 例: ?streamlog=1&streamlogpos=bl
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('streamlog')!=='1') return;
+  const _pos=_usp.get('streamlogpos')||'bl';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _maxLines=Math.min(20,Math.max(3,parseInt(_usp.get('streamlogmax'))||8));
+  const _wrap=document.createElement('div');
+  _wrap.id='streamlog-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'220px',maxHeight:'200px',overflowY:'auto',
+    background:'rgba(0,0,0,0.7)',borderRadius:'8px',padding:'8px',
+    zIndex:'500',fontFamily:'monospace',fontSize:'11px',pointerEvents:'none'
+  });
+  document.body.appendChild(_wrap);
+  const _events=[];
+  function _addEntry(icon,text){
+    const time=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    _events.unshift({icon,text,time});
+    if(_events.length>_maxLines) _events.pop();
+    _wrap.innerHTML=_events.map(ev=>
+      `<div style="color:#ccc;border-bottom:1px solid rgba(255,255,255,0.08);padding:2px 0;">
+        <span style="color:#888;">${ev.time}</span> ${ev.icon} ${ev.text}
+      </div>`
+    ).join('');
+  }
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-sub') _addEntry('🎉',`${d.user||'?'} サブスク${d.tier||''}`);
+    if(d.type==='noiru-raid') _addEntry('⚔️',`${d.from||'?'} レイド(${d.viewers||'?'}人)`);
+    if(d.type==='noiru-bits') _addEntry('💎',`${d.user||'?'} ${d.bits||'?'}bits`);
+    if(d.type==='noiru-follow') _addEntry('💜',`${d.user||'?'} フォロー`);
+    if(d.type==='noiru-points') _addEntry('⭐',`${d.user||'?'} ポイント`);
+    if(d.type==='noiru-cmd'&&d.cmd==='logclear') { _events.length=0; _wrap.innerHTML=''; }
   });
 })();
 // Q-219: ?chatmacro=CMD:ACTION チャットマクロ（コマンドをアクションにマッピング）
