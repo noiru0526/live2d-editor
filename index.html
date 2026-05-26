@@ -4455,6 +4455,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?qrcode=URL</td><td>QRコードオーバーレイ・?qrsize=120・?qrpos=br/bl/tr/tl・API: setQRUrl(url)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?noisegate=1</td><td>ノイズゲート（小さい音では口を閉じる）・?noisethresh=0.04・?gateattack=60・?gaterelease=200</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?avatarframe=URL</td><td>PNG装飾枠オーバーレイ・?frameopacity=1・?frameblend=normal・?framescale=1</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bubbles=1</td><td>泡エフェクト（浮き上がる水泡）・?bubblecount=30・?bubblecolor=80d4ff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?shootingstar=1</td><td>流れ星エフェクト・?starinterval=3000ms・?startrails=5・API: triggerShootingStar()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?aurora=1</td><td>オーロラエフェクト（波打つ光の帯）・?auroracolor=00ff88,7744ff（カンマ区切り複数色）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8637,6 +8640,167 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-186: ?bubbles=1 泡エフェクト（水中の泡が浮き上がる）
+// 例: ?bubbles=1&bubblecount=30&bubblecolor=80d4ff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('bubbles')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='bubbles-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _n=Math.min(80,Math.max(10,parseInt(_usp.get('bubblecount'))||30));
+  const _col=_usp.get('bubblecolor')||'80d4ff';
+  const _r=parseInt(_col.slice(0,2),16)||128;
+  const _g=parseInt(_col.slice(2,4),16)||212;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  const _bubs=[];
+  for(let i=0;i<_n;i++){
+    _bubs.push({
+      x:Math.random()*window.innerWidth,
+      y:window.innerHeight+Math.random()*window.innerHeight,
+      r:4+Math.random()*14,
+      spd:0.5+Math.random()*1.5,
+      phase:Math.random()*Math.PI*2,
+      wobble:Math.random()*2+1
+    });
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const b of _bubs){
+      b.phase+=0.03; b.y-=b.spd;
+      b.x+=Math.sin(b.phase)*b.wobble;
+      if(b.y<-20){ b.y=_cv.height+10; b.x=Math.random()*_cv.width; }
+      const alpha=0.15+0.25*(b.y/_cv.height);
+      _ctx.beginPath(); _ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${alpha})`;
+      _ctx.lineWidth=1.5; _ctx.stroke();
+      // Inner highlight
+      _ctx.beginPath(); _ctx.arc(b.x-b.r*0.3,b.y-b.r*0.3,b.r*0.25,0,Math.PI*2);
+      _ctx.fillStyle=`rgba(255,255,255,${alpha*0.5})`; _ctx.fill();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-187: ?shootingstar=1 流れ星エフェクト（斜めに光る線が流れる）
+// 例: ?shootingstar=1&starinterval=3000&startrails=5
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('shootingstar')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='shootingstar-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _stars=[];
+  const _interval=Math.max(500,parseInt(_usp.get('starinterval'))||3000);
+  const _maxTrails=Math.min(15,Math.max(1,parseInt(_usp.get('startrails'))||5));
+  function _spawnStar(){
+    const sx=Math.random()*_cv.width*0.8;
+    const sy=Math.random()*_cv.height*0.4;
+    const ang=0.4+Math.random()*0.5;
+    const spd=10+Math.random()*12;
+    _stars.push({x:sx,y:sy,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+      trail:[],alpha:1,len:80+Math.random()*120,
+      col:`hsl(${200+Math.random()*60|0},80%,90%)`});
+  }
+  setInterval(_spawnStar,_interval);
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_stars.length-1;i>=0;i--){
+      const s=_stars[i];
+      s.trail.push({x:s.x,y:s.y});
+      if(s.trail.length>_maxTrails) s.trail.shift();
+      s.x+=s.vx; s.y+=s.vy; s.alpha-=0.015;
+      if(s.alpha<=0||s.x>_cv.width+100||s.y>_cv.height+100){ _stars.splice(i,1); continue; }
+      for(let t=1;t<s.trail.length;t++){
+        const ta=s.alpha*(t/s.trail.length);
+        _ctx.beginPath();
+        _ctx.moveTo(s.trail[t-1].x,s.trail[t-1].y);
+        _ctx.lineTo(s.trail[t].x,s.trail[t].y);
+        _ctx.strokeStyle=`rgba(255,255,220,${ta})`;
+        _ctx.lineWidth=2*(t/s.trail.length); _ctx.stroke();
+      }
+      // Head flash
+      _ctx.beginPath(); _ctx.arc(s.x,s.y,3,0,Math.PI*2);
+      _ctx.fillStyle=`rgba(255,255,255,${s.alpha})`; _ctx.fill();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+  window.triggerShootingStar=function(){ _spawnStar(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='shootingstar') _spawnStar();
+  });
+})();
+// Q-188: ?aurora=1 オーロラエフェクト（波打つ緑/紫の帯が流れる）
+// 例: ?aurora=1&auroracolor=00ff88,7744ff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('aurora')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='aurora-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'96'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _colRaw=(_usp.get('auroracolor')||'00ff88,7744ff').split(',');
+  const _cols=_colRaw.map(c=>{
+    const r=parseInt(c.slice(0,2),16)||0;
+    const g=parseInt(c.slice(2,4),16)||255;
+    const b=parseInt(c.slice(4,6),16)||136;
+    return {r,g,b};
+  });
+  const _bands=3+Math.random()*3|0;
+  const _waves=[];
+  for(let i=0;i<_bands;i++){
+    const col=_cols[i%_cols.length];
+    _waves.push({
+      oy:_cv.height*(0.1+i*0.25),
+      amp:40+Math.random()*60,
+      freq:0.004+Math.random()*0.003,
+      phase:Math.random()*Math.PI*2,
+      speed:0.005+Math.random()*0.01,
+      col,
+      width:80+Math.random()*120
+    });
+  }
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const w of _waves){
+      w.phase+=w.speed;
+      _ctx.beginPath();
+      const pts=[];
+      for(let x=0;x<=_cv.width;x+=6){
+        const y=w.oy+Math.sin(x*w.freq+w.phase)*w.amp+Math.sin(x*w.freq*2.3+w.phase*1.7)*w.amp*0.3;
+        pts.push([x,y]);
+      }
+      // Draw band with gradient fill
+      _ctx.beginPath();
+      pts.forEach((p,i)=>{ i===0?_ctx.moveTo(p[0],p[1]):_ctx.lineTo(p[0],p[1]); });
+      pts.slice().reverse().forEach(p=>{ _ctx.lineTo(p[0],p[1]-w.width); });
+      _ctx.closePath();
+      const {r,g,b}=w.col;
+      const gr=_ctx.createLinearGradient(0,w.oy-w.amp,0,w.oy+w.amp+w.width);
+      gr.addColorStop(0,`rgba(${r},${g},${b},0)`);
+      gr.addColorStop(0.3,`rgba(${r},${g},${b},0.18)`);
+      gr.addColorStop(0.6,`rgba(${r},${g},${b},0.25)`);
+      gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
+      _ctx.fillStyle=gr; _ctx.fill();
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-183: ?qrcode=URL QRコードオーバーレイ（URLをQRコード化して画面に表示）
 // 例: ?qrcode=https://twitch.tv/noiru0526&qrsize=120&qrpos=br
