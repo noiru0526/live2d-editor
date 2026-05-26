@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #main{display:flex;flex:1;overflow:hidden}
 
 /* ===== LEFT PANEL ===== */
-#lp{width:230px;background:#1a1a1a;border-right:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+#lp{width:270px;background:#1a1a1a;border-right:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
 .ph{padding:7px 10px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #383838;flex-shrink:0;background:#161616}
 .ph h3{color:#707070;font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
@@ -650,6 +650,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">描画順</span><input type="number" id="pp-zorder" class="ci-num" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"></div>
           <div class="ci-row"><span class="ci-lbl">不透明度</span><div style="display:flex;align-items:center;gap:4px;flex:1"><input type="range" id="ci-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value);document.getElementById('ci-op-v').textContent=this.value+'%'" style="flex:1"><span id="ci-op-v" style="font-size:10px;color:#e07840;font-family:monospace;min-width:30px;text-align:right">100%</span></div></div>
+          <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:#e07840"><span style="font-size:10px;color:#666">色を反転</span></label></div>
+          <div class="ci-row"><span class="ci-lbl">表面色</span><div style="display:flex;align-items:center;gap:5px;flex:1"><input type="color" id="ci-mul-color" value="#ffffff" oninput="applyPartMultiplyColor(this.value)" style="width:26px;height:18px;border:1px solid #383838;border-radius:2px;padding:0;cursor:pointer;background:none"><span id="ci-mul-hex" style="font-size:9px;color:#666;font-family:monospace">#FFFFFF</span></div></div>
+          <div class="ci-row"><span class="ci-lbl">スクリーン色</span><div style="display:flex;align-items:center;gap:5px;flex:1"><input type="color" id="ci-scr-color" value="#000000" oninput="applyPartScreenColor(this.value)" style="width:26px;height:18px;border:1px solid #383838;border-radius:2px;padding:0;cursor:pointer;background:none"><span id="ci-scr-hex" style="font-size:9px;color:#666;font-family:monospace">#000000</span></div></div>
         </div>
         <div class="prop-row">
           <span id="pp-coord-lbl-x" class="prop-lbl" title="クリックでグローバル座標に切替" onclick="toggleGlobalCoordMode()" style="cursor:pointer">X</span>
@@ -1239,6 +1242,9 @@ class Part {
     this.groupId = null;
     this.deformerId = null;
     this.parentId = null;
+    this.masterInvert = false;
+    this.multiplyColor = '#ffffff';
+    this.screenColor = '#000000';
     this.physics = { enabled: false, stiffness: 0.25, damping: 0.88, reactX: 1.0, reactY: 0.5 };
     this.altTextures = []; // [{name, dataURL, img}]
     this.activeTexIdx = -1; // -1=base, 0..n-1=altTextures[i]
@@ -1427,6 +1433,9 @@ class Part {
       groupId: this.groupId,
       deformerId: this.deformerId,
       parentId: this.parentId || null,
+      masterInvert: this.masterInvert || false,
+      multiplyColor: this.multiplyColor || '#ffffff',
+      screenColor: this.screenColor || '#000000',
       physics: {...this.physics},
       opacityKFs: this.opacityKFs,
       hueKFs: this.hueKFs, satKFs: this.satKFs, briKFs: this.briKFs,
@@ -1457,6 +1466,9 @@ class Part {
     p.groupId = o.groupId || null;
     p.deformerId = o.deformerId || null;
     p.parentId = o.parentId || null;
+    p.masterInvert = o.masterInvert || false;
+    p.multiplyColor = o.multiplyColor || '#ffffff';
+    p.screenColor = o.screenColor || '#000000';
     p.physics = Object.assign({enabled:false,stiffness:0.25,damping:0.88,reactX:1.0,reactY:0.5}, o.physics||{});
     p.opacityKFs = o.opacityKFs || {};
     p.hueKFs = o.hueKFs || {}; p.satKFs = o.satKFs || {}; p.briKFs = o.briKFs || {};
@@ -1999,7 +2011,11 @@ function render() {
     const _hasHSBKF = Object.keys(pt.hueKFs||{}).length||Object.keys(pt.satKFs||{}).length||Object.keys(pt.briKFs||{}).length;
     const _hsb = _hasHSBKF ? pt.getHSBKF(vals) : {hue:pt.hue||0, sat:pt.saturate!==undefined?pt.saturate:100, bri:pt.brightness!==undefined?pt.brightness:100};
     const _hue = _hsb.hue, _sat = _hsb.sat, _bri = _hsb.bri;
-    if (_hue !== 0 || _sat !== 100 || _bri !== 100) ctx.filter = `hue-rotate(${_hue}deg) saturate(${_sat/100}) brightness(${_bri/100})`;
+    if (_hue !== 0 || _sat !== 100 || _bri !== 100 || pt.masterInvert) {
+      let _f = pt.masterInvert ? 'invert(1) ' : '';
+      if (_hue!==0||_sat!==100||_bri!==100) _f += `hue-rotate(${_hue}deg) saturate(${_sat/100}) brightness(${_bri/100})`;
+      ctx.filter = _f.trim();
+    }
     if (silhouetteMode) {
       const silColor = pt.colorLabel || '#000000';
       ctx.fillStyle = silColor;
@@ -3416,6 +3432,13 @@ function updatePartPropsUI() {
     grpSel.value = pt.groupId || '';
     const ciGrp = document.getElementById('ci-group');
     if (ciGrp) { ciGrp.innerHTML = grpSel.innerHTML; ciGrp.value = pt.groupId || ''; }
+    // マスタ反転・表面色・スクリーン色 sync
+    const ciInvert = document.getElementById('ci-invert');
+    if (ciInvert) ciInvert.checked = !!pt.masterInvert;
+    const ciMulColor = document.getElementById('ci-mul-color');
+    if (ciMulColor) { ciMulColor.value = pt.multiplyColor || '#ffffff'; const mh=document.getElementById('ci-mul-hex'); if(mh)mh.textContent=(pt.multiplyColor||'#ffffff').toUpperCase(); }
+    const ciScrColor = document.getElementById('ci-scr-color');
+    if (ciScrColor) { ciScrColor.value = pt.screenColor || '#000000'; const sh=document.getElementById('ci-scr-hex'); if(sh)sh.textContent=(pt.screenColor||'#000000').toUpperCase(); }
     // Parent part dropdown (tree hierarchy)
     const ciParent = document.getElementById('ci-parent');
     if (ciParent) {
@@ -3489,6 +3512,24 @@ function applyPartName(v) {
   saveState();
   parts[selPart].name = name;
   updatePartsUI();
+}
+function applyPartMasterInvert(v) {
+  if (selPart<0||selPart>=parts.length) return;
+  saveState(); parts[selPart].masterInvert = !!v; render();
+}
+function applyPartMultiplyColor(v) {
+  if (selPart<0||selPart>=parts.length) return;
+  parts[selPart].multiplyColor = v;
+  const el = document.getElementById('ci-mul-hex');
+  if (el) el.textContent = v.toUpperCase();
+  render();
+}
+function applyPartScreenColor(v) {
+  if (selPart<0||selPart>=parts.length) return;
+  parts[selPart].screenColor = v;
+  const el = document.getElementById('ci-scr-hex');
+  if (el) el.textContent = v.toUpperCase();
+  render();
 }
 function applyPartParent(pid) {
   if (selPart<0||selPart>=parts.length) return;
