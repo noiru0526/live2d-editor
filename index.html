@@ -4506,6 +4506,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?toastnotif=1</td><td>トースト通知（postMessage noiru-toast）・?toastpos=br・API: showToast(title,body,icon)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cursoreffect=1</td><td>マウスカーソルパーティクル・?cursortype=stars/fire/hearts/sparkles</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idlescreen=1</td><td>アイドル時「お待ちください」画面・?idlescreentime=120s・?idlescreenmsg=</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nextstream=ISO日時</td><td>次回配信カウントダウン・?nextstreamtext=・?nextstreampos=tc</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?schedule=月:20:00:内容</td><td>配信スケジュール表示（今日の予定をハイライト）・?schedulepos=tr</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?donationalert=1</td><td>ドネーションアラート・postMessage noiru-donate・API: triggerDonation(user,amount,msg)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8687,6 +8690,108 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-237: ?nextstream=DATE:TEXT 次回配信カウントダウン（ISO日時まで・画面に常時表示）
+// 例: ?nextstream=2026-05-28T20:00:00&nextstreamtext=次回配信
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _dt=_usp.get('nextstream'); if(!_dt) return;
+  const _target=new Date(_dt).getTime();
+  if(isNaN(_target)) return;
+  const _label=_usp.get('nextstreamtext')||'次回配信';
+  const _pos=_usp.get('nextstreampos')||'tc';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b'); const _isC=_pos.includes('c');
+  const _wrap=document.createElement('div');
+  _wrap.id='nextstream-ov';
+  const _posStyle=_isC?'left:50%;transform:translateX(-50%)':(_isR?'right:16px':'left:16px');
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',
+    background:'rgba(0,0,0,0.8)',borderRadius:'10px',
+    padding:'8px 20px',zIndex:'500',fontFamily:'monospace',
+    textAlign:'center',pointerEvents:'none'
+  });
+  _wrap.style.cssText+=';'+_posStyle;
+  document.body.appendChild(_wrap);
+  function _render(){
+    const now=Date.now(), diff=_target-now;
+    if(diff<=0){ _wrap.innerHTML=`<div style="color:#ffd700;font-size:14px;">${_label}：まもなく開始！</div>`; return; }
+    const d=Math.floor(diff/86400000);
+    const h=Math.floor(diff/3600000)%24;
+    const m=Math.floor(diff/60000)%60;
+    const s=Math.floor(diff/1000)%60;
+    _wrap.innerHTML=`<div style="color:#aaf;font-size:11px;">${_label}まで</div>
+      <div style="color:#fff;font-size:20px;font-weight:bold;">${d?d+'日 ':''}${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}</div>`;
+  }
+  setInterval(_render,1000); _render();
+})();
+// Q-238: ?schedule=DAY:TIME:TEXT 配信スケジュール表示（曜日/時間の予定一覧）
+// 例: ?schedule=月:20:00:ゲーム配信,木:21:00:雑談
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('schedule'); if(!_raw) return;
+  const _days=['日','月','火','水','木','金','土'];
+  const _entries=[];
+  _raw.split(',').forEach(item=>{
+    const parts=item.split(':');
+    if(parts.length<3) return;
+    const day=parts[0]; const time=parts[1]+':'+parts[2]; const label=parts.slice(3).join(':');
+    _entries.push({day,time,label});
+  });
+  if(!_entries.length) return;
+  const _pos=_usp.get('schedulepos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='schedule-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    background:'rgba(0,0,0,0.8)',borderRadius:'10px',padding:'10px 16px',
+    zIndex:'500',fontFamily:'sans-serif',pointerEvents:'none',minWidth:'180px'
+  });
+  const todayIdx=new Date().getDay();
+  _wrap.innerHTML='<div style="color:#aaf;font-size:12px;margin-bottom:6px;">📅 配信スケジュール</div>'+
+    _entries.map(e=>{
+      const isToday=e.day===_days[todayIdx];
+      return `<div style="display:flex;gap:8px;align-items:center;padding:2px 0;${isToday?'border-left:2px solid #ffd700;padding-left:4px;':''}">
+        <span style="color:${isToday?'#ffd700':'#888'};font-size:12px;min-width:40px;">${e.day} ${e.time}</span>
+        <span style="color:${isToday?'#fff':'#aaa'};font-size:12px;">${e.label}</span>
+      </div>`;
+    }).join('');
+  document.body.appendChild(_wrap);
+})();
+// Q-239: ?donationalert=1 ドネーション風アラート（金額・コメント付きで大きく表示）
+// postMessage {type:'noiru-donate', user, amount, msg, currency} で発動
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('donationalert')!=='1') return;
+  const _ov=document.createElement('div');
+  _ov.id='donationalert-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'15%',left:'50%',transform:'translateX(-50%) scale(0)',
+    background:'linear-gradient(135deg,#1a1a2e 0%,#16213e 100%)',
+    border:'2px solid #ffd700',borderRadius:'16px',padding:'20px 32px',
+    zIndex:'9999',fontFamily:'sans-serif',textAlign:'center',
+    boxShadow:'0 0 40px rgba(255,215,0,0.4)',pointerEvents:'none',
+    minWidth:'280px',transition:'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+  });
+  document.body.appendChild(_ov);
+  let _hideTimer=0;
+  window.triggerDonation=function(user,amount,msg,currency){
+    currency=currency||'¥';
+    _ov.innerHTML=`
+      <div style="color:#ffd700;font-size:28px;font-weight:bold;margin-bottom:8px;">${currency}${amount}</div>
+      <div style="color:#fff;font-size:18px;margin-bottom:6px;">${user||'Anonymous'} さん</div>
+      ${msg?`<div style="color:#ccc;font-size:14px;margin-top:8px;max-width:260px;">"${msg}"</div>`:''}
+      <div style="color:#888;font-size:12px;margin-top:8px;">ありがとうございます！</div>`;
+    _ov.style.transform='translateX(-50%) scale(1)';
+    if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+    clearTimeout(_hideTimer);
+    _hideTimer=setTimeout(()=>{ _ov.style.transform='translateX(-50%) scale(0)'; },6000);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-donate') window.triggerDonation(d.user,d.amount,d.msg,d.currency);
+    if(d.type==='noiru-bits'&&d.bits>=100) window.triggerDonation(d.user,'',d.msg+'('+d.bits+'bits)','💎');
   });
 })();
 // Q-234: ?toastnotif=1 トースト通知（右下にポップアップするOSライクな通知）
