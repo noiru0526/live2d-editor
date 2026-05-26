@@ -317,6 +317,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
   <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
   <button class="tbtn" id="btn-histogram" onclick="toggleHistogramPanel()" title="パラメータKF値ヒストグラム表示" style="color:#ffd080;">📊 ヒスト</button>
+  <button class="tbtn" id="btn-wf" onclick="toggleWaveformMonitor()" title="パラメータリアルタイム波形モニター（最大3パラメータ同時表示）" style="color:#60d8ff;">📈 波形</button>
   <button class="tbtn" id="btn-abplay" onclick="toggleABPlayback()" title="アニメーションA/B区間比較プレイバック" style="color:#80ffb0;">⇄ A/B再生</button>
   <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
   <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFromFileInput(this)">
@@ -5237,7 +5238,16 @@ let curDeadZone=0; // 0..0.4 dead zone for face tracking
 let _faceOffsetX=0,_faceOffsetY=0,_faceOffsetZ=0; // calibration offsets
 try{const _c=JSON.parse(localStorage.getItem('faceCalib')||'{}');_faceOffsetX=_c.ox||0;_faceOffsetY=_c.oy||0;_faceOffsetZ=_c.oz||0;}catch{}
 function _saveTS(patch){try{const s=JSON.parse(localStorage.getItem('trackSettings')||'{}');Object.assign(s,patch);localStorage.setItem('trackSettings',JSON.stringify(s));}catch{}}
-try{const _ts=JSON.parse(localStorage.getItem('trackSettings')||'{}');const _v=Number(_ts.eye);if(Number.isFinite(_v))curSensEye=Math.max(0.2,Math.min(3,_v));const _tm=Number(_ts.transMs);if(Number.isFinite(_tm))_poseTransMs=Math.max(0,Math.min(2000,_tm));}catch{}
+// Q-081: restore all tracking settings from localStorage
+try{const _ts=JSON.parse(localStorage.getItem('trackSettings')||'{}');
+  if(Number.isFinite(+_ts.eye))curSensEye=Math.max(0.2,Math.min(3,+_ts.eye));
+  if(Number.isFinite(+_ts.transMs))_poseTransMs=Math.max(0,Math.min(2000,+_ts.transMs));
+  if(Number.isFinite(+_ts.sens))curSens=Math.max(0.5,Math.min(3,+_ts.sens));
+  if(Number.isFinite(+_ts.x))curSensX=Math.max(0.1,Math.min(3,+_ts.x));
+  if(Number.isFinite(+_ts.y))curSensY=Math.max(0.1,Math.min(3,+_ts.y));
+  if(Number.isFinite(+_ts.z))curSensZ=Math.max(0.1,Math.min(3,+_ts.z));
+  if(Number.isFinite(+_ts.dz))curDeadZone=Math.max(0,Math.min(0.4,+_ts.dz));
+}catch{}
 const _applyDZ=(v,dz)=>Math.abs(v)<dz?0:Math.sign(v)*(Math.abs(v)-dz)/(1-dz||0.001);
 const exprHUD=document.getElementById('expr-hud');
 const exprList=document.getElementById('expr-list');
@@ -5973,9 +5983,24 @@ window._applyTrackPreset=function(preset){
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#ffd080">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:#ffd060;" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
 <button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:#1a2040;border:1px solid #3a4470;color:#8090a0;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
   document.body.appendChild(panel);
-  // Sync sliders to persisted values on DOM creation
-  {const te=document.getElementById('ts-eye');const tev=document.getElementById('ts-eye-val');if(te)te.value=curSensEye;if(tev)tev.textContent=curSensEye.toFixed(2);
-   const tt=document.getElementById('ts-transms');const ttv=document.getElementById('ts-transms-val');if(tt)tt.value=_poseTransMs;if(ttv)ttv.textContent=_poseTransMs===0?'即時':_poseTransMs+'ms';}
+  // Sync sliders to persisted values on DOM creation (all settings)
+  const _syncAllSliders=()=>{
+    const si=(id,v,fmt)=>{const e=document.getElementById(id);if(e){if(e.tagName==='INPUT')e.value=v;else e.textContent=fmt!==undefined?fmt:v;}};
+    si('ts-sens',curSens);si('ts-sens-val',curSens);
+    si('ts-sx',curSensX);si('ts-sx-val',curSensX);
+    si('ts-sy',curSensY);si('ts-sy-val',curSensY);
+    si('ts-sz',curSensZ);si('ts-sz-val',curSensZ);
+    si('ts-eye',curSensEye);si('ts-eye-val',curSensEye.toFixed(2));
+    si('ts-dz',curDeadZone);si('ts-dz-val',Math.round(curDeadZone*100)+'%');
+    si('ts-transms',_poseTransMs);si('ts-transms-val',_poseTransMs===0?'即時':_poseTransMs+'ms');
+  };
+  _syncAllSliders();
+  // Auto-save all slider values on any change (Q-081)
+  panel.addEventListener('input',e=>{
+    if(!e.target.matches('input[type=range]')) return;
+    _saveTS({sens:curSens,x:curSensX,y:curSensY,z:curSensZ,eye:curSensEye,dz:curDeadZone,
+      ema:parseFloat(document.getElementById('ts-ema')?.value||0.1)});
+  });
   const settBtn=document.createElement('button');
   settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
   settBtn.title='顔追跡の感度・デッドゾーン・スムース設定';
@@ -5984,11 +6009,7 @@ window._applyTrackPreset=function(preset){
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
     settBtn.style.color=v?'#60d890':'#a0d0ff';
-    // Sync sliders with current values when opening
-    if(v){
-      const te=document.getElementById('ts-eye');const tev=document.getElementById('ts-eye-val');if(te)te.value=curSensEye;if(tev)tev.textContent=curSensEye.toFixed(2);
-      const tt=document.getElementById('ts-transms');const ttv=document.getElementById('ts-transms-val');if(tt)tt.value=_poseTransMs;if(ttv)ttv.textContent=_poseTransMs===0?'即時':_poseTransMs+'ms';
-    }
+    if(v) _syncAllSliders();
   };
   document.body.appendChild(settBtn);
 })();
@@ -20683,6 +20704,85 @@ function toggleRndAnimate(on) {
 }
 
 // ==================== PARAMETER HISTOGRAM ====================
+// ==================== Q-082: PARAMETER WAVEFORM MONITOR ====================
+(()=>{
+  const WF_LEN=200;
+  const WF_C=['#ff6060','#60d890','#6080ff','#ffd060','#c080ff'];
+  let _wfOn=false,_wfRAF=null;
+  const _hist={},_pos={};
+  let _keys=['','',''];
+  const _pn=document.createElement('div');
+  _pn.id='wf-panel';
+  _pn.style.cssText='display:none;position:fixed;right:16px;top:48px;width:280px;background:#0d1117;border:1px solid #2a3a5a;border-radius:8px;z-index:160;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,.6);font-family:monospace;font-size:9px;';
+  _pn.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+    <span style="color:#a0d0ff;font-size:10px;font-weight:bold;">📈 波形モニター</span>
+    <button onclick="toggleWaveformMonitor()" style="background:none;border:none;color:#4a6080;cursor:pointer;font-size:14px;">×</button>
+  </div>
+  <div id="wf-sels" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;"></div>
+  <canvas id="wf-cv" width="264" height="100" style="width:100%;background:#060a12;border-radius:4px;display:block;"></canvas>`;
+  document.body.appendChild(_pn);
+
+  function _buildSels(){
+    const c=document.getElementById('wf-sels'); if(!c) return;
+    c.innerHTML='';
+    for(let i=0;i<3;i++){
+      const r=document.createElement('div'); r.style.cssText='display:flex;align-items:center;gap:4px;';
+      const dot=document.createElement('span'); dot.style.cssText=`width:8px;height:8px;border-radius:50%;background:${WF_C[i]};flex-shrink:0;`;
+      const sel=document.createElement('select');
+      sel.style.cssText='flex:1;background:#1a1e2e;border:1px solid #2a3a5a;color:#c8d4f0;border-radius:3px;padding:2px;font-size:9px;';
+      sel.innerHTML='<option value="">-- なし --</option>';
+      for(const k of Object.keys(M.params||{})) sel.innerHTML+=`<option value="${k}"${_keys[i]===k?' selected':''}>${k}</option>`;
+      sel.onchange=()=>{ _keys[i]=sel.value; };
+      r.appendChild(dot); r.appendChild(sel); c.appendChild(r);
+    }
+  }
+
+  function _tick(){
+    for(const k of _keys){
+      if(!k) continue;
+      if(!_hist[k]){_hist[k]=new Float32Array(WF_LEN);_pos[k]=0;}
+      const p=M.params?.[k]; if(!p) continue;
+      _hist[k][_pos[k]%WF_LEN]=p.val??0; _pos[k]++;
+    }
+    const cv=document.getElementById('wf-cv'); if(!cv) return;
+    const ctx=cv.getContext('2d'); if(!ctx) return;
+    const W=cv.width,H=cv.height;
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#060a12'; ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='#1a2a3a'; ctx.lineWidth=0.5;
+    for(let y=0;y<=4;y++){ctx.beginPath();ctx.moveTo(0,Math.round(H*y/4)+.5);ctx.lineTo(W,Math.round(H*y/4)+.5);ctx.stroke();}
+    for(let x=0;x<=8;x++){ctx.beginPath();ctx.moveTo(Math.round(W*x/8)+.5,0);ctx.lineTo(Math.round(W*x/8)+.5,H);ctx.stroke();}
+    ctx.strokeStyle='#1e3050'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,H*.5);ctx.lineTo(W,H*.5);ctx.stroke();
+    // waveforms
+    _keys.forEach((k,i)=>{
+      if(!k||!_hist[k]) return;
+      const p=M.params?.[k]; if(!p) return;
+      const pm=p.min??-1,px=p.max??1,rng=px-pm||1;
+      const h=_hist[k],head=(_pos[k]||0)%WF_LEN;
+      ctx.strokeStyle=WF_C[i]; ctx.lineWidth=1.5; ctx.beginPath();
+      for(let j=0;j<WF_LEN;j++){
+        const v=h[(head+j)%WF_LEN],x=j/(WF_LEN-1)*W,y=H-((v-pm)/rng)*H;
+        j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      const cv_=h[(head-1+WF_LEN)%WF_LEN];
+      ctx.fillStyle=WF_C[i]; ctx.font='8px monospace'; ctx.textAlign='right';
+      ctx.fillText(`${k}=${cv_.toFixed(2)}`,W-2,9+i*10);
+    });
+  }
+
+  function _loop(){ if(!_wfOn) return; _tick(); _wfRAF=requestAnimationFrame(_loop); }
+
+  window.toggleWaveformMonitor=function(){
+    _wfOn=!_wfOn;
+    _pn.style.display=_wfOn?'block':'none';
+    document.getElementById('btn-wf')?.classList.toggle('active',_wfOn);
+    if(_wfOn){ _buildSels(); _wfRAF=requestAnimationFrame(_loop); }
+    else if(_wfRAF){ cancelAnimationFrame(_wfRAF); _wfRAF=null; }
+  };
+})();
+
 function toggleHistogramPanel() {
   const panel = document.getElementById('histogram-panel');
   const btn = document.getElementById('btn-histogram');
