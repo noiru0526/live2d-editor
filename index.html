@@ -4345,6 +4345,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?border=RRGGBB</td><td>キャンバス縁取りグロー（+?border_pulse=1 ?border_size=14 ?border_speed=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tts=1</td><td>TTSリップシンク（window.speak(text)・noiru-cmd speak対応）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hue=N</td><td>色相回転（度）/ ?sat=N 彩度% / ?bri=N 明度% / ?con=N コントラスト%</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?theme=NAME</td><td>カラーテーマ一括設定（night/warm/cool/retro/vivid/ghost/forest）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vignette=N</td><td>ビネット（暗い四隅）効果 0.0〜1.0</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poi=1</td><td>クリックで視線誘導（=head で頭も動く・+?poitimeout=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
@@ -5770,6 +5771,7 @@ function applyPoseBlend(dt){
       });
     }
     // Global color grading: ?hue=N ?sat=N ?bri=N ?con=N (backdrop-filter on #grade-ov)
+    // Q-094: ?theme=NAME カラーテーマプリセット (night/warm/cool/retro/vivid/ghost/forest)
     (()=>{
       const _go=document.getElementById('grade-ov');if(!_go) return;
       function _buildGrade(hue,sat,bri,con){
@@ -5781,11 +5783,13 @@ function applyPoseBlend(dt){
         if(Number.isFinite(c)&&c!==100) parts.push(`contrast(${Math.max(0,c)}%)`);
         return parts.join(' ');
       }
-      // Use usp.has() so unset params use their identity defaults (hue=0, sat/bri/con=100)
-      const _initHue=usp.has('hue')?Number(usp.get('hue')):0;
-      const _initSat=usp.has('sat')?Number(usp.get('sat')):100;
-      const _initBri=usp.has('bri')?Number(usp.get('bri')):100;
-      const _initCon=usp.has('con')?Number(usp.get('con')):100;
+      // ?theme= presets — individual params override theme values
+      const _THEMES={night:{hue:220,sat:110,bri:82,con:108},warm:{hue:-18,sat:122,bri:106,con:100},cool:{hue:28,sat:88,bri:100,con:107},retro:{hue:6,sat:68,bri:108,con:118},vivid:{hue:0,sat:158,bri:100,con:112},ghost:{hue:0,sat:32,bri:95,con:108},forest:{hue:-32,sat:120,bri:96,con:100}};
+      const _thm=_THEMES[usp.get('theme')??'']??null;
+      const _initHue=usp.has('hue')?Number(usp.get('hue')):(_thm?.hue??0);
+      const _initSat=usp.has('sat')?Number(usp.get('sat')):(_thm?.sat??100);
+      const _initBri=usp.has('bri')?Number(usp.get('bri')):(_thm?.bri??100);
+      const _initCon=usp.has('con')?Number(usp.get('con')):(_thm?.con??100);
       const _initF=_buildGrade(_initHue,_initSat,_initBri,_initCon);
       if(_initF) _go.style.backdropFilter=_initF;
       window.setGrade=function(hue,sat,bri,con){
