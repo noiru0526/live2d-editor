@@ -4342,6 +4342,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idleexpr=p1,p2</td><td>アイドル時ランダム表情（非追跡時にランダム切替・+?idleexprdur=秒 ?idleexproff=秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatemojirain=1</td><td>チャット絵文字レイン（Twitchチャットの絵文字を自動レイン・+?chatemojimax=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
@@ -6565,6 +6566,24 @@ function _handleChatMsg(rawMsg){
     requestAnimationFrame(_rfTick);
   }
   requestAnimationFrame(_rfTick);
+})();
+// Q-109: ?chatemojirain=1 チャット絵文字レイン（Twitchチャットの絵文字を自動検出してレイン）
+// ?chatemojimax=3 同時に最大いくつの絵文字をレインするか（デフォルト2）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatemojirain')!=='1') return;
+  const _maxPerMsg=Math.min(6,Math.max(1,parseInt(_usp.get('chatemojimax')||'2',10)));
+  // Emoji detection regex (covers most Unicode emoji ranges)
+  const _emojiRe=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F000}-\u{1F9FF}]/gu;
+  function _extractEmojis(text){return [...text.matchAll(_emojiRe)].map(m=>m[0]).slice(0,_maxPerMsg);}
+  window.addEventListener('message',ev=>{
+    const d=ev.data;
+    if(!d||d.type!=='noiru-chat') return;
+    const emojis=_extractEmojis(d.msg||'');
+    if(!emojis.length) return;
+    if(typeof window.triggerRain!=='function') return;
+    emojis.forEach(em=>window.triggerRain(em,1));
+  });
 })();
 // Mic volume visualizer (?showvolume=1)
 (()=>{
