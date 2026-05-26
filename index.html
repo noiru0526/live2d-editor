@@ -4339,6 +4339,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?poptext=TEXT</td><td>テキストポップアップ（+?poptextdelay= ?poptextdur= ?poptextcolor= ?poptextsize=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?roulette=a,b,c</td><td>ルーレット選択（Rキー / noiru-cmd roulette / {cmd:'roulette',options:[]}）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowerthird=名前</td><td>ローワーサードオーバーレイ（+?lowerthirdtitle=役職 ?lowerthirdcolor=HEX ?lowerthirddur=秒 ?lowerthirdpos=bl/bc/br）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idleexpr=p1,p2</td><td>アイドル時ランダム表情（非追跡時にランダム切替・+?idleexprdur=秒 ?idleexproff=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
@@ -7436,6 +7437,40 @@ window.addEventListener('message',ev=>{
     _ov.style.animation='ltSlideOut .5s ease forwards';
     setTimeout(()=>{_ov.classList.remove('show');},500);
   };
+})();
+// Q-105: ?idleexpr=pose1,pose2 アイドル時ランダム表情ループ
+// ?idleexprdur=N 秒ごとに切り替え（デフォルト30秒）?idleexproff=N 非追跡時に発動するまでの秒数（デフォルト5秒）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('idleexpr');if(!_raw) return;
+  const _names=_raw.split(',').map(s=>s.trim()).filter(Boolean);if(_names.length<1) return;
+  const _dur=Math.max(3,parseFloat(_usp.get('idleexprdur'))||30);
+  const _offDelay=Math.max(1,parseFloat(_usp.get('idleexproff'))||5);
+  let _lastChange=performance.now();
+  let _lastIdx=-1;
+  let _offSince=null; // timestamp when tracking was last lost
+  function _pick(){
+    // avoid repeating same pose twice in a row
+    let candidates=_names.filter((_,i)=>i!==_lastIdx);
+    if(candidates.length===0) candidates=_names;
+    const n=Math.floor(Math.random()*candidates.length);
+    _lastIdx=_names.indexOf(candidates[n]);
+    const poseName=candidates[n];
+    const p=typeof MD!=='undefined'&&MD?.poses?.find?.(x=>x.name===poseName);
+    if(p&&typeof activePose!=='undefined'){activePose=p;poseBlend=0;}
+    else if(poseName==='default'||poseName==='reset'){if(typeof activePose!=='undefined'){activePose=null;poseBlend=0;}}
+  }
+  function _tick(){
+    const now=performance.now();
+    const isTracking=typeof tracking!=='undefined'&&tracking;
+    if(isTracking){_offSince=null;return;}
+    if(_offSince===null){_offSince=now;return;}
+    if((now-_offSince)/1000<_offDelay) return; // wait for tracking to be fully off
+    if((now-_lastChange)/1000>=_dur){_lastChange=now;_pick();}
+  }
+  setInterval(_tick,1000);
+  // Also expose for immediate trigger
+  window.triggerIdleExpr=()=>{_lastChange=performance.now()-_dur*1000;_pick();};
 })();
 ${particleType ? `
 // ==================== PARTICLE SYSTEM ====================
