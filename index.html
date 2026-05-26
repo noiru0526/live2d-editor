@@ -4425,6 +4425,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hypemeter=1</td><td>ハイプメーター（チャット/ビッツ/サブで溜まるゲージ・100%でconfetti・+?hypedecay=0.995）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?voiceactivity=1</td><td>声活動グロー（マイク音量でborder-glowが強まる・+?vaglow=7080ff ?vastrength=1.0）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?minibrowser=URL</td><td>ミニブラウザiframeオーバーレイ（+?mbpos=br/bl/tr/tl ?mbwidth=320 ?mbheight=240）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?danmaku=1</td><td>弾幕チャット（コメントが画面を横スクロール・+?danmakuspeed=6 ?danmakusize=18 ?danmakurows=6）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatfilter=word1,word2</td><td>チャットフィルター（ブロックワード）/ ?chatallowonly= ホワイトリストモード</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?starfield=1</td><td>スターフィールド背景（宇宙空間・+?starcount=100 ?starspeed=1.0 ?starcolor=ffffff）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8256,6 +8259,104 @@ window.addEventListener('message',ev=>{
   _iframe.src=_url; _iframe.style.cssText='width:100%;height:100%;border:none;';
   _iframe.allow='autoplay;encrypted-media';
   _wrap.appendChild(_iframe); document.body.appendChild(_wrap);
+})();
+// Q-156: ?danmaku=1 弾幕スタイルチャット（コメントが画面を右→左にスクロール）
+// ?danmakuspeed=6 速さ(秒) ?danmakusize=18 フォントサイズ ?danmakurows=6 最大行数
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('danmaku')!=='1') return;
+  const _spd=Math.min(30,Math.max(1,parseFloat(_usp.get('danmakuspeed'))||6));
+  const _sz=Math.min(48,Math.max(10,parseInt(_usp.get('danmakusize'))||18));
+  const _rows=Math.min(20,Math.max(1,parseInt(_usp.get('danmakurows'))||6));
+  const _container=document.createElement('div');
+  _container.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:72;overflow:hidden;';
+  document.body.appendChild(_container);
+  const _lanes=new Array(_rows).fill(0); // last end-time per lane
+  function _fire(user,msg,color){
+    const text=(user?user+': ':'')+msg.slice(0,60);
+    const col=color||('#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'));
+    // Pick a free lane (or least-busy)
+    const now=Date.now();
+    let lane=0; let minEnd=Infinity;
+    _lanes.forEach((end,i)=>{ if(end<minEnd){minEnd=end;lane=i;} });
+    const y=10+Math.floor(lane/_rows*100)+'%';
+    const el=document.createElement('div');
+    el.style.cssText=`position:absolute;top:${y};right:-100%;white-space:nowrap;font-size:${_sz}px;color:${col};text-shadow:1px 1px 3px rgba(0,0,0,.9);font-family:'Segoe UI',sans-serif;font-weight:700;transition:right ${_spd}s linear;`;
+    el.textContent=text;
+    _container.appendChild(el);
+    requestAnimationFrame(()=>{
+      el.style.right=(window.innerWidth+100)+'px';
+    });
+    _lanes[lane]=now+_spd*1000;
+    setTimeout(()=>el.remove(),(_spd+1)*1000);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    _fire(d.user||'',d.msg||'',d.color||null);
+  });
+  window.triggerDanmaku=_fire;
+})();
+// Q-157: ?chatfilter=word1,word2 チャットフィルター（含むコメントを非表示・ブロック）
+// ?chatallowonly=word1,word2 ホワイトリストモード
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _block=(_usp.get('chatfilter')||'').split(',').map(w=>w.trim().toLowerCase()).filter(Boolean);
+  const _allow=(_usp.get('chatallowonly')||'').split(',').map(w=>w.trim().toLowerCase()).filter(Boolean);
+  if(!_block.length&&!_allow.length) return;
+  // Intercept noiru-chat messages before other handlers
+  const _origAddEL=window.addEventListener.bind(window);
+  window._danmakuFilter=function(msg){
+    const lc=msg.toLowerCase();
+    if(_block.some(w=>lc.includes(w))) return true; // blocked
+    if(_allow.length&&!_allow.some(w=>lc.includes(w))) return true; // not in whitelist
+    return false;
+  };
+  // The filter is checked in Q-156's handler + other noiru-chat handlers will see filtered msgs
+  // We intercept at postMessage level
+  const _real=window.postMessage.bind(window);
+  window.addEventListener('message',ev=>{
+    if(ev.data?.type==='noiru-chat'&&ev.data?.msg){
+      if(window._danmakuFilter(ev.data.msg)){
+        ev.stopImmediatePropagation();
+      }
+    }
+  },{capture:true});
+})();
+// Q-158: ?starfield=1 スターフィールド背景アニメーション（宇宙空間演出）
+// ?starcount=100 ?starspeed=1.0 ?starcolor=ffffff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('starfield')!=='1') return;
+  const _cnt=Math.min(300,Math.max(20,parseInt(_usp.get('starcount'))||100));
+  const _spd=Math.min(10,Math.max(0.1,parseFloat(_usp.get('starspeed'))||1.0));
+  const _col=_usp.get('starcolor')||'ffffff';
+  const _cv=document.createElement('canvas');
+  _cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;';
+  document.body.appendChild(_cv);
+  const ctx=_cv.getContext('2d');
+  let W=0,H=0;
+  function _resize(){W=_cv.width=window.innerWidth;H=_cv.height=window.innerHeight;}
+  _resize(); window.addEventListener('resize',_resize);
+  const cx=()=>W/2,cy=()=>H/2;
+  const stars=Array.from({length:_cnt},()=>({
+    x:(Math.random()-.5)*2000, y:(Math.random()-.5)*2000, z:Math.random()*1000
+  }));
+  function _tick(){
+    ctx.fillStyle='rgba(0,0,0,0.15)'; ctx.fillRect(0,0,W,H);
+    for(const s of stars){
+      s.z-=_spd;
+      if(s.z<=0){ s.x=(Math.random()-.5)*2000; s.y=(Math.random()-.5)*2000; s.z=1000; }
+      const sx=s.x/s.z*W+cx(), sy=s.y/s.z*H+cy();
+      const r=Math.max(0.5,(1-s.z/1000)*3);
+      const a=1-s.z/1000;
+      if(sx<0||sx>W||sy<0||sy>H) continue;
+      ctx.beginPath(); ctx.arc(sx,sy,r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${parseInt(_col.slice(0,2)||'ff',16)},${parseInt(_col.slice(2,4)||'ff',16)},${parseInt(_col.slice(4,6)||'ff',16)},${a.toFixed(2)})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
