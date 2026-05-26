@@ -4422,6 +4422,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingemote=🌸</td><td>常時フロート絵文字アンビエント（+?floatingcount=5 ?floatingspeed=0.5）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchpoints=1</td><td>チャンネルポイント連携（ハイライトメッセージ/報酬→エフェクト・postMessage noiru-points）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?statusbar=1</td><td>軽量ステータスバー（FPS/追跡/ポーズ/笑顔を1行表示・+?statusbarpos= ?statusbarbg=1）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hypemeter=1</td><td>ハイプメーター（チャット/ビッツ/サブで溜まるゲージ・100%でconfetti・+?hypedecay=0.995）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?voiceactivity=1</td><td>声活動グロー（マイク音量でborder-glowが強まる・+?vaglow=7080ff ?vastrength=1.0）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?minibrowser=URL</td><td>ミニブラウザiframeオーバーレイ（+?mbpos=br/bl/tr/tl ?mbwidth=320 ?mbheight=240）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8165,6 +8168,94 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_tick);
   }
   requestAnimationFrame(_tick);
+})();
+// Q-153: ?hypemeter=1 ハイプメーター（チャット/ビッツ/サブで溜まるエネルギーゲージ）
+// ?hypedecay=0.95 減衰率/フレーム ?hypechatval=2 ?hypebitval=5 ?hypesubval=20
+// ?hypemeterpos=bottom ?hypemetercolor=ff6040 ゲージ色
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('hypemeter')!=='1') return;
+  const _decay=Math.min(0.9999,Math.max(0.9,parseFloat(_usp.get('hypedecay'))||0.995));
+  const _cval=parseFloat(_usp.get('hypechatval'))||2;
+  const _bval=parseFloat(_usp.get('hypebitval'))||5;
+  const _sval=parseFloat(_usp.get('hypesubval'))||20;
+  const _col='#'+(_usp.get('hypemetercolor')||'ff6040');
+  const _pos=_usp.get('hypemeterpos')||'bottom';
+  const _ov=document.createElement('div');
+  _ov.id='hype-meter-ov';
+  const _topOrBot=_pos==='top'?'top:0;bottom:auto;':'bottom:0;top:auto;';
+  _ov.style.cssText=`position:fixed;${_topOrBot}left:0;right:0;height:6px;z-index:70;pointer-events:none;background:rgba(0,0,0,.3);`;
+  const _fill=document.createElement('div');
+  _fill.style.cssText=`height:100%;width:0%;background:${_col};transition:width .15s;box-shadow:0 0 8px ${_col};`;
+  _ov.appendChild(_fill); document.body.appendChild(_ov);
+  let _hype=0;
+  function _add(v){ _hype=Math.min(100,_hype+v); _render(); }
+  function _render(){ _fill.style.width=_hype.toFixed(1)+'%'; }
+  // Decay loop
+  function _decay_loop(){ _hype=Math.max(0,_hype*_decay); _render(); requestAnimationFrame(_decay_loop); }
+  requestAnimationFrame(_decay_loop);
+  // Trigger at 100%
+  let _fired=false;
+  function _checkFull(){ if(_hype>=100&&!_fired){ _fired=true; _hype=0;
+    if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+    if(typeof window.showPopText==='function') window.showPopText('HYPE!!!',{dur:2000,color:'ff6040',size:28});
+    setTimeout(()=>{ _fired=false; },5000);
+  }}
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-chat') _add(_cval);
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='bits') _add(_bval*(parseInt(d.amount)||1));
+      if(d.cmd==='sub') _add(_sval);
+    }
+    _checkFull();
+  });
+  window.addHype=_add;
+})();
+// Q-154: ?voiceactivity=1 声活動インジケーター（マイク音量でアバター周囲グロー）
+// ?vaglow=ff80ff グロー色 ?vastrength=1.0 強度倍率
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('voiceactivity')!=='1') return;
+  const _col=_usp.get('vaglow')||'7080ff';
+  const _str=Math.min(3,Math.max(0.1,parseFloat(_usp.get('vastrength'))||1.0));
+  const _r=parseInt(_col.slice(0,2)||'70',16);
+  const _g=parseInt(_col.slice(2,4)||'80',16);
+  const _b=parseInt(_col.slice(4,6)||'ff',16);
+  const _bg=document.getElementById('border-glow');if(!_bg) return;
+  let _smooth=0;
+  function _tick(){
+    const vol=typeof getAudioLevel==='function'?Math.max(0,Math.min(1,getAudioLevel())):0;
+    _smooth=_smooth*0.7+vol*0.3;
+    const op=Math.min(1,_smooth*_str*2);
+    const blur=Math.round(op*30);
+    _bg.style.boxShadow=op>0.05?[
+      `inset 0 0 ${blur}px rgba(${_r},${_g},${_b},${(op*0.6).toFixed(2)})`,
+      `0 0 ${blur*2}px rgba(${_r},${_g},${_b},${(op*0.4).toFixed(2)})`,
+    ].join(','):'none';
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
+})();
+// Q-155: ?minibrowser=URL ミニブラウザオーバーレイ（iframeを固定表示）
+// ?mbpos=br/bl/tr/tl ?mbwidth=320 ?mbheight=240 ?mbopacity=1
+// ※ 同一オリジンまたはiframe許可サイトのみ（X-Frame-Options制限あり）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('minibrowser');if(!_url) return;
+  const _pos=_usp.get('mbpos')||'br';
+  const _mw=Math.min(800,Math.max(100,parseInt(_usp.get('mbwidth'))||320));
+  const _mh=Math.min(600,Math.max(60,parseInt(_usp.get('mbheight'))||240));
+  const _op=Math.min(1,Math.max(0,parseFloat(_usp.get('mbopacity'))||1));
+  const _mg=10;
+  const top=_pos.startsWith('t')?`top:${_mg}px;bottom:auto;`:`top:auto;bottom:${_mg}px;`;
+  const lr=_pos.endsWith('r')?`right:${_mg}px;left:auto;`:`left:${_mg}px;right:auto;`;
+  const _wrap=document.createElement('div');
+  _wrap.style.cssText=`position:fixed;${top}${lr}width:${_mw}px;height:${_mh}px;z-index:71;border-radius:6px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.1);opacity:${_op};`;
+  const _iframe=document.createElement('iframe');
+  _iframe.src=_url; _iframe.style.cssText='width:100%;height:100%;border:none;';
+  _iframe.allow='autoplay;encrypted-media';
+  _wrap.appendChild(_iframe); document.body.appendChild(_wrap);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
