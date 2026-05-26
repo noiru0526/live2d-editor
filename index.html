@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?discofloor=1</td><td>ディスコフロアタイル点滅・?discofloorcols=8&?discofloorrows=2</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rainbowtext=1</td><td>チャットテキスト虹色グラデーション</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scrollingbg=URL</td><td>横スクロール背景画像・?scrollingbgspeed=15</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bubblecursor=1</td><td>シャボン玉カーソルエフェクト・?bubblecursorsize=28</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpraise=KW</td><td>キーワード自動エフェクト（ありがとう|すごい 等）・複数はカンマ/パイプ区切り</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?musicvis=1</td><td>音楽ビジュアライザーバー・?musicvispos=bottom/top&?musicviscolor=hex&?musicvisbars=48</td></tr>
@@ -9603,6 +9606,70 @@ window.addEventListener('message',ev=>{
       }
     }
   });
+})();
+// Q-317: ?scrollingbg=URL スクロール背景（横にループするパノラマ背景画像）
+// 例: ?scrollingbg=https://example.com/bg.png&scrollingbgspeed=20
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _url=_u.get('scrollingbg'); if(!_url) return;
+  const _speed=parseFloat(_u.get('scrollingbgspeed'))||15;
+  const _d=document.createElement('div');
+  _d.id='niru-scrollbg';
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'129',pointerEvents:'none',overflow:'hidden'
+  });
+  const _inner=document.createElement('div');
+  Object.assign(_inner.style,{
+    width:'200%',height:'100%',display:'flex',
+    backgroundImage:`url(${CSS.escape?'':''}"${_url}")`,
+    backgroundRepeat:'repeat-x',backgroundSize:'auto 100%',
+    animation:`_scrollbgmove ${_speed}s linear infinite`
+  });
+  _d.appendChild(_inner); document.body.appendChild(_d);
+  if(!document.getElementById('_scrollbgstyle')){
+    const s=document.createElement('style'); s.id='_scrollbgstyle';
+    s.textContent='@keyframes _scrollbgmove{from{background-position-x:0}to{background-position-x:-50%}}';
+    document.head.appendChild(s);
+  }
+  Object.assign(_inner.style,{backgroundImage:`url("${decodeURIComponent(_url)}")`,backgroundSize:'auto 100%',backgroundRepeat:'repeat-x',width:'100%',height:'100%',animation:`_scrollbgmove ${_speed}s linear infinite`});
+})();
+// Q-316: ?rainbowtext=1 レインボーチャット（チャットバブルテキストに虹色グラデーション）
+// 例: ?rainbowtext=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('rainbowtext')!=='1') return;
+  const _s=document.createElement('style');
+  _s.textContent=`.chat-bubble p,.chat-bubble span,.chat-text{background:linear-gradient(90deg,#ff4444,#ff8800,#ffff00,#44ff44,#44aaff,#8844ff) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important;background-size:200% auto;animation:_rbtxtanim 2s linear infinite}@keyframes _rbtxtanim{to{background-position:200%}}`;
+  document.head.appendChild(_s);
+})();
+// Q-315: ?discofloor=1 ディスコフロア（画面下部にカラータイルが点滅）
+// 例: ?discofloor=1&discofloorcols=8&discofloorrows=3
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('discofloor')!=='1') return;
+  const _cols=parseInt(_u.get('discofloorcols'))||8;
+  const _rows=parseInt(_u.get('discofloorrows'))||2;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',bottom:'0',left:'0',right:'0',zIndex:'143',pointerEvents:'none',
+    display:'grid',gridTemplateColumns:`repeat(${_cols},1fr)`,
+    gridTemplateRows:`repeat(${_rows},32px)`,gap:'2px',padding:'2px'
+  });
+  document.body.appendChild(_d);
+  const _COLORS=['#ff0055','#ff8800','#ffff00','#00ff88','#00ccff','#8844ff','#ff44aa','#ffffff'];
+  const _tiles=Array.from({length:_cols*_rows},()=>{
+    const t=document.createElement('div');
+    Object.assign(t.style,{borderRadius:'3px',transition:'background 0.15s,opacity 0.15s',background:_COLORS[Math.floor(Math.random()*_COLORS.length)],opacity:'0.15'});
+    _d.appendChild(t); return t;
+  });
+  setInterval(()=>{
+    const n=Math.floor(_tiles.length*0.3);
+    for(let i=0;i<n;i++){
+      const idx=Math.floor(Math.random()*_tiles.length);
+      _tiles[idx].style.background=_COLORS[Math.floor(Math.random()*_COLORS.length)];
+      _tiles[idx].style.opacity=String(0.2+Math.random()*0.7);
+    }
+  },150);
 })();
 // Q-312: ?bubblecursor=1 シャボン玉カーソルエフェクト（マウス追従の泡）
 // 例: ?bubblecursor=1&bubblecursorsize=30
