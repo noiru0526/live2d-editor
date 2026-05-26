@@ -2033,6 +2033,34 @@ function render() {
         drawTriTex(s0.x,s0.y, s1.x,s1.y, s2.x,s2.y, q0.x,q0.y, q1.x,q1.y, q2.x,q2.y, pt.getImgForVals(vals));
       }
     }
+    // 表面色 (multiply) — #ffffff=無効
+    const _mulColor = pt.multiplyColor || '#ffffff';
+    if (_mulColor.toLowerCase() !== '#ffffff') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = _mulColor;
+      ctx.beginPath();
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+        ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath();
+      }
+      ctx.fill();
+      ctx.restore();
+    }
+    // スクリーン色 (screen) — #000000=無効
+    const _scrColor = pt.screenColor || '#000000';
+    if (_scrColor.toLowerCase() !== '#000000') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = _scrColor;
+      ctx.beginPath();
+      for (const [i0,i1,i2] of pt.mesh.tris) {
+        const s0=m2s(wv[i0].x,wv[i0].y), s1=m2s(wv[i1].x,wv[i1].y), s2=m2s(wv[i2].x,wv[i2].y);
+        ctx.moveTo(s0.x,s0.y); ctx.lineTo(s1.x,s1.y); ctx.lineTo(s2.x,s2.y); ctx.closePath();
+      }
+      ctx.fill();
+      ctx.restore();
+    }
     ctx.restore();
 
     if (clipPt && clipPt.activeImg) ctx.restore();
