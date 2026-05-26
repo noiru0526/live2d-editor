@@ -5846,6 +5846,16 @@ function applyPoseBlend(dt){
       _fi.setAttribute('crossorigin','anonymous');
       document.body.appendChild(_fi);
     })();
+    // Q-101: ?rounded=N 角丸マスク（canvas/body に border-radius を適用）
+    (()=>{
+      const _rr=usp.get('rounded');if(!_rr) return;
+      const _rv=_rr.includes('%')?_rr:(/^\d+$/.test(_rr)?_rr+'px':null);if(!_rv) return;
+      const _cv=document.getElementById('c');if(_cv) _cv.style.borderRadius=_rv;
+      const _w=document.getElementById('wrap');if(_w){_w.style.borderRadius=_rv;_w.style.overflow='hidden';}
+      // For transparent bg mode, also clip the entire body
+      if(document.body.style.backgroundColor==='transparent'||document.body.style.backgroundColor==='')
+        document.body.style.borderRadius=_rv;
+    })();
     // Avatar transform: ?scale=N ?x=N ?y=N (applied to #wrap to compose with mirror)
     (()=>{
       const _sc=Number(usp.get('scale'));
