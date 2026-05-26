@@ -4533,6 +4533,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?sakuramode=1</td><td>桜の花びら（?snowmode=1で雪片）・ピンク/白の粒子が舞い落ちる</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?halloweenmode=1</td><td>ハロウィーンモード（コウモリ飛来+オレンジテーマ）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?christmasmode=1</td><td>クリスマスモード（雪+アイコン降下+赤緑テーマ+バナー）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tunnel=1</td><td>回転トンネルエフェクト・?tunnelspeed=1.5・?tunnelcolor=6600ff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vortex=1</td><td>渦巻きパーティクル・?vortexspeed=1.5・?vortexparticles=80</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glowring=1</td><td>音声連動グローリング（アバターを囲む光輪）・?glowringcolor=ff88ff・?glowringsize=1</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8715,6 +8718,122 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-264: ?tunnel=1 トンネルエフェクト（無限に広がる回転するリングのトンネル）
+// 例: ?tunnel=1&tunnelspeed=2&tunnelcolor=6600ff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('tunnel')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='tunnel-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'94'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _spd=Math.min(5,Math.max(0.2,parseFloat(_usp.get('tunnelspeed'))||1.5));
+  const _col=_usp.get('tunnelcolor')||'6600ff';
+  const _r=parseInt(_col.slice(0,2),16)||102;
+  const _g=parseInt(_col.slice(2,4),16)||0;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  let _t=0, _offset=0;
+  const _rings=20;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const cx=_cv.width/2, cy=_cv.height/2;
+    _offset=(_offset+_spd*0.005)%1;
+    for(let i=_rings;i>=0;i--){
+      const t=(i/_rings+_offset)%1;
+      const scale=Math.pow(t,0.8);
+      const radius=scale*Math.min(cx,cy)*1.5;
+      const alpha=(1-t)*0.3;
+      const twist=t*Math.PI*2*3+_t*0.01*_spd;
+      _ctx.save(); _ctx.translate(cx+Math.cos(twist)*scale*20,cy+Math.sin(twist)*scale*10);
+      _ctx.beginPath(); _ctx.arc(0,0,radius,0,Math.PI*2);
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${alpha})`;
+      _ctx.lineWidth=1+scale*3; _ctx.stroke();
+      _ctx.restore();
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-265: ?vortex=1 ボルテックスエフェクト（渦巻き状に粒子が回転する）
+// 例: ?vortex=1&vortexspeed=2&vortexparticles=100
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('vortex')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='vortex-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'95'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _spd=Math.min(5,Math.max(0.1,parseFloat(_usp.get('vortexspeed'))||1.5));
+  const _n=Math.min(200,Math.max(20,parseInt(_usp.get('vortexparticles'))||80));
+  const _pts=[];
+  for(let i=0;i<_n;i++){
+    const ang=Math.random()*Math.PI*2;
+    const r=Math.random()*Math.min(_cv.width,_cv.height)*0.4;
+    _pts.push({ang,r,spd:(_spd*0.01+r*0.0001)*(_spd>0?1:-1),
+      inSpd:(Math.random()-0.5)*0.5,
+      col:`hsl(${Math.random()*360|0},80%,70%)`,sz:1+Math.random()*2});
+  }
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const cx=_cv.width/2, cy=_cv.height/2;
+    for(const p of _pts){
+      p.ang+=p.spd; p.r+=p.inSpd;
+      if(p.r<5) p.inSpd=Math.abs(p.inSpd);
+      if(p.r>Math.min(cx,cy)*0.45) p.inSpd=-Math.abs(p.inSpd);
+      const x=cx+Math.cos(p.ang)*p.r; const y=cy+Math.sin(p.ang)*p.r;
+      _ctx.beginPath(); _ctx.arc(x,y,p.sz,0,Math.PI*2);
+      _ctx.fillStyle=p.col; _ctx.globalAlpha=0.7; _ctx.fill();
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-266: ?glowring=1 グローリング（アバターを囲む光のリング・声に反応して拡大）
+// 例: ?glowring=1&glowringcolor=ff88ff&glowringsize=1.0
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('glowring')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='glowring-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'150'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _col=_usp.get('glowringcolor')||'ff88ff';
+  const _r=parseInt(_col.slice(0,2),16)||255;
+  const _g=parseInt(_col.slice(2,4),16)||136;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  const _scale=Math.min(2,Math.max(0.3,parseFloat(_usp.get('glowringsize'))||1));
+  let _smoothLvl=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const lv=typeof window.getAudioLevel==='function'?window.getAudioLevel():0;
+    _smoothLvl=_smoothLvl*0.8+lv*0.2;
+    const cx=_cv.width/2, cy=_cv.height/2;
+    const baseR=Math.min(cx,cy)*0.3*_scale;
+    const ringR=baseR+_smoothLvl*baseR*0.5;
+    for(let i=0;i<3;i++){
+      const r2=ringR+i*8;
+      const alpha=(0.4-i*0.1)*(0.3+_smoothLvl*0.7);
+      const grd=_ctx.createRadialGradient(cx,cy,r2*0.8,cx,cy,r2*1.2);
+      grd.addColorStop(0,'rgba(0,0,0,0)');
+      grd.addColorStop(0.5,`rgba(${_r},${_g},${_b},${alpha})`);
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      _ctx.beginPath(); _ctx.arc(cx,cy,r2,0,Math.PI*2);
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${alpha*2})`;
+      _ctx.lineWidth=4-i; _ctx.stroke();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-261: ?sakuramode=1 桜モード（ピンクの花びらが散る・春の演出）
 // ?snowmode=1 でも流用可（白い雪片に切替）
