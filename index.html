@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?spintext=TEXT</td><td>3DスピンテキストY軸回転・?spintextcolor=hex&?spintextpos=top/center・setSpinText(t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?zoomeffect=1</td><td>postMsg zoomin/zoomout/zoompulse アバタースケール・triggerZoom(scale)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?customemoji=C:URL</td><td>チャット内カスタム絵文字・?customemoji=niru:URL|lul:URL2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?thankssub=1</td><td>新サブ/フォロー感謝カード・?thankssubtext=ありがとう！・triggerThanksSub(user,type)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingballs=1</td><td>物理バウンスボール・?floatingballscount=6&?floatingballscolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatfirework=KW</td><td>チャットキーワード花火・?chatfirework=おめでとう|やったー</td></tr>
@@ -9839,6 +9842,103 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_draw);
   })();
   window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-329: ?customemoji=CODE:URL カスタム絵文字（チャット内コードを画像に自動置換）
+// 例: ?customemoji=niru:https://example.com/niru.png|lul:https://example.com/lul.gif
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('customemoji'); if(!_raw) return;
+  const _map={};
+  decodeURIComponent(_raw).split('|').forEach(pair=>{
+    const [code,url]=pair.split(':',2);
+    if(code&&url) _map[code.trim().toLowerCase()]=url.trim();
+  });
+  const _allCodes=Object.keys(_map);
+  if(!_allCodes.length) return;
+  // Intercept chat bubbles being added to DOM
+  const _ob=new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes.forEach(node=>{
+        if(node.nodeType!==1) return;
+        const texts=node.querySelectorAll ? [node,...node.querySelectorAll('*')] : [node];
+        texts.forEach(el=>{
+          if(el.childNodes&&el.childNodes.length===1&&el.childNodes[0].nodeType===3){
+            const txt=el.textContent;
+            const parts=txt.split(/(\s+)/);
+            let changed=false;
+            const frag=document.createDocumentFragment();
+            parts.forEach(part=>{
+              const key=part.toLowerCase();
+              if(_map[key]){
+                const img=document.createElement('img');
+                img.src=_map[key]; img.alt=part;
+                Object.assign(img.style,{height:'1.3em',verticalAlign:'middle',display:'inline-block'});
+                frag.appendChild(img); changed=true;
+              } else { frag.appendChild(document.createTextNode(part)); }
+            });
+            if(changed){ el.textContent=''; el.appendChild(frag); }
+          }
+        });
+      });
+    });
+  });
+  _ob.observe(document.body,{childList:true,subtree:true});
+})();
+// Q-328: ?zoomeffect=1 ズームエフェクト（postMessageでアバター拡大縮小アニメ）
+// 例: ?zoomeffect=1  postMessage{type:'noiru-cmd',cmd:'zoomin'} / 'zoomout' / 'zoomreset'
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('zoomeffect')!=='1') return;
+  const _wrap=document.getElementById('wrap')||document.querySelector('canvas');
+  if(!_wrap) return;
+  let _curScale=1; let _baseTransform=_wrap.style.transform||'';
+  function _setZoom(s,dur){
+    _wrap.style.transition=`transform ${dur||0.4}s cubic-bezier(.2,1.6,.4,1)`;
+    _curScale=s;
+    _wrap.style.transform=`${_baseTransform} scale(${s})`;
+    if(dur&&s!==1) setTimeout(()=>{ _wrap.style.transition='transform 0.5s ease'; _wrap.style.transform=_baseTransform+' scale(1)'; _curScale=1; },dur*1000+1200);
+  }
+  window.triggerZoom=(s,dur)=>_setZoom(s||1.5,dur);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='zoomin') _setZoom(d.scale||1.5,0.4);
+      if(d.cmd==='zoomout') _setZoom(d.scale||0.7,0.4);
+      if(d.cmd==='zoomreset') _setZoom(1,0.4);
+      if(d.cmd==='zoompulse') _setZoom(1.15,0.1);
+    }
+  });
+})();
+// Q-327: ?spintext=TEXT 3Dスピンテキスト（Y軸回転するタイトルテキスト）
+// 例: ?spintext=LIVE NOW！&spintextcolor=ff6699
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=_u.get('spintext'); if(!_txt) return;
+  const _col='#'+(_u.get('spintextcolor')||'ff6699');
+  const _pos=_u.get('spintextpos')||'top';
+  const _posStyle={top:{top:'14px',left:'50%',transform:'translateX(-50%)'},
+    center:{top:'50%',left:'50%',transform:'translate(-50%,-50%)'},
+    bottom:{bottom:'14px',left:'50%',transform:'translateX(-50%)'}};
+  const _p=_posStyle[_pos]||_posStyle.top;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'156',..._p,
+    color:_col,fontFamily:'sans-serif',fontWeight:'bold',fontSize:'clamp(18px,3vw,32px)',
+    textShadow:`0 0 12px ${_col},0 0 24px ${_col}66`,
+    animation:'_stSpin 3s linear infinite',transformOrigin:'center center',
+    whiteSpace:'nowrap',pointerEvents:'none'
+  });
+  if(!document.getElementById('_stStyle')){
+    const s=document.createElement('style'); s.id='_stStyle';
+    s.textContent='@keyframes _stSpin{0%{transform:perspective(300px) rotateY(0deg)}50%{transform:perspective(300px) rotateY(180deg);color:transparent}51%{color:var(--stc)}100%{transform:perspective(300px) rotateY(360deg)}}';
+    document.head.appendChild(s);
+  }
+  _d.style.setProperty('--stc',_col);
+  _d.textContent=decodeURIComponent(_txt);
+  // Override position if it has transform
+  if(_p.transform) _d.style.transform=`${_p.transform}`;
+  document.body.appendChild(_d);
+  window.setSpinText=t=>{ _d.textContent=t; };
 })();
 // Q-324: ?thankssub=1 新サブ/フォロー感謝カード（自動でサンキューカードを表示）
 // 例: ?thankssub=1&thankssubtext=ありがとう！
