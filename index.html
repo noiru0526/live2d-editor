@@ -4404,6 +4404,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rainbow=1</td><td>レインボーカラーシフト（+?rainbowspeed=6秒 ?rainbowsat=180）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bitstreak=1</td><td>ビッツ連続応援ボーナスエフェクト（+?bitstreakthresh=2回 ?bitstreakwindow=60秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatreaction=1</td><td>チャット盛り上がり検出（10秒内に?chatreactionthresh=8件→エフェクト・+?chatreactioneffect=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bggradient=C1:C2</td><td>グラジェント背景（?bggradangle=135 角度・例: ?bggradient=1a1a3e:3e1a3e）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?titlecard=TEXT</td><td>起動時タイトルカード表示（+?titlecardsub= ?titlecarddur=3 ?titlecardsize=48 ?titlecardcolor=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlay2=URL</td><td>第2オーバーレイ画像（+?overlay2opacity= ?overlay2size= ?overlay2blend=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7672,6 +7675,47 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     _onMsg();
   });
+})();
+// Q-135: ?bggradient=COLOR1:COLOR2 URLパラメータでグラジェント背景（?bggradangle=135 角度）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('bggradient');if(!_raw) return;
+  const parts=_raw.split(':');if(parts.length<2) return;
+  const c1='#'+parts[0].replace('#','');
+  const c2='#'+parts[1].replace('#','');
+  const angle=Math.max(0,Math.min(360,parseInt(_usp.get('bggradangle'))||135));
+  document.body.style.background=`linear-gradient(${angle}deg, ${c1}, ${c2})`;
+  const _ld=document.getElementById('loading');
+  if(_ld) _ld.style.background=`linear-gradient(${angle}deg, ${c1}, ${c2})`;
+})();
+// Q-136: ?titlecard=TEXT 起動時タイトルカード（大きく表示してフェードアウト）
+// ?titlecardcolor=ffffff ?titlecardsize=48 ?titlecarddur=3 ?titlecardsub=サブテキスト
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _text=_usp.get('titlecard');if(!_text) return;
+  const _col='#'+(_usp.get('titlecardcolor')||'ffffff');
+  const _sz=Math.min(96,Math.max(16,parseInt(_usp.get('titlecardsize'))||48));
+  const _dur=Math.min(10,Math.max(0.5,parseFloat(_usp.get('titlecarddur'))||3));
+  const _sub=_usp.get('titlecardsub')||'';
+  const _ov=document.createElement('div');
+  _ov.style.cssText=`position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;pointer-events:none;transition:opacity 0.8s ease;`;
+  _ov.innerHTML=`<div style="color:${_col};font-size:${_sz}px;font-weight:700;text-shadow:0 0 30px rgba(255,255,255,.5),2px 2px 8px rgba(0,0,0,.8);letter-spacing:.05em;text-align:center;">${_text}</div>`+(_sub?`<div style="color:${_col};font-size:${Math.round(_sz*.45)}px;opacity:.8;margin-top:${Math.round(_sz*.2)}px;text-shadow:1px 1px 6px rgba(0,0,0,.9);text-align:center;">${_sub}</div>`:'');
+  document.body.appendChild(_ov);
+  // Fade out after dur seconds
+  setTimeout(()=>{ _ov.style.opacity='0'; setTimeout(()=>_ov.remove(),900); }, _dur*1000);
+})();
+// Q-137: ?overlay2=URL 第2オーバーレイ画像（?frame=に加えて追加の透過PNG重ね合わせ）
+// ?overlay2pos=center ?overlay2size=100% ?overlay2opacity=1 ?overlay2blend=normal
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _url=_usp.get('overlay2');if(!_url) return;
+  const _op=Math.min(1,Math.max(0,parseFloat(_usp.get('overlay2opacity'))||1));
+  const _sz=_usp.get('overlay2size')||'100%';
+  const _blend=_usp.get('overlay2blend')||'normal';
+  const _img=document.createElement('img');
+  _img.src=_url; _img.alt='';
+  _img.style.cssText=`position:fixed;inset:0;width:${_sz};height:${_sz};object-fit:contain;opacity:${_op};pointer-events:none;z-index:66;mix-blend-mode:${_blend};margin:auto;`;
+  document.body.appendChild(_img);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
