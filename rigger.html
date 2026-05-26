@@ -369,8 +369,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div id="part-preview-label" style="font-size:8px;color:#6878a0;text-align:center;margin-top:2px;"></div>
     </div>
 
-    <!-- KF Section -->
-    <div class="lsec">
+    <!-- KF Section (shown in deform mode) -->
+    <div class="lsec" id="kf-section">
       <div class="lsec-hd" onclick="toggleSec('kf-body')">
         <h3>KEYFRAME</h3>
         <span id="kf-param-label" style="font-size:8px;color:#e07840"></span>
@@ -414,7 +414,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
 
     <!-- Mesh Section -->
-    <div class="lsec">
+    <div class="lsec" id="mesh-section">
       <div class="lsec-hd" onclick="toggleSec('mesh-body')">
         <h3>MESH</h3>
       </div>
@@ -5697,6 +5697,11 @@ function setMode(m) {
     preview:'プレビュー — スライダーで動き確認 / 物理シミュレーション動作中',
     weightpaint:'ウェイトペイント — ドラッグで頂点影響度を塗布 / 選択パーツのデフォーマー影響度を調整'
   };
+  // Mode-dependent left panel sections
+  const kfSec = document.getElementById('kf-section');
+  const meshSec = document.getElementById('mesh-section');
+  if (kfSec) kfSec.style.display = m==='deform' ? '' : 'none';
+  if (meshSec) meshSec.style.display = m==='mesh' ? '' : 'none';
   updatePartPropsUI(); updateOpacityKFUI(); updateHSBKFUI(); updateScaleKFUI(); setHint(hints[m]||''); render();
 }
 function setHint(msg) { const el=document.getElementById('hint'); el.textContent=msg; el.style.display=msg?'block':'none'; }
