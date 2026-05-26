@@ -4314,6 +4314,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?pip=1</td><td>ピクチャーインピクチャー自動起動（⧉PiPボタンも追加・window.openAvatarPiP()で制御）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgimage=URL</td><td>背景画像URL（起動時適用。実行時オーバーライド）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bgvideo=URL</td><td>背景動画URL（起動時適用。実行時オーバーライド）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?micthresh=T:EFF</td><td>マイク音量閾値エフェクト（例: 0.7:shake,0.9:rain:🎉）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -7002,6 +7003,41 @@ window.addEventListener('message',ev=>{
   }
   setInterval(()=>{_el.textContent=_fmt(Date.now()-_start);},1000);
   _el.textContent='0:00';
+})();
+// Q-095: ?micthresh=THRESH:EFFECT[,THRESH2:EFFECT2,...] マイク音量閾値エフェクト
+// THRESH: 0.0-1.0, EFFECT: shake/flash/rain[:emoji]/blur/glitch
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('micthresh');if(!_raw) return;
+  const _triggers=[];
+  _raw.split(',').forEach(p=>{
+    const _parts=p.split(':');
+    const _t=parseFloat(_parts[0]);
+    const _eff=(_parts[1]||'').toLowerCase();
+    const _arg=_parts[2]||'';
+    if(!isNaN(_t)&&_t>0&&_t<=1&&_eff) _triggers.push({thresh:_t,eff:_eff,arg:_arg,active:false});
+  });
+  if(!_triggers.length) return;
+  const _cooldowns={};
+  function _fireMicEffect(eff,arg){
+    const now=Date.now();if((now-(_cooldowns[eff]||0))<800) return;_cooldowns[eff]=now;
+    if(eff==='shake'&&typeof window.triggerShake==='function') window.triggerShake();
+    else if(eff==='flash'&&typeof window.triggerFlash==='function') window.triggerFlash(arg||'ffffff',0.3);
+    else if(eff==='rain'&&typeof window.triggerRain==='function') window.triggerRain(arg||'🎵',15);
+    else if(eff==='blur'&&typeof window.triggerBlur==='function') window.triggerBlur();
+    else if(eff==='glitch'&&typeof window.triggerGlitch==='function') window.triggerGlitch();
+  }
+  function _loop(){
+    if(typeof getAudioLevel==='function'&&typeof audioActive!=='undefined'&&audioActive){
+      const lvl=getAudioLevel();
+      for(const tr of _triggers){
+        if(lvl>=tr.thresh&&!tr.active){tr.active=true;_fireMicEffect(tr.eff,tr.arg);}
+        else if(lvl<tr.thresh*0.7) tr.active=false; // require drop to 70% before re-firing
+      }
+    }
+    requestAnimationFrame(_loop);
+  }
+  requestAnimationFrame(_loop);
 })();
 // Q-085: Live clock (?clock=1 ?clockpos=tl/tr/bl/br ?clockcolor=HEX ?clockfmt=24h/12h ?clockdate=1)
 (()=>{
