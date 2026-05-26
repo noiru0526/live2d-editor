@@ -4521,6 +4521,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?brbscreen=1</td><td>BRB離席画面・?brbmsg=・?brbkey=F6・API: setBRB(bool)・postMessage brbon/brboff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?liveindicator=1</td><td>LIVE/OFF点滅バッジ・?liveindicatorpos=tr・?liveindicatoron=1・API: setLive(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatvoice=KW:TEXT</td><td>チャットキーワードTTS（!hello:こんにちは,!bye:またね形式）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?socialbanner=1</td><td>SNSフォロー促進バナー・?twitchname=・?twittername=・?discordinvite=・?socialinterval=30s</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?overlaytext2=TEXT:X:Y</td><td>任意座標テキスト・複数は|区切り・:COLOR:SIZE:FONTで追加スタイル</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?toucheffect=1</td><td>タッチ/クリックエフェクト・?touchtype=rings/sparks/hearts</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8703,6 +8706,125 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-252: ?socialbanner=1 SNSバナー（Twitch/Twitter等のフォローを促す帯表示）
+// 例: ?socialbanner=1&twitchname=noiru0526&twittername=noiru_vt
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('socialbanner')!=='1') return;
+  const _twitch=_usp.get('twitchname')||'';
+  const _twitter=_usp.get('twittername')||'';
+  const _youtube=_usp.get('youtubename')||'';
+  const _discord=_usp.get('discordinvite')||'';
+  const _pos=_usp.get('socialbannerpos')||'bottom';
+  const _interval=Math.max(10,parseInt(_usp.get('socialinterval'))||30)*1000;
+  const _services=[];
+  if(_twitch) _services.push({icon:'🟣',label:`Twitch: @${_twitch}`,color:'#9147ff'});
+  if(_twitter) _services.push({icon:'🐦',label:`X/Twitter: @${_twitter}`,color:'#1d9bf0'});
+  if(_youtube) _services.push({icon:'📺',label:`YouTube: ${_youtube}`,color:'#ff0000'});
+  if(_discord) _services.push({icon:'💬',label:`Discord: ${_discord}`,color:'#5865f2'});
+  if(!_services.length) return;
+  const _ov=document.createElement('div');
+  _ov.id='socialbanner-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',[_pos==='top'?'top':'bottom']:'0',left:'0',width:'100%',
+    padding:'8px 16px',zIndex:'400',fontFamily:'sans-serif',fontSize:'16px',
+    fontWeight:'bold',textAlign:'center',display:'none',
+    pointerEvents:'none',transition:'opacity 0.5s',boxSizing:'border-box'
+  });
+  document.body.appendChild(_ov);
+  let _idx=0,_visible=false;
+  function _show(){
+    const s=_services[_idx%_services.length]; _idx++;
+    _ov.style.background=`${s.color}cc`;
+    _ov.style.color='#fff';
+    _ov.textContent=`${s.icon} ${s.label} をフォローしてね！`;
+    _ov.style.display='block'; _ov.style.opacity='1'; _visible=true;
+    setTimeout(()=>{ _ov.style.opacity='0'; setTimeout(()=>{ _ov.style.display='none'; _visible=false; },500); },5000);
+  }
+  setInterval(()=>{ if(!_visible) _show(); },_interval);
+  setTimeout(_show,3000);
+})();
+// Q-253: ?overlaytext2=TEXT:X:Y 任意位置テキストオーバーレイ（複数配置可・絶対座標）
+// 例: ?overlaytext2=ゲーム実況:10:80,%23ffd700,20px,sans-serif
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('overlaytext2'); if(!_raw) return;
+  // Format: TEXT:X%:Y%:COLOR:SIZE:FONT (all except text optional)
+  _raw.split('|').forEach((item,i)=>{
+    const parts=item.split(':');
+    const text=parts[0]; if(!text) return;
+    const x=parseFloat(parts[1])||10;
+    const y=parseFloat(parts[2])||90;
+    const color=parts[3]?'#'+parts[3]:'#ffffff';
+    const size=parts[4]||'18px';
+    const font=parts[5]||'sans-serif';
+    const el=document.createElement('div');
+    el.id='overlaytext2-'+i;
+    Object.assign(el.style,{
+      position:'fixed',left:x+'%',top:y+'%',transform:'translate(-50%,-50%)',
+      color,fontSize:size,fontFamily:font,fontWeight:'bold',
+      textShadow:'0 0 6px rgba(0,0,0,0.8)',zIndex:'400',pointerEvents:'none',
+      whiteSpace:'nowrap'
+    });
+    el.textContent=decodeURIComponent(text.replace(/%23/g,'#'));
+    document.body.appendChild(el);
+  });
+})();
+// Q-254: ?toucheffect=1 タッチエフェクト（スマートフォン等のタッチに反応してスパークル）
+// 例: ?toucheffect=1&touchtype=rings/sparks/hearts
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('toucheffect')!=='1') return;
+  const _type=_usp.get('touchtype')||'sparks';
+  const _cv=document.createElement('canvas');
+  _cv.id='toucheffect-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'10001'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _effects=[];
+  function _spawn(x,y){
+    if(_type==='rings'){
+      _effects.push({x,y,type:'ring',r:0,alpha:0.8,speed:5});
+    } else if(_type==='hearts'){
+      for(let i=0;i<5;i++) _effects.push({x:x+(Math.random()-0.5)*30,y,type:'text',text:'❤',
+        vx:(Math.random()-0.5)*2,vy:-2-Math.random()*2,alpha:1,sz:16+Math.random()*12});
+    } else {
+      for(let i=0;i<8;i++){
+        const ang=Math.random()*Math.PI*2;
+        _effects.push({x,y,type:'spark',vx:Math.cos(ang)*(2+Math.random()*4),vy:Math.sin(ang)*(2+Math.random()*4),alpha:1,r:3+Math.random()*3});
+      }
+    }
+  }
+  ['touchstart','mousedown'].forEach(ev=>{
+    window.addEventListener(ev,e=>{
+      const touches=e.touches||[e];
+      Array.from(touches).forEach(t=>_spawn(t.clientX||t.pageX,t.clientY||t.pageY));
+    },{passive:true});
+  });
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_effects.length-1;i>=0;i--){
+      const ef=_effects[i]; ef.alpha-=0.04;
+      if(ef.alpha<=0){ _effects.splice(i,1); continue; }
+      _ctx.globalAlpha=ef.alpha;
+      if(ef.type==='ring'){
+        ef.r+=ef.speed; _ctx.beginPath(); _ctx.arc(ef.x,ef.y,ef.r,0,Math.PI*2);
+        _ctx.strokeStyle='rgba(255,200,100,1)'; _ctx.lineWidth=2; _ctx.stroke();
+      } else if(ef.type==='text'){
+        ef.x+=ef.vx; ef.y+=ef.vy; ef.vy+=0.05;
+        _ctx.font=ef.sz+'px serif'; _ctx.fillText(ef.text,ef.x,ef.y);
+      } else if(ef.type==='spark'){
+        ef.x+=ef.vx; ef.y+=ef.vy; ef.vy+=0.1;
+        _ctx.beginPath(); _ctx.arc(ef.x,ef.y,ef.r,0,Math.PI*2);
+        _ctx.fillStyle=`hsl(${Math.random()*60+20},100%,70%)`; _ctx.fill();
+      }
+    }
+    _ctx.globalAlpha=1; requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-249: ?brbscreen=1 BRBスクリーン（離席中画面・テキスト+背景色で自動切替）
 // 例: ?brbscreen=1&brbmsg=少し席を外します・?brbkey=F6
