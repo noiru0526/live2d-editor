@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?thankssub=1</td><td>新サブ/フォロー感謝カード・?thankssubtext=ありがとう！・triggerThanksSub(user,type)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingballs=1</td><td>物理バウンスボール・?floatingballscount=6&?floatingballscolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatfirework=KW</td><td>チャットキーワード花火・?chatfirework=おめでとう|やったー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?parallax=1</td><td>マウスパララックス奥行き・?parallaxdepth=15</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?firering=1</td><td>炎のリングエフェクト・?fireringsize=220</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcelebrate=EMOTE</td><td>連続同一エモート検出→エフェクト・?chatcelebratemin=5</td></tr>
@@ -9768,6 +9771,104 @@ window.addEventListener('message',ev=>{
     });
     requestAnimationFrame(_draw);
   })();
+})();
+// Q-326: ?chatfirework=KW チャットキーワード花火（特定ワードで小型花火を発射）
+// 例: ?chatfirework=おめでとう|やったー
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatfirework'); if(!_raw) return;
+  const _kws=decodeURIComponent(_raw).split('|');
+  function _mini(x,y){
+    for(let i=0;i<20;i++){
+      const _d=document.createElement('div');
+      const _col=`hsl(${Math.random()*360|0},100%,65%)`;
+      const _dx=(Math.random()-0.5)*80; const _dy=-(20+Math.random()*60);
+      Object.assign(_d.style,{
+        position:'fixed',left:x+'px',top:y+'px',width:'5px',height:'5px',
+        borderRadius:'50%',background:_col,zIndex:'163',pointerEvents:'none',
+        transition:`all 0.7s cubic-bezier(.2,-.2,.6,1)`,opacity:'1'
+      });
+      document.body.appendChild(_d);
+      requestAnimationFrame(()=>{ _d.style.transform=`translate(${_dx}px,${_dy}px) scale(0.2)`; _d.style.opacity='0'; });
+      setTimeout(()=>_d.remove(),750);
+    }
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const msg=(d.msg||'').toLowerCase();
+      if(_kws.some(k=>msg.includes(k.toLowerCase()))){
+        const n=2+Math.floor(Math.random()*3);
+        for(let i=0;i<n;i++) setTimeout(()=>_mini(window.innerWidth*(0.2+Math.random()*0.6),window.innerHeight*(0.2+Math.random()*0.5)),i*150);
+      }
+    }
+  });
+})();
+// Q-325: ?floatingballs=1 物理ボール（画面内で跳ね回るボールアニメーション）
+// 例: ?floatingballs=1&floatingballscount=8&floatingballscolor=ff6699
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('floatingballs')!=='1') return;
+  const _count=parseInt(_u.get('floatingballscount'))||6;
+  const _col='#'+(_u.get('floatingballscolor')||'ff6699');
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'138',pointerEvents:'none',opacity:'0.5'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _balls=Array.from({length:_count},()=>({
+    x:Math.random()*_cv.width,y:Math.random()*_cv.height,
+    r:12+Math.random()*18,
+    vx:(Math.random()-0.5)*2.5,vy:(Math.random()-0.5)*2.5,
+    hue:Math.random()*360
+  }));
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _balls.forEach(b=>{
+      b.x+=b.vx; b.y+=b.vy; b.hue=(b.hue+0.5)%360;
+      if(b.x-b.r<0){b.x=b.r;b.vx=Math.abs(b.vx);}
+      if(b.x+b.r>_cv.width){b.x=_cv.width-b.r;b.vx=-Math.abs(b.vx);}
+      if(b.y-b.r<0){b.y=b.r;b.vy=Math.abs(b.vy);}
+      if(b.y+b.r>_cv.height){b.y=_cv.height-b.r;b.vy=-Math.abs(b.vy);}
+      const g=_ctx.createRadialGradient(b.x-b.r*0.3,b.y-b.r*0.3,0,b.x,b.y,b.r);
+      g.addColorStop(0,'rgba(255,255,255,0.5)');
+      g.addColorStop(1,`hsla(${b.hue},80%,60%,0.8)`);
+      _ctx.beginPath(); _ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+      _ctx.fillStyle=g; _ctx.fill();
+    });
+    requestAnimationFrame(_draw);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-324: ?thankssub=1 新サブ/フォロー感謝カード（自動でサンキューカードを表示）
+// 例: ?thankssub=1&thankssubtext=ありがとう！
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('thankssub')!=='1') return;
+  const _baseTxt=decodeURIComponent(_u.get('thankssubtext')||'ありがとう！');
+  function _show(user,type){
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',right:'18px',bottom:'80px',zIndex:'160',
+      background:'linear-gradient(135deg,rgba(80,0,80,0.9),rgba(0,40,120,0.9))',
+      border:'1px solid rgba(255,150,255,0.5)',borderRadius:'14px',
+      padding:'12px 18px',color:'#fff',fontFamily:'sans-serif',
+      maxWidth:'260px',boxShadow:'0 4px 20px rgba(255,100,255,0.3)',
+      opacity:'0',transform:'translateX(40px)',transition:'all 0.35s cubic-bezier(.2,1.6,.4,1)'
+    });
+    const icon=type==='sub'?'⭐':type==='follow'?'💜':'🎁';
+    _d.innerHTML=`<div style="font-size:11px;color:rgba(255,180,255,0.8);margin-bottom:3px;">${icon} ${type==='sub'?'NEW SUB':type==='follow'?'NEW FOLLOWER':'GIFT SUB'}</div><div style="font-size:16px;font-weight:bold;">${user||'Someone'}</div><div style="font-size:13px;margin-top:3px;color:#e8ccff;">${_baseTxt}</div>`;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.opacity='1'; _d.style.transform='translateX(0)'; });
+    setTimeout(()=>{ _d.style.opacity='0'; _d.style.transform='translateX(40px)'; setTimeout(()=>_d.remove(),400); },4500);
+  }
+  window.triggerThanksSub=(user,type)=>_show(user,type||'sub');
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-sub') _show(d.user,'sub');
+    if(d.type==='noiru-follow') _show(d.user,'follow');
+    if(d.type==='noiru-cmd'&&d.cmd==='thankssub') _show(d.user,d.subtype||'sub');
+  });
 })();
 // Q-321: ?parallax=1 パララックス効果（マウス移動でアバターと背景がずれて奥行き感）
 // 例: ?parallax=1&parallaxdepth=15
