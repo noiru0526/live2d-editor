@@ -23,6 +23,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .tbtn.ok{background:rgba(48,140,48,.4);border-color:#48a048;color:#80d080}
 .tbtn.ok:hover{background:rgba(6,78,59,.6)}
 .tbtn.danger{background:rgba(160,48,48,.3);border-color:#c04040;color:#f08080}
+.tb-more{position:relative;flex-shrink:0}
+.tb-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:4px;padding:3px 0;z-index:1000;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.8)}
+.tb-more-menu.open{display:block}
+.tb-more-item{display:block;width:100%;text-align:left;padding:5px 12px;background:none;border:none;color:#a0a0a0;font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.tb-more-item:hover{background:rgba(255,255,255,.06);color:#d0d0d0}
+.tb-more-sep{height:1px;background:#2e2e2e;margin:3px 0}
 .sep{width:1px;height:26px;background:#383838;margin:0 3px;flex-shrink:0}
 .tgrp{display:flex;align-items:center;gap:3px;flex-shrink:0}
 .tgrp-label{font-size:9px;color:#484848;letter-spacing:1px;margin-right:3px;text-transform:uppercase}
@@ -40,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 /* Parts list — Cubism style */
 #parts-list{flex:1;overflow-y:auto;padding:0;min-height:40px}
-.pi{display:flex;align-items:center;padding:4px 6px 4px 0;cursor:pointer;margin-bottom:0;border:none;border-left:3px solid transparent;gap:4px;transition:background .08s;min-height:28px}
+.pi{display:flex;align-items:center;padding:2px 6px 2px 0;cursor:pointer;margin-bottom:0;border:none;border-left:3px solid transparent;gap:4px;transition:background .08s;min-height:22px;height:22px}
 .pi:hover{background:rgba(255,255,255,.04)}
 .pi.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
 .pi.multi-sel{background:rgba(59,130,246,.1);border-left-color:#3b82f6}
@@ -262,63 +268,88 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 <div id="toolbar">
   <h1>RIGGER</h1>
   <div class="sep"></div>
+  <!-- モードタブ -->
   <div class="tgrp">
     <button class="tbtn active" id="btn-parts" onclick="setMode('parts')">① パーツ</button>
     <button class="tbtn" id="btn-mesh" onclick="setMode('mesh')">② メッシュ</button>
     <button class="tbtn" id="btn-deform" onclick="setMode('deform')">③ 変形</button>
     <button class="tbtn" id="btn-preview" onclick="setMode('preview')">④ プレビュー</button>
-    <button class="tbtn" id="btn-weightpaint" onclick="setMode('weightpaint')" title="ウェイトペイント — デフォーマーの頂点影響度をブラシで塗る">🎨 WP</button>
+    <button class="tbtn" id="btn-weightpaint" onclick="setMode('weightpaint')" title="ウェイトペイント — デフォーマーの頂点影響度をブラシで塗る">WP</button>
   </div>
   <div class="sep"></div>
+  <!-- 編集 -->
   <div class="tgrp">
     <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
-    <button class="tbtn" onclick="importSVGAspart()" title="SVGファイルをインポート: 全体を1パーツとして追加、またはレイヤー別に複数パーツ分割">＋ SVG</button>
-    <button class="tbtn" onclick="dupPart()">⧉ 複製</button>
-    <button class="tbtn" onclick="generateShadowPart()" title="選択パーツを黒/半透明でオフセット複製して影パーツを自動生成（saturate=0・brightness=0・opacity=0.5）">🌑 影生成</button>
-    <button class="tbtn" onclick="generateColorVariants()" title="選択パーツを複数の色相シフトでバリエーション生成（服・目の色違い等）">🎨 カラーバリ</button>
-    <button class="tbtn" onclick="mirrorDupPart()" title="パーツをキャンバス中心に対して水平ミラーコピー（眉・目などの左右対称パーツ用）">↔ ミラー複製</button>
-    <button class="tbtn" onclick="copyPartToClipboard()" title="パーツをJSONとしてクリップボードへコピー">📋 コピー</button>
-    <button class="tbtn" onclick="pastePartFromClipboard()" title="クリップボードのJSONからパーツを貼り付け">📌 ペースト</button>
-    <button class="tbtn" onclick="batchRenameParts()" title="パーツをまとめてリネーム: プレフィックス追加・検索置換など">✏ 一括名前変更</button>
-    <button class="tbtn" onclick="aiAutoNameParts()" title="AIパーツ自動命名: Gemini Visionがパーツ画像を分析してLive2D命名規則に沿った名前を提案">🤖 AI命名</button>
-    <button class="tbtn" onclick="addDeformerPrompt()">⬡ デフォーマー</button>
-    <button class="tbtn" onclick="smartDeform()">⚡ スマート変形</button>
-  </div>
-  <div class="sep"></div>
-  <div class="tgrp">
-    <button class="tbtn" id="btn-grid" onclick="toggleGrid()">⊞ グリッド</button>
-    <button class="tbtn" id="btn-ruler" onclick="showRuler=!showRuler;this.classList.toggle('active',showRuler);render()" title="ルーラー ON/OFF">📏 ルーラー</button>
-    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ ON/OFF&#10;Alt+ドラッグ: 他パーツのエッジに自動吸着（赤ガイドライン表示）">🧲 スナップ</button>
-    <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5" title="グリッド間隔(px)"
-      style="width:38px;background:#1a1a1a;border:1px solid #383838;color:#6080a0;border-radius:3px;padding:1px 3px;font-size:9px;text-align:center"
-      onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
-    <button class="tbtn" id="btn-edge-hint" style="color:#4a8060;cursor:default" title="ドラッグ中にAltキー: 他パーツのエッジに吸着">Alt=エッジ</button>
-    <button class="tbtn" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
-    <button class="tbtn" id="btn-focus" onclick="focusMode=!focusMode;this.classList.toggle('active',focusMode);render()" title="フォーカスモード: メッシュ/デフォームモードで非選択パーツを半透明化">⊙ フォーカス</button>
-    <button class="tbtn" id="btn-bounds" onclick="showBounds=!showBounds;this.classList.toggle('active',showBounds);render()" title="バウンディングボックス: 全パーツのAABBを表示">⬚ バウンド</button>
-    <button class="tbtn" id="btn-solo" onclick="togglePartSolo()" title="ソロ表示: 選択パーツだけを表示（Shift+Sでも切替）">⊙ ソロ</button>
-    <button class="tbtn" id="btn-silhouette" onclick="silhouetteMode=!silhouetteMode;this.classList.toggle('active',silhouetteMode);render();" title="シルエットモード: テクスチャなしで塗りつぶし表示、メッシュ輪郭確認用">⬛ シルエット</button>
-    <button class="tbtn" onclick="showGuideManager()" title="カスタムガイドライン: 参照線を追加・管理">⊞ ガイド</button>
-    <button class="tbtn" onclick="addPartBoundsAsGuides()" title="パーツの境界ボックスをガイドに追加（選択パーツの4辺を参照線として登録）">⊡→ガイド</button>
+    <button class="tbtn" onclick="dupPart()" title="パーツを複製">⧉ 複製</button>
     <button class="tbtn" onclick="showAlignMenu(event)" title="選択パーツを整列・等間隔配置（複数選択時）">⊟ 整列</button>
-    <button class="tbtn" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.classList.toggle('active',showDensityHeatmap);render()" title="メッシュ密度ヒートマップ: 三角形の大きさを色で可視化（赤=密・青=疎）">🌡 密度</button>
-    <button class="tbtn" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.classList.toggle('active',showDeformVectors);render()" title="デフォームベクトル表示: 現在のKFでの頂点変位を矢印で可視化">⤢ 変位</button>
-    <button class="tbtn" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.classList.toggle('active',showOnionSkin);render()" title="オニオンスキン: 前KF（シアン）・次KF（オレンジ）のデフォームゴーストを重ねて表示（デフォームモードで有効）">👻 オニオン</button>
-    <button class="tbtn" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.classList.toggle('active',showZDepth);render()" title="Z深度カラー: レンダリング順序を色で可視化（青=背面→赤=前面）">🎨 Z深</button>
-    <button class="tbtn" id="btn-refimg" onclick="toggleRefImagePanel()" title="参考画像オーバーレイ: トレース・アライメント用に背景参照画像を表示">🖼 参考</button>
-    <button class="tbtn" id="btn-skeleton" onclick="toggleSkeletonView()" title="スケルトン表示: パーツ→デフォーマーの親子関係を矢印で可視化">🦴 スケル</button>
-    <button class="tbtn" id="btn-motionpath" onclick="toggleMotionPath()" title="モーションパス: 選択パーツのパラメータ変化による位置軌跡を表示">🔵 軌跡</button>
-    <button class="tbtn" onclick="fitView()">⊡ フィット</button>
+    <div class="tb-more">
+      <button class="tbtn" onclick="toggleTbMore('tb-more-edit',this)" title="その他の編集ツール">▾ その他</button>
+      <div class="tb-more-menu" id="tb-more-edit">
+        <button class="tb-more-item" onclick="importSVGAspart();closeTbMore('tb-more-edit')" title="SVGをパーツとして読み込む">＋ SVG</button>
+        <button class="tb-more-item" onclick="mirrorDupPart();closeTbMore('tb-more-edit')" title="水平ミラーコピー">↔ ミラー複製</button>
+        <button class="tb-more-item" onclick="generateShadowPart();closeTbMore('tb-more-edit')" title="影パーツ自動生成">🌑 影生成</button>
+        <button class="tb-more-item" onclick="generateColorVariants();closeTbMore('tb-more-edit')" title="色相バリエーション生成">🎨 カラーバリ</button>
+        <div class="tb-more-sep"></div>
+        <button class="tb-more-item" onclick="copyPartToClipboard();closeTbMore('tb-more-edit')">📋 コピー</button>
+        <button class="tb-more-item" onclick="pastePartFromClipboard();closeTbMore('tb-more-edit')">📌 ペースト</button>
+        <div class="tb-more-sep"></div>
+        <button class="tb-more-item" onclick="batchRenameParts();closeTbMore('tb-more-edit')" title="まとめてリネーム">✏ 一括名前変更</button>
+        <button class="tb-more-item" onclick="aiAutoNameParts();closeTbMore('tb-more-edit')" title="AI自動命名">🤖 AI命名</button>
+        <div class="tb-more-sep"></div>
+        <button class="tb-more-item" onclick="addDeformerPrompt();closeTbMore('tb-more-edit')">⬡ デフォーマー</button>
+        <button class="tb-more-item" onclick="smartDeform();closeTbMore('tb-more-edit')">⚡ スマート変形</button>
+        <button class="tb-more-item" onclick="addPartBoundsAsGuides();closeTbMore('tb-more-edit')" title="パーツ境界をガイドに追加">⊡→ガイド</button>
+      </div>
+    </div>
   </div>
   <div class="sep"></div>
+  <!-- 表示 -->
+  <div class="tgrp">
+    <button class="tbtn" id="btn-grid" onclick="toggleGrid()" title="グリッド表示">⊞</button>
+    <button class="tbtn" id="btn-snap" onclick="toggleSnapGrid()" title="グリッドスナップ（Alt+ドラッグ: エッジ吸着）">🧲</button>
+    <button class="tbtn" id="btn-solo" onclick="togglePartSolo()" title="ソロ表示（Shift+S）">⊙ ソロ</button>
+    <button class="tbtn" onclick="fitView()" title="キャンバスに合わせて表示">⊡ フィット</button>
+    <div class="tb-more">
+      <button class="tbtn" onclick="toggleTbMore('tb-more-view',this)" title="表示オプション">▾ 表示</button>
+      <div class="tb-more-menu" id="tb-more-view">
+        <button class="tb-more-item" id="tb-ruler-item" onclick="showRuler=!showRuler;document.getElementById('btn-ruler')&&document.getElementById('btn-ruler').classList.toggle('active',showRuler);this.style.color=showRuler?'#e07840':'';render()">📏 ルーラー</button>
+        <button class="tb-more-item" id="tb-checker-item" onclick="toggleChecker()">▦ 透過確認</button>
+        <button class="tb-more-item" id="tb-focus-item" onclick="focusMode=!focusMode;this.style.color=focusMode?'#e07840':'';render()" title="非選択パーツを半透明化">⊙ フォーカス</button>
+        <button class="tb-more-item" id="tb-bounds-item" onclick="showBounds=!showBounds;this.style.color=showBounds?'#e07840':'';render()" title="バウンディングボックス">⬚ バウンド</button>
+        <button class="tb-more-item" id="tb-sil-item" onclick="silhouetteMode=!silhouetteMode;this.style.color=silhouetteMode?'#e07840':'';render()">⬛ シルエット</button>
+        <div class="tb-more-sep"></div>
+        <button class="tb-more-item" id="tb-density-item" onclick="showDensityHeatmap=!showDensityHeatmap;this.style.color=showDensityHeatmap?'#e07840':'';render()">🌡 密度ヒートマップ</button>
+        <button class="tb-more-item" id="tb-dvec-item" onclick="showDeformVectors=!showDeformVectors;this.style.color=showDeformVectors?'#e07840':'';render()">⤢ 変位ベクトル</button>
+        <button class="tb-more-item" id="tb-onion-item" onclick="showOnionSkin=!showOnionSkin;this.style.color=showOnionSkin?'#e07840':'';render()">👻 オニオンスキン</button>
+        <button class="tb-more-item" id="tb-zdepth-item" onclick="showZDepth=!showZDepth;this.style.color=showZDepth?'#e07840':'';render()">🎨 Z深度</button>
+        <button class="tb-more-item" id="tb-skel-item" onclick="toggleSkeletonView()">🦴 スケルトン</button>
+        <button class="tb-more-item" id="tb-motion-item" onclick="toggleMotionPath()">🔵 モーションパス</button>
+        <div class="tb-more-sep"></div>
+        <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
+        <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
+        <div class="tb-more-sep"></div>
+        <span style="padding:3px 12px;font-size:9px;color:#555">グリッドサイズ: </span>
+        <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5"
+          style="margin:2px 12px 4px;width:56px;background:#1a1a1a;border:1px solid #383838;color:#6080a0;border-radius:3px;padding:2px 4px;font-size:10px;text-align:center"
+          onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
+      </div>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <!-- 保存・その他 -->
   <div class="tgrp">
     <button class="tbtn ok" onclick="saveModelOnly()">💾 保存</button>
     <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 出力</button>
     <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
-    <button class="tbtn" onclick="screenshotCanvas()" title="現在のキャンバスをPNGで保存 (右クリックで透過PNG)&#10;" oncontextmenu="event.preventDefault();screenshotCanvas(true)">📷 SS</button>
-    <button class="tbtn" onclick="showPartNoteList()" title="メモが書かれたパーツの一覧（行クリックで選択）">📝 ノート</button>
-    <button class="tbtn" id="btn-gpad" onclick="toggleRiggerGamepad()" title="ゲームパッド: 左スティック=頭X/Y, 右スティック=眼球, L2/R2=目開閉, ×△□○=表情1-4">🎮 GPad</button>
-    <button class="tbtn" onclick="showShortcutsOverlay()" title="キーボードショートカット一覧 (? キーでも表示)">⌨ ?</button>
+    <div class="tb-more">
+      <button class="tbtn" onclick="toggleTbMore('tb-more-tools',this)">▾</button>
+      <div class="tb-more-menu" id="tb-more-tools">
+        <button class="tb-more-item" onclick="screenshotCanvas();closeTbMore('tb-more-tools')" title="右クリックで透過PNG">📷 スクリーンショット</button>
+        <button class="tb-more-item" onclick="showPartNoteList();closeTbMore('tb-more-tools')">📝 ノート一覧</button>
+        <button class="tb-more-item" id="btn-gpad" onclick="toggleRiggerGamepad();closeTbMore('tb-more-tools')" title="左スティック=頭XY, 右スティック=眼球">🎮 ゲームパッド</button>
+        <button class="tb-more-item" onclick="showShortcutsOverlay();closeTbMore('tb-more-tools')" title="キーボードショートカット一覧">⌨ ショートカット</button>
+      </div>
+    </div>
   </div>
   <input type="file" id="fi" accept="image/*" style="display:none">
   <input type="file" id="fj" accept=".json" style="display:none" onchange="onJSONLoad(event)">
@@ -4095,6 +4126,17 @@ function rotatePartMesh() {
 }
 
 function toggleGrid() { showGrid=!showGrid; document.getElementById('btn-grid').classList.toggle('active',showGrid); render(); }
+function toggleTbMore(id, btn) {
+  const menu = document.getElementById(id);
+  const wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.tb-more-menu.open').forEach(m=>m.classList.remove('open'));
+  if (!wasOpen) {
+    menu.classList.add('open');
+    const close = (e) => { if (!btn.closest('.tb-more').contains(e.target)) { menu.classList.remove('open'); document.removeEventListener('mousedown', close); } };
+    setTimeout(() => document.addEventListener('mousedown', close), 0);
+  }
+}
+function closeTbMore(id) { document.getElementById(id)?.classList.remove('open'); }
 function toggleSnapGrid() {
   snapToGrid=!snapToGrid; document.getElementById('btn-snap').classList.toggle('active',snapToGrid);
   setStatus(snapToGrid?`スナップ ON (${gridSize}px)`:'スナップ OFF');
