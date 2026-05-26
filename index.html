@@ -4431,6 +4431,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?matrixrain=1</td><td>マトリックスレイン背景（+?matrixcolor=00ff41 ?matrixspeed=1 ?matrixfont=16）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?popupcard=1</td><td>ポップアップ通知カード（window.showPopupCard()・noiru-cmd popupcard・+?popupcardpos= ?popupcardwidth=280）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashscreen=URL</td><td>起動時スプラッシュ画像（+?splashdur=3秒 ?splashfade=1秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audiospectrum=1</td><td>音声スペクトラムバー（+?spectrumpos= ?spectrumheight=60 ?spectrumcolor= ?spectrumsym=1）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatquote=1</td><td>チャット引用デザインカード（+?chatquotecolor= ?chatquotedur=8・noiru-cmd quote）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?achievement=gg:GG!:🏆</td><td>チャットワードでアチーブメントカード（window.triggerAchievement(title,icon)）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8440,6 +8443,118 @@ window.addEventListener('message',ev=>{
     _ov.style.opacity='0';
     setTimeout(()=>_ov.remove(),_fade*1000+100);
   },_dur*1000);
+})();
+// Q-162: ?audiospectrum=1 音声スペクトラムオーバーレイ（マイク/BGM FFTバー表示）
+// ?spectrumpos=bottom ?spectrumheight=60 ?spectrumcolor=4e7cff ?spectrumsym=1 対称表示
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('audiospectrum')!=='1') return;
+  const _pos=_usp.get('spectrumpos')||'bottom';
+  const _h=Math.min(200,Math.max(20,parseInt(_usp.get('spectrumheight'))||60));
+  const _col='#'+(_usp.get('spectrumcolor')||'4e7cff');
+  const _sym=_usp.get('spectrumsym')==='1';
+  const _cv=document.createElement('canvas');
+  const _topOrBot=_pos==='top'?'top:0;bottom:auto;':'bottom:0;top:auto;';
+  _cv.style.cssText=`position:fixed;${_topOrBot}left:0;right:0;width:100%;height:${_h}px;pointer-events:none;z-index:68;opacity:0.85;`;
+  document.body.appendChild(_cv);
+  function _tick(){
+    const W=_cv.width=window.innerWidth; const H=_cv.height=_h*window.devicePixelRatio||_h;
+    _cv.style.height=_h+'px';
+    const ctx=_cv.getContext('2d');
+    if(!audioAnalyser||!audioActive){
+      ctx.clearRect(0,0,W,H); requestAnimationFrame(_tick); return;
+    }
+    const _data=new Uint8Array(audioAnalyser.frequencyBinCount);
+    audioAnalyser.getByteFrequencyData(_data);
+    ctx.clearRect(0,0,W,H);
+    const bins=Math.min(64,_data.length);
+    const bw=W/(_sym?bins*2:bins);
+    for(let i=0;i<bins;i++){
+      const v=_data[i]/255;
+      const bh=v*H;
+      const hue=200+v*60;
+      ctx.fillStyle=`hsl(${hue},80%,60%)`;
+      if(_sym){
+        ctx.fillRect((bins-1-i)*bw,H-bh,bw-1,bh);
+        ctx.fillRect((bins+i)*bw,H-bh,bw-1,bh);
+      } else {
+        ctx.fillRect(i*bw,H-bh,bw-1,bh);
+      }
+    }
+    requestAnimationFrame(_tick);
+  }
+  setTimeout(()=>requestAnimationFrame(_tick),1500);
+})();
+// Q-163: ?chatquote=1 チャット引用カード（大きくデザインされたコメント表示）
+// ?chatquotecolor=4e7cff ?chatquotedur=8 ?chatquotemax=3行
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatquote')!=='1') return;
+  const _dur=Math.min(20,Math.max(1,parseFloat(_usp.get('chatquotedur'))||8));
+  const _accentCol='#'+(_usp.get('chatquotecolor')||'4e7cff');
+  const _ov=document.createElement('div');
+  _ov.id='chat-quote-ov';
+  _ov.style.cssText=`position:fixed;bottom:60px;left:10%;right:10%;z-index:74;pointer-events:none;opacity:0;transition:opacity .4s;`;
+  document.body.appendChild(_ov);
+  let _hideT=null;
+  function _show(user,msg,color){
+    const uc=color&&/^#[0-9a-fA-F]{6}$/.test(color)?color:_accentCol;
+    _ov.innerHTML=`<div style="background:rgba(6,10,24,.88);border-left:4px solid ${uc};border-radius:4px 10px 10px 4px;padding:10px 16px;backdrop-filter:blur(6px);box-shadow:0 4px 20px rgba(0,0,0,.7);">
+      <div style="font-size:11px;color:${uc};font-weight:700;margin-bottom:5px;">💬 ${user}</div>
+      <div style="font-size:15px;color:#dde;line-height:1.5;word-break:break-word;">"${msg.slice(0,150)}"</div>
+    </div>`;
+    _ov.style.opacity='1';
+    if(_hideT) clearTimeout(_hideT);
+    _hideT=setTimeout(()=>_ov.style.opacity='0',_dur*1000);
+  }
+  // Show on every noiru-chat message (or use noiru-cmd quote)
+  let _last=0;
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d) return;
+    if(d.type==='noiru-chat'&&d.msg&&d.user){
+      const now=Date.now();
+      if(now-_last>3000){ // debounce: only show every 3s max
+        _last=now; _show(d.user,d.msg,d.color||null);
+      }
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='quote') _show(d.user||'',d.text||'',d.color||null);
+  });
+})();
+// Q-164: ?achievement=word:TITLE:ICON チャット特定ワードでアチーブメントカード表示
+// ?achievement=gg:GG!:🏆,wp:Well Played!:⚔️ など複数登録可能
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('achievement');if(!_raw) return;
+  const _rules=[];
+  _raw.split(',').forEach(item=>{
+    const parts=item.split(':');
+    if(parts.length<2) return;
+    _rules.push({word:parts[0].trim().toLowerCase(),title:parts[1].trim(),icon:parts[2]||'🏆'});
+  });
+  if(!_rules.length) return;
+  const _ov=document.createElement('div');
+  _ov.id='achievement-ov';
+  _ov.style.cssText=`position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);z-index:75;pointer-events:none;opacity:0;transition:opacity .3s,transform .3s;`;
+  document.body.appendChild(_ov);
+  let _hideT=null;
+  function _fire(icon,title){
+    _ov.innerHTML=`<div style="background:rgba(30,20,0,.95);border:2px solid #ffd700;border-radius:12px;padding:16px 32px;text-align:center;box-shadow:0 0 40px rgba(255,215,0,.4);backdrop-filter:blur(8px);">
+      <div style="font-size:40px;">${icon}</div>
+      <div style="font-size:10px;color:#ffd700;letter-spacing:2px;margin:4px 0;">ACHIEVEMENT UNLOCKED</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">${title}</div>
+    </div>`;
+    _ov.style.opacity='1'; _ov.style.transform='translate(-50%,-50%) scale(1)';
+    if(_hideT) clearTimeout(_hideT);
+    _hideT=setTimeout(()=>{ _ov.style.opacity='0'; _ov.style.transform='translate(-50%,-50%) scale(0.8)'; },4000);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    const lc=(d.msg||'').toLowerCase();
+    for(const r of _rules){
+      if(lc.includes(r.word)){ _fire(r.icon,r.title); break; }
+    }
+  });
+  window.triggerAchievement=(title,icon)=>_fire(icon||'🏆',title||'Achievement!');
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
