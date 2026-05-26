@@ -3923,6 +3923,7 @@ function _showEmbedCode(filePath) {
       <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-twitch" style="margin-right:2px;"> twitch=<input id="obsq-tch" type="text" placeholder="ch名" style="width:60px;background:#0e1120;border:1px solid #3a4470;color:#c8d4f0;border-radius:2px;padding:1px 4px;font-size:9px;"></label>
       <label><input type="checkbox" id="obsq-stats" style="margin-right:2px;"> stats=1</label>
       <label><input type="checkbox" id="obsq-emotioncolor" style="margin-right:2px;"> emotioncolor=1</label>
+      <label><input type="checkbox" id="obsq-notrack" style="margin-right:2px;"> notrack=1</label>
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
@@ -3946,6 +3947,7 @@ function _showEmbedCode(filePath) {
     if(dlg.querySelector('#obsq-twitch').checked&&tch) ps.push('twitch='+encodeURIComponent(tch));
     if(dlg.querySelector('#obsq-stats').checked) ps.push('stats=1');
     if(dlg.querySelector('#obsq-emotioncolor').checked) ps.push('emotioncolor=1');
+    if(dlg.querySelector('#obsq-notrack').checked) ps.push('notrack=1');
     dlg.querySelector('#obs-url-out').value=fileUrl+(ps.length?'?'+ps.join('&'):'');
   }
   dlg.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',_updateObsUrl));
@@ -4295,6 +4297,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scale=N</td><td>アバタースケール（例: 1.5）/ ?x=N ?y=N: 位置オフセット(px)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?lowcpu=1</td><td>顔追跡15fps制限</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
@@ -5640,7 +5643,14 @@ function applyPoseBlend(dt){
   const _startDraw=()=>{
     if(++_imgsLoaded<(partImgs.length||1)) return;
     requestAnimationFrame(draw);
-    (typeof window.requestIdleCallback==='function'?window.requestIdleCallback.bind(window):((fn,o)=>setTimeout(fn,o?.timeout??500)))(initTracking,{timeout:2000});
+    // Q-083: ?notrack=1 skips MediaPipe entirely (animation-only mode, no camera permission)
+    if((new URLSearchParams(location.search)).get('notrack')!=='1'){
+      (typeof window.requestIdleCallback==='function'?window.requestIdleCallback.bind(window):((fn,o)=>setTimeout(fn,o?.timeout??500)))(initTracking,{timeout:2000});
+    } else {
+      if(loadEl){loadEl.classList.add('done');setTimeout(()=>{loadEl.style.display='none';},600);}
+      if(typeof _fadeinSec!=='undefined'&&_fadeinSec>0){const _c=document.getElementById('c');if(_c)requestAnimationFrame(()=>{_c.style.transition='opacity '+_fadeinSec+'s ease';_c.style.opacity='1';});}
+      if(stEl) stEl.textContent='アニメーションモード（追跡なし）';
+    }
     setTimeout(initAudio,1000);
     // BGM autoplay (triggered by first user interaction if autoplay blocked)
     const _bgmEl = document.getElementById('bgm-audio');
