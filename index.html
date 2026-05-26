@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pixelate=N</td><td>ピクセレートフィルター（N=ブロックサイズ）・togglePixelate()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?shaketext=TEXT</td><td>震えるテキストオーバーレイ・?shaketextcolor=hex&?shaketextsize=28・setShakeText(t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lowbattery=1</td><td>低バッテリー警告バッジ（配信ネタ）・?lowbatteryval=5・setLowBattery(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?danmaku=1</td><td>ニコニコ風弾幕（チャットを画面横スクロール）・?danmakufontsize=18・fireDanmaku(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rankbadge=RANK</td><td>ゲームランクバッジ・?rankbadgepos=topright&?rankbadgetitle=Game・setRankBadge(r,t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatterbox=1</td><td>チャット弾幕（ユーザー名付き）・?chatterboxopacity=0.7・sendDanmaku(t)</td></tr>
@@ -9047,6 +9050,80 @@ window.addEventListener('message',ev=>{
     _d.innerHTML=`<div style="font-size:9px;color:${c2};text-transform:uppercase;letter-spacing:2px;">${t||_title}</div><div style="font-size:18px;font-weight:bold;margin-top:2px;text-shadow:0 0 8px ${c2};">${r}</div>`;
     _d.style.border=`2px solid ${c2}`; _d.style.boxShadow=`0 0 12px ${c2}66`;
   };
+})();
+// Q-293: ?lowbattery=1 低バッテリー警告オーバーレイ（配信ネタ用・?lowbatteryval=Nで%を指定）
+// 例: ?lowbattery=1&lowbatteryval=3
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('lowbattery')!=='1') return;
+  const _pct=parseInt(_u.get('lowbatteryval'))||5;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',top:'18px',left:'50%',transform:'translateX(-50%)',
+    zIndex:'170',display:'flex',alignItems:'center',gap:'8px',
+    background:'rgba(0,0,0,0.8)',border:'2px solid #ff3300',borderRadius:'8px',
+    padding:'8px 16px',color:'#fff',fontFamily:'sans-serif',fontSize:'14px',
+    fontWeight:'bold',animation:'_lbpulse 1s ease-in-out infinite',pointerEvents:'none'
+  });
+  if(!document.getElementById('_lbstyle')){
+    const s=document.createElement('style');s.id='_lbstyle';
+    s.textContent='@keyframes _lbpulse{0%,100%{opacity:1}50%{opacity:0.55}}';
+    document.head.appendChild(s);
+  }
+  _d.innerHTML=`<svg width="22" height="12" viewBox="0 0 22 12" fill="none"><rect x="1" y="1" width="17" height="10" rx="2" stroke="#ff3300" stroke-width="2"/><rect x="2" y="2" width="${Math.round(_pct/100*15)}" height="8" rx="1" fill="#ff3300"/><rect x="19" y="4" width="2" height="4" rx="1" fill="#ff3300"/></svg><span style="color:#ff3300">${_pct}%</span><span>バッテリー残量低下</span>`;
+  document.body.appendChild(_d);
+  window.setLowBattery=(v)=>{
+    const p=Math.max(0,Math.min(100,v));
+    _d.querySelector('rect:nth-child(2)').setAttribute('width',String(Math.round(p/100*15)));
+    _d.querySelector('span').textContent=p+'%';
+  };
+})();
+// Q-292: ?shaketext=TEXT 震えるテキストオーバーレイ（重要メッセージを揺らして表示）
+// 例: ?shaketext=配信中！&shaketextcolor=ff4400&shaketextsize=32
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=_u.get('shaketext'); if(!_txt) return;
+  const _col='#'+(_u.get('shaketextcolor')||'ff4400');
+  const _sz=parseInt(_u.get('shaketextsize'))||28;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',top:'18px',left:'50%',transform:'translateX(-50%)',
+    zIndex:'155',color:_col,fontFamily:'sans-serif',fontWeight:'bold',
+    fontSize:_sz+'px',textShadow:`0 0 10px ${_col}`,pointerEvents:'none',
+    whiteSpace:'nowrap',animation:'_shktxt 0.15s ease-in-out infinite alternate'
+  });
+  if(!document.getElementById('_shktxtstyle')){
+    const s=document.createElement('style');s.id='_shktxtstyle';
+    s.textContent='@keyframes _shktxt{from{transform:translateX(calc(-50% - 2px)) rotate(-0.5deg)}to{transform:translateX(calc(-50% + 2px)) rotate(0.5deg)}}';
+    document.head.appendChild(s);
+  }
+  _d.textContent=decodeURIComponent(_txt);
+  document.body.appendChild(_d);
+  window.setShakeText=t=>{ _d.textContent=t; };
+})();
+// Q-291: ?pixelate=N ピクセレートエフェクト（Nサイズのドット調フィルター・アバターに適用）
+// 例: ?pixelate=8（低いほど荒い）
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _n=parseInt(_u.get('pixelate')); if(!_n||_n<=0) return;
+  const _wrap=document.getElementById('wrap')||document.body;
+  const _sz=Math.max(1,Math.min(32,_n));
+  const _style=document.createElement('style');
+  _style.textContent=`#wrap,#live2dcanvas{image-rendering:pixelated;filter:url('#px-filter')}`;
+  document.head.appendChild(_style);
+  const _svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  _svg.setAttribute('style','position:absolute;width:0;height:0;overflow:hidden');
+  _svg.innerHTML=`<defs><filter id="px-filter" x="0" y="0" width="100%" height="100%"><feFlood x="4" y="4" height="2" width="2"/><feComposite width="${_sz}" height="${_sz}"/><feTile result="a"/><feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="${Math.max(1,Math.floor(_sz/2))}"/></filter></defs>`;
+  document.body.appendChild(_svg);
+  let _active=true;
+  window.togglePixelate=()=>{
+    _active=!_active;
+    _style.textContent=_active?`#wrap,#live2dcanvas{image-rendering:pixelated;filter:url('#px-filter')}`:'';
+  };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='pixelate') { _active=!_active; window.togglePixelate(); }
+  });
 })();
 // Q-288: ?danmaku=1 ニコニコ風弾幕モード（チャットをスクロールテキストとして表示）
 // 例: ?danmaku=1&danmakufontsize=20
