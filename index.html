@@ -4500,6 +4500,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?analogclock=1</td><td>アナログ時計（針+透明背景）・?clockpos=tr・?clocksize=80</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stopwatch=1</td><td>ストップウォッチ（クリックで開始/停止）・?stopwatchpos=tc・?stopwatchkey=キー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?flipclock=1</td><td>フリップ時計（レトロなカード表示）・?flipclockpos=bl・?flipclocksize=1</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?clicker=1</td><td>チャット連打ゲーム・?clickdur=30s・?clickcmd=!click・API: startClicker()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tapscore=1</td><td>タップスコアランキング・?tapcmd=!tap・?tapscoretime=60s・?tapscorepos=tr</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?catchgame=1</td><td>落下物キャッチゲーム（顔追跡でカゴ操作）・ライフ3・スコア表示</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8682,6 +8685,144 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-231: ?clicker=1 連打ゲーム（視聴者が!clickとチャットして合計クリック数を競う）
+// 例: ?clicker=1&clickdur=30&clickcmd=!click
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('clicker')!=='1') return;
+  const _dur=Math.min(120,Math.max(5,parseInt(_usp.get('clickdur'))||30));
+  const _cmd=(_usp.get('clickcmd')||'!click').toLowerCase();
+  let _running=false,_count=0,_timeleft=0,_ticker=0;
+  const _wrap=document.createElement('div');
+  _wrap.id='clicker-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+    background:'rgba(0,0,40,0.92)',border:'2px solid #6af',borderRadius:'16px',
+    padding:'20px 30px',zIndex:'999',fontFamily:'sans-serif',
+    textAlign:'center',display:'none',pointerEvents:'none',minWidth:'200px'
+  });
+  document.body.appendChild(_wrap);
+  function _render(){
+    _wrap.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;">👆 連打チャレンジ！</div>
+      <div style="color:#fff;font-size:48px;font-weight:bold;margin:8px 0;">${_count}</div>
+      <div style="color:#aaf;font-size:14px;">${_cmd} で連打！</div>
+      <div style="color:#888;font-size:14px;">残り ${_timeleft}秒</div>`;
+  }
+  window.startClicker=function(){
+    _count=0; _timeleft=_dur; _running=true; _wrap.style.display='block'; _render();
+    _ticker=setInterval(()=>{
+      _timeleft--;
+      if(_timeleft<=0){
+        clearInterval(_ticker); _running=false;
+        _wrap.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;">終了！</div>
+          <div style="color:#fff;font-size:48px;font-weight:bold;">${_count} クリック！</div>`;
+        if(typeof window.showPopText==='function') window.showPopText('合計 '+_count+' 連打！',{dur:5000,color:'ffd700'});
+        setTimeout(()=>{ _wrap.style.display='none'; },5000);
+      } else _render();
+    },1000);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&_running&&d.msg.trim().toLowerCase()===_cmd){ _count++; _render(); }
+    if(d.type==='noiru-cmd'&&d.cmd==='clickerstart') window.startClicker();
+  });
+})();
+// Q-232: ?tapscore=1 タップスコアゲーム（チャットが!tapするたびにポイント、ランキング表示）
+// 例: ?tapscore=1&tapcmd=!tap&tapscoretime=60
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('tapscore')!=='1') return;
+  const _cmd=(_usp.get('tapcmd')||'!tap').toLowerCase();
+  const _scoretime=Math.min(300,Math.max(10,parseInt(_usp.get('tapscoretime'))||60))*1000;
+  const _maxRank=Math.min(10,Math.max(3,parseInt(_usp.get('taprankmax'))||5));
+  const _pos=_usp.get('tapscorepos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _scores={};
+  const _wrap=document.createElement('div');
+  _wrap.id='tapscore-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'180px',background:'rgba(0,0,0,0.8)',borderRadius:'10px',
+    padding:'10px 14px',zIndex:'500',fontFamily:'sans-serif',pointerEvents:'none'
+  });
+  document.body.appendChild(_wrap);
+  function _render(){
+    const sorted=Object.entries(_scores).sort((a,b)=>b[1]-a[1]).slice(0,_maxRank);
+    _wrap.innerHTML='<div style="color:#ffd700;font-size:12px;margin-bottom:6px;">🏆 タップランキング</div>'+
+      sorted.map(([u,s],i)=>`<div style="display:flex;justify-content:space-between;color:${i===0?'#ffd700':'#fff'};font-size:12px;padding:2px 0;">
+        <span>${i+1}. ${u}</span><span>${s}</span></div>`).join('');
+  }
+  _render();
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&d.user&&d.msg.trim().toLowerCase()===_cmd){
+      _scores[d.user]=(_scores[d.user]||0)+1; _render();
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='tapscorereset'){ Object.keys(_scores).forEach(k=>delete _scores[k]); _render(); }
+  });
+  if(_scoretime>0) setTimeout(()=>{
+    const sorted=Object.entries(_scores).sort((a,b)=>b[1]-a[1]);
+    if(sorted.length&&typeof window.showLowerThird==='function'){
+      window.showLowerThird('🏆 1位: '+sorted[0][0]+' ('+sorted[0][1]+'pt)','',5);
+    }
+    Object.keys(_scores).forEach(k=>delete _scores[k]); _render();
+  },_scoretime);
+})();
+// Q-233: ?catchgame=1 落下物キャッチゲーム（アバターの顔位置で落下物をキャッチ）
+// 顔追跡のX座標でカゴを動かして落下アイテムをキャッチ
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('catchgame')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='catchgame-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'500'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _items=[];
+  let _score=0, _bx=0.5, _lives=3;
+  const _bw=80, _bh=20;
+  const _symbols=['🍎','🍊','⭐','💎','🌟','🎯','🍕','🍰'];
+  function _spawn(){
+    _items.push({x:Math.random()*(_cv.width-30)+15,y:-20,spd:2+Math.random()*3,sym:_symbols[Math.random()*_symbols.length|0]});
+  }
+  setInterval(_spawn,1200);
+  let _running=true;
+  function _frame(){
+    if(!_running) return;
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    // Basket follows face X
+    const faceX=typeof S!=='undefined'&&S&&typeof S.hx==='number'?0.5+S.hx*0.3:0.5;
+    _bx=_bx*0.85+faceX*0.15;
+    const bpx=_bx*(_cv.width-_bw);
+    const bpy=_cv.height-60;
+    // Draw basket
+    _ctx.fillStyle='rgba(100,60,20,0.85)'; _ctx.beginPath();
+    _ctx.roundRect(bpx,bpy,_bw,_bh,8); _ctx.fill();
+    _ctx.fillStyle='#fff'; _ctx.font='bold 16px monospace';
+    _ctx.fillText('Score:'+_score,10,24); _ctx.fillText('❤'.repeat(_lives),10,48);
+    // Items
+    _ctx.font='24px serif';
+    for(let i=_items.length-1;i>=0;i--){
+      const it=_items[i]; it.y+=it.spd;
+      _ctx.fillText(it.sym,it.x,it.y);
+      if(it.y>bpy-10&&it.y<bpy+_bh+10&&it.x>bpx-10&&it.x<bpx+_bw+10){
+        _score++; _items.splice(i,1);
+        if(typeof window.showPopText==='function'&&_score%10===0) window.showPopText('Score '+_score+'！',{dur:1500});
+      } else if(it.y>_cv.height){ _items.splice(i,1); _lives--; if(_lives<=0){ _running=false; _end(); } }
+    }
+    requestAnimationFrame(_frame);
+  }
+  function _end(){
+    _ctx.fillStyle='rgba(0,0,0,0.7)'; _ctx.fillRect(0,0,_cv.width,_cv.height);
+    _ctx.fillStyle='#fff'; _ctx.font='bold 36px sans-serif'; _ctx.textAlign='center';
+    _ctx.fillText('GAME OVER!',_cv.width/2,_cv.height/2-20);
+    _ctx.font='24px sans-serif';
+    _ctx.fillText('Score: '+_score,_cv.width/2,_cv.height/2+20);
+  }
+  _frame();
 })();
 // Q-228: ?analogclock=1 アナログ時計ウィジェット（針で時刻表示・透明背景）
 // 例: ?analogclock=1&clockpos=tr&clocksize=80
