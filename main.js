@@ -4,8 +4,6 @@ const fs = require('fs');
 
 let win, riggerWin;
 
-app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
 
 process.on('uncaughtException', (err) => {
