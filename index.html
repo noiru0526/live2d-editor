@@ -4548,6 +4548,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bigemoji=😊</td><td>巨大絵文字定期表示・?bigemoji=😊|🎉&?bigemojiinterval=12・showBigEmoji(e)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatsnow=1</td><td>チャットが雪のように降る演出</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audioflash=1</td><td>音量ピーク時フラッシュ・?audioflashthresh=65&?audioflashcolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nightmode=1</td><td>アバター周辺スポットライト暗転・?nightmodeopacity=0.55・toggleNightMode()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?followtrain=1</td><td>フォロートレイン（フォロワーが列車で流れる）・addFollowTrain(user)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatgif=KW:URL</td><td>チャットキーワードでGIFポップアップ・?chatgif=GG:URL|LOL:URL2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcolor=U:C</td><td>ユーザー個別チャット色・?chatcolor=noiru:ff6699|admin:ffd700</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?heatwave=1</td><td>陽炎歪みエフェクト・?heatwaveintensity=2・toggleHeatwave()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neontrail=1</td><td>マウスネオン軌跡・?neontrailcolor=hex&?neontrailwidth=3</td></tr>
@@ -10465,6 +10468,104 @@ window.addEventListener('message',ev=>{
   window.addEventListener('message',ev=>{
     const d=ev.data||{};
     if(d.type==='noiru-chat'&&d.msg&&!d.msg.startsWith('!')) _flake(d.msg);
+  });
+})();
+// Q-359: ?chatgif=KW:URL チャットキーワードをGIF画像で置換表示（ポップアップ）
+// 例: ?chatgif=GG:https://example.com/gg.gif|LOL:https://example.com/lol.gif
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatgif'); if(!_raw) return;
+  const _map={};
+  decodeURIComponent(_raw).split('|').forEach(pair=>{
+    const [kw,url]=pair.split(':',2);
+    if(kw&&url) _map[kw.trim().toLowerCase()]=url.trim();
+  });
+  if(!Object.keys(_map).length) return;
+  function _showGif(url,user){
+    const _d=document.createElement('div');
+    const x=20+Math.random()*60;
+    Object.assign(_d.style,{
+      position:'fixed',left:x+'%',bottom:'80px',zIndex:'155',
+      textAlign:'center',pointerEvents:'none',
+      opacity:'0',transition:'opacity 0.2s,transform 0.2s',
+      transform:'translateY(20px) scale(0.8)'
+    });
+    const img=document.createElement('img');
+    img.src=decodeURIComponent(url);
+    Object.assign(img.style,{width:'100px',height:'100px',objectFit:'contain',borderRadius:'8px'});
+    if(user){ const u=document.createElement('div'); u.textContent=user; u.style.cssText='font-size:10px;color:#fff;margin-top:2px;font-family:sans-serif'; _d.appendChild(u); }
+    _d.appendChild(img);
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.opacity='1'; _d.style.transform='translateY(0) scale(1)'; });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),250); },2500);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const words=(d.msg||'').split(/\s+/);
+      words.forEach(w=>{ const url=_map[w.toLowerCase()]; if(url) _showGif(url,d.user); });
+    }
+  });
+})();
+// Q-358: ?followtrain=1 フォロートレイン（フォロワーが列車のように流れる演出）
+// 例: ?followtrain=1  postMessage{type:'noiru-follow',user:'hoge'} で追加
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('followtrain')!=='1') return;
+  const _queue=[];
+  let _running=false;
+  function _run(){
+    if(_running||!_queue.length) return;
+    _running=true;
+    const users=[..._queue]; _queue.length=0;
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',bottom:'30px',left:'-50%',zIndex:'155',
+      display:'flex',alignItems:'center',gap:'6px',
+      transition:`left ${2+users.length*0.5}s linear`,
+      pointerEvents:'none'
+    });
+    const _loco=document.createElement('span');
+    _loco.style.cssText='font-size:28px'; _loco.textContent='🚂';
+    _d.appendChild(_loco);
+    users.forEach(u=>{
+      const _item=document.createElement('div');
+      _item.style.cssText='background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:3px 8px;color:#fff;font-family:sans-serif;font-size:11px;white-space:nowrap';
+      _item.innerHTML='🚃 '+u;
+      _d.appendChild(_item);
+    });
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.left='110%'; });
+    const dur=(2+users.length*0.5)*1000;
+    setTimeout(()=>{ _d.remove(); _running=false; if(_queue.length) setTimeout(_run,500); },dur+100);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-follow'&&d.user){ _queue.push(d.user); if(!_running) setTimeout(_run,800); }
+    if(d.type==='noiru-cmd'&&d.cmd==='followtrain'&&d.user){ _queue.push(d.user); if(!_running) setTimeout(_run,300); }
+  });
+  window.addFollowTrain=u=>{ _queue.push(u||'???'); if(!_running) setTimeout(_run,300); };
+})();
+// Q-357: ?nightmode=1 ナイトモード（アバター以外を暗くするシアタースタイル）
+// 例: ?nightmode=1&nightmodeopacity=0.6
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('nightmode')!=='1') return;
+  const _op=parseFloat(_u.get('nightmodeopacity'))||0.55;
+  const _d=document.createElement('div');
+  _d.id='niru-nightmode';
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'133',pointerEvents:'none',
+    background:`rgba(0,0,0,${_op})`,
+    webkitMaskImage:'radial-gradient(ellipse 45% 60% at 50% 50%,transparent 30%,black 75%)',
+    maskImage:'radial-gradient(ellipse 45% 60% at 50% 50%,transparent 30%,black 75%)'
+  });
+  document.body.appendChild(_d);
+  let _on=true;
+  window.toggleNightMode=()=>{ _on=!_on; _d.style.display=_on?'block':'none'; };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='nightmode') window.toggleNightMode();
   });
 })();
 // Q-354: ?bigemoji=EMOJI 巨大絵文字表示（定期的に画面中央に大きな絵文字を表示）
