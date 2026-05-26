@@ -4416,6 +4416,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotecounter=1</td><td>チャット絵文字使用回数ランキング（+?emotecountermax=5 ?emotecounterpos=bl）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?screensaver=1</td><td>スクリーンセーバー（無活動後パーティクル表示・+?ssidleafter=120秒 ?ssparticle=star/snow）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fixedtext=TEXT</td><td>固定テキストオーバーレイ（+?ftx=50% ?fty=90% ?ftsize=16 ?ftcolor= ?ftbold=1 ?ftbg=1）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gamepadauto=1</td><td>ゲームパッド自動有効化（起動時から即アクティブ）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?waveformov=1</td><td>音声波形オーバーレイ（+?waveformpos= ?waveformcolor= ?waveformwidth= ?waveformheight=）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatname=1</td><td>最新チャットユーザー名大表示（+?chatnamepos= ?chatnamesize=32 ?chatnamedir=3秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -7971,6 +7974,100 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d) return;
     if(d.type==='noiru-cmd'&&d.cmd==='fixedtext'&&typeof d.text==='string')
       _el.textContent=d.text;
+  });
+})();
+// Q-147: ?gamepadauto=1 ゲームパッド自動有効化（起動時から自動でアクティブ）
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('gamepadauto')!=='1') return;
+  // Wait for gamepad button to be created, then click it
+  window.addEventListener('load',()=>{
+    const btn=document.getElementById('gp-btn');
+    if(btn&&btn.textContent.includes('Pad')) btn.click(); // toggle to ON
+  });
+  window.addEventListener('gamepadconnected',()=>{
+    const btn=document.getElementById('gp-btn');
+    if(btn&&!btn.textContent.includes('ON')) btn.click();
+  });
+})();
+// Q-148: ?waveformov=1 音声波形オーバーレイ（マイク入力を折れ線で表示）
+// ?waveformpos=bottom ?waveformcolor=4e7cff ?waveformheight=60 ?waveformwidth=200
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('waveformov')!=='1') return;
+  const _pos=_usp.get('waveformpos')||'bottom';
+  const _col='#'+(_usp.get('waveformcolor')||'4e7cff');
+  const _h=Math.min(200,Math.max(20,parseInt(_usp.get('waveformheight'))||60));
+  const _w=Math.min(600,Math.max(80,parseInt(_usp.get('waveformwidth'))||200));
+  const _cv=document.createElement('canvas');
+  _cv.width=_w*2; _cv.height=_h*2;
+  const _top=_pos==='top'?'top:10px;bottom:auto;':'bottom:10px;top:auto;';
+  _cv.style.cssText=`position:fixed;${_top}left:50%;transform:translateX(-50%);width:${_w}px;height:${_h}px;pointer-events:none;z-index:68;opacity:0.85;`;
+  document.body.appendChild(_cv);
+  const ctx=_cv.getContext('2d');
+  const _N=64; const _buf=new Float32Array(_N).fill(0);
+  // Try to hook into existing AudioContext from mic
+  let _analyser=null;
+  function _tryGetAnalyser(){
+    if(_analyser) return true;
+    if(typeof window._audioCtx!=='undefined'&&window._audioCtx){
+      try{
+        _analyser=window._audioCtx.createAnalyser();
+        _analyser.fftSize=128;
+        if(window._micSource) window._micSource.connect(_analyser);
+        return true;
+      }catch(_){}
+    }
+    return false;
+  }
+  function _tick(){
+    if(_tryGetAnalyser()&&_analyser){
+      const td=new Uint8Array(_N);
+      _analyser.getByteTimeDomainData(td);
+      for(let i=0;i<_N;i++) _buf[i]=(_buf[i]*0.6+(td[i]/128-1)*0.4);
+    } else {
+      // Fallback: use getAudioLevel
+      const v=typeof getAudioLevel==='function'?getAudioLevel():0;
+      for(let i=0;i<_N;i++) _buf[i]=_buf[i]*0.85+(Math.random()-.5)*v*0.5;
+    }
+    const W=_cv.width,H=_cv.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.beginPath();
+    ctx.strokeStyle=_col; ctx.lineWidth=2.5;
+    for(let i=0;i<_N;i++){
+      const x=i/((_N-1))*W;
+      const y=H/2+_buf[i]*H*0.45;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    requestAnimationFrame(_tick);
+  }
+  setTimeout(()=>requestAnimationFrame(_tick),1500);
+})();
+// Q-149: ?chatname=1 最新チャットユーザー名大表示（コメントが来るたびに名前を強調表示）
+// ?chatnamepos=top ?chatnamesize=32 ?chatnamedir=1 表示秒数 ?chatnamecolor=
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatname')!=='1') return;
+  const _pos=_usp.get('chatnamepos')||'top';
+  const _sz=Math.min(72,Math.max(12,parseInt(_usp.get('chatnamesize'))||32));
+  const _dur=Math.min(10,Math.max(1,parseFloat(_usp.get('chatnamedir'))||3));
+  const _ov=document.createElement('div');
+  const _topOrBot=_pos==='top'?'top:14px;bottom:auto;':'bottom:14px;top:auto;';
+  _ov.style.cssText=`position:fixed;${_topOrBot}left:0;right:0;text-align:center;z-index:69;pointer-events:none;opacity:0;transition:opacity .25s;`;
+  _ov.innerHTML=`<span id="chatname-text" style="display:inline-block;font-size:${_sz}px;font-weight:700;text-shadow:0 0 12px rgba(78,124,255,.8),2px 2px 6px rgba(0,0,0,.9);padding:2px 12px;border-radius:5px;"></span>`;
+  document.body.appendChild(_ov);
+  const _txt=document.getElementById('chatname-text');
+  let _hideT=null;
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    const user=d.user||'';if(!user) return;
+    const col=d.color&&/^#[0-9a-fA-F]{6}$/.test(d.color)?d.color:('#'+(_usp.get('chatnamecolor')||'4e7cff'));
+    _txt.textContent=user;
+    _txt.style.color=col;
+    _ov.style.opacity='1';
+    if(_hideT) clearTimeout(_hideT);
+    _hideT=setTimeout(()=>{ _ov.style.opacity='0'; },_dur*1000);
   });
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
