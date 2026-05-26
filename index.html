@@ -4494,6 +4494,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?webhookout=URL</td><td>Discord Webhook通知・?webhookevents=sub,raid,follow,bits</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatexport=1</td><td>チャットCSVエクスポート・?chatexportkey=F8・API: exportChat()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamlog=1</td><td>ストリームイベントログ（サブスク/フォロー/ビッツ記録）・?streamlogpos=bl・?streamlogmax=8</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?ripple=1</td><td>クリック波紋エフェクト・?ripplecolor=80d4ff・?ripplemax=8・API: triggerRipple(x,y)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?mirrorball=1</td><td>ミラーボール光点エフェクト・?mbspeed=1.5・?mbdots=60</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?prismatic=1</td><td>プリズム虹色光線・?prismaticspeed=0.8・?prismaticwidth=60</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8676,6 +8679,137 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-225: ?ripple=1 波紋エフェクト（クリックした場所に水面の波紋が広がる）
+// 例: ?ripple=1&ripplecolor=80d4ff&ripplemax=8
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('ripple')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='ripple-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'999'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _col=_usp.get('ripplecolor')||'80d4ff';
+  const _r=parseInt(_col.slice(0,2),16)||128;
+  const _g=parseInt(_col.slice(2,4),16)||212;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  const _maxR=Math.min(20,Math.max(2,parseInt(_usp.get('ripplemax'))||8));
+  const _ripples=[];
+  document.addEventListener('click',e=>{ _ripples.push({x:e.clientX,y:e.clientY,r:0,alpha:0.8}); });
+  window.triggerRipple=function(x,y){ _ripples.push({x:x||_cv.width/2,y:y||_cv.height/2,r:0,alpha:0.8}); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='ripple') window.triggerRipple(d.x,d.y);
+  });
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_ripples.length-1;i>=0;i--){
+      const rp=_ripples[i];
+      // Multiple concentric rings
+      for(let j=0;j<3;j++){
+        const jr=rp.r-j*20;
+        if(jr<0) continue;
+        _ctx.beginPath(); _ctx.arc(rp.x,rp.y,jr,0,Math.PI*2);
+        _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${rp.alpha*(1-j*0.3)})`;
+        _ctx.lineWidth=2-j*0.5; _ctx.stroke();
+      }
+      rp.r+=4; rp.alpha-=0.018;
+      if(rp.alpha<=0) _ripples.splice(i,1);
+    }
+    while(_ripples.length>_maxR) _ripples.shift();
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-226: ?mirrorball=1 ミラーボールエフェクト（回転する光の点が壁を走る）
+// 例: ?mirrorball=1&mbspeed=2&mbdots=80
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('mirrorball')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='mirrorball-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'96'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _spd=Math.min(5,Math.max(0.2,parseFloat(_usp.get('mbspeed'))||1.5));
+  const _n=Math.min(150,Math.max(20,parseInt(_usp.get('mbdots'))||60));
+  const _dots=[];
+  for(let i=0;i<_n;i++){
+    const h=Math.random()*360|0;
+    _dots.push({
+      angle:Math.random()*Math.PI*2,
+      elev:(Math.random()-0.5)*Math.PI,
+      r:2+Math.random()*3,
+      color:`hsl(${h},90%,75%)`,
+      speed:(_spd*0.01+Math.random()*_spd*0.02)*(Math.random()<0.5?1:-1)
+    });
+  }
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const cx=_cv.width/2, cy=_cv.height*0.25; // ball position top-center
+    const ballR=50;
+    _dots.forEach(d=>{
+      d.angle+=d.speed;
+      const px=cx+Math.cos(d.angle)*Math.cos(d.elev)*ballR;
+      const py=cy+Math.sin(d.elev)*ballR;
+      // Project to screen
+      const tx=_cv.width*(0.1+Math.abs(Math.cos(d.angle+_t*0.005))*0.8);
+      const ty=_cv.height*(0.1+Math.abs(Math.sin(d.elev+_t*0.003))*0.8);
+      const grd=_ctx.createRadialGradient(tx,ty,0,tx,ty,d.r*3);
+      grd.addColorStop(0,d.color); grd.addColorStop(1,'rgba(0,0,0,0)');
+      _ctx.beginPath(); _ctx.arc(tx,ty,d.r*2,0,Math.PI*2);
+      _ctx.fillStyle=grd; _ctx.fill();
+    });
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-227: ?prismatic=1 プリズムエフェクト（虹色の光の屈折が流れる）
+// 例: ?prismatic=1&prismaticspeed=1&prismaticwidth=80
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('prismatic')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='prismatic-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'95',mixBlendMode:'screen'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _spd=Math.min(3,Math.max(0.1,parseFloat(_usp.get('prismaticspeed'))||0.8));
+  const _w=Math.min(200,Math.max(20,parseInt(_usp.get('prismaticwidth'))||60));
+  const _beams=3+Math.random()*3|0;
+  const _beamData=[];
+  for(let i=0;i<_beams;i++){
+    _beamData.push({x:-_w,vy:0.5+Math.random(),ang:0.3+Math.random()*0.6,
+      oy:Math.random()*window.innerHeight,hue:Math.random()*360|0,speed:_spd*(0.5+Math.random())});
+  }
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(const b of _beamData){
+      b.x+=b.speed*2;
+      if(b.x>_cv.width+_w) { b.x=-_w; b.oy=Math.random()*_cv.height; b.hue=(b.hue+60)%360; }
+      const grd=_ctx.createLinearGradient(b.x,b.oy,b.x+_w,b.oy+_cv.height*0.3);
+      for(let i=0;i<=6;i++){
+        const h=(b.hue+i*60)%360;
+        grd.addColorStop(i/6,`hsla(${h},90%,65%,${0.08+Math.sin(_t*0.02+i)*0.04})`);
+      }
+      _ctx.save(); _ctx.translate(b.x,b.oy);
+      _ctx.rotate(b.ang);
+      _ctx.fillStyle=grd;
+      _ctx.fillRect(0,-100,_w,_cv.height+200);
+      _ctx.restore();
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-222: ?webhookout=URL イベントをDiscord/Webhook通知（サブスク・レイド等でDiscordに送信）
 // 例: ?webhookout=https://discord.com/api/webhooks/...&webhookevents=sub,raid,follow
