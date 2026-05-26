@@ -6924,6 +6924,36 @@ window.addEventListener('message',ev=>{
   setInterval(()=>{_el.textContent=_fmt(Date.now()-_start);},1000);
   _el.textContent='0:00';
 })();
+// Q-085: Live clock (?clock=1 ?clockpos=tl/tr/bl/br ?clockcolor=HEX ?clockfmt=24h/12h ?clockdate=1)
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('clock')!=='1') return;
+  const _el=document.createElement('div');
+  _el.id='liveclock-ov';
+  const _pos=_u.get('clockpos')||'tr';
+  const _col=_u.get('clockcolor')||'ffffff';
+  const _fmt=_u.get('clockfmt')||'24h';
+  const _date=_u.get('clockdate')==='1';
+  const _posMap={tl:'top:10px;left:10px;text-align:left',tr:'top:10px;right:10px;text-align:right',bl:'bottom:50px;left:10px;text-align:left',br:'bottom:50px;right:10px;text-align:right'};
+  _el.style.cssText=`position:fixed;${(_posMap[_pos]||_posMap.tr)};color:#${_col.replace(/^#/,'')};font-family:monospace;font-size:13px;font-weight:bold;z-index:92;text-shadow:1px 1px 2px rgba(0,0,0,.8);pointer-events:none;line-height:1.4;`;
+  document.body.appendChild(_el);
+  function _tick(){
+    const now=new Date();
+    let h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+    let ampm='';
+    if(_fmt==='12h'){ampm=h>=12?' PM':' AM';h=h%12||12;}
+    const ts=`${h<10?'0':''}${h}:${m<10?'0':''}${m}:${s<10?'0':''}${s}${ampm}`;
+    if(_date){
+      const days=['日','月','火','水','木','金','土'];
+      const ds=`${now.getFullYear()}/${now.getMonth()+1<10?'0':''}${now.getMonth()+1}/${now.getDate()<10?'0':''}${now.getDate()} (${days[now.getDay()]})`;
+      _el.innerHTML=`<div style="font-size:10px;opacity:.8;">${ds}</div><div>${ts}</div>`;
+    } else {
+      _el.textContent=ts;
+    }
+  }
+  _tick(); setInterval(_tick,1000);
+})();
+
 // Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
 (()=>{
   const _pov=document.getElementById('poptext-ov');if(!_pov) return;
