@@ -4545,6 +4545,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?earthquake=1</td><td>地震画面振動（キーE or cmd:'earthquake',dur:ms）・triggerEarthquake(ms)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?musicnotes=1</td><td>音符浮上エフェクト（音量連動）・?musicnotescount=8・spawnMusicNote()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?milestone=N</td><td>マイルストーン進捗バー・?milestonelabel=再生数&?milestonecurrent=N・setMilestone(n)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bigemoji=😊</td><td>巨大絵文字定期表示・?bigemoji=😊|🎉&?bigemojiinterval=12・showBigEmoji(e)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatsnow=1</td><td>チャットが雪のように降る演出</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audioflash=1</td><td>音量ピーク時フラッシュ・?audioflashthresh=65&?audioflashcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcolor=U:C</td><td>ユーザー個別チャット色・?chatcolor=noiru:ff6699|admin:ffd700</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?heatwave=1</td><td>陽炎歪みエフェクト・?heatwaveintensity=2・toggleHeatwave()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neontrail=1</td><td>マウスネオン軌跡・?neontrailcolor=hex&?neontrailwidth=3</td></tr>
@@ -10413,6 +10416,83 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_anim);
   })();
   window.toggleHeatwave=()=>{ _s.disabled=!_s.disabled; };
+})();
+// Q-356: ?audioflash=1 オーディオピークフラッシュ（音量が閾値を超えた瞬間に一瞬フラッシュ）
+// 例: ?audioflash=1&audioflashthresh=70&audioflashcolor=ffffff
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('audioflash')!=='1') return;
+  const _thresh=parseFloat(_u.get('audioflashthresh'))||65;
+  const _col='#'+(_u.get('audioflashcolor')||'ffffff');
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',inset:'0',zIndex:'166',background:_col,opacity:'0',pointerEvents:'none',transition:'opacity 0.04s'});
+  document.body.appendChild(_d);
+  let _above=false;
+  (function _tick(){
+    const lvl=typeof getAudioLevel==='function'?getAudioLevel():0;
+    if(lvl>_thresh&&!_above){
+      _above=true;
+      _d.style.opacity='0.35';
+      setTimeout(()=>{ _d.style.opacity='0'; },80);
+    } else if(lvl<=_thresh*0.7) { _above=false; }
+    requestAnimationFrame(_tick);
+  })();
+})();
+// Q-355: ?chatsnow=1 チャット雪エフェクト（チャットメッセージが雪のように降ってくる）
+// 例: ?chatsnow=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chatsnow')!=='1') return;
+  function _flake(msg){
+    const _d=document.createElement('div');
+    const x=5+Math.random()*90;
+    Object.assign(_d.style,{
+      position:'fixed',left:x+'%',top:'-40px',zIndex:'152',
+      background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.3)',
+      borderRadius:'20px',padding:'4px 10px',color:'#fff',fontFamily:'sans-serif',
+      fontSize:'12px',whiteSpace:'nowrap',maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',
+      backdropFilter:'blur(2px)',pointerEvents:'none',
+      transition:`top ${3+Math.random()*3}s linear,opacity ${3+Math.random()*3}s linear`
+    });
+    _d.textContent=msg.slice(0,30);
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{
+      _d.style.top=(60+Math.random()*30)+'%';
+      _d.style.transform=`rotate(${(Math.random()-0.5)*15}deg)`;
+    });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),500); },3500);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&!d.msg.startsWith('!')) _flake(d.msg);
+  });
+})();
+// Q-354: ?bigemoji=EMOJI 巨大絵文字表示（定期的に画面中央に大きな絵文字を表示）
+// 例: ?bigemoji=😊|😄|🎉&bigemojiinterval=15
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('bigemoji'); if(!_raw) return;
+  const _emojis=decodeURIComponent(_raw).split('|');
+  const _sec=parseInt(_u.get('bigemojiinterval'))||12;
+  function _show(emoji){
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',left:'50%',top:'45%',transform:'translate(-50%,-50%) scale(0)',
+      fontSize:'clamp(60px,12vw,120px)',zIndex:'155',pointerEvents:'none',
+      transition:'transform 0.2s cubic-bezier(.2,1.6,.4,1), opacity 0.3s',opacity:'0',
+      filter:'drop-shadow(0 4px 12px rgba(0,0,0,0.4))'
+    });
+    _d.textContent=emoji;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.transform='translate(-50%,-50%) scale(1)'; _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.transform='translate(-50%,-50%) scale(0.5)'; _d.style.opacity='0'; setTimeout(()=>_d.remove(),350); },2000);
+  }
+  setInterval(()=>_show(_emojis[Math.floor(Math.random()*_emojis.length)]),_sec*1000);
+  window.showBigEmoji=e=>_show(e||_emojis[0]);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='bigemoji') _show(d.emoji||'🎉');
+  });
 })();
 // Q-351: ?chatcolor=USER:COLOR チャットユーザー個別カラー（特定ユーザーを指定色で表示）
 // 例: ?chatcolor=noiru:ff6699|admin:ffd700
