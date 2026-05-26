@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?parallax=1</td><td>マウスパララックス奥行き・?parallaxdepth=15</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?firering=1</td><td>炎のリングエフェクト・?fireringsize=220</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcelebrate=EMOTE</td><td>連続同一エモート検出→エフェクト・?chatcelebratemin=5</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?retrohud=1</td><td>レトロゲームHUD（スコア/ライフ/レベル）・?retrohudlives=3&?retrohudlevel=1・retroSetScore(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cameraflash=1</td><td>カメラフラッシュ（キーF or cmd:'cameraflash'）・triggerCameraFlash()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?typetext=TEXT</td><td>タイプライターテキスト・?typetextspeed=80&?typetextpos=center・triggerTypeText(t)</td></tr>
@@ -9704,6 +9707,88 @@ window.addEventListener('message',ev=>{
     const d=ev.data||{};
     if(d.type==='noiru-cmd'&&d.cmd==='cameraflash') _flash();
   });
+})();
+// Q-323: ?chatcelebrate=EMOTE チャット連続同一エモート検出（N回連続で炎上→エフェクト）
+// 例: ?chatcelebrate=LUL&chatcelebratemin=5
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _emote=_u.get('chatcelebrate'); if(!_emote) return;
+  const _min=parseInt(_u.get('chatcelebratemin'))||5;
+  let _streak=0; let _lastUser='';
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const clean=(d.msg||'').trim();
+      const singleEmote=clean===_emote||clean.replace(new RegExp(`^(${_emote.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\s*)+$`),'')===''
+        ||clean.split(/\s+/).every(w=>w===_emote);
+      if(singleEmote){ _streak++; }
+      else { _streak=0; }
+      if(_streak>=_min){
+        triggerConfetti&&triggerConfetti();
+        showPopText&&showPopText(`${_emote} x${_streak}`,`#ffcc00`);
+        if(_streak%_min===0) triggerFlash&&triggerFlash();
+      }
+    }
+  });
+})();
+// Q-322: ?firering=1 ファイアリング（アバターを囲む炎のリングエフェクト）
+// 例: ?firering=1&fireringsize=220
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('firering')!=='1') return;
+  const _sz=parseInt(_u.get('fireringsize'))||220;
+  const _cv=document.createElement('canvas');
+  _cv.width=_sz*2+60; _cv.height=_sz*2+60;
+  Object.assign(_cv.style,{position:'fixed',left:'50%',top:'50%',
+    transform:`translate(-50%,-50%)`,zIndex:'146',pointerEvents:'none',
+    mixBlendMode:'screen',opacity:'0.75'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const cx=_cv.width/2,cy=_cv.height/2;
+  const _particles=Array.from({length:60},(_,i)=>({
+    angle:i/60*Math.PI*2,r:_sz+((Math.random()-0.5)*20),
+    size:4+Math.random()*8,speed:0.01+Math.random()*0.02,
+    life:Math.random(),lifeSpeed:0.01+Math.random()*0.03,
+    drift:(Math.random()-0.5)*0.02
+  }));
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _particles.forEach(p=>{
+      p.angle+=p.speed+p.drift; p.life+=p.lifeSpeed;
+      if(p.life>1) p.life=0;
+      const flicker=0.6+Math.random()*0.4;
+      const bri=Math.sin(p.life*Math.PI);
+      const x=cx+Math.cos(p.angle)*p.r; const y=cy+Math.sin(p.angle)*p.r;
+      const g=_ctx.createRadialGradient(x,y,0,x,y,p.size*bri);
+      g.addColorStop(0,`rgba(255,${200*bri|0},0,${0.9*flicker})`);
+      g.addColorStop(0.4,`rgba(255,${80*bri|0},0,${0.6*flicker})`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      _ctx.beginPath(); _ctx.arc(x,y,p.size*bri,0,Math.PI*2);
+      _ctx.fillStyle=g; _ctx.fill();
+    });
+    requestAnimationFrame(_draw);
+  })();
+})();
+// Q-321: ?parallax=1 パララックス効果（マウス移動でアバターと背景がずれて奥行き感）
+// 例: ?parallax=1&parallaxdepth=15
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('parallax')!=='1') return;
+  const _depth=parseFloat(_u.get('parallaxdepth'))||15;
+  const _wrap=document.getElementById('wrap');
+  if(!_wrap) return;
+  let _tx=0,_ty=0,_cx=window.innerWidth/2,_cy=window.innerHeight/2;
+  window.addEventListener('mousemove',e=>{
+    _tx=((e.clientX-_cx)/_cx)*_depth;
+    _ty=((e.clientY-_cy)/_cy)*_depth;
+  });
+  let _cx2=0,_cy2=0;
+  (function _tick(){
+    _cx2+= (_tx-_cx2)*0.08; _cy2+=(_ty-_cy2)*0.08;
+    _wrap.style.transform=`translate(${_cx2}px,${_cy2}px)`;
+    requestAnimationFrame(_tick);
+  })();
+  window.addEventListener('resize',()=>{ _cx=window.innerWidth/2; _cy=window.innerHeight/2; });
 })();
 // Q-318: ?retrohud=1 レトロゲームHUD（スコア/ライフ/レベルをドット風表示）
 // 例: ?retrohud=1&retrohudlives=3&retrohudlevel=1
