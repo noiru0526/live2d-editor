@@ -823,8 +823,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <span id="spn" class="rsec-sub"></span>
     </div>
     <div id="rp-params" class="rpanel">
-      <div style="padding:4px 8px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end">
-          <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#646464">＋</button>
+      <!-- Cubism-style parameter toolbar -->
+      <div style="padding:3px 8px;border-bottom:1px solid #1e1e1e;flex-shrink:0;display:flex;align-items:center;gap:4px;background:#1a1a1a">
+        <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
+        <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:9px;border-radius:3px;padding:2px 5px;cursor:pointer">↺</button>
+        <span style="flex:1"></span>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▶▶</button>
+        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▼▼</button>
+        <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#646464;background:none;border:1px solid #2a2a2a;padding:2px 5px;border-radius:3px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
       <div style="padding:5px 6px;border-bottom:1px solid #1a2030;flex-shrink:0">
@@ -5919,6 +5925,16 @@ function confirmAddBinding() {
   document.getElementById('bind-mod').style.display = 'none';
   buildBindingsUI();
   setStatus(`バインド追加: ${P[selParam]?.l||selParam} → ${P[target]?.l||target}`);
+}
+function addKFHere() {
+  if (mode !== 'deform') { setMode('deform'); }
+  addKFPosition();
+}
+function toggleAllPGroups(collapse) {
+  const allParams = {...P};
+  const groups = new Set(Object.values(allParams).map(pc => pc.g || 'その他'));
+  groups.forEach(g => { _pgCollapsed[g] = collapse; });
+  buildParamsUI();
 }
 function selPrm(pn) {
   selParam=pn;
