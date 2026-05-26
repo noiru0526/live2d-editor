@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?timedmessage=H:M:T</td><td>時刻指定メッセージ・?timedmessage=20:00:配信開始！|21:00:おつ！</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bounceball=TEXT</td><td>DVDロゴ風バウンス要素・?bounceballsize=24</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?randompose=1</td><td>ランダムポーズ自動発動・?randomposesec=20</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?flicker=1</td><td>画面フリッカー（ホラー演出）・?flickerrate=0.04・triggerFlicker(ms)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?textglow=1</td><td>チャットテキスト発光・?textglowcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?colorpicker=1</td><td>ドラッグ可能カラーピッカー（背景色/オーバーレイ色をライブ変更）</td></tr>
@@ -10233,6 +10236,79 @@ window.addEventListener('message',ev=>{
   const _s=document.createElement('style');
   _s.textContent=`.chat-bubble,.chat-wrap,.chat-item{text-shadow:0 0 8px ${_col},0 0 16px ${_col}66 !important;color:#fff !important;}`;
   document.head.appendChild(_s);
+})();
+// Q-347: ?randompose=1 ランダムポーズ（N秒ごとにランダムな表情/ポーズを発動）
+// 例: ?randompose=1&randomposesec=30
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('randompose')!=='1') return;
+  const _sec=parseInt(_u.get('randomposesec'))||20;
+  const _POSES=[
+    ()=>{ typeof triggerShake==='function'&&triggerShake(); },
+    ()=>{ typeof triggerFlash==='function'&&triggerFlash(); },
+    ()=>{ typeof triggerConfetti==='function'&&triggerConfetti(); },
+    ()=>{ typeof triggerRain==='function'&&triggerRain(); },
+    ()=>{ typeof showPopText==='function'&&showPopText(['✨','💫','🎉','😄','🌟'][Math.floor(Math.random()*5)],'#fff'); },
+    ()=>{ if(typeof M!=='undefined'&&M.params){ M.params['PARAM_MOUTH_OPEN_Y']=1; setTimeout(()=>M.params['PARAM_MOUTH_OPEN_Y']=0,800); } },
+    ()=>{ if(typeof M!=='undefined'&&M.params){ M.params['PARAM_EYE_L_OPEN']=0; M.params['PARAM_EYE_R_OPEN']=0; setTimeout(()=>{ M.params['PARAM_EYE_L_OPEN']=1; M.params['PARAM_EYE_R_OPEN']=1; },400); } }
+  ];
+  setInterval(()=>{
+    _POSES[Math.floor(Math.random()*_POSES.length)]();
+  },_sec*1000);
+})();
+// Q-346: ?bounceball=TEXT DVDロゴ風バウンス要素（テキストが画面内を弾む）
+// 例: ?bounceball=LIVE&bounceballsize=28
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=_u.get('bounceball'); if(!_txt) return;
+  const _sz=parseInt(_u.get('bounceballsize'))||24;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'147',fontSize:_sz+'px',fontWeight:'bold',
+    fontFamily:'sans-serif',pointerEvents:'none',userSelect:'none',whiteSpace:'nowrap',
+    textShadow:'2px 2px 4px rgba(0,0,0,0.5)'
+  });
+  _d.textContent=decodeURIComponent(_txt);
+  document.body.appendChild(_d);
+  const W=()=>window.innerWidth,H=()=>window.innerHeight;
+  const EW=()=>_d.offsetWidth,EH=()=>_d.offsetHeight;
+  let x=Math.random()*(W()-100),y=Math.random()*(H()-50),vx=1.5,vy=1;
+  const _HUE=['#ff4466','#ff8800','#ffff00','#44ff88','#44aaff','#aa44ff'];
+  let _hIdx=0;
+  (function _step(){
+    x+=vx; y+=vy;
+    let hit=false;
+    if(x<=0){x=0;vx=Math.abs(vx);hit=true;}
+    if(x+EW()>=W()){x=W()-EW();vx=-Math.abs(vx);hit=true;}
+    if(y<=0){y=0;vy=Math.abs(vy);hit=true;}
+    if(y+EH()>=H()){y=H()-EH();vy=-Math.abs(vy);hit=true;}
+    if(hit){ _hIdx=(_hIdx+1)%_HUE.length; _d.style.color=_HUE[_hIdx]; }
+    _d.style.left=x+'px'; _d.style.top=y+'px';
+    requestAnimationFrame(_step);
+  })();
+})();
+// Q-345: ?timedmessage=HH:MM:TEXT 時刻指定メッセージ（特定の時間にテキストを表示）
+// 例: ?timedmessage=20:00:配信開始！|21:00:おつ！
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('timedmessage'); if(!_raw) return;
+  const _msgs=decodeURIComponent(_raw).split('|').map(s=>{
+    const m=s.match(/^(\d{1,2}):(\d{2}):(.+)$/);
+    return m?{h:+m[1],m:+m[2],text:m[3],fired:false}:null;
+  }).filter(Boolean);
+  if(!_msgs.length) return;
+  setInterval(()=>{
+    const now=new Date();
+    _msgs.forEach(entry=>{
+      if(!entry.fired&&now.getHours()===entry.h&&now.getMinutes()===entry.m){
+        entry.fired=true;
+        showLowerThird&&showLowerThird(entry.text,'#ffe600');
+        showPopText&&showPopText(entry.text,'#ffe600');
+      }
+      // reset daily
+      if(now.getHours()===0&&now.getMinutes()===0) entry.fired=false;
+    });
+  },10000);
 })();
 // Q-342: ?flicker=1 フリッカーエフェクト（画面が不規則にちらつく・ホラー演出）
 // 例: ?flicker=1&flickerrate=0.05
