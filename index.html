@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?volumemeter=1</td><td>縦/横ボリュームメーターバー・?volumemeterpos=right/left/bottom&?volumemetercolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?keyoverlay=1</td><td>WASD/矢印キー入力可視化グリッド・?keyoverlaypos=bottomleft/bottomright</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gamepad=1</td><td>ゲームパッドボタン状態表示・?gamepadpos=bottomright/bottomleft</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?trackmouse=1</td><td>マウスカーソル十字線+座標オーバーレイ・?trackmousecolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotepopup=1</td><td>チャット画像URLを大型ポップアップ表示・triggerEmotePopup(src)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?nametag=TEXT</td><td>ストリーマーネームタグバッジ・?nametagpos=bottomleft&?nametagcolor=hex</td></tr>
@@ -8782,6 +8785,115 @@ window.addEventListener('message',ev=>{
     if(d.type==='noiru-cmd'&&d.cmd==='emotepopup'&&d.src) _showEmote(d.src);
   });
   window.triggerEmotePopup=src=>_showEmote(src);
+})();
+// Q-281: ?gamepad=1 ゲームパッドボタン可視化（Xbox/PS風コントローラー入力表示）
+// 例: ?gamepad=1&gamepadpos=bottomright
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('gamepad')!=='1') return;
+  const _pos=_u.get('gamepadpos')||'bottomright';
+  const _d=document.createElement('div');
+  _d.id='niru-gamepad';
+  const _posMap={bottomleft:{bottom:'80px',left:'18px'},bottomright:{bottom:'80px',right:'18px'},topleft:{top:'60px',left:'18px'},topright:{top:'60px',right:'18px'}};
+  const _p=_posMap[_pos]||_posMap.bottomright;
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',..._p,display:'grid',gridTemplateColumns:'repeat(4,28px)',gap:'4px',opacity:'0.85'});
+  document.body.appendChild(_d);
+  const _BTN=['A','B','X','Y','LB','RB','LT','RT','↑','↓','←','→'];
+  const _BMAP={0:'A',1:'B',2:'X',3:'Y',4:'LB',5:'RB',6:'LT',7:'RT',12:'↑',13:'↓',14:'←',15:'→'};
+  const _els={};
+  _BTN.forEach(k=>{
+    const b=document.createElement('div');
+    b.textContent=k;
+    Object.assign(b.style,{width:'28px',height:'28px',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.3)',borderRadius:'6px',color:'rgba(255,255,255,0.5)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',fontWeight:'bold',fontFamily:'sans-serif',transition:'background 0.06s,color 0.06s'});
+    _d.appendChild(b); _els[k]=b;
+  });
+  function _poll(){
+    const pads=navigator.getGamepads?navigator.getGamepads():[];
+    for(const gp of pads){
+      if(!gp) continue;
+      Object.entries(_BMAP).forEach(([i,k])=>{
+        const pressed=gp.buttons[+i]&&gp.buttons[+i].pressed;
+        if(_els[k]) _els[k].style.background=pressed?'rgba(0,220,100,0.85)':'rgba(255,255,255,0.1)';
+        if(_els[k]) _els[k].style.color=pressed?'#fff':'rgba(255,255,255,0.5)';
+      });
+    }
+    requestAnimationFrame(_poll);
+  }
+  _poll();
+})();
+// Q-280: ?keyoverlay=1 キーボード入力可視化（WASD/矢印キーのゲーミングオーバーレイ）
+// 例: ?keyoverlay=1&keyoverlaypos=bottomleft
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('keyoverlay')!=='1') return;
+  const _pos=_u.get('keyoverlaypos')||'bottomleft';
+  const _d=document.createElement('div');
+  _d.id='niru-keyoverlay';
+  const _posMap={bottomleft:{bottom:'18px',left:'18px'},bottomright:{bottom:'18px',right:'18px'},topleft:{top:'60px',left:'18px'},topright:{top:'60px',right:'18px'}};
+  const _p=_posMap[_pos]||_posMap.bottomleft;
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',..._p,display:'grid',gridTemplateColumns:'repeat(3,36px)',gridTemplateRows:'repeat(2,36px)',gap:'4px'});
+  document.body.appendChild(_d);
+  const _KEYS=[
+    {label:'W',key:'KeyW',col:2,row:1},{label:'A',key:'KeyA',col:1,row:2},
+    {label:'S',key:'KeyS',col:2,row:2},{label:'D',key:'KeyD',col:3,row:2},
+    {label:'↑',key:'ArrowUp',col:2,row:1},{label:'←',key:'ArrowLeft',col:1,row:2},
+    {label:'↓',key:'ArrowDown',col:2,row:2},{label:'→',key:'ArrowRight',col:3,row:2},
+    {label:'Sp',key:'Space',col:1,row:1},{label:'Sh',key:'ShiftLeft',col:3,row:1}
+  ];
+  const _uniq=[]; const _seen=new Set();
+  _KEYS.forEach(k=>{ if(!_seen.has(k.key)){_seen.add(k.key);_uniq.push(k);} });
+  const _els={};
+  _uniq.forEach(({label,key,col,row})=>{
+    const b=document.createElement('div');
+    b.textContent=label;
+    Object.assign(b.style,{gridColumn:String(col),gridRow:String(row),width:'36px',height:'36px',background:'rgba(30,30,30,0.7)',border:'2px solid rgba(255,255,255,0.25)',borderRadius:'6px',color:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:'bold',fontFamily:'sans-serif',transition:'all 0.07s',userSelect:'none'});
+    _d.appendChild(b); _els[key]=b;
+  });
+  const _pressed=new Set();
+  window.addEventListener('keydown',e=>{
+    if(_els[e.code]){ _els[e.code].style.background='rgba(0,200,120,0.85)'; _els[e.code].style.color='#fff'; _els[e.code].style.transform='scale(0.92)'; }
+  });
+  window.addEventListener('keyup',e=>{
+    if(_els[e.code]){ _els[e.code].style.background='rgba(30,30,30,0.7)'; _els[e.code].style.color='rgba(255,255,255,0.6)'; _els[e.code].style.transform=''; }
+  });
+})();
+// Q-279: ?volumemeter=1 視覚的ボリュームメーター（縦バーでマイク音量をリアルタイム表示）
+// 例: ?volumemeter=1&volumemeterpos=right&volumemetercolor=00ff88
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('volumemeter')!=='1') return;
+  const _pos=_u.get('volumemeterpos')||'right';
+  const _col='#'+(_u.get('volumemetercolor')||'00ff88');
+  const _d=document.createElement('canvas');
+  _d.id='niru-volumemeter'; _d.width=28; _d.height=120;
+  const _style={position:'fixed',zIndex:'145',opacity:'0.85'};
+  if(_pos==='right') Object.assign(_style,{right:'14px',top:'50%',transform:'translateY(-50%)'});
+  else if(_pos==='left') Object.assign(_style,{left:'14px',top:'50%',transform:'translateY(-50%)'});
+  else if(_pos==='bottom') { _d.width=120; _d.height=28; Object.assign(_style,{bottom:'18px',left:'50%',transform:'translateX(-50%)'}); }
+  else Object.assign(_style,{right:'14px',top:'50%',transform:'translateY(-50%)'});
+  Object.assign(_d.style,_style);
+  document.body.appendChild(_d);
+  const _ctx=_d.getContext('2d');
+  (function _draw(){
+    const lvl=typeof getAudioLevel==='function'?Math.min(getAudioLevel()/100,1):0;
+    _ctx.clearRect(0,0,_d.width,_d.height);
+    const isH=_pos==='bottom';
+    const _segs=20;
+    for(let i=0;i<_segs;i++){
+      const ratio=i/_segs;
+      const active=lvl>ratio;
+      const r=active?(ratio>0.85?'#ff3333':ratio>0.6?'#ffaa00':_col):'rgba(255,255,255,0.1)';
+      _ctx.fillStyle=r;
+      if(!isH){
+        const y=_d.height-(i+1)*(_d.height/_segs)+1;
+        _ctx.fillRect(3,y,_d.width-6,(_d.height/_segs)-2);
+      } else {
+        const x=i*(_d.width/_segs)+1;
+        _ctx.fillRect(x,3,(_d.width/_segs)-2,_d.height-6);
+      }
+    }
+    requestAnimationFrame(_draw);
+  })();
 })();
 // Q-276: ?trackmouse=1 マウスカーソル追跡オーバーレイ（十字線+座標を表示）
 // 例: ?trackmouse=1&trackmousecolor=00ffff
