@@ -6515,23 +6515,24 @@ function _handleChatMsg(rawMsg){
   const _rawT=Number(_usp.get('chatbubble_time'));
   const _dispMs=(Number.isFinite(_rawT)&&_rawT>=1&&_rawT<=30)?_rawT*1000:6000;
   const _queue=[];let _showing=false;let _hideTimer=null;
-  function _show(user,msg){
+  function _show(user,msg,color){
     const el=document.createElement('div');el.className='cbb';
-    if(user){const s=document.createElement('span');s.className='cbu';s.textContent=user+':';el.appendChild(s);}
+    if(user){const s=document.createElement('span');s.className='cbu';s.textContent=user+':';if(color&&/^#[0-9a-fA-F]{6}$/.test(color))s.style.color=color;el.appendChild(s);}
     el.appendChild(document.createTextNode(msg));
     _ov.innerHTML='';_ov.appendChild(el);_ov.classList.add('show');_ov.classList.remove('hiding');_showing=true;
     if(_hideTimer) clearTimeout(_hideTimer);
     _hideTimer=setTimeout(()=>{
       _ov.classList.add('hiding');
       setTimeout(()=>{_ov.classList.remove('show','hiding');_ov.innerHTML='';_showing=false;
-        if(_queue.length>0){const n=_queue.shift();_show(n.user,n.msg);}},400);
+        if(_queue.length>0){const n=_queue.shift();_show(n.user,n.msg,n.color);}},400);
     },_dispMs);
   }
   window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||typeof d!=='object'||d.type!=='noiru-chat') return;
     const msg=(typeof d.msg==='string'?d.msg.trim():'').slice(0,200);if(!msg) return;
     const user=typeof d.user==='string'?d.user.trim().slice(0,32):'';
-    if(!_showing){_show(user,msg);}else if(_queue.length<3){_queue.push({user,msg});}
+    const color=typeof d.color==='string'?d.color:'';
+    if(!_showing){_show(user,msg,color);}else if(_queue.length<3){_queue.push({user,msg,color});}
   });
 })();
 // Emoji rain — window.triggerRain(emoji, count) + ?rain=emoji auto-loop
