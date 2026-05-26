@@ -4464,6 +4464,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbsplit=N</td><td>RGBチャンネル分離（色収差）・?rgbmode=static/wave/pulse・N=ピクセル量</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hologram=1</td><td>ホログラム投影風（スキャンライン+青みグロー）・?holocolor=00eeff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wobblewarp=1</td><td>ウォブルワープ変形・?warpamp=6・?warpspeed=1</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatraffle=1</td><td>チャット抽選・?rafflecmd=!raffle・?rafflewin=1・API: startRaffle/stopRaffle</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?wordguess=WORD:HINT</td><td>ワードクイズ（チャットで回答）・複数カンマ区切り・API: startWordGuess()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatbattle=1</td><td>チャットバトル（2チーム対抗）・?teamA=・?teamB=・?battlecmd=!red,!blue</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8645,6 +8648,156 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-195: ?chatraffle=1 チャットじゃんけん/抽選（参加者を集めてランダムに当選者を選ぶ）
+// 例: ?chatraffle=1&rafflecmd=!raffle&rafflewin=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatraffle')!=='1') return;
+  const _cmd=(_usp.get('rafflecmd')||'!raffle').toLowerCase();
+  const _wins=Math.min(10,Math.max(1,parseInt(_usp.get('rafflewin'))||1));
+  const _entries=new Set();
+  let _open=false;
+  const _ov=document.createElement('div');
+  _ov.id='chatraffle-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',top:'50%',left:'50%',transform:'translate(-50%,-50%)',
+    background:'rgba(0,0,40,0.92)',border:'2px solid #6af',borderRadius:'14px',
+    padding:'18px 28px',zIndex:'999',fontFamily:'sans-serif',
+    textAlign:'center',display:'none',minWidth:'240px',pointerEvents:'none'
+  });
+  document.body.appendChild(_ov);
+  function _renderWin(winners){
+    _ov.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;margin-bottom:10px;">🎉 当選者！</div>`+
+      winners.map(w=>`<div style="color:#fff;font-size:16px;padding:4px 0;">${w}</div>`).join('')+
+      `<div style="color:#888;font-size:12px;margin-top:8px;">参加 ${_entries.size}名</div>`;
+    _ov.style.display='block';
+    setTimeout(()=>{ _ov.style.display='none'; },8000);
+  }
+  window.startRaffle=function(){ _open=true; _entries.clear(); if(typeof window.showPopText==='function') window.showPopText('抽選開始！'+_cmd+'で参加！',{dur:4000}); };
+  window.stopRaffle=function(){
+    _open=false;
+    if(!_entries.size){ if(typeof window.showPopText==='function') window.showPopText('参加者なし',{dur:2000}); return; }
+    const arr=[..._entries]; const winners=[];
+    for(let i=0;i<Math.min(_wins,arr.length);i++){
+      const idx=Math.random()*arr.length|0;
+      winners.push(arr.splice(idx,1)[0]);
+    }
+    _renderWin(winners);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&d.user){
+      if(_open&&d.msg.toLowerCase().trim()===_cmd) _entries.add(d.user);
+    }
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='rafflestart') window.startRaffle();
+      if(d.cmd==='rafflestop') window.stopRaffle();
+    }
+  });
+})();
+// Q-196: ?wordguess=WORD:HINT ワードクイズ（チャットで答えを当てるゲーム）
+// 例: ?wordguess=バナナ:黄色い果物・複数カンマ区切り可
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('wordguess'); if(!_raw) return;
+  const _qs=_raw.split(',').map(q=>{
+    const idx=q.indexOf(':');
+    if(idx<0) return null;
+    return {answer:q.slice(0,idx).trim().toLowerCase(),hint:q.slice(idx+1).trim()};
+  }).filter(Boolean);
+  if(!_qs.length) return;
+  let _qi=0, _active=false, _timer=0;
+  const _ov=document.createElement('div');
+  _ov.id='wordguess-ov';
+  Object.assign(_ov.style,{
+    position:'fixed',bottom:'20%',left:'50%',transform:'translateX(-50%)',
+    background:'rgba(0,20,40,0.9)',border:'2px solid #8af',borderRadius:'12px',
+    padding:'14px 24px',zIndex:'999',fontFamily:'sans-serif',textAlign:'center',
+    display:'none',pointerEvents:'none',minWidth:'220px'
+  });
+  document.body.appendChild(_ov);
+  function _startQ(){
+    const q=_qs[_qi%_qs.length]; _active=true;
+    _ov.innerHTML=`<div style="color:#adf;font-size:12px;">Q${_qi+1}</div>
+      <div style="color:#fff;font-size:20px;font-weight:bold;">${q.hint}</div>
+      <div style="color:#888;font-size:12px;margin-top:6px;">チャットで回答してね</div>`;
+    _ov.style.display='block';
+    _timer=setTimeout(()=>{ _timeUp(q); },30000);
+  }
+  function _timeUp(q){
+    _active=false;
+    _ov.innerHTML=`<div style="color:#f88;font-size:16px;">時間切れ！</div><div style="color:#fff;">正解: <b>${q.answer}</b></div>`;
+    setTimeout(()=>{ _ov.style.display='none'; },4000);
+  }
+  window.startWordGuess=function(){ _qi=0; _startQ(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&_active){
+      const q=_qs[_qi%_qs.length];
+      if(d.msg.trim().toLowerCase()===q.answer){
+        clearTimeout(_timer); _active=false; _qi++;
+        _ov.innerHTML=`<div style="color:#ffd700;font-size:16px;">🎉 正解！</div><div style="color:#fff;">${d.user} さんが正解！</div><div style="color:#adf;font-size:14px;">${q.answer}</div>`;
+        if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+        setTimeout(()=>{ _ov.style.display='none'; },4000);
+      }
+    }
+    if(d.type==='noiru-cmd'&&d.cmd==='wordguess') window.startWordGuess();
+  });
+})();
+// Q-197: ?chatbattle=1 チャットバトル（Aチーム/Bチームに分かれてチャット数で勝負）
+// 例: ?chatbattle=1&teamA=赤組&teamB=青組&battlecmd=!red,!blue
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatbattle')!=='1') return;
+  const _nameA=_usp.get('teamA')||'赤組';
+  const _nameB=_usp.get('teamB')||'青組';
+  const _cmds=(_usp.get('battlecmd')||'!red,!blue').split(',');
+  const _cmdA=(_cmds[0]||'!red').toLowerCase();
+  const _cmdB=(_cmds[1]||'!blue').toLowerCase();
+  let _scoreA=0, _scoreB=0;
+  const _wrap=document.createElement('div');
+  _wrap.id='chatbattle-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',top:'16px',left:'50%',transform:'translateX(-50%)',
+    background:'rgba(0,0,0,0.8)',borderRadius:'12px',padding:'10px 16px',
+    zIndex:'500',fontFamily:'sans-serif',display:'none',minWidth:'220px',
+    textAlign:'center',pointerEvents:'none'
+  });
+  document.body.appendChild(_wrap);
+  let _running=false;
+  function _render(){
+    const total=_scoreA+_scoreB||1;
+    const pctA=(_scoreA/total*100).toFixed(0);
+    const pctB=(_scoreB/total*100).toFixed(0);
+    _wrap.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="color:#f88;font-weight:bold;">${_nameA} ${_scoreA}</span>
+      <span style="color:#888;font-size:12px;">チャットバトル</span>
+      <span style="color:#88f;font-weight:bold;">${_scoreB} ${_nameB}</span></div>
+      <div style="height:12px;background:#333;border-radius:6px;overflow:hidden;display:flex;">
+        <div style="width:${pctA}%;background:#f66;transition:width 0.3s;"></div>
+        <div style="width:${pctB}%;background:#66f;transition:width 0.3s;"></div>
+      </div>`;
+  }
+  window.startChatBattle=function(){ _scoreA=0; _scoreB=0; _running=true; _wrap.style.display='block'; _render(); };
+  window.stopChatBattle=function(){
+    _running=false;
+    const winner=_scoreA>_scoreB?_nameA:_scoreA<_scoreB?_nameB:'引き分け';
+    if(typeof window.showPopText==='function') window.showPopText(winner+'の勝ち！',{dur:5000,color:'ffd700'});
+    setTimeout(()=>{ _wrap.style.display='none'; },6000);
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-chat'&&d.msg&&_running){
+      const m=d.msg.trim().toLowerCase();
+      if(m===_cmdA){ _scoreA++; _render(); }
+      else if(m===_cmdB){ _scoreB++; _render(); }
+    }
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='battlestart') window.startChatBattle();
+      if(d.cmd==='battlestop') window.stopChatBattle();
+    }
   });
 })();
 // Q-192: ?rgbsplit=N RGBチャンネル分離エフェクト（chromatic aberration）
