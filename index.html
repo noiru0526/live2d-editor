@@ -6713,6 +6713,18 @@ function _handleChatMsg(rawMsg){
     };
   }
 })();
+// Q-097: ?speakintro=TEXT 起動時TTS読み上げ（ユーザー操作後・または?tts=1が有効な場合は2秒後に自動実行）
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=(_u.get('speakintro')||'').slice(0,200);if(!_txt) return;
+  function _doSpeak(){
+    if(typeof window.speak==='function'){window.speak(_txt);}
+    else{try{const u=new SpeechSynthesisUtterance(_txt);speechSynthesis.speak(u);}catch(_){}}
+  }
+  // If TTS is enabled, try after 2s; otherwise wait for first user gesture
+  if(_u.get('tts')==='1'||_u.get('autospeak')==='1'){setTimeout(_doSpeak,2000);}
+  else{document.addEventListener('click',()=>_doSpeak(),{once:true,capture:true});}
+})();
 // Game WebSocket (?ws=URL) — external WS events → trigger shake/flash/blur/rain/speak/setPose
 (()=>{
   const _usp=new URLSearchParams(location.search);
