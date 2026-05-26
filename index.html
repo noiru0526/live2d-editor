@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?splashtext=1</td><td>定期スプラッシュテキスト・?splashtextlist=A|B|C&?splashinterval=20・triggerSplashText(t)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatspeed=1</td><td>チャット速度(メッセージ/分)表示・?chatspeedpos=topright</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?hypemeter=1</td><td>チャット連動ハイプゲージ（MAX=confetti）・?hypemetermax=100・addHypeCustom(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?volumemeter=1</td><td>縦/横ボリュームメーターバー・?volumemeterpos=right/left/bottom&?volumemetercolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?keyoverlay=1</td><td>WASD/矢印キー入力可視化グリッド・?keyoverlaypos=bottomleft/bottomright</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gamepad=1</td><td>ゲームパッドボタン状態表示・?gamepadpos=bottomright/bottomleft</td></tr>
@@ -8856,6 +8859,101 @@ window.addEventListener('message',ev=>{
   window.addEventListener('keyup',e=>{
     if(_els[e.code]){ _els[e.code].style.background='rgba(30,30,30,0.7)'; _els[e.code].style.color='rgba(255,255,255,0.6)'; _els[e.code].style.transform=''; }
   });
+})();
+// Q-284: ?hypemeter=1 ハイプメーター（チャット活性度でゲージが溜まり自動放電）
+// 例: ?hypemeter=1&hypemetermax=100
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('hypemeter')!=='1') return;
+  const _max=parseFloat(_u.get('hypemetermax'))||100;
+  let _hype=0;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{position:'fixed',bottom:'60px',left:'50%',transform:'translateX(-50%)',zIndex:'148',width:'220px',fontFamily:'sans-serif',textAlign:'center',pointerEvents:'none'});
+  _d.innerHTML=`<div style="font-size:11px;color:#fff;text-shadow:0 0 6px #ff4400;margin-bottom:3px;font-weight:bold;">HYPE</div>
+<div id="hm-bg" style="width:100%;height:18px;background:rgba(0,0,0,0.5);border-radius:9px;overflow:hidden;border:1px solid rgba(255,100,0,0.5)">
+<div id="hm-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#ff8800,#ff2200);border-radius:9px;transition:width 0.15s"></div></div>
+<div id="hm-label" style="font-size:10px;color:rgba(255,180,0,0.9);margin-top:2px;">0%</div>`;
+  document.body.appendChild(_d);
+  const _fill=document.getElementById('hm-fill');
+  const _lbl=document.getElementById('hm-label');
+  function _update(){
+    const pct=Math.round(_hype/_max*100);
+    _fill.style.width=pct+'%';
+    _lbl.textContent=pct+'%';
+    _fill.style.background=pct>80?'linear-gradient(90deg,#ff0000,#ff6600)':pct>50?'linear-gradient(90deg,#ff8800,#ffdd00)':'linear-gradient(90deg,#00ccff,#0066ff)';
+    if(pct>=100){ triggerConfetti&&triggerConfetti(); showPopText&&showPopText('MAX HYPE!','#ff4400'); _hype=0; }
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'){ _hype=Math.min(_hype+1.5,_max); _update(); }
+    if(d.type==='noiru-cmd'&&d.cmd==='addhype'){ _hype=Math.min(_hype+(+d.amount||5),_max); _update(); }
+  });
+  setInterval(()=>{ _hype=Math.max(0,_hype-0.3); _update(); },500);
+  window.addHypeCustom=n=>{ _hype=Math.min(_hype+(n||5),_max); _update(); };
+})();
+// Q-283: ?chatspeed=1 チャット速度メーター（直近60秒のメッセージ数/分を表示）
+// 例: ?chatspeed=1&chatspeedpos=topright
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chatspeed')!=='1') return;
+  const _pos=_u.get('chatspeedpos')||'topright';
+  const _d=document.createElement('div');
+  _d.id='niru-chatspeed';
+  const _posMap={topright:{top:'60px',right:'18px'},topleft:{top:'60px',left:'18px'},bottomright:{bottom:'60px',right:'18px'},bottomleft:{bottom:'60px',left:'18px'}};
+  const _p=_posMap[_pos]||_posMap.topright;
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',..._p,background:'rgba(0,0,0,0.55)',border:'1px solid rgba(0,200,255,0.3)',borderRadius:'8px',padding:'6px 10px',color:'#fff',fontFamily:'monospace',fontSize:'12px',minWidth:'80px',textAlign:'center',backdropFilter:'blur(4px)'});
+  _d.innerHTML='<div style="font-size:9px;color:rgba(0,200,255,0.8);margin-bottom:2px;">CHAT/MIN</div><div id="cs-val" style="font-size:20px;font-weight:bold;color:#00c8ff;">0</div>';
+  document.body.appendChild(_d);
+  const _times=[];
+  const _val=document.getElementById('cs-val');
+  window.addEventListener('message',ev=>{
+    if((ev.data||{}).type==='noiru-chat'){
+      const now=Date.now();
+      _times.push(now);
+      // keep 60s window
+      while(_times.length&&now-_times[0]>60000) _times.shift();
+    }
+  });
+  setInterval(()=>{
+    const now=Date.now();
+    while(_times.length&&now-_times[0]>60000) _times.shift();
+    _val.textContent=_times.length;
+    _val.style.color=_times.length>30?'#ff4444':_times.length>10?'#ffaa00':'#00c8ff';
+  },1000);
+})();
+// Q-282: ?splashtext=1 スプラッシュテキスト（定期的にランダムな応援メッセージをポップ表示）
+// 例: ?splashtext=1&splashtextlist=がんばれ！|いいね！|神プレイ！&splashinterval=30
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('splashtext')!=='1') return;
+  const _list=(_u.get('splashtextlist')||'すごい！|いいね！|神プレイ！|やばい！|最高！|天才！').split('|');
+  const _sec=parseFloat(_u.get('splashinterval'))||20;
+  function _show(){
+    const txt=_list[Math.floor(Math.random()*_list.length)];
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',zIndex:'160',left:'50%',top:'38%',
+      transform:'translate(-50%,-50%) scale(0) rotate(-8deg)',
+      transition:'transform 0.2s cubic-bezier(.2,1.6,.4,1), opacity 0.3s',
+      opacity:'0',pointerEvents:'none',
+      fontFamily:'"Comic Sans MS",cursive,sans-serif',
+      fontSize:'clamp(28px,5vw,52px)',fontWeight:'bold',
+      color:'#ffe600',textShadow:'2px 2px 0 #ff4400,-2px -2px 0 #ff4400,2px -2px 0 #ff4400,-2px 2px 0 #ff4400',
+      whiteSpace:'nowrap'
+    });
+    _d.textContent=decodeURIComponent(txt);
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.transform='translate(-50%,-50%) scale(1) rotate(-4deg)'; _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.opacity='0'; _d.style.transform='translate(-50%,-50%) scale(0.7) rotate(4deg)'; setTimeout(()=>_d.remove(),350); },1800);
+  }
+  setInterval(_show,_sec*1000);
+  window.triggerSplashText=txt=>{
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{position:'fixed',zIndex:'160',left:'50%',top:'38%',transform:'translate(-50%,-50%) scale(0) rotate(-8deg)',transition:'transform 0.2s cubic-bezier(.2,1.6,.4,1), opacity 0.3s',opacity:'0',pointerEvents:'none',fontFamily:'"Comic Sans MS",cursive,sans-serif',fontSize:'clamp(28px,5vw,52px)',fontWeight:'bold',color:'#ffe600',textShadow:'2px 2px 0 #ff4400,-2px -2px 0 #ff4400,2px -2px 0 #ff4400,-2px 2px 0 #ff4400',whiteSpace:'nowrap'});
+    _d.textContent=txt||'すごい！'; document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.transform='translate(-50%,-50%) scale(1) rotate(-4deg)'; _d.style.opacity='1'; });
+    setTimeout(()=>{ _d.style.opacity='0'; setTimeout(()=>_d.remove(),350); },1800);
+  };
 })();
 // Q-279: ?volumemeter=1 視覚的ボリュームメーター（縦バーでマイク音量をリアルタイム表示）
 // 例: ?volumemeter=1&volumemeterpos=right&volumemetercolor=00ff88
