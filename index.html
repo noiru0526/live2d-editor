@@ -4434,6 +4434,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?audiospectrum=1</td><td>音声スペクトラムバー（+?spectrumpos= ?spectrumheight=60 ?spectrumcolor= ?spectrumsym=1）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatquote=1</td><td>チャット引用デザインカード（+?chatquotecolor= ?chatquotedur=8・noiru-cmd quote）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?achievement=gg:GG!:🏆</td><td>チャットワードでアチーブメントカード（window.triggerAchievement(title,icon)）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatlog=1</td><td>チャットログサイドバー（+?chatlogpos=right/left ?chatlogwidth=220 ?chatlogmax=50）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?emotesonly=1</td><td>絵文字のみ大表示モード（+?emotesmax=3 ?emotessize=36）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?timedpop=14:30:TEXT</td><td>タイムドポップアップ（指定時刻に自動表示・複数カンマ区切り）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8555,6 +8558,102 @@ window.addEventListener('message',ev=>{
     }
   });
   window.triggerAchievement=(title,icon)=>_fire(icon||'🏆',title||'Achievement!');
+})();
+// Q-165: ?chatlog=1 チャットログサイドバー（スクロール可能な履歴・最大100件保持）
+// ?chatlogpos=right ?chatlogwidth=220 ?chatlogmax=50 ?chatlogfont=11
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatlog')!=='1') return;
+  const _pos=_usp.get('chatlogpos')||'right';
+  const _mw=Math.min(500,Math.max(100,parseInt(_usp.get('chatlogwidth'))||220));
+  const _max=Math.min(200,Math.max(10,parseInt(_usp.get('chatlogmax'))||50));
+  const _fs=Math.min(18,Math.max(8,parseInt(_usp.get('chatlogfont'))||11));
+  const _lr=_pos==='right'?'right:0;left:auto;':'left:0;right:auto;';
+  const _ov=document.createElement('div');
+  _ov.id='chat-log-ov';
+  _ov.style.cssText=`position:fixed;top:40px;bottom:40px;${_lr}width:${_mw}px;z-index:75;background:rgba(6,10,24,.75);backdrop-filter:blur(4px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#334 #0a0e1a;border-left:1px solid rgba(78,124,255,.2);`;
+  document.body.appendChild(_ov);
+  const _msgs=[];
+  function _render(){
+    _ov.innerHTML=_msgs.map(m=>{
+      const c=m.color&&/^#[0-9a-fA-F]{6}$/.test(m.color)?m.color:'#8090b0';
+      return `<div style="padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:${_fs}px;word-break:break-word;"><span style="color:${c};font-weight:700;">${m.user||''}</span>${m.user?': ':''}<span style="color:#c0c8e0;">${m.msg.slice(0,120)}</span></div>`;
+    }).join('');
+    _ov.scrollTop=_ov.scrollHeight;
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    _msgs.push({user:d.user||'',msg:d.msg||'',color:d.color||null});
+    if(_msgs.length>_max) _msgs.shift();
+    _render();
+  });
+  _render();
+})();
+// Q-166: ?emotesonly=1 絵文字のみチャット表示（テキストを非表示にして絵文字だけ大きく）
+// ?emotesmax=3 1メッセージあたりの最大絵文字表示数 ?emotessize=36
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('emotesonly')!=='1') return;
+  const _max=Math.min(10,Math.max(1,parseInt(_usp.get('emotesmax'))||3));
+  const _sz=Math.min(80,Math.max(16,parseInt(_usp.get('emotessize'))||36));
+  const _ov=document.createElement('div');
+  _ov.id='emotes-only-ov';
+  _ov.style.cssText=`position:fixed;bottom:60px;left:0;right:0;text-align:center;z-index:76;pointer-events:none;`;
+  document.body.appendChild(_ov);
+  const _emojiRe=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}]/gu;
+  function _show(emotes){
+    const el=document.createElement('div');
+    el.style.cssText=`display:inline-block;font-size:${_sz}px;animation:eonyFade 3s forwards;padding:4px;`;
+    el.textContent=emotes.join('');
+    _ov.appendChild(el);
+    setTimeout(()=>el.remove(),3100);
+  }
+  if(!document.getElementById('emotes-only-style')){
+    const st=document.createElement('style');
+    st.id='emotes-only-style';
+    st.textContent='@keyframes eonyFade{0%{opacity:0;transform:translateY(10px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}';
+    document.head.appendChild(st);
+  }
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat') return;
+    const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
+    if(emojis.length) _show(emojis);
+  });
+})();
+// Q-167: ?timedpop=HH:MM:TEXT,HH:MM:TEXT タイムドポップアップ（指定時刻にテキスト表示）
+// 例: ?timedpop=14:30:配信開始！,15:00:休憩中
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _raw=_usp.get('timedpop');if(!_raw) return;
+  const _events=[];
+  _raw.split(',').forEach(item=>{
+    const idx=item.indexOf(':',3); // skip HH:
+    if(idx<0) return;
+    const timePart=item.slice(0,5); // HH:MM
+    const text=item.slice(6);
+    if(!timePart||!text) return;
+    const [h,m]=timePart.split(':').map(Number);
+    if(isNaN(h)||isNaN(m)) return;
+    _events.push({h,m,text,fired:false});
+  });
+  if(!_events.length) return;
+  function _check(){
+    const now=new Date();
+    const ch=now.getHours(),cm=now.getMinutes();
+    for(const ev of _events){
+      if(!ev.fired&&ev.h===ch&&ev.m===cm){
+        ev.fired=true;
+        if(typeof window.showPopText==='function')
+          window.showPopText(ev.text,{dur:5000,color:'ffd700',size:20});
+        if(typeof window.showLowerThird==='function')
+          window.showLowerThird(ev.text,'',5);
+      }
+      // Reset at midnight
+      if(ch===0&&cm===0) ev.fired=false;
+    }
+  }
+  setInterval(_check,10000);
+  _check();
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
