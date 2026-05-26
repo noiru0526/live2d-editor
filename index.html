@@ -3925,6 +3925,7 @@ function _showEmbedCode(filePath) {
       <label><input type="checkbox" id="obsq-emotioncolor" style="margin-right:2px;"> emotioncolor=1</label>
       <label><input type="checkbox" id="obsq-notrack" style="margin-right:2px;"> notrack=1</label>
       <label><input type="checkbox" id="obsq-scanlines" style="margin-right:2px;"> scanlines=1</label>
+      <label><input type="checkbox" id="obsq-raideffect" style="margin-right:2px;"> raideffect=1</label>
       <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-showchat" style="margin-right:2px;"> showchat=1 pos=<select id="obsq-chatpos" style="background:#0e1120;border:1px solid #3a4470;color:#c8d4f0;border-radius:2px;font-size:9px;padding:0 2px;"><option>bl</option><option>br</option><option>tl</option><option>tr</option></select></label>
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
@@ -3951,6 +3952,7 @@ function _showEmbedCode(filePath) {
     if(dlg.querySelector('#obsq-emotioncolor').checked) ps.push('emotioncolor=1');
     if(dlg.querySelector('#obsq-notrack').checked) ps.push('notrack=1');
     if(dlg.querySelector('#obsq-scanlines').checked) ps.push('scanlines=1');
+    if(dlg.querySelector('#obsq-raideffect').checked) ps.push('raideffect=1');
     if(dlg.querySelector('#obsq-showchat').checked){const _cp=dlg.querySelector('#obsq-chatpos').value;ps.push('showchat=1');if(_cp&&_cp!=='bl')ps.push('chatpos='+_cp);}
     dlg.querySelector('#obs-url-out').value=fileUrl+(ps.length?'?'+ps.join('&'):'');
   }
@@ -6238,11 +6240,14 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
   if(!_channels.length) return;
   const _chSet=new Set(_channels);
   let _ws=null, _wsRetry=0, _wsTimer=null, _wsStopped=false;
-  // Sub/bits effect config
+  // Sub/bits/raid effect config
   const _usp2=new URLSearchParams(location.search);
   const _subEffect=_usp2.get('subeffect')==='1';
   const _subPoseName=_usp2.get('subpose')||'';
   const _bitsThresh=Math.max(1,parseInt(_usp2.get('bitseffect')||'100',10)||100);
+  // Q-093: ?raideffect=1 レイドエフェクト (?raidpose=ポーズ名)
+  const _raidEffect=_usp2.get('raideffect')==='1';
+  const _raidPoseName=_usp2.get('raidpose')||'';
   function _parseTags(raw){const t={};(raw||'').split(';').forEach(p=>{const [k,v]=p.split('=');if(k)t[k]=v||'';});return t;}
   function _fireSub(tags){
     if(!_subEffect) return;
@@ -6250,15 +6255,26 @@ window.addEventListener('load',()=>setTimeout(initChatTriggers,500));
     if(typeof window.triggerFlash==='function') window.triggerFlash('ffc000',0.3);
     if(_subPoseName){const p=MD?.poses?.find(x=>x.name===_subPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},5000);}}
   }
+  function _fireRaid(tags){
+    if(!_raidEffect) return;
+    const cnt=parseInt(tags['msg-param-viewerCount']||'1',10)||1;
+    const emoji=cnt>=50?'🎉':cnt>=10?'🎪':'💜';
+    const rainN=Math.min(60,Math.max(10,cnt));
+    if(typeof window.triggerRain==='function') window.triggerRain(emoji,rainN);
+    if(typeof window.triggerFlash==='function') window.triggerFlash('9040ff',0.35);
+    if(typeof window.triggerShake==='function') window.triggerShake();
+    if(_raidPoseName){const p=MD?.poses?.find(x=>x.name===_raidPoseName);if(p){activePose=p;poseBlend=0;setTimeout(()=>{activePose=null;poseBlend=0;},8000);}}
+    if(typeof window.showPopText==='function'){const n=tags['display-name']||tags['login']||'';window.showPopText(n?(n+' がレイド！'+cnt+'人'):('レイド！'+cnt+'人'),{dur:4000,color:'cc80ff',size:22});}
+  }
   function _handleIrcLine(line){
     if(!line) return;
     if(line.startsWith('PING ')){try{_ws.send('PONG '+line.slice(5));}catch(_){} return;}
     // Parse IRC tags
     let tagsRaw='',rest=line;
     if(line.startsWith('@')){const sp=line.indexOf(' ');tagsRaw=line.slice(1,sp);rest=line.slice(sp+1);}
-    // USERNOTICE = sub/resub/gift sub
+    // USERNOTICE = sub/resub/gift sub/raid
     const un=rest.match(/^:tmi\.twitch\.tv USERNOTICE #([a-z0-9_]+)/i);
-    if(un&&_chSet.has(un[1])){const tags=_parseTags(tagsRaw);const mid=(tags['msg-id']||'').toLowerCase();if(['sub','resub','subgift','submysterygift'].includes(mid))_fireSub(tags);return;}
+    if(un&&_chSet.has(un[1])){const tags=_parseTags(tagsRaw);const mid=(tags['msg-id']||'').toLowerCase();if(['sub','resub','subgift','submysterygift'].includes(mid))_fireSub(tags);else if(mid==='raid')_fireRaid(tags);return;}
     // PRIVMSG with bits tag
     const m=rest.match(/^:(\S+)!\S+@\S+ PRIVMSG #([a-z0-9_]+) :(.*)$/i);
     if(!m||!_chSet.has(m[2])) return;
