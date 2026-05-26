@@ -4166,6 +4166,13 @@ canvas.mirrored{transform:scaleX(-1);}
 #watermark-ov span{font-family:'Segoe UI',sans-serif;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.3);}
 #streamtimer{display:none;position:fixed;font-family:'Segoe UI',monospace;font-size:13px;font-weight:700;color:#a0ffc0;background:rgba(10,14,30,.75);border:1px solid rgba(78,255,160,.2);border-radius:5px;padding:2px 10px;pointer-events:none;z-index:55;letter-spacing:.06em;backdrop-filter:blur(4px);}
 #streamtimer.show{display:block;}
+/* Chat poll (?chatpoll=1) */
+#chatpoll-ov{display:none;position:fixed;right:14px;top:54px;background:rgba(8,10,24,.93);border:1px solid rgba(78,124,255,.4);border-radius:8px;padding:8px 14px;min-width:180px;max-width:280px;pointer-events:none;z-index:63;font-family:'Segoe UI',sans-serif;}
+#chatpoll-ov.show{display:block;}
+#chatpoll-title{font-size:10px;font-weight:700;color:#a0c0ff;margin-bottom:6px;letter-spacing:.05em;}
+.poll-opt{margin:3px 0;font-size:10px;color:#c8d4f0;}
+.poll-bar-wrap{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:2px;}
+.poll-bar-fill{height:100%;background:#4e7cff;border-radius:3px;transition:width .5s ease;}
 /* Goal bar (?twitchgoal=TEXT:CURRENT:MAX) */
 #goal-bar-ov{display:none;position:fixed;pointer-events:none;z-index:62;background:rgba(8,10,24,.92);border:1px solid rgba(78,124,255,.4);border-radius:6px;padding:6px 14px;min-width:200px;max-width:340px;}
 #goal-bar-ov.show{display:block;}
@@ -4280,6 +4287,7 @@ ${includeCtrlPanel ? `
 <div id="death-counter"></div>
 <div id="songcard"><div class="sc-title" id="sc-title">曲名</div><div class="sc-artist" id="sc-artist">アーティスト</div></div>
 <div id="streamtimer"></div>
+<div id="chatpoll-ov"><div id="chatpoll-title">📊 投票</div><div id="chatpoll-opts"></div></div>
 <div id="goal-bar-ov"><div id="goal-label"><span id="goal-text"></span><span id="goal-nums"></span></div><div id="goal-track"><div id="goal-fill"></div></div></div>
 <div id="lowerthird-ov"><div id="lt-bar"></div><div id="lt-main"><div id="lt-name"></div><div id="lt-title"></div></div></div>
 <div id="ticker-ov"><div id="ticker-inner"></div></div>
@@ -4357,6 +4365,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?idleexpr=p1,p2</td><td>アイドル時ランダム表情（非追跡時にランダム切替・+?idleexprdur=秒 ?idleexproff=秒）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatemojirain=1</td><td>チャット絵文字レイン（Twitchチャットの絵文字を自動レイン・+?chatemojimax=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchgoal=TEXT:N:MAX</td><td>ゴールプログレスバー（サブ/フォロワー目標・+?twitchgoalpos=tl/tr/bl/br ?twitchgoalcolor=HEX）window.updateGoal(cur,max)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpoll=1</td><td>チャット投票オーバーレイ（window.startPoll(title,options,dur) / window.stopPoll()）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?streamtimer=1</td><td>配信時間タイマー（+?streamtimerpos=tl/tr/bl/br ?streamtimercolor=HEX）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?deathcounter=N</td><td>デスカウンター（+?deathcounterkey=\` ?deathcounterlabel= ?deathcounterpos=br）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">noiru-cmd</td><td>nowplaying {title,artist,album,dur} / deathAdd/Set/Reset {n} / roulette / poptext / grade / glitch / lookAt …</td></tr>
@@ -7703,6 +7712,50 @@ window.addEventListener('message',ev=>{
   setInterval(_tick,1000);
   // Also expose for immediate trigger
   window.triggerIdleExpr=()=>{_lastChange=performance.now()-_dur*1000;_pick();};
+})();
+// Q-118: ?chatpoll=1 チャット投票オーバーレイ（APIで投票開始/終了・リアルタイム集計）
+// window.startPoll(title, options[]) — 投票開始 (options: ['A案','B案',...])
+// window.stopPoll() — 投票終了
+// 投票: チャットで 1/2/3/... または a/b/c/... と入力
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('chatpoll')!=='1') return;
+  const _ov=document.getElementById('chatpoll-ov');
+  const _titleEl=document.getElementById('chatpoll-title');
+  const _optsEl=document.getElementById('chatpoll-opts');
+  if(!_ov||!_titleEl||!_optsEl) return;
+  let _active=false,_opts=[],_votes={},_voted=new Set(),_endTimer=null;
+  function _render(){
+    const total=Object.values(_votes).reduce((s,v)=>s+v,0)||1;
+    _optsEl.innerHTML=_opts.map((o,i)=>{
+      const pct=Math.round((_votes[i]||0)/total*100);
+      const col=['#4e7cff','#ff7c4e','#60d890','#ffd060','#c060ff'][i%5];
+      return `<div class="poll-opt"><span style="color:#8898c0">${i+1}.</span> ${o} <span style="color:${col};font-weight:700">${pct}%</span> <span style="color:#4a6080;font-size:9px">(${_votes[i]||0})</span><div class="poll-bar-wrap"><div class="poll-bar-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
+    }).join('');
+  }
+  window.startPoll=function(title,options,dur){
+    _opts=(options||[]).slice(0,5);_votes={};_voted.clear();
+    _opts.forEach((_,i)=>_votes[i]=0);
+    _titleEl.textContent='📊 '+String(title||'投票');
+    _active=true;_render();_ov.classList.add('show');
+    clearTimeout(_endTimer);
+    if(dur>0) _endTimer=setTimeout(window.stopPoll,dur*1000);
+  };
+  window.stopPoll=function(){_active=false;_titleEl.textContent='📊 結果（終了）';clearTimeout(_endTimer);setTimeout(()=>_ov.classList.remove('show'),8000);};
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-chat'||!_active) return;
+    const user=d.user||'';if(!user||_voted.has(user)) return;
+    const msg=(d.msg||'').trim().toLowerCase();
+    let idx=-1;
+    if(/^[1-5]$/.test(msg)) idx=parseInt(msg)-1;
+    else if(/^[a-e]$/.test(msg)) idx=msg.charCodeAt(0)-97;
+    if(idx>=0&&idx<_opts.length){_votes[idx]=(_votes[idx]||0)+1;_voted.add(user);_render();}
+  });
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-cmd') return;
+    if(d.cmd==='startPoll'&&window.startPoll) window.startPoll(d.title,d.options,d.dur);
+    else if(d.cmd==='stopPoll'&&window.stopPoll) window.stopPoll();
+  });
 })();
 // Q-110: ?twitchgoal=TEXT:CURRENT:MAX ゴールプログレスバー（サブ目標・フォロワー目標など）
 // ?twitchgoalpos=tl/tr/bl/br ?twitchgoalcolor=HEX
