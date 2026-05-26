@@ -607,11 +607,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
       <div class="prop-section" id="part-props" style="display:none">
-        <!-- Cubism-style inspector header -->
+        <!-- Cubism-style inspector header (Cubism 5.2.03 field order) -->
         <div style="border-bottom:1px solid #252525;margin:-8px -10px 8px;padding:0">
           <div class="ci-row"><span class="ci-lbl">名前</span><input type="text" id="pp-name" class="ci-inp" onblur="applyPartName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" placeholder="パーツ名"></div>
           <div class="ci-row"><span class="ci-lbl">ID</span><span id="pp-id" class="ci-ro" title="自動生成ID"></span></div>
+          <div class="ci-row"><span class="ci-lbl">パーツ</span><select class="ci-sel" id="ci-group" onchange="applyPartGroup(this.value)"><option value="">なし</option></select></div>
+          <div class="ci-row"><span class="ci-lbl">デフォーマ</span><select class="ci-sel" id="ci-deformer" onchange="applyPartDeformer(this.value)"><option value="">なし</option></select></div>
+          <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">描画順</span><input type="number" id="pp-zorder" class="ci-num" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"></div>
+          <div class="ci-row"><span class="ci-lbl">不透明度</span><div style="display:flex;align-items:center;gap:4px;flex:1"><input type="range" id="ci-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value);document.getElementById('ci-op-v').textContent=this.value+'%'" style="flex:1"><span id="ci-op-v" style="font-size:10px;color:#e07840;font-family:monospace;min-width:30px;text-align:right">100%</span></div></div>
         </div>
         <div class="prop-row">
           <span id="pp-coord-lbl-x" class="prop-lbl" title="クリックでグローバル座標に切替" onclick="toggleGlobalCoordMode()" style="cursor:pointer">X</span>
@@ -741,24 +745,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(80,200,255,.07);border:1px dashed rgba(80,200,255,.25);color:#50a8cc;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         </div><!-- end pp-ext-body -->
-        <div class="prop-row">
-          <span class="prop-lbl">クリッピング</span>
-          <select class="prop-sel" id="pp-clip" onchange="applyPartClip(this.value)">
-            <option value="">なし</option>
-          </select>
-        </div>
-        <div class="prop-row">
-          <span class="prop-lbl">デフォーマ</span>
-          <select class="prop-sel" id="pp-deformer" onchange="applyPartDeformer(this.value)">
-            <option value="">なし</option>
-          </select>
-        </div>
-        <div class="prop-row">
-          <span class="prop-lbl">パーツ</span>
-          <select class="prop-sel" id="pp-group" onchange="applyPartGroup(this.value)">
-            <option value="">なし</option>
-          </select>
-        </div>
+        <!-- Legacy clip/deformer/group selects (hidden - replaced by ci-row at top) -->
+        <select id="pp-clip" style="display:none" onchange="applyPartClip(this.value)"><option value="">なし</option></select>
+        <select id="pp-deformer" style="display:none" onchange="applyPartDeformer(this.value)"><option value="">なし</option></select>
+        <select id="pp-group" style="display:none" onchange="applyPartGroup(this.value)"><option value="">なし</option></select>
         <div class="prop-row" style="gap:4px;margin-top:2px">
           <button class="tbtn" onclick="centerPart()" style="flex:1;font-size:8px">⊕ 中央配置</button>
           <button class="tbtn" id="btn-lock" onclick="toggleLock()" style="flex:1;font-size:8px">🔓 ロック</button>
@@ -3348,21 +3338,30 @@ function updatePartPropsUI() {
     document.getElementById('pp-sat').value = sat; document.getElementById('pp-sat-v').textContent = sat+'%';
     document.getElementById('pp-bri').value = bri; document.getElementById('pp-bri-v').textContent = bri+'%';
     document.getElementById('btn-lock').textContent = pt.locked?'🔒 解除':'🔓 ロック';
-    // Clip mask dropdown
+    // Clip mask dropdown (hidden + visible CI version)
     const clipSel = document.getElementById('pp-clip');
     clipSel.innerHTML = '<option value="">なし</option>';
     parts.forEach((p,i)=>{ if(i===selPart) return; const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; clipSel.appendChild(o); });
     clipSel.value = pt.clipTo || '';
+    const ciClip = document.getElementById('ci-clip');
+    if (ciClip) { ciClip.innerHTML = clipSel.innerHTML; ciClip.value = pt.clipTo || ''; }
     // Deformer dropdown
     const defSel = document.getElementById('pp-deformer');
     defSel.innerHTML = '<option value="">なし</option>';
     deformers.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.name; defSel.appendChild(o); });
     defSel.value = pt.deformerId || '';
+    const ciDef = document.getElementById('ci-deformer');
+    if (ciDef) { ciDef.innerHTML = defSel.innerHTML; ciDef.value = pt.deformerId || ''; }
     // Group dropdown
     const grpSel = document.getElementById('pp-group');
     grpSel.innerHTML = '<option value="">なし</option>';
     groups.forEach(g=>{ const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; grpSel.appendChild(o); });
     grpSel.value = pt.groupId || '';
+    const ciGrp = document.getElementById('ci-group');
+    if (ciGrp) { ciGrp.innerHTML = grpSel.innerHTML; ciGrp.value = pt.groupId || ''; }
+    // CI opacity sync
+    const ciOp = document.getElementById('ci-op'); const ciOpV = document.getElementById('ci-op-v');
+    if (ciOp) { ciOp.value = op; if(ciOpV) ciOpV.textContent = op+'%'; }
     // Note field
     const noteEl = document.getElementById('pp-note');
     if (noteEl) noteEl.value = pt.note || '';
