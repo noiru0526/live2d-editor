@@ -4446,6 +4446,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pulsering=1</td><td>音量連動パルスリング・?ringcolor=80cfff・?ringcount=3（1〜6）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lasersweep=1</td><td>回転レーザービーム・?lasercolor=ff0044・?laserspeed=1.5・?laserbeams=2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glitchscan=1</td><td>グリッチスキャンライン・?glitchfreq=2（0.5〜10）・postMessage glitchscan</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?marquee=TEXT</td><td>流れるテロップ・?marqueespeed=2・?marqueebg・?marqueecolor・?marqueepos=bottom/top</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?subgoal=TARGET</td><td>サブスク目標ゲージ・?subcurrent=N・?subgoaltitle=・?subgoalpos=tr/tl/br/bl</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?healthbar=MAX</td><td>HPゲージ・?hpcurrent=N・?hpname=・?hpcolor=・API: setHP/damageHP/healHP</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8627,6 +8630,136 @@ window.addEventListener('message',ev=>{
     const d=ev.data;if(!d||d.type!=='noiru-chat') return;
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
+  });
+})();
+// Q-177: ?marquee=TEXT テキストマーキー（画面下部を流れるテロップ）
+// 例: ?marquee=配信中！チャンネル登録お願いします&marqueespeed=3
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _txt=_usp.get('marquee'); if(!_txt) return;
+  const _spd=Math.min(10,Math.max(0.5,parseFloat(_usp.get('marqueespeed'))||2));
+  const _bg=_usp.get('marqueebg')||'rgba(0,0,0,0.7)';
+  const _color=_usp.get('marqueecolor')||'#fff';
+  const _size=Math.min(48,Math.max(12,parseInt(_usp.get('marqueesize'))||22));
+  const _pos=_usp.get('marqueepos')||'bottom';
+  const _wrap=document.createElement('div');
+  _wrap.id='marquee-wrap';
+  Object.assign(_wrap.style,{
+    position:'fixed', [_pos==='top'?'top':'bottom']:'0', left:'0', width:'100%',
+    overflow:'hidden', zIndex:'300', background:_bg, padding:'4px 0',
+    pointerEvents:'none'
+  });
+  const _inner=document.createElement('div');
+  _inner.id='marquee-inner';
+  Object.assign(_inner.style,{
+    display:'inline-block', whiteSpace:'nowrap',
+    color:_color, fontSize:_size+'px', fontFamily:'sans-serif',
+    fontWeight:'bold', padding:'0 30px'
+  });
+  _inner.textContent=_txt;
+  _wrap.appendChild(_inner); document.body.appendChild(_wrap);
+  let _x=window.innerWidth;
+  function _frame(){
+    _x-=_spd;
+    if(_x<-_inner.offsetWidth) _x=window.innerWidth;
+    _inner.style.transform=`translateX(${_x}px)`;
+    requestAnimationFrame(_frame);
+  }
+  requestAnimationFrame(_frame);
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='marquee'&&d.text) _inner.textContent=d.text;
+  });
+  window.setMarqueeText=t=>{ _inner.textContent=t; };
+})();
+// Q-178: ?subgoal=TARGET サブスク目標ゲージ（現在数→目標数のプログレスバー）
+// 例: ?subgoal=100&subcurrent=42&subgoaltitle=サブスク目標
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _target=parseInt(_usp.get('subgoal')); if(!_target||isNaN(_target)) return;
+  let _current=Math.min(_target,Math.max(0,parseInt(_usp.get('subcurrent'))||0));
+  const _title=_usp.get('subgoaltitle')||'サブスク目標';
+  const _pos=_usp.get('subgoalpos')||'tr';
+  const _wrap=document.createElement('div');
+  _wrap.id='subgoal-ov';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  Object.assign(_wrap.style,{
+    position:'fixed', [_isB?'bottom':'top']:'16px', [_isR?'right':'left']:'16px',
+    width:'200px', background:'rgba(0,0,0,0.75)', borderRadius:'10px',
+    padding:'10px 14px', zIndex:'500', pointerEvents:'none', fontFamily:'sans-serif'
+  });
+  function _render(){
+    const pct=Math.min(1,_current/_target);
+    _wrap.innerHTML=`<div style="color:#adf;font-size:13px;margin-bottom:4px;">${_title}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;background:#333;border-radius:6px;height:12px;overflow:hidden;">
+          <div style="width:${(pct*100).toFixed(1)}%;height:100%;background:linear-gradient(90deg,#6af,#acf);transition:width 0.5s;"></div>
+        </div>
+        <div style="color:#fff;font-size:12px;min-width:55px;text-align:right;">${_current}/${_target}</div>
+      </div>`;
+  }
+  _render(); document.body.appendChild(_wrap);
+  window.setSubGoal=function(current,target){
+    if(typeof current==='number') _current=Math.min(_target,Math.max(0,current));
+    if(typeof target==='number'&&target>0){ _target=target; }
+    _render();
+  };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='subgoal'){
+      if(d.current!=null) _current=Math.min(_target,Math.max(0,parseInt(d.current)||0));
+      _render();
+    }
+    if(d.type==='noiru-sub') { _current=Math.min(_target,_current+1); _render(); }
+  });
+})();
+// Q-179: ?healthbar=100 HPゲージ（キャラクターのHP表示・ダメージアニメーション）
+// 例: ?healthbar=100&hpname=noiru&hpcolor=ff4466
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _maxHp=parseInt(_usp.get('healthbar')); if(!_maxHp||isNaN(_maxHp)) return;
+  let _hp=Math.min(_maxHp,Math.max(0,parseInt(_usp.get('hpcurrent'))||_maxHp));
+  const _name=_usp.get('hpname')||'HP';
+  const _col=_usp.get('hpcolor')||'ff4466';
+  const _pos=_usp.get('hppos')||'tl';
+  const _wrap=document.createElement('div');
+  _wrap.id='healthbar-ov';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'180px',background:'rgba(0,0,0,0.8)',borderRadius:'8px',
+    padding:'8px 12px',zIndex:'500',fontFamily:'monospace',pointerEvents:'none'
+  });
+  const _bar=document.createElement('div');
+  Object.assign(_bar.style,{height:'14px',background:'#333',borderRadius:'6px',overflow:'hidden',marginTop:'4px'});
+  const _fill=document.createElement('div');
+  Object.assign(_fill.style,{height:'100%',transition:'width 0.3s,background 0.3s',borderRadius:'6px'});
+  _bar.appendChild(_fill);
+  const _label=document.createElement('div');
+  Object.assign(_label.style,{color:'#ccc',fontSize:'12px',display:'flex',justifyContent:'space-between'});
+  _wrap.appendChild(_label); _wrap.appendChild(_bar); document.body.appendChild(_wrap);
+  function _render(){
+    const pct=Math.max(0,Math.min(1,_hp/_maxHp));
+    _fill.style.width=(pct*100).toFixed(1)+'%';
+    const hue=pct>0.5?120*(pct-0.5)*2:(pct*240|0);
+    _fill.style.background=`hsl(${hue},90%,45%)`;
+    _label.innerHTML=`<span style="color:#${_col};">${_name}</span><span>${_hp}/${_maxHp}</span>`;
+    if(_hp<=0) { _wrap.style.opacity='0.5'; }
+    else _wrap.style.opacity='1';
+  }
+  _render();
+  window.setHP=function(val){ _hp=Math.min(_maxHp,Math.max(0,val)); _render(); };
+  window.damageHP=function(dmg){ _hp=Math.max(0,_hp-dmg); _render();
+    _wrap.style.outline='2px solid #ff4040'; setTimeout(()=>{ _wrap.style.outline='none'; },300);
+  };
+  window.healHP=function(val){ _hp=Math.min(_maxHp,_hp+val); _render(); };
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='sethp'&&d.val!=null) window.setHP(parseInt(d.val)||0);
+      if(d.cmd==='damagehp'&&d.val!=null) window.damageHP(parseInt(d.val)||0);
+      if(d.cmd==='healhp'&&d.val!=null) window.healHP(parseInt(d.val)||0);
+    }
   });
 })();
 // Q-174: ?pulsering=1 パルスリングエフェクト（声/音量に連動して拡大するリング）
