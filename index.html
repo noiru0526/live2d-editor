@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?warpspeed=1</td><td>ワープ速度線エフェクト・?warpspeedcount=60&?warpspeedcolor=hex</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?inkdrop=1</td><td>クリックでインク広がりリップル・?inkdropcolor=hex・triggerInkDrop(x,y)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?crtoff=1</td><td>CRTオフアニメ（キーL or postMsg cmd:'crtoff'）・triggerCRTOff()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingicons=1</td><td>フローティングSNSアイコン（Twitch/Twitter/YouTube/Discord）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?energybar=1</td><td>音声エナジーバー（MAX=flash）・?energybarpos=left/right/top/bottom&?energybarcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpoll2=A|B</td><td>2択チャット投票(!a/!b)・?chatpoll2dur=30</td></tr>
@@ -9404,6 +9407,84 @@ window.addEventListener('message',ev=>{
     if(_e>=99){ triggerFlash&&triggerFlash(); _e=0; }
     requestAnimationFrame(_tick);
   })();
+})();
+// Q-308: ?crtoff=1 CRTモニター電源OFFアニメ（postMessage or keyで起動・画面がブラックアウト）
+// 例: ?crtoff=1  postMessage{type:'noiru-cmd',cmd:'crtoff'} or キーL
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('crtoff')!=='1') return;
+  if(!document.getElementById('_crtoffstyle')){
+    const s=document.createElement('style'); s.id='_crtoffstyle';
+    s.textContent=`@keyframes _crtOff{0%{transform:scaleY(1);opacity:1;filter:brightness(1)}50%{transform:scaleY(0.02);opacity:0.9;filter:brightness(5)}70%{transform:scaleY(0.002);opacity:0.5;filter:brightness(10)}85%{transform:scaleY(0.001) scaleX(0.5);opacity:0.2;filter:brightness(15)}100%{transform:scaleY(0) scaleX(0);opacity:0}}`;
+    document.head.appendChild(s);
+  }
+  function _off(){
+    const _wrap=document.getElementById('wrap')||document.body;
+    _wrap.style.animation='_crtOff 0.6s cubic-bezier(.4,.0,.6,1) forwards';
+    setTimeout(()=>{
+      _wrap.style.animation='';
+      _wrap.style.opacity='0';
+    },650);
+  }
+  window.triggerCRTOff=_off;
+  window.addEventListener('message',ev=>{ if((ev.data||{}).type==='noiru-cmd'&&ev.data.cmd==='crtoff') _off(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='L'&&!e.ctrlKey&&!e.metaKey) _off(); });
+})();
+// Q-307: ?inkdrop=1 インクドロップエフェクト（クリックでインクが広がるリップル）
+// 例: ?inkdrop=1&inkdropcolor=000000
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('inkdrop')!=='1') return;
+  const _col=_u.get('inkdropcolor')||'000000';
+  function _drop(x,y){
+    const _d=document.createElement('div');
+    Object.assign(_d.style,{
+      position:'fixed',left:x+'px',top:y+'px',width:'0',height:'0',
+      borderRadius:'50%',background:'#'+_col,opacity:'0.5',
+      transform:'translate(-50%,-50%)',zIndex:'165',pointerEvents:'none',
+      transition:'all 0.8s cubic-bezier(.2,1,.6,1)'
+    });
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{ _d.style.width='280px'; _d.style.height='280px'; _d.style.opacity='0'; });
+    setTimeout(()=>_d.remove(),850);
+  }
+  window.addEventListener('click',e=>_drop(e.clientX,e.clientY));
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='inkdrop') _drop(d.x||window.innerWidth/2,d.y||window.innerHeight/2);
+  });
+  window.triggerInkDrop=(x,y)=>_drop(x||window.innerWidth/2,y||window.innerHeight/2);
+})();
+// Q-306: ?warpspeed=1 ワープスピード（横に走る速度線で高速移動感を演出）
+// 例: ?warpspeed=1&warpspeedcount=60&warpspeedcolor=ffffff
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('warpspeed')!=='1') return;
+  const _count=parseInt(_u.get('warpspeedcount'))||60;
+  const _col='#'+(_u.get('warpspeedcolor')||'ffffff');
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'141',pointerEvents:'none',opacity:'0.35'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _lines=Array.from({length:_count},()=>({
+    y:Math.random()*_cv.height, x:Math.random()*_cv.width,
+    len:30+Math.random()*120, speed:4+Math.random()*12,
+    w:0.5+Math.random()*1.5
+  }));
+  (function _draw(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    _lines.forEach(l=>{
+      _ctx.strokeStyle=_col; _ctx.lineWidth=l.w;
+      _ctx.globalAlpha=0.3+Math.random()*0.4;
+      _ctx.beginPath(); _ctx.moveTo(l.x,l.y); _ctx.lineTo(l.x+l.len,l.y); _ctx.stroke();
+      l.x+=l.speed;
+      if(l.x>_cv.width+l.len){ l.x=-l.len; l.y=Math.random()*_cv.height; }
+    });
+    _ctx.globalAlpha=1;
+    requestAnimationFrame(_draw);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
 })();
 // Q-303: ?floatingicons=1 フローティングSNSアイコン（Twitch/Twitter/YouTubeアイコンが漂う）
 // 例: ?floatingicons=1&floatingiconlinks=https://twitch.tv/noiru,https://twitter.com/noiru
