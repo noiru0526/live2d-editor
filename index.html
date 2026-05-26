@@ -4440,6 +4440,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?speechcaption=1</td><td>音声認識リアルタイム字幕（Web Speech API）・?captionlang=ja-JP・?captionpos=bottom/top</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fireworks=1</td><td>打ち上げ花火エフェクト・?fwinterval=ms 発射間隔・?fwcount=N 発射数（0=無限）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?blizzard=1</td><td>吹雪エフェクト（雪が斜めに流れる）・?blizzardintensity=100（20〜200）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?lensflare=1</td><td>レンズフレアエフェクト・?flarex=50 X位置%・?flarey=15 Y位置%・?flarecolor=ffffff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?shockwave=1</td><td>衝撃波リップル（クリックまたはpostMessage shockwave）・?shockwavecolor=00cfff</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?thunderstorm=1</td><td>雷雨エフェクト（雨＋稲妻）・?thunderinterval=6000・?raindensity=150</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8622,6 +8625,157 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-171: ?lensflare=1 レンズフレアエフェクト（光の輪と放射状フレア）
+// 例: ?lensflare=1&flarex=50&flarey=20&flarecolor=ffffff
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('lensflare')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='lensflare-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'96'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _fxPct=parseFloat(_usp.get('flarex'))||50;
+  const _fyPct=parseFloat(_usp.get('flarey'))||15;
+  const _col=_usp.get('flarecolor')||'ffffff';
+  const _r=parseInt(_col.slice(0,2),16)||255;
+  const _g=parseInt(_col.slice(2,4),16)||255;
+  const _b=parseInt(_col.slice(4,6),16)||200;
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    const fx=_cv.width*_fxPct/100;
+    const fy=_cv.height*_fyPct/100;
+    const _pulse=0.7+Math.sin(_t*0.04)*0.3;
+    // Main glow
+    const g1=_ctx.createRadialGradient(fx,fy,0,fx,fy,120*_pulse);
+    g1.addColorStop(0,`rgba(${_r},${_g},${_b},0.8)`);
+    g1.addColorStop(0.3,`rgba(${_r},${_g},${_b},0.25)`);
+    g1.addColorStop(1,'rgba(0,0,0,0)');
+    _ctx.fillStyle=g1; _ctx.beginPath(); _ctx.arc(fx,fy,120*_pulse,0,Math.PI*2); _ctx.fill();
+    // Radial streaks
+    const streaks=8; _ctx.save(); _ctx.translate(fx,fy);
+    for(let i=0;i<streaks;i++){
+      const ang=(i/streaks)*Math.PI*2+_t*0.01;
+      const len=80+Math.sin(_t*0.05+i)*30;
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${0.2+Math.sin(_t*0.03+i)*0.1})`;
+      _ctx.lineWidth=1.5;
+      _ctx.beginPath(); _ctx.moveTo(0,0);
+      _ctx.lineTo(Math.cos(ang)*len,Math.sin(ang)*len); _ctx.stroke();
+    }
+    _ctx.restore();
+    // Secondary orbs along flare line
+    const orbs=[{d:0.3,r:20},{d:0.55,r:12},{d:0.75,r:8},{d:0.9,r:15}];
+    const cx2=_cv.width/2,cy2=_cv.height/2;
+    for(const ob of orbs){
+      const ox=fx+(cx2-fx)*ob.d; const oy=fy+(cy2-fy)*ob.d;
+      const g2=_ctx.createRadialGradient(ox,oy,0,ox,oy,ob.r);
+      g2.addColorStop(0,`rgba(${_r},${_g},${_b},0.4)`);
+      g2.addColorStop(1,'rgba(0,0,0,0)');
+      _ctx.fillStyle=g2; _ctx.beginPath(); _ctx.arc(ox,oy,ob.r,0,Math.PI*2); _ctx.fill();
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-172: ?shockwave=1 衝撃波リップルエフェクト（クリック・イベントで波紋が広がる）
+// postMessage {type:'noiru-cmd', cmd:'shockwave'} または画面クリックで発動
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('shockwave')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='shockwave-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'999'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _waves=[];
+  const _col=_usp.get('shockwavecolor')||'00cfff';
+  const _r=parseInt(_col.slice(0,2),16)||0;
+  const _g=parseInt(_col.slice(2,4),16)||207;
+  const _b=parseInt(_col.slice(4,6),16)||255;
+  function _spawn(x,y){
+    _waves.push({x,y,radius:0,alpha:0.9,speed:8+Math.random()*4});
+  }
+  document.addEventListener('click',e=>{ if(e.target.id==='shockwave-cv'||true) _spawn(e.clientX,e.clientY); });
+  window.addEventListener('message',e=>{
+    const d=e.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='shockwave'){
+      _spawn(d.x||_cv.width/2,d.y||_cv.height/2);
+    }
+  });
+  window.triggerShockwave=function(x,y){ _spawn(x||_cv.width/2,y||_cv.height/2); };
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    for(let i=_waves.length-1;i>=0;i--){
+      const w=_waves[i];
+      w.radius+=w.speed; w.alpha-=0.025;
+      if(w.alpha<=0){ _waves.splice(i,1); continue; }
+      _ctx.beginPath(); _ctx.arc(w.x,w.y,w.radius,0,Math.PI*2);
+      _ctx.strokeStyle=`rgba(${_r},${_g},${_b},${w.alpha})`;
+      _ctx.lineWidth=3*(w.alpha); _ctx.stroke();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-173: ?thunderstorm=1 雷雨エフェクト（雨粒 + 稲妻フラッシュ）
+// 例: ?thunderstorm=1&thunderinterval=5000
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('thunderstorm')!=='1') return;
+  const _cv=document.createElement('canvas');
+  _cv.id='thunderstorm-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'97'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _density=Math.min(300,Math.max(50,parseInt(_usp.get('raindensity'))||150));
+  const _drops=[];
+  for(let i=0;i<_density;i++){
+    _drops.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+      spd:8+Math.random()*8,len:12+Math.random()*16,alpha:0.15+Math.random()*0.35});
+  }
+  let _flash=0;
+  function _lightning(){
+    _flash=1.0;
+    const lx=_cv.width*0.1+Math.random()*_cv.width*0.8;
+    const _segs=[];
+    let cx=lx,cy=0;
+    while(cy<_cv.height*0.8){
+      const nx=cx+(Math.random()-0.5)*80;
+      const ny=cy+40+Math.random()*60;
+      _segs.push({x1:cx,y1:cy,x2:nx,y2:ny});
+      cx=nx; cy=ny;
+    }
+    _ctx.strokeStyle='rgba(200,230,255,0.95)'; _ctx.lineWidth=2;
+    for(const s of _segs){ _ctx.beginPath(); _ctx.moveTo(s.x1,s.y1); _ctx.lineTo(s.x2,s.y2); _ctx.stroke(); }
+  }
+  const _tInterval=Math.max(2000,parseInt(_usp.get('thunderinterval'))||6000);
+  setInterval(()=>{ _lightning(); },_tInterval);
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    if(_flash>0){
+      _ctx.fillStyle=`rgba(180,210,255,${_flash*0.18})`;
+      _ctx.fillRect(0,0,_cv.width,_cv.height);
+      _flash-=0.05;
+    }
+    for(const d of _drops){
+      d.y+=d.spd; d.x-=d.spd*0.3;
+      if(d.y>_cv.height+20){ d.y=-20; d.x=Math.random()*_cv.width; }
+      if(d.x<-10){ d.x=_cv.width+10; }
+      _ctx.beginPath();
+      _ctx.moveTo(d.x,d.y); _ctx.lineTo(d.x+d.len*0.25,d.y-d.len);
+      _ctx.strokeStyle=`rgba(150,200,255,${d.alpha})`; _ctx.lineWidth=1; _ctx.stroke();
+    }
+    requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-168: ?speechcaption=1 音声認識リアルタイム字幕（Web Speech API → キャプション表示）
 // 例: ?speechcaption=1&captionlang=ja-JP&captionpos=bottom
