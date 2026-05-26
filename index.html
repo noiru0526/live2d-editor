@@ -3924,6 +3924,8 @@ function _showEmbedCode(filePath) {
       <label><input type="checkbox" id="obsq-stats" style="margin-right:2px;"> stats=1</label>
       <label><input type="checkbox" id="obsq-emotioncolor" style="margin-right:2px;"> emotioncolor=1</label>
       <label><input type="checkbox" id="obsq-notrack" style="margin-right:2px;"> notrack=1</label>
+      <label><input type="checkbox" id="obsq-scanlines" style="margin-right:2px;"> scanlines=1</label>
+      <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-showchat" style="margin-right:2px;"> showchat=1 pos=<select id="obsq-chatpos" style="background:#0e1120;border:1px solid #3a4470;color:#c8d4f0;border-radius:2px;font-size:9px;padding:0 2px;"><option>bl</option><option>br</option><option>tl</option><option>tr</option></select></label>
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
@@ -3948,10 +3950,13 @@ function _showEmbedCode(filePath) {
     if(dlg.querySelector('#obsq-stats').checked) ps.push('stats=1');
     if(dlg.querySelector('#obsq-emotioncolor').checked) ps.push('emotioncolor=1');
     if(dlg.querySelector('#obsq-notrack').checked) ps.push('notrack=1');
+    if(dlg.querySelector('#obsq-scanlines').checked) ps.push('scanlines=1');
+    if(dlg.querySelector('#obsq-showchat').checked){const _cp=dlg.querySelector('#obsq-chatpos').value;ps.push('showchat=1');if(_cp&&_cp!=='bl')ps.push('chatpos='+_cp);}
     dlg.querySelector('#obs-url-out').value=fileUrl+(ps.length?'?'+ps.join('&'):'');
   }
   dlg.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',_updateObsUrl));
   dlg.querySelector('#obsq-tch').addEventListener('input',_updateObsUrl);
+  dlg.querySelector('#obsq-chatpos').addEventListener('change',_updateObsUrl);
   // Q-080: OBS URL presets (localStorage)
   const LS_PRESETS='obsUrlPresets';
   function _loadPresets(){return JSON.parse(localStorage.getItem(LS_PRESETS)||'[]');}
@@ -4300,7 +4305,8 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?notrack=1</td><td>顔追跡完全無効（アニメーションのみ・カメラ不要・軽量）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?particle=TYPE</td><td>環境パーティクルエフェクト（snow/cherry/sparkle/star +?particlecount=N ?particlespeed=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?twitch=ch</td><td>Twitchチャット接続（+?subeffect=1 ?subpose=名前 ?bitseffect=100）</td></tr>
-      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showchat=1</td><td>チャット表示オーバーレイ</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?showchat=1</td><td>チャット表示オーバーレイ（+?chatpos=tl/tr/bl/br ?chatwidth=N ?chatmax=N）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?scanlines=1</td><td>CRTスキャンライン効果（+?scanlines_opacity=0.0-1.0 ?scanlines_gap=2-8）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?showvolume=1</td><td>マイク音量ビジュアライザー</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;">?fadein=秒数</td><td>起動時フェードイン（例: ?fadein=2）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?intro=TYPE</td><td>起動イントロアニメーション（slide-up/down/left/right, zoom-in, bounce, spin-in + ?introdur=秒）</td></tr>
@@ -6402,13 +6408,21 @@ function _handleChatMsg(rawMsg){
   if(_tick()) _timer=setInterval(_tick,1000);
 })();
 // Chat overlay (?showchat=1) — subscribes to noiru-chat postMessage events for display
+// Q-086: ?chatpos=tl/tr/bl/br, ?chatwidth=N, ?chatmax=N (max messages)
 (()=>{
-  if((new URLSearchParams(location.search)).get('showchat')!=='1') return;
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('showchat')!=='1') return;
   const _ov=document.getElementById('chat-ov');
   const _cm=_ov?.querySelector('.cm');
   if(!_ov||!_cm) return;
+  // Position
+  const _pos=_usp.get('chatpos')||'bl';
+  const _posMap={tl:'top:16px;left:14px;bottom:auto;right:auto',tr:'top:16px;right:14px;bottom:auto;left:auto',br:'bottom:16px;right:14px;top:auto;left:auto',bl:'bottom:16px;left:14px;top:auto;right:auto'};
+  if(_posMap[_pos]) Object.assign(_ov.style,Object.fromEntries(_posMap[_pos].split(';').filter(Boolean).map(s=>{const[k,v]=s.split(':');return[k.trim().replace(/-([a-z])/g,(_,c)=>c.toUpperCase()),v.trim()];})));
+  const _rawW=parseInt(_usp.get('chatwidth'));
+  if(!isNaN(_rawW)&&_rawW>=100&&_rawW<=800) _ov.style.maxWidth=_rawW+'px';
   _ov.classList.add('show');
-  const _MAX=5;
+  const _MAX=Math.min(20,Math.max(1,parseInt(_usp.get('chatmax'))||5));
   window.addEventListener('message',ev=>{
     const d=ev.data;
     if(!d||typeof d!=='object'||d.type!=='noiru-chat') return;
@@ -6954,6 +6968,17 @@ window.addEventListener('message',ev=>{
   _tick(); setInterval(_tick,1000);
 })();
 
+// Q-087: ?scanlines=1 CRT scanline overlay (?scanlines_opacity=0.0~1.0 ?scanlines_gap=N)
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('scanlines')!=='1') return;
+  const _op=Math.min(1,Math.max(0,parseFloat(_u.get('scanlines_opacity'))||0.12));
+  const _gap=Math.min(8,Math.max(2,parseInt(_u.get('scanlines_gap'))||4));
+  const _el=document.createElement('div');
+  _el.id='scanlines-ov';
+  _el.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:51;background:repeating-linear-gradient(to bottom,transparent,transparent ${_gap-1}px,rgba(0,0,0,${_op}) ${_gap-1}px,rgba(0,0,0,${_op}) ${_gap}px);`;
+  document.body.appendChild(_el);
+})();
 // Pop text: window.showPopText(text, {dur, color, size}) + noiru-cmd poptext + ?poptext=TEXT
 (()=>{
   const _pov=document.getElementById('poptext-ov');if(!_pov) return;
