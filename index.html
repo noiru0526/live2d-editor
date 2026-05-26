@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?retrohud=1</td><td>レトロゲームHUD（スコア/ライフ/レベル）・?retrohudlives=3&?retrohudlevel=1・retroSetScore(n)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?cameraflash=1</td><td>カメラフラッシュ（キーF or cmd:'cameraflash'）・triggerCameraFlash()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?typetext=TEXT</td><td>タイプライターテキスト・?typetextspeed=80&?typetextpos=center・triggerTypeText(t)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?discofloor=1</td><td>ディスコフロアタイル点滅・?discofloorcols=8&?discofloorrows=2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rainbowtext=1</td><td>チャットテキスト虹色グラデーション</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?scrollingbg=URL</td><td>横スクロール背景画像・?scrollingbgspeed=15</td></tr>
@@ -9641,6 +9644,100 @@ window.addEventListener('message',ev=>{
   const _s=document.createElement('style');
   _s.textContent=`.chat-bubble p,.chat-bubble span,.chat-text{background:linear-gradient(90deg,#ff4444,#ff8800,#ffff00,#44ff44,#44aaff,#8844ff) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important;background-size:200% auto;animation:_rbtxtanim 2s linear infinite}@keyframes _rbtxtanim{to{background-position:200%}}`;
   document.head.appendChild(_s);
+})();
+// Q-320: ?typetext=TEXT タイプライターテキスト（1文字ずつ現れるアニメーション）
+// 例: ?typetext=こんにちは！&typetextspeed=80&typetextpos=center
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _txt=_u.get('typetext'); if(!_txt) return;
+  const _speed=parseInt(_u.get('typetextspeed'))||80;
+  const _pos=_u.get('typetextpos')||'center';
+  const _col='#'+(_u.get('typetextcolor')||'ffffff');
+  const _d=document.createElement('div');
+  const _posStyle={center:{left:'50%',top:'50%',transform:'translate(-50%,-50%)',textAlign:'center'},
+    topleft:{top:'60px',left:'20px'},topright:{top:'60px',right:'20px'},
+    bottomleft:{bottom:'60px',left:'20px'},bottomright:{bottom:'60px',right:'20px'}};
+  const _p=_posStyle[_pos]||_posStyle.center;
+  Object.assign(_d.style,{
+    position:'fixed',zIndex:'158',color:_col,fontFamily:'monospace',
+    fontWeight:'bold',fontSize:'clamp(18px,3vw,36px)',
+    textShadow:`0 0 10px ${_col}`,pointerEvents:'none',whiteSpace:'pre-wrap',
+    ..._p
+  });
+  document.body.appendChild(_d);
+  const _decoded=decodeURIComponent(_txt);
+  let _i=0; let _cursor='|'; let _blinkIv;
+  function _type(){
+    if(_i<=_decoded.length){
+      _d.textContent=_decoded.slice(0,_i)+(_i<_decoded.length?_cursor:'');
+      _i++;
+      if(_i<=_decoded.length) setTimeout(_type,_speed);
+      else { _blinkIv=setInterval(()=>{ _cursor=_cursor==='|'?'':' '; _d.textContent=_decoded; },500); }
+    }
+  }
+  _type();
+  window.triggerTypeText=t=>{
+    clearInterval(_blinkIv); _i=0; _d.textContent='';
+    const str=t||_decoded; let ci=0;
+    (function _t2(){ _d.textContent=str.slice(0,ci)+(ci<str.length?'|':''); if(ci++<str.length) setTimeout(_t2,_speed); })();
+  };
+})();
+// Q-319: ?cameraflash=1 カメラフラッシュ（postMessageまたはキーFでフラッシュ効果）
+// 例: ?cameraflash=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('cameraflash')!=='1') return;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',inset:'0',zIndex:'169',background:'#fff',
+    opacity:'0',pointerEvents:'none',transition:'opacity 0.05s'
+  });
+  document.body.appendChild(_d);
+  function _flash(){
+    _d.style.transition='opacity 0.05s';
+    _d.style.opacity='0.95';
+    setTimeout(()=>{ _d.style.transition='opacity 0.4s'; _d.style.opacity='0'; },80);
+  }
+  window.triggerCameraFlash=_flash;
+  window.addEventListener('keydown',e=>{ if(e.key==='F'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey) _flash(); });
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='cameraflash') _flash();
+  });
+})();
+// Q-318: ?retrohud=1 レトロゲームHUD（スコア/ライフ/レベルをドット風表示）
+// 例: ?retrohud=1&retrohudlives=3&retrohudlevel=1
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('retrohud')!=='1') return;
+  let _score=0; let _lives=parseInt(_u.get('retrohudlives'))||3; let _level=parseInt(_u.get('retrohudlevel'))||1;
+  const _d=document.createElement('div');
+  Object.assign(_d.style,{
+    position:'fixed',top:'8px',left:'0',right:'0',zIndex:'148',
+    display:'flex',justifyContent:'space-between',alignItems:'center',
+    padding:'4px 16px',pointerEvents:'none',
+    fontFamily:'"Courier New",monospace',fontSize:'14px',fontWeight:'bold',
+    color:'#00ff44',textShadow:'0 0 6px #00ff44',
+    background:'rgba(0,0,0,0.4)',letterSpacing:'1px'
+  });
+  document.body.appendChild(_d);
+  function _render(){
+    _d.innerHTML=`<span>SCORE ${String(_score).padStart(6,'0')}</span><span>LV ${String(_level).padStart(2,'0')}</span><span>${'❤'.repeat(Math.max(0,_lives))}</span>`;
+  }
+  _render();
+  window.retroSetScore=n=>{ _score=n; _render(); };
+  window.retroAddScore=n=>{ _score+=n||1; _render(); };
+  window.retroSetLives=n=>{ _lives=n; _render(); };
+  window.retroSetLevel=n=>{ _level=n; _render(); };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'){
+      if(d.cmd==='retroscore') { _score=+d.value||0; _render(); }
+      if(d.cmd==='retroaddpoint') { _score+=(+d.value||100); _render(); }
+      if(d.cmd==='retrolives') { _lives=+d.value||3; _render(); }
+      if(d.cmd==='retrolevel') { _level=+d.value||1; _render(); }
+    }
+  });
 })();
 // Q-315: ?discofloor=1 ディスコフロア（画面下部にカラータイルが点滅）
 // 例: ?discofloor=1&discofloorcols=8&discofloorrows=3
