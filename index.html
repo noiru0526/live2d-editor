@@ -4536,6 +4536,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tunnel=1</td><td>回転トンネルエフェクト・?tunnelspeed=1.5・?tunnelcolor=6600ff</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vortex=1</td><td>渦巻きパーティクル・?vortexspeed=1.5・?vortexparticles=80</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glowring=1</td><td>音声連動グローリング（アバターを囲む光輪）・?glowringcolor=ff88ff・?glowringsize=1</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?paramhud2=1</td><td>拡張パラメータHUD（全Live2Dパラメータのバー表示）・?paramhudmax=8・?paramhudpos=tr</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?debugmode=1</td><td>デバッグパネル（FPS/音量/顔追跡/ポーズをリアルタイム表示）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?eventtest=1</td><td>イベントテストボタン（サブスク/レイド/シェイクなどをボタン発火）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8718,6 +8721,110 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-267: ?paramhud2=1 拡張パラメータHUD（全Live2Dパラメータをリアルタイムにバー表示）
+// 例: ?paramhud2=1&paramhudmax=8&paramhudpos=tr
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('paramhud2')!=='1') return;
+  const _max=Math.min(20,Math.max(2,parseInt(_usp.get('paramhudmax'))||8));
+  const _pos=_usp.get('paramhudpos')||'tr';
+  const _isR=_pos.includes('r'); const _isB=_pos.includes('b');
+  const _wrap=document.createElement('div');
+  _wrap.id='paramhud2-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',[_isB?'bottom':'top']:'16px',[_isR?'right':'left']:'16px',
+    width:'180px',background:'rgba(0,0,0,0.8)',borderRadius:'8px',padding:'8px',
+    zIndex:'500',fontFamily:'monospace',fontSize:'11px',pointerEvents:'none'
+  });
+  document.body.appendChild(_wrap);
+  let _params=[];
+  function _render(){
+    if(typeof M==='undefined'||!M||!M.params){ _wrap.innerHTML='<div style="color:#888;">No model</div>'; return; }
+    const keys=Object.keys(M.params).slice(0,_max);
+    _wrap.innerHTML=keys.map(k=>{
+      const p=M.params[k];
+      const min=p.min??-1; const max=p.max??1; const val=p.val??0;
+      const pct=((val-min)/(max-min||1)*100).toFixed(0);
+      const col=Math.abs(val)>0.5?'#f96':'#6af';
+      return `<div style="margin-bottom:3px;">
+        <div style="display:flex;justify-content:space-between;color:#ccc;">${k.slice(0,12)}<span style="color:${col};">${val.toFixed(2)}</span></div>
+        <div style="height:4px;background:#333;border-radius:2px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${col};transition:width 0.1s;"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  setInterval(_render,100);
+})();
+// Q-268: ?debugmode=1 デバッグオーバーレイ（顔追跡値・音量・FPS・ポーズをリアルタイム表示）
+// 開発・配信テスト時に便利な情報パネル
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('debugmode')!=='1') return;
+  const _wrap=document.createElement('div');
+  _wrap.id='debugmode-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',top:'8px',left:'8px',
+    background:'rgba(0,0,0,0.85)',borderRadius:'8px',padding:'8px 12px',
+    zIndex:'9999',fontFamily:'monospace',fontSize:'11px',color:'#0f0',
+    pointerEvents:'none',lineHeight:'1.6',minWidth:'200px'
+  });
+  document.body.appendChild(_wrap);
+  let _frames=0,_lastT=performance.now(),_fps=60;
+  function _render(){
+    _frames++;
+    const now=performance.now();
+    if(now-_lastT>500){ _fps=Math.round(_frames*1000/(now-_lastT)); _frames=0; _lastT=now; }
+    const lv=typeof window.getAudioLevel==='function'?window.getAudioLevel():0;
+    const hx=typeof S!=='undefined'&&S?S.hx:0;
+    const hy=typeof S!=='undefined'&&S?S.hy:0;
+    const hz=typeof S!=='undefined'&&S?S.hz:0;
+    const me=typeof S!=='undefined'&&S?S.me:0;
+    const ja=typeof S!=='undefined'&&S?S.ja:0;
+    const pose=typeof activePose!=='undefined'?activePose:'—';
+    _wrap.innerHTML=`<b>🔧 DEBUG</b><br>
+      FPS: <b style="color:${_fps>=55?'#0f0':_fps>=30?'#ff0':'#f00'}">${_fps}</b><br>
+      Audio: <b>${(lv*100).toFixed(1)}%</b><br>
+      Head: X=${hx.toFixed(2)} Y=${hy.toFixed(2)} Z=${hz.toFixed(2)}<br>
+      Smile: ${(me*100).toFixed(0)}% Jaw: ${(ja*100).toFixed(0)}%<br>
+      Pose: <b>${pose}</b>`;
+    requestAnimationFrame(_render);
+  }
+  _render();
+})();
+// Q-269: ?eventtest=1 イベントテストパネル（各種postMessageイベントをボタンで発火）
+// デバッグ・OBSセットアップ時に配信イベントをシミュレート
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('eventtest')!=='1') return;
+  const _wrap=document.createElement('div');
+  _wrap.id='eventtest-ov';
+  Object.assign(_wrap.style,{
+    position:'fixed',bottom:'16px',right:'16px',
+    background:'rgba(0,0,0,0.9)',borderRadius:'10px',padding:'12px',
+    zIndex:'9999',fontFamily:'sans-serif',fontSize:'12px',color:'#fff',
+    display:'flex',flexDirection:'column',gap:'6px',minWidth:'160px'
+  });
+  const _events=[
+    ['サブスク',()=>window.postMessage({type:'noiru-sub',user:'テストUser',tier:'Tier1'},'*')],
+    ['レイド',()=>window.postMessage({type:'noiru-raid',from:'raider',viewers:50},'*')],
+    ['フォロー',()=>window.postMessage({type:'noiru-follow',user:'follower'},'*')],
+    ['ビッツ',()=>window.postMessage({type:'noiru-bits',user:'tester',bits:100},'*')],
+    ['シェイク',()=>typeof window.triggerShake==='function'&&window.triggerShake()],
+    ['花火',()=>typeof window.triggerFireworks==='function'&&window.triggerFireworks()],
+  ];
+  _wrap.innerHTML='<div style="color:#ffd700;font-weight:bold;margin-bottom:4px;">🧪 Event Test</div>';
+  for(const [label,fn] of _events){
+    const btn=document.createElement('button');
+    btn.textContent=label;
+    Object.assign(btn.style,{
+      background:'rgba(100,100,200,0.5)',color:'#fff',border:'1px solid #555',
+      borderRadius:'4px',padding:'4px 8px',cursor:'pointer',fontSize:'12px'
+    });
+    btn.onclick=fn; _wrap.appendChild(btn);
+  }
+  document.body.appendChild(_wrap);
 })();
 // Q-264: ?tunnel=1 トンネルエフェクト（無限に広がる回転するリングのトンネル）
 // 例: ?tunnel=1&tunnelspeed=2&tunnelcolor=6600ff
