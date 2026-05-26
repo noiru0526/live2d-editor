@@ -4419,6 +4419,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?gamepadauto=1</td><td>ゲームパッド自動有効化（起動時から即アクティブ）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?waveformov=1</td><td>音声波形オーバーレイ（+?waveformpos= ?waveformcolor= ?waveformwidth= ?waveformheight=）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatname=1</td><td>最新チャットユーザー名大表示（+?chatnamepos= ?chatnamesize=32 ?chatnamedir=3秒）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?floatingemote=🌸</td><td>常時フロート絵文字アンビエント（+?floatingcount=5 ?floatingspeed=0.5）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?twitchpoints=1</td><td>チャンネルポイント連携（ハイライトメッセージ/報酬→エフェクト・postMessage noiru-points）</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?statusbar=1</td><td>軽量ステータスバー（FPS/追跡/ポーズ/笑顔を1行表示・+?statusbarpos= ?statusbarbg=1）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8069,6 +8072,99 @@ window.addEventListener('message',ev=>{
     if(_hideT) clearTimeout(_hideT);
     _hideT=setTimeout(()=>{ _ov.style.opacity='0'; },_dur*1000);
   });
+})();
+// Q-150: ?floatingemote=🌸 常時フロートする絵文字アンビエント（ふわふわ浮かぶ・レインと別物）
+// ?floatingcount=5 個数 ?floatingspeed=0.5 速さ
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  const _emote=_usp.get('floatingemote');if(!_emote) return;
+  const _cnt=Math.min(20,Math.max(1,parseInt(_usp.get('floatingcount'))||5));
+  const _spd=Math.min(3,Math.max(0.1,parseFloat(_usp.get('floatingspeed'))||0.5));
+  const _cv=document.createElement('canvas');
+  _cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:55;';
+  document.body.appendChild(_cv);
+  const ctx=_cv.getContext('2d');
+  const W=()=>window.innerWidth,H=()=>window.innerHeight;
+  const particles=Array.from({length:_cnt},()=>({
+    x:Math.random()*W(), y:Math.random()*H(),
+    r:18+Math.random()*18,
+    vx:(Math.random()-.5)*_spd*0.3,
+    vy:-(0.2+Math.random()*0.4)*_spd,
+    wobble:Math.random()*Math.PI*2, wfreq:0.5+Math.random()*1.5,
+    alpha:0.2+Math.random()*0.6, da:0.003+Math.random()*.005, ddir:1
+  }));
+  function _tick(t){
+    _cv.width=W(); _cv.height=H();
+    for(const p of particles){
+      p.y+=p.vy; p.x+=p.vx+Math.sin(t*.001*p.wfreq+p.wobble)*0.3;
+      p.alpha+=p.da*p.ddir; if(p.alpha>0.8||p.alpha<0.15) p.ddir*=-1;
+      if(p.y<-30){ p.y=H()+10; p.x=Math.random()*W(); }
+      ctx.save(); ctx.globalAlpha=Math.max(0,Math.min(1,p.alpha));
+      ctx.font=`${Math.round(p.r)}px sans-serif`; ctx.textAlign='center';
+      ctx.fillText(_emote,p.x,p.y); ctx.restore();
+    }
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
+})();
+// Q-151: ?twitchpoints=1 チャンネルポイント連携
+// USERNOTICE msg-id=rewardgift/highlighted-message→シェイク、msg-id=submysterygift→紙吹雪
+// postMessage {type:'noiru-points',reward:'reward-id',user:'name'} でも発火
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('twitchpoints')!=='1') return;
+  // Twitch IRC USERNOTICE handler extension
+  // The main _handleIrcLine already processes sub/raid; here we add channel point events
+  const _origHookLine=window._onIrcCustom;
+  window._onIrcCustom=function(msgId,tags,channel,msg){
+    if(msgId==='highlighted-message'){
+      if(typeof window.triggerFlash==='function') window.triggerFlash();
+      if(typeof window.showPopText==='function')
+        window.showPopText('💬 '+(tags['display-name']||''),{dur:2500,color:'ffd700',size:16});
+    } else if(msgId==='rewardgift'){
+      if(typeof window.triggerConfetti==='function') window.triggerConfetti();
+    }
+    if(typeof _origHookLine==='function') _origHookLine(msgId,tags,channel,msg);
+  };
+  // postMessage API
+  window.addEventListener('message',ev=>{
+    const d=ev.data;if(!d||d.type!=='noiru-points') return;
+    const reward=d.reward||'';
+    if(reward==='highlighted-message'||reward==='highlight'){
+      if(typeof window.triggerFlash==='function') window.triggerFlash();
+      if(typeof window.showPopText==='function')
+        window.showPopText('💬 '+(d.user||''),{dur:2500,color:'ffd700',size:18});
+    } else {
+      // Generic reward: shake + pop text
+      if(typeof window.triggerShake==='function') window.triggerShake();
+      if(typeof window.showPopText==='function')
+        window.showPopText('🎁 '+(d.user||''),{dur:2000,color:'c0a0ff',size:16});
+    }
+  });
+})();
+// Q-152: ?statusbar=1 ステータスバー（FPS・追跡・表情を1行表示、?stats=1より軽量）
+// ?statusbarpos=bottom ?statusbarfg=8090b0 ?statusbarbg=0
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('statusbar')!=='1') return;
+  const _pos=_usp.get('statusbarpos')||'bottom';
+  const _fg='#'+(_usp.get('statusbarfg')||'8090b0');
+  const _bg=_usp.get('statusbarbg')==='1';
+  const _bar=document.createElement('div');
+  const _topOrBot=_pos==='top'?'top:0;bottom:auto;':'bottom:0;top:auto;';
+  _bar.style.cssText=`position:fixed;${_topOrBot}left:0;right:0;z-index:69;pointer-events:none;font-family:monospace;font-size:10px;color:${_fg};padding:1px 6px;text-align:center;${_bg?'background:rgba(0,0,0,.5);':''}`;
+  document.body.appendChild(_bar);
+  let _frames=0,_fps=0,_lastFpsT=performance.now();
+  function _tick(t){
+    _frames++; const dt=t-_lastFpsT;
+    if(dt>1000){_fps=Math.round(_frames*1000/dt);_frames=0;_lastFpsT=t;}
+    const trk=typeof tracking!=='undefined'?(tracking?'追跡中':'追跡OFF'):'--';
+    const pose=typeof activePose!=='undefined'&&activePose?activePose.name:'default';
+    const smile=typeof S!=='undefined'?Math.round((S.me||0)*100)+'%':'--';
+    _bar.textContent=`FPS:${_fps} | ${trk} | ポーズ:${pose.slice(0,10)} | 笑顔:${smile}`;
+    requestAnimationFrame(_tick);
+  }
+  requestAnimationFrame(_tick);
 })();
 // Multi-tab sync (?sync=channel&syncrole=leader|follower)
 // Leader: broadcasts pose/param changes; Follower: mirrors leader state
