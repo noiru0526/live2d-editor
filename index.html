@@ -4479,6 +4479,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bounce=1</td><td>音声連動バウンス（上下弾み）・?bounceamp=10・?bouncespd=2</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?breathe=1</td><td>呼吸アニメーション（自然な拡縮）・?breatherate=0.25・?breatheamp=0.012</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?headbob=1</td><td>ヘッドボブ（音声連動頭振り）・?bobintensity=12・?bobmode=smooth/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?vhseffect=1</td><td>VHSビデオテープ風（ノイズ+走査線+色滲み）・?vhsintensity=0.5</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?oldfilm=1</td><td>古いフィルム映画風（セピア+縦傷+フィルムグレイン）・?filmspeed=1</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?tvstatic=1</td><td>TVスタティックノイズ・?staticintensity=0.2・?staticcolor=mono/color/green</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?fadekey=KEY</td><td>キーでアバターフェード切替（+?fadedur=秒）/ ?hidekey=KEY: 瞬間非表示 / window.setAvatarVisible(bool)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?frame=URL</td><td>PNGフレーム装飾オーバーレイ（+?framefit=contain/cover/fill ?frameopacity=N）</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
@@ -8661,6 +8664,134 @@ window.addEventListener('message',ev=>{
     const emojis=[...(d.msg||'').matchAll(_emojiRe)].map(m=>m[0]).slice(0,_max);
     if(emojis.length) _show(emojis);
   });
+})();
+// Q-210: ?vhseffect=1 VHSビデオテープ風エフェクト（ノイズ+走査線+色滲み）
+// 例: ?vhseffect=1&vhsintensity=0.5
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('vhseffect')!=='1') return;
+  const _intensity=Math.min(1,Math.max(0.1,parseFloat(_usp.get('vhsintensity'))||0.5));
+  const _cv=document.createElement('canvas');
+  _cv.id='vhs-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'199'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  // Apply CSS filters to canvas
+  const _mainCv=document.getElementById('c');
+  if(_mainCv) _mainCv.style.filter=(_mainCv.style.filter||'')+` contrast(1.05) saturate(1.1)`;
+  const _style=document.createElement('style');
+  _style.textContent=`@keyframes _vhsTrk {
+    0%,90%,100%{ transform:translateY(0) }
+    92%{ transform:translateY(${(4*_intensity).toFixed(1)}px) }
+    94%{ transform:translateY(${(-2*_intensity).toFixed(1)}px) }
+  }
+  #c { animation: _vhsTrk 6s infinite; }`;
+  document.head.appendChild(_style);
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    // Scanlines
+    for(let y=0;y<_cv.height;y+=4){
+      if(Math.random()>0.97*_intensity){
+        _ctx.fillStyle=`rgba(0,0,0,${0.05*_intensity})`;
+        _ctx.fillRect(0,y,_cv.width,1);
+      }
+    }
+    // Random noise band
+    if(Math.random()<0.06*_intensity){
+      const ny=Math.random()*_cv.height;
+      const nh=2+Math.random()*8;
+      const nx=(Math.random()-0.5)*30*_intensity;
+      _ctx.fillStyle=`rgba(255,255,255,${0.08*_intensity})`;
+      _ctx.fillRect(nx,ny,_cv.width,nh);
+    }
+    // Color bleed left edge
+    _ctx.fillStyle=`rgba(255,80,0,${0.025*_intensity})`;
+    _ctx.fillRect(-2,0,4,_cv.height);
+    requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-211: ?oldfilm=1 古い映画フィルム風エフェクト（セピア・縦傷・ちらつき）
+// 例: ?oldfilm=1&filmspeed=1
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('oldfilm')!=='1') return;
+  // Sepia + contrast via CSS
+  const _mainCv=document.getElementById('c');
+  if(_mainCv){
+    _mainCv.style.filter=(_mainCv.style.filter||'')+' sepia(0.7) contrast(1.1) brightness(0.95)';
+  }
+  const _cv=document.createElement('canvas');
+  _cv.id='oldfilm-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'199',mixBlendMode:'multiply'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  function _resize(){ _cv.width=window.innerWidth; _cv.height=window.innerHeight; }
+  window.addEventListener('resize',_resize); _resize();
+  const _speed=Math.min(3,Math.max(0.2,parseFloat(_usp.get('filmspeed'))||1));
+  let _t=0;
+  function _frame(){
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    // Film grain
+    const imgData=_ctx.createImageData(_cv.width,_cv.height);
+    const data=imgData.data;
+    for(let i=0;i<data.length;i+=4){
+      const n=(Math.random()-0.5)*60;
+      data[i]=128+n; data[i+1]=110+n*0.8; data[i+2]=80+n*0.6;
+      data[i+3]=20;
+    }
+    _ctx.putImageData(imgData,0,0);
+    // Vertical scratch lines
+    if(Math.random()<0.03*_speed){
+      const sx=Math.random()*_cv.width;
+      _ctx.strokeStyle=`rgba(255,240,200,${0.3+Math.random()*0.4})`;
+      _ctx.lineWidth=0.5+Math.random();
+      _ctx.beginPath(); _ctx.moveTo(sx,0); _ctx.lineTo(sx+Math.random()*4-2,_cv.height); _ctx.stroke();
+    }
+    // Flicker
+    if(Math.random()<0.02*_speed){
+      _ctx.fillStyle=`rgba(255,240,200,${0.05+Math.random()*0.08})`;
+      _ctx.fillRect(0,0,_cv.width,_cv.height);
+    }
+    _t++; requestAnimationFrame(_frame);
+  }
+  _frame();
+})();
+// Q-212: ?tvstatic=1 テレビのスタティックノイズ（ランダムピクセルのザラザラ）
+// 例: ?tvstatic=1&staticintensity=0.3&staticcolor=mono
+(()=>{
+  const _usp=new URLSearchParams(location.search);
+  if(_usp.get('tvstatic')!=='1') return;
+  const _intensity=Math.min(1,Math.max(0.02,parseFloat(_usp.get('staticintensity'))||0.2));
+  const _color=_usp.get('staticcolor')||'mono'; // mono/color/green
+  const _cv=document.createElement('canvas');
+  _cv.id='tvstatic-cv';
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'198'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  const _W=320, _H=180; // low res for performance
+  _cv.width=_W; _cv.height=_H;
+  const _img=_ctx.createImageData(_W,_H);
+  const _data=_img.data;
+  function _frame(){
+    for(let i=0;i<_data.length;i+=4){
+      if(Math.random()>_intensity){ _data[i+3]=0; continue; }
+      const n=Math.random()*255|0;
+      if(_color==='color'){
+        _data[i]=Math.random()*255|0; _data[i+1]=Math.random()*255|0;
+        _data[i+2]=Math.random()*255|0; _data[i+3]=120;
+      } else if(_color==='green'){
+        _data[i]=0; _data[i+1]=n; _data[i+2]=0; _data[i+3]=120;
+      } else {
+        _data[i]=n; _data[i+1]=n; _data[i+2]=n; _data[i+3]=100;
+      }
+    }
+    _ctx.putImageData(_img,0,0);
+    requestAnimationFrame(_frame);
+  }
+  _frame();
 })();
 // Q-207: ?bounce=1 バウンスアニメーション（アバターが音声に合わせて上下に弾む）
 // 例: ?bounce=1&bounceamp=12&bouncespd=2.5
