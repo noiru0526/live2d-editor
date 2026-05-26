@@ -21030,11 +21030,64 @@ async function exportSpriteSheet() {
   document.getElementById('lbl-status').textContent = `スプライトシート完了: ${totalFrames+1}フレーム / ${cols}列${rows}行 (${Math.round(sheetW)}×${Math.round(sheetH)}px)`;
 }
 
-async function exportGIF() {
+function exportGIF() {
   const btn = document.getElementById('btn-gif');
   if (btn && btn.classList.contains('on')) return;
+  // Q-114: GIF書き出し設定ダイアログ
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9001;display:flex;align-items:center;justify-content:center;';
+  const wh=Math.min(canvas.width,canvas.height,512);
+  ov.innerHTML=`<div style="background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:14px 18px;min-width:280px;font-size:11px;color:#c8d4f0;">
+    <div style="font-weight:700;font-size:13px;color:#80c0ff;margin-bottom:10px;">🎞 GIF書き出し設定</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;">
+      <label style="color:#8898c0;">FPS<br><select id="gif-fps" style="width:100%;background:#131828;border:1px solid #3a4470;color:#c8d4f0;border-radius:3px;padding:2px 4px;font-size:11px;">
+        <option value="6">6 fps（軽量）</option><option value="10">10 fps</option>
+        <option value="12" selected>12 fps（標準）</option><option value="15">15 fps</option>
+        <option value="20">20 fps（滑らか）</option>
+      </select></label>
+      <label style="color:#8898c0;">サイズ<br><select id="gif-size" style="width:100%;background:#131828;border:1px solid #3a4470;color:#c8d4f0;border-radius:3px;padding:2px 4px;font-size:11px;">
+        <option value="0.25">25% （超軽量）</option><option value="0.5">50% 小</option>
+        <option value="0.75">75% 中</option><option value="1" selected>100% 原寸</option>
+      </select></label>
+      <label style="color:#8898c0;">品質<br><select id="gif-qual" style="width:100%;background:#131828;border:1px solid #3a4470;color:#c8d4f0;border-radius:3px;padding:2px 4px;font-size:11px;">
+        <option value="2">最高（重い）</option><option value="8" selected>標準</option>
+        <option value="16">低（軽量）</option>
+      </select></label>
+      <label style="color:#8898c0;">フレーム範囲<br><select id="gif-range" style="width:100%;background:#131828;border:1px solid #3a4470;color:#c8d4f0;border-radius:3px;padding:2px 4px;font-size:11px;">
+        <option value="all" selected>全フレーム</option>
+        <option value="loop">ループ区間のみ</option>
+      </select></label>
+    </div>
+    <div id="gif-est" style="font-size:9px;color:#5a7090;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;">
+      <button id="gif-cancel" style="background:#2a3050;border:1px solid #3a4878;color:#8898c0;border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
+      <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:700;">書き出し開始</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  const fpsEl=ov.querySelector('#gif-fps'),sizeEl=ov.querySelector('#gif-size');
+  const qualEl=ov.querySelector('#gif-qual'),rangeEl=ov.querySelector('#gif-range');
+  const estEl=ov.querySelector('#gif-est');
+  function updateEst(){
+    const fps=parseInt(fpsEl.value);const scale=parseFloat(sizeEl.value);
+    const totalF=M.totalFrames||120;
+    const frames=Math.ceil(totalF*fps/60)+1;
+    const w=Math.round(canvas.width*scale),h=Math.round(canvas.height*scale);
+    estEl.textContent=`予想フレーム数: ${frames} / サイズ: ${w}×${h}px`;
+  }
+  [fpsEl,sizeEl].forEach(el=>el.addEventListener('change',updateEst));
+  updateEst();
+  ov.querySelector('#gif-cancel').onclick=()=>ov.remove();
+  ov.querySelector('#gif-start').onclick=async ()=>{
+    ov.remove();
+    await _doExportGIF(parseInt(fpsEl.value),parseFloat(sizeEl.value),parseInt(qualEl.value),rangeEl.value==='loop');
+  };
+}
+async function _doExportGIF(fps,scale,quality,loopOnly) {
+  const btn = document.getElementById('btn-gif');
   const totalFrames = M.totalFrames || 120;
-  const fps = 12;
+  const loopStart = loopOnly ? (M.animation.loopStart??0) : 0;
+  const loopEnd = loopOnly ? (M.animation.loopEnd??totalFrames) : totalFrames;
   const frameStep = Math.max(1, Math.round(60 / fps));
   document.getElementById('lbl-status').textContent = 'GIF: gif.jsを読み込み中...';
   try {
@@ -21044,26 +21097,32 @@ async function exportGIF() {
     return;
   }
   if (btn) { btn.textContent = '⏳ GIF生成中'; btn.classList.add('on'); }
+  const outW=Math.round(canvas.width*scale),outH=Math.round(canvas.height*scale);
   const gif = new GIF({
     workers: 2,
-    quality: 8,
+    quality,
     workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js',
-    width: canvas.width,
-    height: canvas.height,
+    width: outW,
+    height: outH,
   });
+  // Offscreen canvas for scaling
+  const offcv=document.createElement('canvas');offcv.width=outW;offcv.height=outH;
+  const offctx=offcv.getContext('2d');
   const savedFrame = ST.frame;
   const frameDelay = Math.round(1000 / fps);
-  let f = 0;
+  let f = loopStart;
   function captureNextFrame() {
-    if (f > totalFrames) {
+    if (f > loopEnd) {
       document.getElementById('lbl-status').textContent = 'GIF: エンコード中...';
       gif.render();
       return;
     }
     ST.frame = f;
     redraw();
-    gif.addFrame(canvas, { delay: frameDelay, copy: true });
-    document.getElementById('lbl-status').textContent = `GIF: フレーム ${f}/${totalFrames}`;
+    offctx.clearRect(0,0,outW,outH);
+    offctx.drawImage(canvas,0,0,outW,outH);
+    gif.addFrame(offcv, { delay: frameDelay, copy: true });
+    document.getElementById('lbl-status').textContent = `GIF: フレーム ${f-loopStart}/${loopEnd-loopStart}`;
     f += frameStep;
     setTimeout(captureNextFrame, 0);
   }
@@ -21074,7 +21133,7 @@ async function exportGIF() {
     a.href = url; a.download = 'noiru-animation.gif'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     if (btn) { btn.textContent = '🎞 GIF'; btn.classList.remove('on'); }
-    document.getElementById('lbl-status').textContent = `GIF出力完了 (${(blob.size/1024).toFixed(0)}KB)`;
+    document.getElementById('lbl-status').textContent = `GIF出力完了 (${(blob.size/1024).toFixed(0)}KB) ${outW}×${outH}px@${fps}fps`;
   });
   gif.on('error', err => {
     if (btn) { btn.textContent = '🎞 GIF'; btn.classList.remove('on'); }
