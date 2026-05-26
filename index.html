@@ -4545,6 +4545,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?earthquake=1</td><td>地震画面振動（キーE or cmd:'earthquake',dur:ms）・triggerEarthquake(ms)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?musicnotes=1</td><td>音符浮上エフェクト（音量連動）・?musicnotescount=8・spawnMusicNote()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?milestone=N</td><td>マイルストーン進捗バー・?milestonelabel=再生数&?milestonecurrent=N・setMilestone(n)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatcolor=U:C</td><td>ユーザー個別チャット色・?chatcolor=noiru:ff6699|admin:ffd700</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?heatwave=1</td><td>陽炎歪みエフェクト・?heatwaveintensity=2・toggleHeatwave()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?neontrail=1</td><td>マウスネオン軌跡・?neontrailcolor=hex&?neontrailwidth=3</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?timedmessage=H:M:T</td><td>時刻指定メッセージ・?timedmessage=20:00:配信開始！|21:00:おつ！</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bounceball=TEXT</td><td>DVDロゴ風バウンス要素・?bounceballsize=24</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?randompose=1</td><td>ランダムポーズ自動発動・?randomposesec=20</td></tr>
@@ -10358,6 +10361,85 @@ window.addEventListener('message',ev=>{
     if(lvl>50) _spawn();
   },400);
   window.spawnMusicNote=()=>_spawn();
+})();
+// Q-353: ?neontrail=1 ネオントレイル（マウス移動で光の軌跡が残る）
+// 例: ?neontrail=1&neontrailcolor=00ffcc&neontrailwidth=3
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('neontrail')!=='1') return;
+  const _col='#'+(_u.get('neontrailcolor')||'00ffcc');
+  const _w=parseFloat(_u.get('neontrailwidth'))||3;
+  const _cv=document.createElement('canvas');
+  Object.assign(_cv.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'167',pointerEvents:'none',mixBlendMode:'screen'});
+  _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  let _last={x:-1,y:-1};
+  window.addEventListener('mousemove',e=>{
+    if(_last.x>=0){
+      _ctx.strokeStyle=_col; _ctx.lineWidth=_w; _ctx.lineCap='round';
+      _ctx.shadowColor=_col; _ctx.shadowBlur=8;
+      _ctx.beginPath(); _ctx.moveTo(_last.x,_last.y); _ctx.lineTo(e.clientX,e.clientY); _ctx.stroke();
+    }
+    _last={x:e.clientX,y:e.clientY};
+  });
+  (function _fade(){
+    _ctx.globalCompositeOperation='destination-out';
+    _ctx.fillStyle='rgba(0,0,0,0.035)';
+    _ctx.fillRect(0,0,_cv.width,_cv.height);
+    _ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(_fade);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-352: ?heatwave=1 陽炎エフェクト（画面にゆらゆらとした歪み）
+// 例: ?heatwave=1&heatwaveintensity=3
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('heatwave')!=='1') return;
+  const _intensity=parseFloat(_u.get('heatwaveintensity'))||2;
+  const _s=document.createElement('style');
+  _s.id='niru-heatwave';
+  const _svg=`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hw'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='2' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='${_intensity*3}' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/svg%3E#hw")`;
+  _s.textContent=`#wrap,#live2dcanvas{filter:url(${_svg})}`;
+  document.head.appendChild(_s);
+  let _phase=0;
+  (function _anim(){
+    _phase+=0.02;
+    const freq=(0.012+Math.sin(_phase)*0.004).toFixed(4);
+    const disp=((_intensity*3)+Math.sin(_phase*0.7)*(_intensity*2)).toFixed(1);
+    const newSvg=`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hw'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='2' seed='${Math.floor(_phase*3)%100}' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='${disp}' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/svg%3E#hw")`;
+    _s.textContent=`#wrap,#live2dcanvas{filter:url(${newSvg})}`;
+    requestAnimationFrame(_anim);
+  })();
+  window.toggleHeatwave=()=>{ _s.disabled=!_s.disabled; };
+})();
+// Q-351: ?chatcolor=USER:COLOR チャットユーザー個別カラー（特定ユーザーを指定色で表示）
+// 例: ?chatcolor=noiru:ff6699|admin:ffd700
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatcolor'); if(!_raw) return;
+  const _map={};
+  decodeURIComponent(_raw).split('|').forEach(pair=>{
+    const [name,col]=pair.split(':',2);
+    if(name&&col) _map[name.trim().toLowerCase()]='#'+col.replace('#','');
+  });
+  if(!Object.keys(_map).length) return;
+  const _s=document.createElement('style');
+  document.head.appendChild(_s);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.user){
+      const col=_map[d.user.toLowerCase()];
+      if(col){
+        // Try to colorize latest bubble for this user
+        setTimeout(()=>{
+          const els=document.querySelectorAll(`[data-user="${d.user}"] .chat-text,[data-user="${d.user}"] p`);
+          if(els.length) els[els.length-1].style.color=col;
+        },50);
+      }
+    }
+  });
 })();
 // Q-348: ?earthquake=1 地震エフェクト（激しい画面振動・postMessageまたはコマンドで発火）
 // 例: ?earthquake=1  postMessage{type:'noiru-cmd',cmd:'earthquake',dur:2000}
