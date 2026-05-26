@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?earthquake=1</td><td>地震画面振動（キーE or cmd:'earthquake',dur:ms）・triggerEarthquake(ms)</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?musicnotes=1</td><td>音符浮上エフェクト（音量連動）・?musicnotescount=8・spawnMusicNote()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?milestone=N</td><td>マイルストーン進捗バー・?milestonelabel=再生数&?milestonecurrent=N・setMilestone(n)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?timedmessage=H:M:T</td><td>時刻指定メッセージ・?timedmessage=20:00:配信開始！|21:00:おつ！</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bounceball=TEXT</td><td>DVDロゴ風バウンス要素・?bounceballsize=24</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?randompose=1</td><td>ランダムポーズ自動発動・?randomposesec=20</td></tr>
@@ -10286,6 +10289,106 @@ window.addEventListener('message',ev=>{
     _d.style.left=x+'px'; _d.style.top=y+'px';
     requestAnimationFrame(_step);
   })();
+})();
+// Q-350: ?milestone=TARGET マイルストーントラッカー（任意の目標進捗バー）
+// 例: ?milestone=500&milestonelabel=再生数&milestonecurrent=320&milestoneunit=回
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _target=parseInt(_u.get('milestone')); if(!_target) return;
+  let _current=parseInt(_u.get('milestonecurrent'))||0;
+  const _label=decodeURIComponent(_u.get('milestonelabel')||'目標');
+  const _unit=decodeURIComponent(_u.get('milestoneunit')||'');
+  const _pos=_u.get('milestonepos')||'top';
+  const _col='#'+(_u.get('milestonecolor')||'44aaff');
+  const _d=document.createElement('div');
+  const _posStyle=_pos==='bottom'?{bottom:'28px',left:'50%',transform:'translateX(-50%)'}:{top:'28px',left:'50%',transform:'translateX(-50%)'};
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',width:'280px',..._posStyle,fontFamily:'sans-serif',pointerEvents:'none'});
+  _d.innerHTML=`<div id="ms-label" style="font-size:10px;color:${_col};margin-bottom:4px;text-align:center;font-weight:bold;">${_label} <span id="ms-cur">${_current.toLocaleString()}</span> / ${_target.toLocaleString()}${_unit}</div>
+<div style="width:100%;height:12px;background:rgba(0,0,0,0.5);border-radius:6px;overflow:hidden;border:1px solid ${_col}44">
+<div id="ms-fill" style="height:100%;width:0%;background:${_col};border-radius:6px;transition:width 0.5s"></div></div>`;
+  document.body.appendChild(_d);
+  const _fill=document.getElementById('ms-fill');
+  const _curEl=document.getElementById('ms-cur');
+  function _update(){
+    const pct=Math.min(100,Math.round(_current/_target*100));
+    _fill.style.width=pct+'%';
+    _curEl.textContent=_current.toLocaleString();
+    if(_current>=_target){ triggerConfetti&&triggerConfetti(); showPopText&&showPopText(`${_label}達成！`,'#44aaff'); }
+  }
+  _update();
+  window.setMilestone=(n)=>{ _current=n; _update(); };
+  window.addMilestone=(n)=>{ _current+=(n||1); _update(); };
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='setmilestone') { _current=+d.value; _update(); }
+    if(d.type==='noiru-cmd'&&d.cmd==='addmilestone') { _current+=(+d.value||1); _update(); }
+  });
+})();
+// Q-349: ?musicnotes=1 音楽ノート浮上エフェクト（音符が画面を漂う・音量連動）
+// 例: ?musicnotes=1&musicnotescount=8
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('musicnotes')!=='1') return;
+  const _count=parseInt(_u.get('musicnotescount'))||8;
+  const _NOTES=['♩','♪','♫','♬','♭','♮','𝅗𝅥'];
+  const _cols=['#ff6699','#ff9900','#ffff00','#66ff99','#66aaff','#cc66ff'];
+  function _spawn(){
+    const _d=document.createElement('div');
+    const _note=_NOTES[Math.floor(Math.random()*_NOTES.length)];
+    const _col=_cols[Math.floor(Math.random()*_cols.length)];
+    const x=10+Math.random()*80; // percent
+    const size=16+Math.random()*16;
+    Object.assign(_d.style,{
+      position:'fixed',left:x+'%',bottom:'-30px',zIndex:'144',
+      color:_col,fontSize:size+'px',pointerEvents:'none',
+      opacity:'0.9',transition:`bottom ${2+Math.random()*2}s ease-out, opacity ${2+Math.random()*2}s ease-out`
+    });
+    _d.textContent=_note;
+    document.body.appendChild(_d);
+    requestAnimationFrame(()=>{
+      _d.style.bottom=(50+Math.random()*40)+'%';
+      _d.style.transform=`rotate(${(Math.random()-0.5)*30}deg)`;
+      _d.style.opacity='0';
+    });
+    setTimeout(()=>_d.remove(),4200);
+  }
+  setInterval(()=>{
+    const lvl=typeof getAudioLevel==='function'?getAudioLevel():20;
+    if(lvl>10) _spawn();
+    if(lvl>50) _spawn();
+  },400);
+  window.spawnMusicNote=()=>_spawn();
+})();
+// Q-348: ?earthquake=1 地震エフェクト（激しい画面振動・postMessageまたはコマンドで発火）
+// 例: ?earthquake=1  postMessage{type:'noiru-cmd',cmd:'earthquake',dur:2000}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('earthquake')!=='1') return;
+  let _running=false;
+  function _quake(dur){
+    if(_running) return; _running=true;
+    const _d=dur||1500;
+    const _wrap=document.getElementById('wrap')||document.body;
+    const _start=Date.now();
+    const _intensity=[6,5,4,3,2]; // amplitude in px
+    let _i=0; let _iStep=Math.floor(_d/5/16);
+    (function _step(){
+      const elapsed=Date.now()-_start;
+      if(elapsed>_d){ _wrap.style.transform=''; _running=false; return; }
+      const phase=elapsed/_d;
+      const amp=_intensity[Math.min(4,Math.floor(phase*5))];
+      const ox=(Math.random()-0.5)*2*amp;
+      const oy=(Math.random()-0.5)*2*amp;
+      _wrap.style.transform=`translate(${ox}px,${oy}px)`;
+      requestAnimationFrame(_step);
+    })();
+  }
+  window.triggerEarthquake=d=>_quake(d||1500);
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-cmd'&&d.cmd==='earthquake') _quake(+d.dur||1500);
+  });
+  window.addEventListener('keydown',e=>{ if(e.key==='E'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey) _quake(); });
 })();
 // Q-345: ?timedmessage=HH:MM:TEXT 時刻指定メッセージ（特定の時間にテキストを表示）
 // 例: ?timedmessage=20:00:配信開始！|21:00:おつ！
