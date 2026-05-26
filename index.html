@@ -3925,6 +3925,13 @@ function _showEmbedCode(filePath) {
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#0e1120;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
+    <div style="margin-top:10px;border-top:1px solid #2a3460;padding-top:8px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="font-size:9px;color:#8898c0;flex:1;">💾 URLプリセット（最大5件）</span>
+        <button id="obs-preset-save" style="background:#1e2840;border:1px solid #3a5090;color:#80a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
+      </div>
+      <div id="obs-preset-list" style="display:flex;flex-direction:column;gap:3px;font-size:9px;"></div>
+    </div>
   `;
   document.body.appendChild(dlg);
   // Wire up checkboxes to update OBS URL
@@ -3942,6 +3949,36 @@ function _showEmbedCode(filePath) {
   }
   dlg.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',_updateObsUrl));
   dlg.querySelector('#obsq-tch').addEventListener('input',_updateObsUrl);
+  // Q-080: OBS URL presets (localStorage)
+  const LS_PRESETS='obsUrlPresets';
+  function _loadPresets(){return JSON.parse(localStorage.getItem(LS_PRESETS)||'[]');}
+  function _savePresets(arr){localStorage.setItem(LS_PRESETS,JSON.stringify(arr.slice(0,5)));}
+  function _renderPresets(){
+    const list=dlg.querySelector('#obs-preset-list'); if(!list) return;
+    const arr=_loadPresets(); list.innerHTML='';
+    if(!arr.length){list.innerHTML='<span style="color:#4a6080;">保存済みプリセットなし</span>';return;}
+    arr.forEach((p,i)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:4px;background:#0e1120;border:1px solid #2a3460;border-radius:3px;padding:2px 4px;';
+      row.innerHTML=`<span style="flex:1;color:#a0c0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.url}">${p.name}</span>
+        <button style="background:none;border:1px solid #4e7cff;color:#80b0ff;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:9px;">呼出</button>
+        <button style="background:none;border:1px solid #ff4060;color:#ff8090;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:9px;">削除</button>`;
+      row.querySelectorAll('button')[0].onclick=()=>{
+        dlg.querySelector('#obs-url-out').value=p.url;
+        navigator.clipboard?.writeText(p.url);
+      };
+      row.querySelectorAll('button')[1].onclick=()=>{
+        const a=_loadPresets(); a.splice(i,1); _savePresets(a); _renderPresets();
+      };
+      list.appendChild(row);
+    });
+  }
+  dlg.querySelector('#obs-preset-save').onclick=()=>{
+    const url=dlg.querySelector('#obs-url-out').value; if(!url) return;
+    const name=prompt('プリセット名を入力:',`プリセット${_loadPresets().length+1}`); if(!name) return;
+    const arr=_loadPresets(); arr.push({name,url}); _savePresets(arr); _renderPresets();
+  };
+  _renderPresets();
 }
 
 function genAvatarHTML() {
@@ -5891,12 +5928,39 @@ _mtBtn.onclick = () => {
   _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
 };
 document.body.appendChild(_mtBtn);
+// Q-079: Tracking sensitivity presets
+window._applyTrackPreset=function(preset){
+  const P={
+    gaming:{sens:1.5,x:1.2,y:1.0,z:0.7,eye:1.2,dz:0.04,ema:0.18},
+    desk:  {sens:1.0,x:1.0,y:1.0,z:1.0,eye:1.0,dz:0.00,ema:0.10},
+    studio:{sens:0.9,x:1.0,y:1.2,z:0.8,eye:1.5,dz:0.00,ema:0.08},
+    stable:{sens:1.0,x:0.8,y:0.8,z:0.6,eye:0.8,dz:0.08,ema:0.25},
+  }[preset]; if(!P) return;
+  curSens=P.sens; curSensX=P.x; curSensY=P.y; curSensZ=P.z; curSensEye=P.eye; curDeadZone=P.dz;
+  if(typeof EMA!=='undefined'){for(const k of Object.keys(EMA))EMA[k]=P.ema;}
+  const si=(id,v)=>{const e=document.getElementById(id);if(e){if(e.tagName==='INPUT')e.value=v;else e.textContent=v;}};
+  si('ts-sens',P.sens);si('ts-sens-val',P.sens);
+  si('ts-sx',P.x);si('ts-sx-val',P.x);
+  si('ts-sy',P.y);si('ts-sy-val',P.y);
+  si('ts-sz',P.z);si('ts-sz-val',P.z);
+  si('ts-eye',P.eye);si('ts-eye-val',P.eye.toFixed(2));
+  si('ts-dz',P.dz);si('ts-dz-val',Math.round(P.dz*100)+'%');
+  si('ts-ema',P.ema);si('ts-ema-val',P.ema.toFixed(2));
+  _saveTS({eye:P.eye});
+  if(typeof exprHUD!=='undefined'&&exprHUD){exprHUD.style.display='block';exprHUD.textContent='プリセット: '+{gaming:'🎮ゲーマー',desk:'🖥デスク',studio:'🎬表情',stable:'🛡安定'}[preset];setTimeout(()=>exprHUD.style.display='none',1500);}
+};
 // Tracking settings panel (⚙ button)
 (()=>{
   const panel=document.createElement('div');
   panel.id='track-settings-panel';
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(14,17,32,.95);border:1px solid #3a4470;border-radius:6px;padding:10px 14px;color:#c8d4f0;font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
   panel.innerHTML=`<div style="font-size:11px;font-weight:bold;margin-bottom:8px;color:#a0d0ff;">📡 顔追跡設定</div>
+<div style="margin-bottom:8px;"><div style="font-size:9px;color:#4a6080;margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
+<button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:#1a2040;border:1px solid #3a4470;color:#ff9060;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
+<button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:#1a2040;border:1px solid #3a4470;color:#80c0ff;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
+<button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:#1a2040;border:1px solid #3a4470;color:#c0a0ff;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
+<button onclick="window._applyTrackPreset('stable')" title="安定: 揺れ・ノイズ耐性" style="flex:1;background:#1a2040;border:1px solid #3a4470;color:#80ff80;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🛡 安定</button>
+</div></div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:#4e7cff;" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
 <div style="font-size:9px;color:#4a6080;margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#ff8080">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
