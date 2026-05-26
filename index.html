@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?moonphase=1</td><td>月齢バッジ（現在の月相）・?moonphasepos=topright</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatrank=1</td><td>チャットユーザーランク自動付与・?chatrankshow=1でバッジ表示・getChatRanks()</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?glassshard=1</td><td>ガラス割れ亀裂（キーG or cmd:'glassshard'）・triggerGlassShard()</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?colorize=HUE</td><td>アバター色相回転(0-360)・?colorizeanim=1で自動循環・setColorize(h)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?konamicode=1</td><td>コナミコード↑↑↓↓←→←→BA でエフェクト・?konamieffect=confetti/rainbow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?pingpong=1</td><td>顔追跡ピンポンミニゲーム（顔の上下でパドル操作）</td></tr>
@@ -9971,6 +9974,115 @@ window.addEventListener('message',ev=>{
       if(_fx==='shake') typeof triggerShake==='function'&&triggerShake();
     }
   });
+})();
+// Q-335: ?glassshard=1 ガラス割れエフェクト（画面に亀裂が走る・postMessageで発火）
+// 例: ?glassshard=1  postMessage{type:'noiru-cmd',cmd:'glassshard'}
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('glassshard')!=='1') return;
+  function _shatter(){
+    const _cv=document.createElement('canvas');
+    _cv.width=window.innerWidth; _cv.height=window.innerHeight;
+    Object.assign(_cv.style,{position:'fixed',inset:'0',zIndex:'167',pointerEvents:'none',opacity:'0',transition:'opacity 0.1s'});
+    document.body.appendChild(_cv);
+    const _ctx=_cv.getContext('2d');
+    const cx=window.innerWidth*(0.3+Math.random()*0.4),cy=window.innerHeight*(0.3+Math.random()*0.4);
+    const cracks=8+Math.floor(Math.random()*6);
+    _ctx.strokeStyle='rgba(255,255,255,0.85)'; _ctx.lineWidth=1.5;
+    _ctx.shadowColor='rgba(200,230,255,0.8)'; _ctx.shadowBlur=4;
+    for(let i=0;i<cracks;i++){
+      const ang=(i/cracks)*Math.PI*2+Math.random()*0.3;
+      let x=cx,y=cy; const len=80+Math.random()*180;
+      _ctx.beginPath(); _ctx.moveTo(x,y);
+      let d=0;
+      while(d<len){
+        const step=8+Math.random()*16;
+        const deviate=ang+(Math.random()-0.5)*0.3;
+        x+=Math.cos(deviate)*step; y+=Math.sin(deviate)*step; d+=step;
+        _ctx.lineTo(x,y);
+        if(Math.random()<0.3){
+          const bx=x,by=y;
+          const bang=deviate+(Math.random()>0.5?0.5:-0.5);
+          const blen=30+Math.random()*60;
+          _ctx.moveTo(bx,by);
+          _ctx.lineTo(bx+Math.cos(bang)*blen,by+Math.sin(bang)*blen);
+          _ctx.moveTo(bx,by);
+        }
+      }
+      _ctx.stroke();
+    }
+    requestAnimationFrame(()=>{ _cv.style.opacity='1'; });
+    setTimeout(()=>{ _cv.style.opacity='0'; setTimeout(()=>_cv.remove(),400); },2000);
+  }
+  window.triggerGlassShard=_shatter;
+  window.addEventListener('message',ev=>{ if((ev.data||{}).type==='noiru-cmd'&&ev.data.cmd==='glassshard') _shatter(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='G'&&!e.ctrlKey&&!e.metaKey) _shatter(); });
+})();
+// Q-334: ?chatrank=1 チャットユーザーランク（メッセージ数でレベルを自動付与）
+// 例: ?chatrank=1&chatrankshow=1（show=1でチャットバブルにバッジ表示）
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('chatrank')!=='1') return;
+  const _show=_u.get('chatrankshow')==='1';
+  const _counts={};
+  const _RANKS=[
+    {min:0,label:'',icon:''},
+    {min:5,label:'Bronze',icon:'🥉'},
+    {min:20,label:'Silver',icon:'🥈'},
+    {min:50,label:'Gold',icon:'🥇'},
+    {min:100,label:'Platinum',icon:'💎'},
+    {min:250,label:'Diamond',icon:'💠'},
+    {min:500,label:'Master',icon:'👑'},
+  ];
+  function _getrank(n){ let r=_RANKS[0]; _RANKS.forEach(rk=>{ if(n>=rk.min) r=rk; }); return r; }
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.user){
+      const u=d.user;
+      _counts[u]=(_counts[u]||0)+1;
+      if(_show){
+        const r=_getrank(_counts[u]);
+        if(r.icon){
+          // try to annotate last chat bubble
+          const bubbles=document.querySelectorAll('[data-user="'+u+'"],.chat-bubble');
+          if(bubbles.length){
+            const last=bubbles[bubbles.length-1];
+            if(!last.querySelector('.niru-rank')) {
+              const b=document.createElement('span');
+              b.className='niru-rank';
+              b.style.cssText='font-size:10px;margin-left:4px;opacity:0.8';
+              b.textContent=r.icon; last.appendChild(b);
+            }
+          }
+        }
+      }
+    }
+  });
+  window.getChatRanks=()=>Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([u,n])=>({user:u,count:n,rank:_getrank(n).label}));
+})();
+// Q-333: ?moonphase=1 月齢表示（現在の月相をバッジとして画面に表示）
+// 例: ?moonphase=1&moonphasepos=topright
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('moonphase')!=='1') return;
+  const _pos=_u.get('moonphasepos')||'topright';
+  const _PHASES=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+  const _NAMES=['新月','三日月','上弦の月','十三夜','満月','十六夜','下弦の月','二十六夜'];
+  const now=new Date();
+  const _epoch=new Date(2000,0,6,18,14,0); // known new moon
+  const _cycle=29.53058867; // days
+  const _days=(now-_epoch)/(1000*60*60*24);
+  const _phase=((_days%_cycle)+_cycle)%_cycle;
+  const _idx=Math.floor(_phase/_cycle*8)%8;
+  const _d=document.createElement('div');
+  const _posMap={topright:{top:'60px',right:'18px'},topleft:{top:'60px',left:'18px'},bottomright:{bottom:'80px',right:'18px'},bottomleft:{bottom:'80px',left:'18px'}};
+  const _p=_posMap[_pos]||_posMap.topright;
+  Object.assign(_d.style,{position:'fixed',zIndex:'148',..._p,
+    background:'rgba(0,0,0,0.55)',border:'1px solid rgba(255,255,255,0.2)',
+    borderRadius:'10px',padding:'6px 10px',color:'#fff',fontFamily:'sans-serif',
+    textAlign:'center',backdropFilter:'blur(4px)'});
+  _d.innerHTML=`<div style="font-size:28px">${_PHASES[_idx]}</div><div style="font-size:9px;color:#ccc;margin-top:2px">${_NAMES[_idx]}</div><div style="font-size:8px;color:#888">${_phase.toFixed(1)}日</div>`;
+  document.body.appendChild(_d);
 })();
 // Q-330: ?colorize=HUE アバター色相回転（CSSフィルターで色調変換・0-360度）
 // 例: ?colorize=180&colorizeanim=1（colorizeanim=1で自動循環）
