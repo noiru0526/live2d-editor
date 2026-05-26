@@ -312,18 +312,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="tb-more">
       <button class="tbtn" onclick="toggleTbMore('tb-more-view',this)" title="表示オプション">▾ 表示</button>
       <div class="tb-more-menu" id="tb-more-view">
-        <button class="tb-more-item" id="tb-ruler-item" onclick="showRuler=!showRuler;document.getElementById('btn-ruler')&&document.getElementById('btn-ruler').classList.toggle('active',showRuler);this.style.color=showRuler?'#e07840':'';render()">📏 ルーラー</button>
-        <button class="tb-more-item" id="tb-checker-item" onclick="toggleChecker()">▦ 透過確認</button>
-        <button class="tb-more-item" id="tb-focus-item" onclick="focusMode=!focusMode;this.style.color=focusMode?'#e07840':'';render()" title="非選択パーツを半透明化">⊙ フォーカス</button>
-        <button class="tb-more-item" id="tb-bounds-item" onclick="showBounds=!showBounds;this.style.color=showBounds?'#e07840':'';render()" title="バウンディングボックス">⬚ バウンド</button>
-        <button class="tb-more-item" id="tb-sil-item" onclick="silhouetteMode=!silhouetteMode;this.style.color=silhouetteMode?'#e07840':'';render()">⬛ シルエット</button>
+        <button class="tb-more-item" id="btn-ruler" onclick="showRuler=!showRuler;this.style.color=showRuler?'#e07840':'';render()">📏 ルーラー</button>
+        <button class="tb-more-item" id="btn-checker" onclick="toggleChecker()">▦ 透過確認</button>
+        <button class="tb-more-item" id="btn-focus" onclick="focusMode=!focusMode;this.style.color=focusMode?'#e07840':'';render()" title="非選択パーツを半透明化">⊙ フォーカス</button>
+        <button class="tb-more-item" id="btn-bounds" onclick="showBounds=!showBounds;this.style.color=showBounds?'#e07840':'';render()" title="バウンディングボックス">⬚ バウンド</button>
+        <button class="tb-more-item" id="btn-silhouette" onclick="silhouetteMode=!silhouetteMode;this.style.color=silhouetteMode?'#e07840':'';render()">⬛ シルエット</button>
         <div class="tb-more-sep"></div>
-        <button class="tb-more-item" id="tb-density-item" onclick="showDensityHeatmap=!showDensityHeatmap;this.style.color=showDensityHeatmap?'#e07840':'';render()">🌡 密度ヒートマップ</button>
-        <button class="tb-more-item" id="tb-dvec-item" onclick="showDeformVectors=!showDeformVectors;this.style.color=showDeformVectors?'#e07840':'';render()">⤢ 変位ベクトル</button>
-        <button class="tb-more-item" id="tb-onion-item" onclick="showOnionSkin=!showOnionSkin;this.style.color=showOnionSkin?'#e07840':'';render()">👻 オニオンスキン</button>
-        <button class="tb-more-item" id="tb-zdepth-item" onclick="showZDepth=!showZDepth;this.style.color=showZDepth?'#e07840':'';render()">🎨 Z深度</button>
-        <button class="tb-more-item" id="tb-skel-item" onclick="toggleSkeletonView()">🦴 スケルトン</button>
-        <button class="tb-more-item" id="tb-motion-item" onclick="toggleMotionPath()">🔵 モーションパス</button>
+        <button class="tb-more-item" id="btn-density" onclick="showDensityHeatmap=!showDensityHeatmap;this.style.color=showDensityHeatmap?'#e07840':'';render()">🌡 密度ヒートマップ</button>
+        <button class="tb-more-item" id="btn-deform-vec" onclick="showDeformVectors=!showDeformVectors;this.style.color=showDeformVectors?'#e07840':'';render()">⤢ 変位ベクトル</button>
+        <button class="tb-more-item" id="btn-onion" onclick="showOnionSkin=!showOnionSkin;this.style.color=showOnionSkin?'#e07840':'';render()">👻 オニオンスキン</button>
+        <button class="tb-more-item" id="btn-zdepth" onclick="showZDepth=!showZDepth;this.style.color=showZDepth?'#e07840':'';render()">🎨 Z深度</button>
+        <button class="tb-more-item" id="btn-skeleton" onclick="toggleSkeletonView()">🦴 スケルトン</button>
+        <button class="tb-more-item" id="btn-motionpath" onclick="toggleMotionPath()">🔵 モーションパス</button>
         <div class="tb-more-sep"></div>
         <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
         <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
@@ -4141,7 +4141,7 @@ function toggleSnapGrid() {
   snapToGrid=!snapToGrid; document.getElementById('btn-snap').classList.toggle('active',snapToGrid);
   setStatus(snapToGrid?`スナップ ON (${gridSize}px)`:'スナップ OFF');
 }
-function toggleChecker() { showChecker=!showChecker; document.getElementById('btn-checker').classList.toggle('active',showChecker); render(); }
+function toggleChecker() { showChecker=!showChecker; const b=document.getElementById('btn-checker'); if(b){b.classList.toggle('active',showChecker);b.style.color=showChecker?'#e07840':'';}  render(); }
 function snapVal(v) { return snapToGrid ? Math.round(v/gridSize)*gridSize : v; }
 function mirrorDupPart() {
   if (selPart<0||selPart>=parts.length) { setStatus('パーツを選択してください'); return; }
@@ -7351,7 +7351,7 @@ document.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&onBody){e.preventDefault();pastePartFromClipboard();}
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();riggerAutoSave();setStatus('💾 手動保存完了 (Ctrl+S)');}
   if(e.key==='f'||e.key==='F') fitView();
-  if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;document.getElementById('btn-focus').classList.toggle('active',focusMode);render();}
+  if(e.key==='F2'&&onBody){e.preventDefault();focusMode=!focusMode;const bf=document.getElementById('btn-focus');if(bf){bf.classList.toggle('active',focusMode);bf.style.color=focusMode?'#e07840':'';}render();}
   if(e.key==='S'&&e.shiftKey&&onBody&&!e.ctrlKey){e.preventDefault();togglePartSolo();}
   if(e.key==='s'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&onBody&&(mode==='mesh'||mode==='deform')){e.preventDefault();toggleMeshSymmetry();}
   if(e.key==='h'&&onBody&&!e.ctrlKey&&!e.metaKey&&selPart>=0){parts[selPart].visible=!parts[selPart].visible;updatePartsUI();render();}
