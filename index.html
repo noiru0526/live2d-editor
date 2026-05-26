@@ -4542,6 +4542,9 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?partymode=1</td><td>パーティーモード（カラーフラッシュ+音量連動）・?partyspeed=fast/normal/slow</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?stroboscope=200</td><td>ストロボエフェクト（Nms間隔）・?strobeintensity=0.3 ⚠️光過敏注意</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?rgbkeyboard=1</td><td>RGBチャット枠色変化・?rgbmode=rainbow/wave/pulse/beat</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?bubblecursor=1</td><td>シャボン玉カーソルエフェクト・?bubblecursorsize=28</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatpraise=KW</td><td>キーワード自動エフェクト（ありがとう|すごい 等）・複数はカンマ/パイプ区切り</td></tr>
+      <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?musicvis=1</td><td>音楽ビジュアライザーバー・?musicvispos=bottom/top&?musicviscolor=hex&?musicvisbars=48</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?noiseburst=1</td><td>静電ノイズバースト・postMsg{cmd:'noiseburst',dur:300}・triggerNoiseBurst(ms)</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?geometricbg=1</td><td>幾何学図形漂う背景・?geometricbgcount=18&?geometricbgcolor=hex</td></tr>
       <tr><td style="color:#a0c0ff;padding:1px 10px 1px 0;white-space:nowrap;">?chatquote=1</td><td>チャット名言自動抽出表示・?chatquoteinterval=45&?chatquotemin=6</td></tr>
@@ -9528,6 +9531,111 @@ window.addEventListener('message',ev=>{
     requestAnimationFrame(_draw);
   })();
   window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; _cv.height=window.innerHeight; });
+})();
+// Q-314: ?musicvis=1 音楽ビジュアライザーバー（画面下/上端に縦バースペクトラム）
+// 例: ?musicvis=1&musicvispos=bottom&musicviscolor=ff44aa&musicvisbars=64
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('musicvis')!=='1') return;
+  const _pos=_u.get('musicvispos')||'bottom';
+  const _col='#'+(_u.get('musicviscolor')||'ff44aa');
+  const _bars=parseInt(_u.get('musicvisbars'))||48;
+  const _cv=document.createElement('canvas');
+  const _h=80; const _w=window.innerWidth;
+  _cv.width=_w; _cv.height=_h;
+  const _isBottom=_pos!=='top';
+  Object.assign(_cv.style,{position:'fixed',[_isBottom?'bottom':'top']:'0',left:'0',width:'100%',height:_h+'px',zIndex:'145',pointerEvents:'none',opacity:'0.65'});
+  document.body.appendChild(_cv);
+  const _ctx=_cv.getContext('2d');
+  let _analyser=null;
+  function _initAudio(){
+    try{
+      if(window._audioCtx&&window._micSource&&!_analyser){
+        _analyser=window._audioCtx.createAnalyser();
+        _analyser.fftSize=_bars*4;
+        window._micSource.connect(_analyser);
+      }
+    }catch(e){}
+  }
+  const _fallback=new Array(_bars).fill(0);
+  (function _draw(){
+    _initAudio();
+    _ctx.clearRect(0,0,_cv.width,_cv.height);
+    let _data;
+    if(_analyser){
+      const d=new Uint8Array(_analyser.frequencyBinCount);
+      _analyser.getByteFrequencyData(d);
+      _data=Array.from({length:_bars},(_,i)=>d[Math.floor(i*d.length/_bars)]/255);
+    } else {
+      const lvl=typeof getAudioLevel==='function'?getAudioLevel()/100:0;
+      _data=_fallback.map((_,i)=>Math.max(0,lvl*(0.5+Math.random()*0.5)));
+    }
+    const bw=_cv.width/_bars;
+    _data.forEach((v,i)=>{
+      const bh=v*_h*0.95;
+      const g=_ctx.createLinearGradient(0,_isBottom?_h-bh:0,0,_isBottom?_h:bh);
+      g.addColorStop(0,_col); g.addColorStop(1,'transparent');
+      _ctx.fillStyle=g;
+      _ctx.fillRect(i*bw+1,_isBottom?_h-bh:0,bw-2,bh);
+    });
+    requestAnimationFrame(_draw);
+  })();
+  window.addEventListener('resize',()=>{ _cv.width=window.innerWidth; });
+})();
+// Q-313: ?chatpraise=KW チャット特定キーワードに自動エフェクト（ありがとう→confetti等）
+// 例: ?chatpraise=ありがとう|すごい|神,
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  const _raw=_u.get('chatpraise'); if(!_raw) return;
+  const _kws=decodeURIComponent(_raw).split(/[|,]/);
+  const _EFFECTS=[
+    ()=>{ typeof triggerConfetti==='function'&&triggerConfetti(); },
+    ()=>{ typeof triggerFlash==='function'&&triggerFlash(); },
+    ()=>{ typeof showPopText==='function'&&showPopText('ありがとう！❤','#ff6699'); },
+    ()=>{ typeof triggerHeartfall==='function'&&triggerHeartfall(8); }
+  ];
+  window.addEventListener('message',ev=>{
+    const d=ev.data||{};
+    if(d.type==='noiru-chat'&&d.msg){
+      const msg=(d.msg||'').toLowerCase();
+      if(_kws.some(k=>msg.includes(k.toLowerCase()))){
+        _EFFECTS[Math.floor(Math.random()*_EFFECTS.length)]();
+      }
+    }
+  });
+})();
+// Q-312: ?bubblecursor=1 シャボン玉カーソルエフェクト（マウス追従の泡）
+// 例: ?bubblecursor=1&bubblecursorsize=30
+(()=>{
+  const _u=new URLSearchParams(location.search);
+  if(_u.get('bubblecursor')!=='1') return;
+  const _sz=parseInt(_u.get('bubblecursorsize'))||28;
+  let _mx=0,_my=0,_last=0;
+  window.addEventListener('mousemove',e=>{ _mx=e.clientX; _my=e.clientY; });
+  (function _emit(){
+    const now=Date.now();
+    if(now-_last>80){
+      _last=now;
+      const _d=document.createElement('div');
+      const r=_sz*(0.5+Math.random()*0.8);
+      Object.assign(_d.style,{
+        position:'fixed',left:(_mx-r/2+((Math.random()-0.5)*20))+'px',
+        top:(_my-r/2+((Math.random()-0.5)*20))+'px',
+        width:r+'px',height:r+'px',
+        borderRadius:'50%',border:'2px solid rgba(180,220,255,0.7)',
+        background:'radial-gradient(circle at 35% 35%,rgba(255,255,255,0.5),rgba(180,220,255,0.1))',
+        zIndex:'166',pointerEvents:'none',opacity:'0.8',
+        transition:'all 0.9s ease-out'
+      });
+      document.body.appendChild(_d);
+      requestAnimationFrame(()=>{
+        _d.style.transform=`translate(${(Math.random()-0.5)*40}px,${-30-Math.random()*40}px) scale(0.3)`;
+        _d.style.opacity='0';
+      });
+      setTimeout(()=>_d.remove(),950);
+    }
+    requestAnimationFrame(_emit);
+  })();
 })();
 // Q-309: ?noiseburst=1 ノイズバースト（postMessageで短い静電ノイズを発火）
 // 例: ?noiseburst=1  postMessage{type:'noiru-cmd',cmd:'noiseburst'}
