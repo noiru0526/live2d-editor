@@ -309,18 +309,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
   <div class="sep"></div>
   <!-- モードタブ -->
   <div class="tgrp">
-    <button class="tbtn active" id="btn-parts" onclick="setMode('parts')">① パーツ</button>
-    <button class="tbtn" id="btn-mesh" onclick="setMode('mesh')">② メッシュ</button>
-    <button class="tbtn" id="btn-deform" onclick="setMode('deform')">③ 変形</button>
-    <button class="tbtn" id="btn-preview" onclick="setMode('preview')">④ プレビュー</button>
-    <button class="tbtn" id="btn-weightpaint" onclick="setMode('weightpaint')" title="ウェイトペイント — デフォーマーの頂点影響度をブラシで塗る">WP</button>
+    <button class="tbtn active" id="btn-parts" onclick="setMode('parts')"><svg width="12" height="10" viewBox="0 0 12 10" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="0" y="0" width="12" height="2.5" rx=".5" fill="currentColor" opacity=".4"/><rect x="0" y="3.75" width="12" height="2.5" rx=".5" fill="currentColor" opacity=".65"/><rect x="0" y="7.5" width="12" height="2.5" rx=".5" fill="currentColor"/></svg>パーツ</button>
+    <button class="tbtn" id="btn-mesh" onclick="setMode('mesh')"><svg width="12" height="11" viewBox="0 0 12 11" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M6 0L12 11H0Z" stroke="currentColor" stroke-width="1.1"/><path d="M3 5.5H9M6 0V11" stroke="currentColor" stroke-width=".7" opacity=".6"/></svg>メッシュ</button>
+    <button class="tbtn" id="btn-deform" onclick="setMode('deform')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M2 8Q4 2 10 4" stroke="currentColor" stroke-width="1.2"/><path d="M8 2L10 4L8 6" stroke="currentColor" stroke-width="1.2"/></svg>変形</button>
+    <button class="tbtn" id="btn-preview" onclick="setMode('preview')"><svg width="14" height="10" viewBox="0 0 14 10" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M1 5C1 5 3.5 1 7 1C10.5 1 13 5 13 5C13 5 10.5 9 7 9C3.5 9 1 5 1 5Z" stroke="currentColor" stroke-width="1.1"/><circle cx="7" cy="5" r="2" fill="currentColor"/></svg>プレビュー</button>
+    <button class="tbtn" id="btn-weightpaint" onclick="setMode('weightpaint')" title="ウェイトペイント — デフォーマーの頂点影響度をブラシで塗る"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><circle cx="4" cy="4" r="3" fill="currentColor" opacity=".5"/><circle cx="8" cy="8" r="3" fill="currentColor" opacity=".8"/></svg>WP</button>
   </div>
   <div class="sep"></div>
   <!-- 編集 -->
   <div class="tgrp">
-    <button class="tbtn" onclick="addPartFromFile()">＋ 追加</button>
-    <button class="tbtn" onclick="dupPart()" title="パーツを複製">⧉ 複製</button>
-    <button class="tbtn" onclick="showAlignMenu(event)" title="選択パーツを整列・等間隔配置（複数選択時）">⊟ 整列</button>
+    <button class="tbtn" onclick="addPartFromFile()"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M5 1V9M1 5H9" stroke="currentColor" stroke-width="1.6"/></svg>追加</button>
+    <button class="tbtn" onclick="dupPart()" title="パーツを複製"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="1" width="7" height="7" rx="1" fill="currentColor" opacity=".15" stroke="currentColor" stroke-width="1.2"/></svg>複製</button>
+    <button class="tbtn" onclick="showAlignMenu(event)" title="選択パーツを整列・等間隔配置（複数選択時）"><svg width="12" height="10" viewBox="0 0 12 10" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M0 2H12M3 5H9M1 8H11" stroke="currentColor" stroke-width="1.2"/></svg>整列</button>
     <div class="tb-more">
       <button class="tbtn" onclick="toggleTbMore('tb-more-edit',this)" title="その他の編集ツール">▾ その他</button>
       <div class="tb-more-menu" id="tb-more-edit">
@@ -377,9 +377,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
   <div class="sep"></div>
   <!-- 保存・その他 -->
   <div class="tgrp">
-    <button class="tbtn ok" onclick="saveModelOnly()">💾 保存</button>
-    <button class="tbtn ok" onclick="exportAvatarHTMLDirect()">🎭 出力</button>
-    <button class="tbtn" onclick="loadModelJSON()">📥 読込</button>
+    <button class="tbtn ok" onclick="saveModelOnly()" title="モデルを保存"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="1" width="6" height="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="6" width="5" height="3.5" fill="currentColor" opacity=".45"/><rect x="5" y="1.5" width="1.5" height="2.5" fill="currentColor"/></svg>保存</button>
+    <button class="tbtn ok" onclick="exportAvatarHTMLDirect()" title="HTMLとして出力"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M7 1L11 1V5" stroke="currentColor" stroke-width="1.2"/><path d="M7 5L11 1" stroke="currentColor" stroke-width="1.2"/></svg>出力</button>
+    <button class="tbtn" onclick="loadModelJSON()" title="モデルを読み込む"><svg width="13" height="11" viewBox="0 0 13 11" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M1 4H5.5L7 2H12V9H1Z" stroke="currentColor" stroke-width="1.1"/></svg>読込</button>
     <div class="tb-more">
       <button class="tbtn" onclick="toggleTbMore('tb-more-tools',this)">▾</button>
       <div class="tb-more-menu" id="tb-more-tools">
