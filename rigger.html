@@ -44,13 +44,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .ih{background:none;border:none;color:#585858;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
 .ih:hover{color:#d8d8d8;background:#333333}
 
-/* Left panel tabs (パーツ / デフォーマ) */
-#lp-tabs{display:flex;border-bottom:1px solid #383838;flex-shrink:0;background:#161616}
-.lp-tab{flex:1;padding:4px 0;font-size:9px;color:#585858;text-align:center;cursor:pointer;letter-spacing:.8px;text-transform:uppercase;border:none;background:none;transition:color .1s}
-.lp-tab:hover{color:#a0a0a0}
-.lp-tab.active{color:#e07840;border-bottom:2px solid #e07840}
+/* Left panel tabs — hidden (Cubism-style split replaces tabs) */
+#lp-tabs{display:none}
+.lp-tab{display:none}
+/* Cubism-style left panel sections */
+#lp-parts-section{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#lp-deformer-section{flex-shrink:0;border-top:2px solid #383838;display:flex;flex-direction:column}
+#lp-deformer-section .ph{cursor:pointer;user-select:none}
+#lp-deformer-section .ph:hover{background:#222222}
+#lp-def-caret{font-size:9px;color:#505050;margin-left:4px;transition:transform .15s;display:inline-block}
+#lp-deformer-section.lp-def-collapsed #lp-def-caret{transform:rotate(-90deg)}
 /* Deformer list */
-#deformer-list{flex:1;overflow-y:auto;padding:0;min-height:40px;display:none;background:#111418}
+#deformer-list{height:180px;overflow-y:auto;padding:0;display:flex;flex-direction:column;background:#111418}
+#lp-deformer-section.lp-def-collapsed #deformer-list{display:none}
 .dl-row{display:flex;align-items:center;cursor:pointer;font-size:9px;padding:2px 4px;transition:background .08s;min-height:22px;border-left:2px solid transparent}
 .dl-row:hover{background:rgba(255,255,255,.04)}
 .dl-row.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
@@ -393,74 +399,76 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
   <!-- LEFT PANEL -->
   <div id="lp">
-    <!-- Tab bar: パーツ / デフォーマ -->
-    <div id="lp-tabs">
-      <button class="lp-tab active" id="lptab-parts" onclick="switchLPTab('parts')">パーツ</button>
-      <button class="lp-tab" id="lptab-deformer" onclick="switchLPTab('deformer')">デフォーマ</button>
-    </div>
-    <div class="ph">
-      <h3 id="lp-ph-title">PARTS</h3>
-      <div class="ph-actions" id="lp-parts-actions">
-        <button class="ih" onclick="addPartFromFile()" title="PNG画像を追加">＋</button>
-        <button class="ih" onclick="addGroupPrompt()" title="新規グループ（フォルダ）を作成">📁</button>
-        <button class="ih" onclick="createGroupsFromColorLabels()" title="カラーラベルの色ごとにグループを自動作成（未グループのラベル付きパーツ対象）">🏷→📁</button>
-        <button class="ih" onclick="delPart()" title="削除">✕</button>
-        <button class="ih" onclick="mvUp()" title="上へ">↑</button>
-        <button class="ih" onclick="mvDn()" title="下へ">↓</button>
-        <button class="ih" onclick="toggleLockAll()" title="全パーツ一括ロック/アンロック">🔒</button>
-        <button class="ih" onclick="toggleVisAll()" title="全パーツ一括表示/非表示">👁</button>
-        <button class="ih" onclick="sortPartsByName()" title="パーツ名のアルファベット順にソート">↕A</button>
-        <button class="ih" onclick="collapseAllGroups(true)" title="全グループ折りたたむ">⊟</button>
-        <button class="ih" onclick="collapseAllGroups(false)" title="全グループ展開">⊞</button>
-        <button class="ih" onclick="setAllPartsVisible(true)" title="全パーツを表示">👁</button>
-        <button class="ih" onclick="setAllPartsVisible(false)" title="全パーツを非表示">🚫</button>
-        <button class="ih" onclick="invertPartsVisible()" title="表示/非表示を反転">⇄</button>
+    <!-- PARTS section (top — Cubism-style) -->
+    <div id="lp-parts-section">
+      <div class="ph">
+        <h3>PARTS</h3>
+        <div class="ph-actions" id="lp-parts-actions">
+          <button class="ih" onclick="addPartFromFile()" title="PNG画像を追加">＋</button>
+          <button class="ih" onclick="addGroupPrompt()" title="新規グループ（フォルダ）を作成">📁</button>
+          <button class="ih" onclick="createGroupsFromColorLabels()" title="カラーラベルの色ごとにグループを自動作成（未グループのラベル付きパーツ対象）">🏷→📁</button>
+          <button class="ih" onclick="delPart()" title="削除">✕</button>
+          <button class="ih" onclick="mvUp()" title="上へ">↑</button>
+          <button class="ih" onclick="mvDn()" title="下へ">↓</button>
+          <button class="ih" onclick="toggleLockAll()" title="全パーツ一括ロック/アンロック">🔒</button>
+          <button class="ih" onclick="toggleVisAll()" title="全パーツ一括表示/非表示">👁</button>
+          <button class="ih" onclick="sortPartsByName()" title="パーツ名のアルファベット順にソート">↕A</button>
+          <button class="ih" onclick="collapseAllGroups(true)" title="全グループ折りたたむ">⊟</button>
+          <button class="ih" onclick="collapseAllGroups(false)" title="全グループ展開">⊞</button>
+          <button class="ih" onclick="setAllPartsVisible(true)" title="全パーツを表示">👁</button>
+          <button class="ih" onclick="setAllPartsVisible(false)" title="全パーツを非表示">🚫</button>
+          <button class="ih" onclick="invertPartsVisible()" title="表示/非表示を反転">⇄</button>
+        </div>
       </div>
-      <div class="ph-actions" id="lp-deformer-actions" style="display:none">
-        <button class="ih" onclick="addDeformerPrompt()" title="デフォーマー追加">＋</button>
-        <button class="ih" onclick="if(selDeformer>=0)cloneDeformer(selDeformer)" title="デフォーマー複製">⧉</button>
-        <button class="ih" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="削除">✕</button>
-        <button class="ih" onclick="_defLPTreeCollapsed.clear();buildLPDeformerTree()" title="全展開">⊞</button>
-        <button class="ih" onclick="_collapseAllLPDeformers();buildLPDeformerTree()" title="全折りたたむ">⊟</button>
-      </div>
-    </div>
-    <!-- Parts search filter -->
-    <div id="parts-search-bar" style="padding:3px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:4px">
-      <span style="font-size:10px;color:#3a5060">🔍</span>
-      <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
-        oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
-        style="flex:1;background:#0c0e18;border:1px solid #1a2030;color:#8898c0;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
-      <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:10px;padding:0">×</button>
-    </div>
-    <!-- Color label filter -->
-    <div style="padding:3px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
-      <span style="font-size:9px;color:#3a5060;flex-shrink:0">🏷</span>
-      <div class="pi-clr-swatch" id="cf-f87171" onclick="toggleColorFilter('#f87171')" style="width:11px;height:11px;background:#f87171;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f87171でフィルター"></div><div class="pi-clr-swatch" id="cf-fb923c" onclick="toggleColorFilter('#fb923c')" style="width:11px;height:11px;background:#fb923c;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#fb923cでフィルター"></div><div class="pi-clr-swatch" id="cf-facc15" onclick="toggleColorFilter('#facc15')" style="width:11px;height:11px;background:#facc15;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#facc15でフィルター"></div><div class="pi-clr-swatch" id="cf-4ade80" onclick="toggleColorFilter('#4ade80')" style="width:11px;height:11px;background:#4ade80;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#4ade80でフィルター"></div><div class="pi-clr-swatch" id="cf-22d3ee" onclick="toggleColorFilter('#22d3ee')" style="width:11px;height:11px;background:#22d3ee;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#22d3eeでフィルター"></div><div class="pi-clr-swatch" id="cf-60a5fa" onclick="toggleColorFilter('#60a5fa')" style="width:11px;height:11px;background:#60a5fa;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#60a5faでフィルター"></div><div class="pi-clr-swatch" id="cf-c084fc" onclick="toggleColorFilter('#c084fc')" style="width:11px;height:11px;background:#c084fc;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#c084fcでフィルター"></div><div class="pi-clr-swatch" id="cf-f9a8d4" onclick="toggleColorFilter('#f9a8d4')" style="width:11px;height:11px;background:#f9a8d4;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f9a8d4でフィルター"></div>
-      <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:#6080a0;" title="ラベルなしのみ表示">∅</div>
-      <button onclick="partsColorFilter=null;document.querySelectorAll('[id^=cf-]').forEach(e=>e.style.boxShadow='');updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:9px;padding:0;margin-left:2px;" title="カラーフィルターをクリア">×</button>
-    </div>
-    <div id="parts-list"></div>
-
-    <!-- Deformer list (shown when lptab-deformer is active) -->
-    <div id="deformer-list">
-      <div style="padding:3px 8px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:4px">
-        <span style="font-size:9px;color:#3a5060">🔍</span>
-        <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
-          oninput="buildLPDeformerTree()"
+      <!-- Parts search filter -->
+      <div id="parts-search-bar" style="padding:3px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:4px">
+        <span style="font-size:10px;color:#3a5060">🔍</span>
+        <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
+          oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
           style="flex:1;background:#0c0e18;border:1px solid #1a2030;color:#8898c0;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
-        <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:10px;padding:0">×</button>
+        <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
-      <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
-      <div style="padding:3px 6px;border-top:1px solid #1a2030;display:flex;gap:3px;flex-shrink:0">
-        <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
-        <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
+      <!-- Color label filter -->
+      <div style="padding:3px 6px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
+        <span style="font-size:9px;color:#3a5060;flex-shrink:0">🏷</span>
+        <div class="pi-clr-swatch" id="cf-f87171" onclick="toggleColorFilter('#f87171')" style="width:11px;height:11px;background:#f87171;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f87171でフィルター"></div><div class="pi-clr-swatch" id="cf-fb923c" onclick="toggleColorFilter('#fb923c')" style="width:11px;height:11px;background:#fb923c;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#fb923cでフィルター"></div><div class="pi-clr-swatch" id="cf-facc15" onclick="toggleColorFilter('#facc15')" style="width:11px;height:11px;background:#facc15;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#facc15でフィルター"></div><div class="pi-clr-swatch" id="cf-4ade80" onclick="toggleColorFilter('#4ade80')" style="width:11px;height:11px;background:#4ade80;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#4ade80でフィルター"></div><div class="pi-clr-swatch" id="cf-22d3ee" onclick="toggleColorFilter('#22d3ee')" style="width:11px;height:11px;background:#22d3ee;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#22d3eeでフィルター"></div><div class="pi-clr-swatch" id="cf-60a5fa" onclick="toggleColorFilter('#60a5fa')" style="width:11px;height:11px;background:#60a5fa;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#60a5faでフィルター"></div><div class="pi-clr-swatch" id="cf-c084fc" onclick="toggleColorFilter('#c084fc')" style="width:11px;height:11px;background:#c084fc;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#c084fcでフィルター"></div><div class="pi-clr-swatch" id="cf-f9a8d4" onclick="toggleColorFilter('#f9a8d4')" style="width:11px;height:11px;background:#f9a8d4;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f9a8d4でフィルター"></div>
+        <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:#6080a0;" title="ラベルなしのみ表示">∅</div>
+        <button onclick="partsColorFilter=null;document.querySelectorAll('[id^=cf-]').forEach(e=>e.style.boxShadow='');updatePartsUI()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:9px;padding:0;margin-left:2px;" title="カラーフィルターをクリア">×</button>
+      </div>
+      <div id="parts-list"></div>
+      <!-- Live part preview -->
+      <div id="part-preview-wrap" style="padding:4px;display:none;">
+        <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(124,58,237,.3);border-radius:3px;display:block;margin:0 auto;background:#0c0f18;"></canvas>
+        <div id="part-preview-label" style="font-size:8px;color:#6878a0;text-align:center;margin-top:2px;"></div>
       </div>
     </div>
 
-    <!-- Live part preview -->
-    <div id="part-preview-wrap" style="padding:4px;display:none;">
-      <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(124,58,237,.3);border-radius:3px;display:block;margin:0 auto;background:#0c0f18;"></canvas>
-      <div id="part-preview-label" style="font-size:8px;color:#6878a0;text-align:center;margin-top:2px;"></div>
+    <!-- DEFORMER section (bottom — always visible, collapsible) -->
+    <div id="lp-deformer-section">
+      <div class="ph" onclick="toggleLPDeformerSection()">
+        <h3>DEFORMER<span id="lp-def-caret">▼</span></h3>
+        <div class="ph-actions" id="lp-deformer-actions" onclick="event.stopPropagation()">
+          <button class="ih" onclick="addDeformerPrompt()" title="デフォーマー追加">＋</button>
+          <button class="ih" onclick="if(selDeformer>=0)cloneDeformer(selDeformer)" title="デフォーマー複製">⧉</button>
+          <button class="ih" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="削除">✕</button>
+          <button class="ih" onclick="_defLPTreeCollapsed.clear();buildLPDeformerTree()" title="全展開">⊞</button>
+          <button class="ih" onclick="_collapseAllLPDeformers();buildLPDeformerTree()" title="全折りたたむ">⊟</button>
+        </div>
+      </div>
+      <div id="deformer-list">
+        <div style="padding:3px 8px;border-bottom:1px solid #1a2030;flex-shrink:0;display:flex;align-items:center;gap:4px">
+          <span style="font-size:9px;color:#3a5060">🔍</span>
+          <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
+            oninput="buildLPDeformerTree()"
+            style="flex:1;background:#0c0e18;border:1px solid #1a2030;color:#8898c0;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+          <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:#3a5060;cursor:pointer;font-size:10px;padding:0">×</button>
+        </div>
+        <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
+        <div style="padding:3px 6px;border-top:1px solid #1a2030;display:flex;gap:3px;flex-shrink:0">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
+        </div>
+      </div>
     </div>
 
     <!-- KF Section (shown in deform mode) -->
@@ -5534,22 +5542,11 @@ let _lpTab = 'parts';
 let _defLPTreeCollapsed = new Set();
 let _defLPDragSrc = null;
 
-function switchLPTab(tab) {
-  _lpTab = tab;
-  const isParts = tab === 'parts';
-  document.getElementById('lptab-parts').classList.toggle('active', isParts);
-  document.getElementById('lptab-deformer').classList.toggle('active', !isParts);
-  document.getElementById('lp-ph-title').textContent = isParts ? 'PARTS' : 'DEFORMER';
-  document.getElementById('lp-parts-actions').style.display = isParts ? '' : 'none';
-  document.getElementById('lp-deformer-actions').style.display = isParts ? 'none' : '';
-  document.getElementById('parts-search-bar').style.display = isParts ? '' : 'none';
-  document.getElementById('clr-filter-bar').style.display = isParts ? '' : 'none';
-  document.getElementById('parts-list').style.display = isParts ? '' : 'none';
-  document.getElementById('deformer-list').style.display = isParts ? 'none' : 'flex';
-  if (!isParts) {
-    document.getElementById('deformer-list').style.flexDirection = 'column';
-    buildLPDeformerTree();
-  }
+function switchLPTab(tab) { /* no-op: Cubism-style split panel always shows both sections */ }
+function toggleLPDeformerSection() {
+  const sec = document.getElementById('lp-deformer-section');
+  sec.classList.toggle('lp-def-collapsed');
+  if (!sec.classList.contains('lp-def-collapsed')) buildLPDeformerTree();
 }
 
 function _collapseAllLPDeformers() {
