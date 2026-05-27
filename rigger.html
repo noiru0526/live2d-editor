@@ -15,7 +15,7 @@
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
 
 /* ===== TOOLBAR ===== */
-#toolbar{background:#1a1a1a;border-bottom:1px solid #383838;padding:0 10px;display:flex;align-items:center;gap:4px;flex-shrink:0;height:46px;overflow-x:auto}
+#toolbar{background:#202020;border-bottom:1px solid #383838;padding:0 10px;display:flex;align-items:center;gap:4px;flex-shrink:0;height:46px;overflow-x:auto}
 #toolbar h1{color:#e07840;font-size:12px;letter-spacing:2.5px;margin-right:10px;flex-shrink:0;font-weight:700}
 .tbtn{background:#282828;border:1px solid #383838;color:#909090;font-size:11px;padding:4px 11px;border-radius:3px;cursor:pointer;transition:all .1s;flex-shrink:0;white-space:nowrap}
 .tbtn:hover{background:#333333;color:#d8d8d8;border-color:#505050}
@@ -37,8 +37,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #main{display:flex;flex:1;overflow:hidden}
 
 /* ===== LEFT PANEL ===== */
-#lp{width:270px;background:#1a1a1a;border-right:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-.ph{padding:7px 10px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #383838;flex-shrink:0;background:#161616}
+#lp{width:270px;background:#222222;border-right:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.ph{padding:7px 10px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #383838;flex-shrink:0;background:#1d1d1d}
 .ph h3{color:#707070;font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:#585858;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
@@ -121,7 +121,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(124,58,237,.2);border:1px solid #e07840;border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
-#rp{width:270px;background:#1a1a1a;border-left:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+#rp{width:270px;background:#222222;border-left:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
 .rsec-hd{display:flex;align-items:center;padding:6px 10px;cursor:pointer;background:#1e1e1e;border-bottom:1px solid #2a2a2a;gap:6px;flex-shrink:0;user-select:none}
@@ -181,13 +181,30 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ab.pr{background:linear-gradient(135deg,rgba(109,40,217,.5),rgba(190,24,93,.4));border-color:#e07840;color:#e0d0ff}
 .ab.pr:hover{opacity:.85}
 /* Cubism-style inspector rows */
-.ci-row{display:flex;align-items:center;padding:4px 10px;border-bottom:1px solid #1e1e1e;min-height:24px}
-.ci-lbl{color:#888;font-size:10px;min-width:68px;flex-shrink:0;letter-spacing:.3px}
-.ci-inp{flex:1;background:#141414;border:1px solid #2e2e2e;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;min-width:0;font-family:inherit}
+.ci-row{display:flex;align-items:center;padding:3px 10px;border-bottom:1px solid #222222;min-height:22px}
+.ci-lbl{color:#888;font-size:10px;min-width:72px;flex-shrink:0;letter-spacing:.3px}
+.ci-inp{flex:1;background:#1c1c1c;border:1px solid #333333;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;min-width:0;font-family:inherit}
 .ci-inp:focus{border-color:#e07840}
-.ci-ro{flex:1;font-size:10px;color:#4a4a4a;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ci-num{width:64px;background:#141414;border:1px solid #2e2e2e;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace}
+.ci-ro{flex:1;font-size:10px;color:#505050;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-num{width:64px;background:#1c1c1c;border:1px solid #333333;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace}
 .ci-num:focus{border-color:#e07840}
+/* Cubism-style color swatch (VT-002) */
+.ci-color-wrap{display:flex;align-items:center;gap:5px;flex:1}
+.ci-swatch{width:18px;height:14px;border:1px solid #4a4a4a;border-radius:2px;cursor:pointer;flex-shrink:0;transition:border-color .1s;background:#ffffff}
+.ci-swatch:hover{border-color:#e07840;outline:1px solid rgba(224,120,64,.3)}
+.ci-hex{font-size:10px;color:#909090;font-family:monospace;flex:1;letter-spacing:.3px}
+.ci-reset{background:none;border:none;color:#505050;cursor:pointer;font-size:12px;padding:0 3px;line-height:1;flex-shrink:0;opacity:.7}
+.ci-reset:hover{color:#e07840;opacity:1}
+/* Cubism-style z-order arrows (VT-003) */
+.ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
+.ci-arr{background:#262626;border:1px solid #3a3a3a;color:#808080;font-size:14px;padding:0 6px;cursor:pointer;border-radius:2px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
+.ci-arr:hover{color:#e07840;border-color:#e07840}
+.ci-num-sm{width:52px;background:#1c1c1c;border:1px solid #333333;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
+.ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ci-num-sm:focus{border-color:#e07840}
+/* Cubism-style select */
+.ci-sel{flex:1;background:#1c1c1c;border:1px solid #333333;color:#c0c0c0;font-size:10px;padding:1px 4px;border-radius:2px;outline:none;min-width:0}
+.ci-sel:focus{border-color:#e07840}
 
 /* Physics panel */
 #rp-physics{gap:0}
@@ -692,11 +709,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="ci-row"><span class="ci-lbl">パーツ</span><select class="ci-sel" id="ci-group" onchange="applyPartGroup(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">デフォーマ</span><select class="ci-sel" id="ci-deformer" onchange="applyPartDeformer(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
-          <div class="ci-row"><span class="ci-lbl">描画順</span><input type="number" id="pp-zorder" class="ci-num" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"></div>
-          <div class="ci-row"><span class="ci-lbl">不透明度</span><div style="display:flex;align-items:center;gap:4px;flex:1"><input type="range" id="ci-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value);document.getElementById('ci-op-v').textContent=this.value+'%'" style="flex:1"><span id="ci-op-v" style="font-size:10px;color:#e07840;font-family:monospace;min-width:30px;text-align:right">100%</span></div></div>
+          <div class="ci-row"><span class="ci-lbl">描画順</span><div class="ci-num-wrap"><button class="ci-arr" onclick="ciZOrderStep(-1)">‹</button><input type="number" id="pp-zorder" class="ci-num-sm" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"><button class="ci-arr" onclick="ciZOrderStep(1)">›</button></div></div>
+          <div class="ci-row"><span class="ci-lbl">不透明度</span><div class="ci-num-wrap"><input type="number" id="ci-op" class="ci-num-sm" min="0" max="100" value="100" onchange="applyPartOpacity(this.value)"><span style="font-size:10px;color:#666;margin-left:2px">%</span></div></div>
           <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:#e07840"><span style="font-size:10px;color:#666">色を反転</span></label></div>
-          <div class="ci-row"><span class="ci-lbl">表面色</span><div style="display:flex;align-items:center;gap:5px;flex:1"><input type="color" id="ci-mul-color" value="#ffffff" oninput="applyPartMultiplyColor(this.value)" style="width:26px;height:18px;border:1px solid #383838;border-radius:2px;padding:0;cursor:pointer;background:none"><span id="ci-mul-hex" style="font-size:9px;color:#666;font-family:monospace">#FFFFFF</span></div></div>
-          <div class="ci-row"><span class="ci-lbl">スクリーン色</span><div style="display:flex;align-items:center;gap:5px;flex:1"><input type="color" id="ci-scr-color" value="#000000" oninput="applyPartScreenColor(this.value)" style="width:26px;height:18px;border:1px solid #383838;border-radius:2px;padding:0;cursor:pointer;background:none"><span id="ci-scr-hex" style="font-size:9px;color:#666;font-family:monospace">#000000</span></div></div>
+          <div class="ci-row"><span class="ci-lbl">表面色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-mul-swatch" onclick="document.getElementById('ci-mul-color').click()" style="background:#ffffff"></span><input type="color" id="ci-mul-color" value="#ffffff" oninput="applyPartMultiplyColor(this.value)" style="display:none"><span id="ci-mul-hex" class="ci-hex">#FFFFFF</span><button class="ci-reset" onclick="applyPartMultiplyColor('#ffffff')" title="白にリセット">↺</button></div></div>
+          <div class="ci-row"><span class="ci-lbl">スクリーン色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-scr-swatch" onclick="document.getElementById('ci-scr-color').click()" style="background:#000000"></span><input type="color" id="ci-scr-color" value="#000000" oninput="applyPartScreenColor(this.value)" style="display:none"><span id="ci-scr-hex" class="ci-hex">#000000</span><button class="ci-reset" onclick="applyPartScreenColor('#000000')" title="黒にリセット">↺</button></div></div>
         </div>
         <div class="prop-row">
           <span id="pp-coord-lbl-x" class="prop-lbl" title="クリックでグローバル座標に切替" onclick="toggleGlobalCoordMode()" style="cursor:pointer">X</span>
@@ -3543,9 +3560,17 @@ function updatePartPropsUI() {
     const ciInvert = document.getElementById('ci-invert');
     if (ciInvert) ciInvert.checked = !!pt.masterInvert;
     const ciMulColor = document.getElementById('ci-mul-color');
-    if (ciMulColor) { ciMulColor.value = pt.multiplyColor || '#ffffff'; const mh=document.getElementById('ci-mul-hex'); if(mh)mh.textContent=(pt.multiplyColor||'#ffffff').toUpperCase(); }
+    if (ciMulColor) {
+      const mc = pt.multiplyColor || '#ffffff'; ciMulColor.value = mc;
+      const mh=document.getElementById('ci-mul-hex'); if(mh)mh.textContent=mc.toUpperCase();
+      const ms=document.getElementById('ci-mul-swatch'); if(ms)ms.style.background=mc;
+    }
     const ciScrColor = document.getElementById('ci-scr-color');
-    if (ciScrColor) { ciScrColor.value = pt.screenColor || '#000000'; const sh=document.getElementById('ci-scr-hex'); if(sh)sh.textContent=(pt.screenColor||'#000000').toUpperCase(); }
+    if (ciScrColor) {
+      const sc = pt.screenColor || '#000000'; ciScrColor.value = sc;
+      const sh=document.getElementById('ci-scr-hex'); if(sh)sh.textContent=sc.toUpperCase();
+      const ss=document.getElementById('ci-scr-swatch'); if(ss)ss.style.background=sc;
+    }
     // Parent part dropdown (tree hierarchy)
     const ciParent = document.getElementById('ci-parent');
     if (ciParent) {
@@ -3554,8 +3579,8 @@ function updatePartPropsUI() {
       ciParent.value = pt.parentId || '';
     }
     // CI opacity sync
-    const ciOp = document.getElementById('ci-op'); const ciOpV = document.getElementById('ci-op-v');
-    if (ciOp) { ciOp.value = op; if(ciOpV) ciOpV.textContent = op+'%'; }
+    const ciOp = document.getElementById('ci-op');
+    if (ciOp) ciOp.value = op;
     // Note field
     const noteEl = document.getElementById('pp-note');
     if (noteEl) noteEl.value = pt.note || '';
@@ -3627,15 +3652,17 @@ function applyPartMasterInvert(v) {
 function applyPartMultiplyColor(v) {
   if (selPart<0||selPart>=parts.length) return;
   parts[selPart].multiplyColor = v;
-  const el = document.getElementById('ci-mul-hex');
-  if (el) el.textContent = v.toUpperCase();
+  const hex = document.getElementById('ci-mul-hex'); if (hex) hex.textContent = v.toUpperCase();
+  const sw = document.getElementById('ci-mul-swatch'); if (sw) sw.style.background = v;
+  const inp = document.getElementById('ci-mul-color'); if (inp) inp.value = v;
   render();
 }
 function applyPartScreenColor(v) {
   if (selPart<0||selPart>=parts.length) return;
   parts[selPart].screenColor = v;
-  const el = document.getElementById('ci-scr-hex');
-  if (el) el.textContent = v.toUpperCase();
+  const hex = document.getElementById('ci-scr-hex'); if (hex) hex.textContent = v.toUpperCase();
+  const sw = document.getElementById('ci-scr-swatch'); if (sw) sw.style.background = v;
+  const inp = document.getElementById('ci-scr-color'); if (inp) inp.value = v;
   render();
 }
 function applyPartParent(pid) {
@@ -3660,6 +3687,13 @@ function applyPartZOrder(v) {
   saveState();
   pt.zIndex = newZ;
   updatePartsUI(); render();
+}
+function ciZOrderStep(delta) {
+  const el = document.getElementById('pp-zorder');
+  if (!el) return;
+  const v = Math.max(0, (parseInt(el.value)||0) + delta);
+  el.value = v;
+  applyPartZOrder(v);
 }
 function applyPartXY() {
   if (selPart<0||selPart>=parts.length) return;
@@ -3692,7 +3726,7 @@ function toggleGlobalCoordMode() {
 function applyPartOpacity(v) {
   if (selPart<0||selPart>=parts.length) return;
   parts[selPart].opacity=parseInt(v)/100;
-  document.getElementById('pp-op-v').textContent=v+'%'; render();
+  const vEl=document.getElementById('pp-op-v'); if(vEl)vEl.textContent=v+'%'; render();
 }
 function applyPartBlend(v) { if (selPart<0||selPart>=parts.length) return; parts[selPart].blendMode=v; render(); }
 function applyPartShadow() {
