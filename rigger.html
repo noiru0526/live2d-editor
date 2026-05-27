@@ -936,7 +936,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <div id="rp-params" class="rpanel">
       <!-- Cubism-style parameter toolbar -->
-      <div style="padding:3px 8px;border-bottom:1px solid #1e1e1e;flex-shrink:0;display:flex;align-items:center;gap:4px;background:#1a1a1a">
+      <div style="padding:3px 8px;border-bottom:1px solid #2a2a2a;flex-shrink:0;display:flex;align-items:center;gap:4px;background:#1d1d1d">
         <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
         <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:9px;border-radius:3px;padding:2px 5px;cursor:pointer">↺</button>
         <span style="flex:1"></span>
@@ -3273,6 +3273,10 @@ function toggleColorFilter(color) {
 
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
+  if (parts.length === 0) {
+    list.innerHTML = '<div style="padding:28px 16px;text-align:center;color:#3a3a3a;font-size:9px;line-height:2;user-select:none">パーツがありません<br><span style="color:#505050">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
+    return;
+  }
   const seenGroups = new Set();
   const seenDeformers = new Set();
 
@@ -5570,6 +5574,10 @@ function _collapseAllLPDeformers() {
 function buildLPDeformerTree() {
   const body = document.getElementById('lp-def-tree');
   if (!body) return;
+  if (deformers.length === 0) {
+    body.innerHTML = '<div style="padding:16px 8px;text-align:center;color:#3a3a3a;font-size:9px;line-height:2">デフォーマがありません<br><span style="color:#505050">「＋」で追加</span></div>';
+    return;
+  }
   const filter = (document.getElementById('deformer-search')?.value || '').toLowerCase();
   const typeIcon = {warp:'⬡', rotation:'⟳', bone:'🦴'};
   const typeColor = {warp:'#5a8a4a', rotation:'#7a60b0', bone:'#8a7050'};
