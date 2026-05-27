@@ -103,7 +103,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid #383838;flex-shrink:0}
-.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;background:#161616}
+.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;background:#1d1d1d}
 .lsec-hd h3{color:#707070;font-size:11px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
 .lsec-body{padding:7px 10px;display:flex;flex-direction:column;gap:5px}
 .mrow{display:flex;align-items:center;gap:5px;font-size:11px;color:#707070}
@@ -130,12 +130,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #rp{width:270px;background:#222222;border-left:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
-.rsec-hd{display:flex;align-items:center;padding:6px 10px;cursor:pointer;background:#1e1e1e;border-bottom:1px solid #2a2a2a;gap:6px;flex-shrink:0;user-select:none}
+.rsec-hd{display:flex;align-items:center;padding:6px 10px;cursor:pointer;background:#1d1d1d;border-bottom:1px solid #303030;gap:6px;flex-shrink:0;user-select:none}
 .rsec-hd:hover{background:#242424}
 .rsec-caret{font-size:9px;color:#585858;transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
 .rsec-ttl{font-size:11px;font-weight:700;letter-spacing:1.2px;color:#7a7a7a;text-transform:uppercase;flex:1}
 .rsec-sub{font-size:9px;color:#484848}
+/* Inspector selection banner */
+#rp-sel-banner{padding:5px 10px 4px;border-bottom:1px solid #2a2a2a;background:#1a1a1a;display:none}
+#rp-sel-name{font-size:12px;color:#d0d0d0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+#rp-sel-id{font-size:9px;color:#505050;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-top:1px}
 /* Panels always visible, collapsible */
 .rpanel{display:flex;flex-direction:column;flex-shrink:0}
 .rpanel.rp-collapsed{display:none}
@@ -145,7 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 /* Params panel */
 #params-list{padding:6px 8px}
-.pg{display:flex;align-items:center;gap:5px;font-size:10px;color:#888;letter-spacing:.5px;padding:6px 8px 5px;font-weight:600;background:#1e1e1e;border-bottom:1px solid #2a2a2a;cursor:pointer;user-select:none}
+.pg{display:flex;align-items:center;gap:5px;font-size:10px;color:#888;letter-spacing:.5px;padding:6px 8px 5px;font-weight:600;background:#1d1d1d;border-bottom:1px solid #303030;cursor:pointer;user-select:none}
 .pg:hover{background:#252525;color:#aaa}
 .pg-arrow{font-size:9px;color:#555;transition:transform .12s;display:inline-block;flex-shrink:0}
 .pg.collapsed .pg-arrow{transform:rotate(-90deg)}
@@ -240,7 +244,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .expr-footer{padding:8px 10px;border-top:1px solid #1a2030;flex-shrink:0;display:flex;gap:5px}
 
 /* ===== STATUS BAR ===== */
-#sb{background:#161616;border-top:1px solid #383838;padding:4px 12px;font-size:11px;color:#686868;flex-shrink:0;height:24px;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sb{background:#202020;border-top:1px solid #383838;padding:4px 12px;font-size:11px;color:#686868;flex-shrink:0;height:24px;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== MODALS ===== */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px)}
@@ -296,7 +300,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Scrollbars */
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:#161616}
+::-webkit-scrollbar-track{background:#1c1c1c}
 ::-webkit-scrollbar-thumb{background:#404040;border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:#686868}
 </style>
@@ -624,6 +628,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('props')">
       <span class="rsec-caret" id="rsec-caret-props">▼</span>
       <span class="rsec-ttl">インスペクタ</span>
+    </div>
+    <div id="rp-sel-banner">
+      <span id="rp-sel-name"></span>
+      <span id="rp-sel-id"></span>
     </div>
     <div id="rp-props" class="rpanel">
       <!-- Deformer properties (shown when deformer selected) -->
@@ -3512,6 +3520,9 @@ function updatePartPropsUI() {
   if (selPart >= 0 && selPart < parts.length) {
     pp.style.display = 'block'; nm.style.display = 'none';
     const pt = parts[selPart];
+    // Selection banner
+    const banner = document.getElementById('rp-sel-banner');
+    if (banner) { banner.style.display = 'block'; document.getElementById('rp-sel-name').textContent = pt.name || pt.id || '(unnamed)'; document.getElementById('rp-sel-id').textContent = pt.id || ''; }
     // Cubism-style inspector fields
     const nameEl = document.getElementById('pp-name');
     if (nameEl && document.activeElement !== nameEl) nameEl.value = pt.name || '';
@@ -3631,9 +3642,11 @@ function updatePartPropsUI() {
     }
   } else if (selDeformer < 0) {
     pp.style.display = 'none'; nm.style.display = 'block';
+    const banner=document.getElementById('rp-sel-banner'); if(banner) banner.style.display='none';
     const tp=document.getElementById('tex-panel'); if(tp) tp.style.display='none';
   } else {
     pp.style.display = 'none'; nm.style.display = 'none';
+    const banner=document.getElementById('rp-sel-banner'); if(banner) banner.style.display='none';
     const tp=document.getElementById('tex-panel'); if(tp) tp.style.display='none';
   }
 }
