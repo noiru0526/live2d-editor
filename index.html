@@ -1110,7 +1110,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 </div>
 
 <!-- Snapshot Compare Overlay -->
-<div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:#0a0c18;z-index:180;flex-direction:column;">
+<div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:#0e0e0e;z-index:180;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:6px 12px;background:#1e1e1e;border-bottom:1px solid #2d2d2d;gap:8px;flex-shrink:0;">
     <span style="font-size:13px;font-weight:700;color:#fff;">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
@@ -1188,7 +1188,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 </div>
 
 <!-- Weight Paint HUD -->
-<div id="weight-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(5,8,20,.85);border:1px solid var(--border);border-radius:5px;padding:4px 14px;font-size:11px;color:var(--text);pointer-events:none;white-space:nowrap;">
+<div id="weight-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.88);border:1px solid var(--border);border-radius:5px;padding:4px 14px;font-size:11px;color:var(--text);pointer-events:none;white-space:nowrap;">
   <span style="color:#ff4444;font-weight:700;">ウェイトペイント</span>
   <span style="color:var(--dim);margin-left:8px;">ブラシ: <span id="wt-r-val">30</span>px</span>
   <span style="color:var(--dim);margin-left:8px;">値: <span id="wt-v-val">1.0</span></span>
@@ -1349,7 +1349,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
     <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#707070';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
     <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#707070';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
-    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'#a0e0ff':'#707070';this.style.borderColor=tlColorByGroup?'rgba(96,200,255,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
+    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'var(--accent)':'#707070';this.style.borderColor=tlColorByGroup?'rgba(224,120,64,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
     <button onclick="autoGroupByPrefix()" title="パラメータ名のプレフィックス（head/eye/mouth等）で自動グループ化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 自動G</button>
     <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
     <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#707070';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
@@ -1366,10 +1366,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
-    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#0a1a20;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
+    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#1e2222;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#1a0a30;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
-    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#0a1a2a;border:1px solid rgba(80,200,255,.4);color:#50c8ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
+    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#222222;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
     <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1a1e20;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
@@ -1412,7 +1412,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 <div id="autosave-toast">自動保存しました</div>
 
 <!-- Graph Editor (Animation Curve Editor) -->
-<div id="graph-editor" style="display:none;flex-shrink:0;height:200px;background:#13172a;border-top:1px solid var(--border);position:relative;overflow:hidden;">
+<div id="graph-editor" style="display:none;flex-shrink:0;height:200px;background:#1a1a1a;border-top:1px solid var(--border);position:relative;overflow:hidden;">
   <div id="ge-header" style="display:flex;align-items:center;gap:6px;padding:3px 10px;border-bottom:1px solid var(--border);background:var(--panel);height:26px;">
     <span style="font-size:9px;color:var(--accent2);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">GRAPH EDITOR</span>
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
@@ -2231,7 +2231,7 @@ function drawImg(t, activeVerts) {
 }
 
 function drawMarkers(t) {
-  const colors={eyeL:'#4e7cff', eyeR:'#a06cff', mouth:'#ff8060', browL:'#60d890', browR:'#70e8a0'};
+  const colors={eyeL:'#e07840', eyeR:'#c09040', mouth:'#ff8060', browL:'#60d890', browR:'#70e8a0'};
   const labels={eyeL:'左目', eyeR:'右目', mouth:'口', browL:'左眉', browR:'右眉'};
   const radiiX={eyeL:M.iw*0.030, eyeR:M.iw*0.030, mouth:M.iw*0.036, browL:M.iw*0.028, browR:M.iw*0.028};
   const radiiY={eyeL:M.ih*0.025, eyeR:M.ih*0.025, mouth:M.ih*0.020, browL:M.ih*0.015, browR:M.ih*0.015};
@@ -3129,7 +3129,7 @@ function editParamVal(name, spanEl) {
   const inp = document.createElement('input');
   inp.type = 'number'; inp.value = p.val.toFixed(3);
   inp.step = p.step; inp.min = p.min; inp.max = p.max;
-  inp.style.cssText = 'width:52px;background:#0a0d18;border:1px solid var(--accent);color:var(--kf);font-size:10px;font-family:monospace;padding:0 3px;border-radius:2px;outline:none;';
+  inp.style.cssText = 'width:52px;background:#141414;border:1px solid var(--accent);color:var(--kf);font-size:10px;font-family:monospace;padding:0 3px;border-radius:2px;outline:none;';
   spanEl.replaceWith(inp);
   inp.focus(); inp.select();
   const commit = () => {
@@ -3176,12 +3176,12 @@ function buildParamUI() {
   const validRecent = _recentParams.filter(n => M.params[n] && !_favParams.has(n));
   if (validRecent.length > 0) {
     const recDiv = document.createElement('div');
-    recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:rgba(60,80,120,.12);border:1px solid rgba(80,120,200,.18);border-radius:4px;';
-    recDiv.innerHTML = `<div style="font-size:7px;color:rgba(128,160,200,.5);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
+    recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;';
+    recDiv.innerHTML = `<div style="font-size:7px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
       validRecent.map(n => {
         const p = M.params[n]; const lbl = p?.lbl || n;
         const isAP = n === ST.ap;
-        return `<button onclick="setAP('${n}')" title="${n}" style="background:${isAP?'rgba(100,140,255,.3)':'rgba(40,60,100,.4)'};border:1px solid rgba(80,120,200,${isAP?'.5':'.25'});color:${isAP?'#a0c0ff':'#7090b0'};border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${lbl}</button>`;
+        return `<button onclick="setAP('${n}')" title="${n}" style="background:${isAP?'rgba(224,120,64,.2)':'rgba(255,255,255,.05)'};border:1px solid ${isAP?'rgba(224,120,64,.5)':'rgba(255,255,255,.1)'};color:${isAP?'var(--accent)':'var(--dim)'};border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${lbl}</button>`;
       }).join('') + `</div>`;
     cont.appendChild(recDiv);
   }
@@ -3565,7 +3565,7 @@ function updateKFList() {
     item.style.flexDirection='column'; item.style.alignItems='stretch';
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;width:100%';
-    row.innerHTML=`<span style="color:${hasD?'#ffd060':'#6878a0'}">●</span>
+    row.innerHTML=`<span style="color:${hasD?'#ffd060':'#686868'}">●</span>
       <span class="kfv">${kfv.toFixed(2)}</span>
       <span style="flex:1;font-size:10px;color:var(--dim);padding-left:6px">${hasD?'データあり':''}</span>
       <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#a0c0ff':'#3a4a6a'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
@@ -4413,7 +4413,7 @@ canvas{display:block;image-rendering:auto;}
 #obs-tip{display:none;position:fixed;top:40px;right:10px;background:rgba(28,28,28,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:12px 14px;color:var(--text);font-size:11px;font-family:sans-serif;line-height:1.8;max-width:260px;z-index:99;}
 #expr-hud{display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:4px 12px;color:#ffd060;font-size:11px;font-family:monospace;pointer-events:none;z-index:99;}
 #dbg-ov{display:none;position:fixed;top:10px;left:10px;background:rgba(0,0,0,.78);color:#00e080;font-size:9.5px;font-family:monospace;padding:6px 10px;border-radius:5px;pointer-events:none;z-index:99;line-height:1.65;min-width:160px;}
-#expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(10,12,22,.75);border:1px solid rgba(60,70,110,.5);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
+#expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(22,22,22,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
 #expr-list .el{color:var(--dim);} #expr-list .el.active{color:#ffd060;font-weight:bold;}
 #pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
 #pose-bar button{background:rgba(28,28,28,.92);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
@@ -4475,23 +4475,23 @@ canvas.mirrored{transform:scaleX(-1);}
 #chatpoll-title{font-size:10px;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:.05em;}
 .poll-opt{margin:3px 0;font-size:10px;color:var(--text);}
 .poll-bar-wrap{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:2px;}
-.poll-bar-fill{height:100%;background:#4e7cff;border-radius:3px;transition:width .5s ease;}
+.poll-bar-fill{height:100%;background:#e07840;border-radius:3px;transition:width .5s ease;}
 /* Goal bar (?twitchgoal=TEXT:CURRENT:MAX) */
 #goal-bar-ov{display:none;position:fixed;pointer-events:none;z-index:62;background:rgba(8,10,24,.92);border:1px solid rgba(224,120,64,.4);border-radius:6px;padding:6px 14px;min-width:200px;max-width:340px;}
 #goal-bar-ov.show{display:block;}
 #goal-label{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--text);white-space:nowrap;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;}
 #goal-label span{color:#ffd060;}
 #goal-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
-#goal-fill{height:100%;background:var(--goal-color,#4e7cff);border-radius:3px;transition:width .6s ease;}
+#goal-fill{height:100%;background:var(--goal-color,#e07840);border-radius:3px;transition:width .6s ease;}
 /* Lower third (?lowerthird=TEXT) */
 #lowerthird-ov{display:none;position:fixed;bottom:48px;left:0;pointer-events:none;z-index:61;max-width:80vw;}
 #lowerthird-ov.show{display:block;animation:ltSlideIn .5s cubic-bezier(.22,1,.36,1) both;}
 @keyframes ltSlideIn{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes ltSlideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(-110%);opacity:0}}
-#lt-bar{height:4px;width:100%;background:var(--lt-color,#4e7cff);}
+#lt-bar{height:4px;width:100%;background:var(--lt-color,#e07840);}
 #lt-main{background:rgba(8,10,24,.92);padding:6px 20px 6px 14px;display:flex;flex-direction:column;gap:2px;}
 #lt-name{font-family:'Segoe UI',sans-serif;font-size:16px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:.02em;}
-#lt-title{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--lt-color,#4e7cff);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;}
+#lt-title{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--lt-color,#e07840);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;}
 #ticker-ov{display:none;position:fixed;bottom:0;left:0;right:0;height:28px;background:rgba(10,14,30,.9);border-top:1px solid rgba(78,124,255,.3);overflow:hidden;pointer-events:none;z-index:60;}
 #ticker-ov.show{display:flex;align-items:center;}
 #ticker-inner{position:absolute;white-space:nowrap;font-family:'Segoe UI',sans-serif;font-size:13px;color:var(--dim);letter-spacing:.04em;}
@@ -4610,8 +4610,8 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 3. 幅: <strong style="color:#ffd060">${EW}</strong> / 高さ: <strong style="color:#ffd060">${EH}</strong>
 <button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
 ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
-<span style="color:#6878a0">カメラへのアクセスを許可してください</span>
-${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#6878a0">0キー = デフォルトに戻す</span>`:''}
+<span style="color:#686868">カメラへのアクセスを許可してください</span>
+${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#686868">0キー = デフォルトに戻す</span>`:''}
 </div>
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
@@ -5924,7 +5924,7 @@ function _setPose(idx){
     _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
     _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
     _pbtn.onclick=window.openAvatarPiP;
-    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#80b8e0';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
+    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#707070';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
     document.body.appendChild(_pbtn);
   }
   if(_usp2.get('pip')==='1') document.addEventListener('click',()=>window.openAvatarPiP(),{once:true});
@@ -5935,7 +5935,7 @@ let _speedVary=false, _speedVaryT=0;
   const btn=document.createElement('button');
   btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
   btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
-  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#80b8e0';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
+  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#707070';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
   if(typeof animPlaying!=='undefined') btn.style.display='';
   document.body.appendChild(btn);
 })();
@@ -6723,7 +6723,7 @@ window.addEventListener('message',e=>{
   _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _gpBtn.onclick = () => {
     _gpActive = !_gpActive;
-    _gpBtn.style.color = _gpActive ? '#60d890' : '#80b8e0';
+    _gpBtn.style.color = _gpActive ? '#60d890' : '#707070';
     _gpBtn.style.borderColor = _gpActive ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
     _gpBtn.textContent = _gpActive ? '🎮 ON' : '🎮 Pad';
     if (_gpActive) { _gpRaf = requestAnimationFrame(_gpTick); } else if (_gpRaf) { cancelAnimationFrame(_gpRaf); _gpRaf = null; }
@@ -6737,7 +6737,7 @@ let _idleRandTimer = null;
 function toggleIdleRandom() {
   _idleRandActive = !_idleRandActive;
   const btn = document.getElementById('idle-rand-btn');
-  if (btn) { btn.textContent = _idleRandActive ? '🎲 ON' : '🎲 Auto'; btn.style.color = _idleRandActive ? '#ffd060' : '#80b8e0'; }
+  if (btn) { btn.textContent = _idleRandActive ? '🎲 ON' : '🎲 Auto'; btn.style.color = _idleRandActive ? '#ffd060' : '#707070'; }
   if (_idleRandActive) scheduleIdleRand(); else if (_idleRandTimer) { clearTimeout(_idleRandTimer); _idleRandTimer = null; }
 }
 function scheduleIdleRand() {
@@ -6768,7 +6768,7 @@ _mtBtn.textContent = '🖱 マウス追従';
 _mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
 _mtBtn.onclick = () => {
   _mouseTracking = !_mouseTracking;
-  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#80b8e0';
+  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#707070';
   _mtBtn.style.borderColor = _mouseTracking ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
   _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
 };
@@ -6843,7 +6843,7 @@ window._applyTrackPreset=function(preset){
   settBtn.onclick=()=>{
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
-    settBtn.style.color=v?'#60d890':'#80b8e0';
+    settBtn.style.color=v?'#60d890':'#707070';
     if(v) _syncAllSliders();
   };
   document.body.appendChild(settBtn);
@@ -6861,7 +6861,7 @@ window._applyTrackPreset=function(preset){
   _srBtn.onclick = () => {
     if (_srActive) {
       _sr?.stop(); _srActive = false;
-      _srBtn.style.color = '#80b8e0'; _srBtn.style.borderColor = 'rgba(255,255,255,.12)';
+      _srBtn.style.color = '#707070'; _srBtn.style.borderColor = 'rgba(255,255,255,.12)';
       _srBtn.textContent = '🎙 音声';
     } else {
       try {
@@ -9070,7 +9070,7 @@ window.addEventListener('message',ev=>{
   const _msgs=[];
   function _render(){
     _ov.innerHTML=_msgs.map(m=>{
-      const c=m.color&&/^#[0-9a-fA-F]{6}$/.test(m.color)?m.color:'#8090b0';
+      const c=m.color&&/^#[0-9a-fA-F]{6}$/.test(m.color)?m.color:'#808080';
       return `<div style="padding:3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:${_fs}px;word-break:break-word;"><span style="color:${c};font-weight:700;">${m.user||''}</span>${m.user?': ':''}<span style="color:#c0c8e0;">${m.msg.slice(0,120)}</span></div>`;
     }).join('');
     _ov.scrollTop=_ov.scrollHeight;
@@ -16430,7 +16430,7 @@ window.addEventListener('message',ev=>{
     const total=Object.values(_votes).reduce((s,v)=>s+v,0)||1;
     _optsEl.innerHTML=_opts.map((o,i)=>{
       const pct=Math.round((_votes[i]||0)/total*100);
-      const col=['#4e7cff','#ff7c4e','#60d890','#ffd060','#c060ff'][i%5];
+      const col=['#e07840','#ff7c4e','#60d890','#ffd060','#c060ff'][i%5];
       return `<div class="poll-opt"><span style="color:var(--dim)">${i+1}.</span> ${o} <span style="color:${col};font-weight:700">${pct}%</span> <span style="color:var(--dim);font-size:9px">(${_votes[i]||0})</span><div class="poll-bar-wrap"><div class="poll-bar-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
     }).join('');
   }
@@ -18518,7 +18518,7 @@ function drawFc2d() {
   ctx2.beginPath(); ctx2.moveTo(W/2, 0); ctx2.lineTo(W/2, H); ctx2.stroke();
   ctx2.beginPath(); ctx2.moveTo(0, H/2); ctx2.lineTo(W, H/2); ctx2.stroke();
   if (!active) {
-    ctx2.fillStyle = '#2a3a50'; ctx2.font = '9px sans-serif';
+    ctx2.fillStyle = '#5a5a5a'; ctx2.font = '9px sans-serif';
     ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
     ctx2.fillText('手動制御 OFF', W/2, H/2);
     return;
@@ -18932,7 +18932,7 @@ function _oscLoop() {
 
   // Draw
   const ctx = _oscCtx; if (!ctx) return;
-  ctx.fillStyle = '#0d1020'; ctx.fillRect(0,0,OSC_W,OSC_H);
+  ctx.fillStyle = '#0d0d0d'; ctx.fillRect(0,0,OSC_W,OSC_H);
   // Grid
   ctx.strokeStyle = 'rgba(60,80,60,.5)'; ctx.lineWidth = 1;
   [0.25,0.5,0.75].forEach(fy => { ctx.beginPath(); ctx.moveTo(0,fy*OSC_H); ctx.lineTo(OSC_W,fy*OSC_H); ctx.stroke(); });
@@ -20566,7 +20566,7 @@ function drawTimeline() {
     tlCtx.fillStyle=hasD?'rgba(255,208,96,.15)':'rgba(200,212,240,.05)';
     tlCtx.fillRect(x-1,0,2,H);
     // KF value label
-    tlCtx.fillStyle=hasD?'#ffd060':'#6878a0';
+    tlCtx.fillStyle=hasD?'#ffd060':'#686868';
     tlCtx.font='9px monospace'; tlCtx.textAlign='center';
     tlCtx.fillText(kfv.toFixed(2),x,H-2);
   }
@@ -21471,9 +21471,9 @@ function drawMultiTimeline() {
       tlMultiCtx.fillStyle = 'rgba(78,100,200,.4)';
       tlMultiCtx.fillRect(0, ry+rh-1, W, 1);
       if (tlLabelCtx) {
-        tlLabelCtx.fillStyle = 'rgba(78,100,200,.2)';
+        tlLabelCtx.fillStyle = 'rgba(255,255,255,.04)';
         tlLabelCtx.fillRect(0, ry, LW, rh);
-        tlLabelCtx.fillStyle = '#8898ee';
+        tlLabelCtx.fillStyle = '#c8c8c8';
         tlLabelCtx.font = 'bold 9px Segoe UI';
         tlLabelCtx.fillText((isCollapsed ? '▶ ' : '▼ ') + grp.name, 4, ry + rh/2 + 3);
       }
@@ -21521,7 +21521,7 @@ function drawMultiTimeline() {
       const isLocked = tlLockedTracks.has(name);
       const isMuted = tlMutedTracks.has(name);
       const isSoloed = tlSoloTrack === name;
-      tlLabelCtx.fillStyle = isMuted ? '#3a4060' : isHidden ? '#3a4060' : (name===ST.ap ? '#c8d4f0' : '#6878a0');
+      tlLabelCtx.fillStyle = isMuted ? '#3a3a3a' : isHidden ? '#3a3a3a' : (name===ST.ap ? '#c8c8c8' : '#686868');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
       const shortLbl = (isHidden?'○ ':'') + (isMuted?'🔇':'') + (isSoloed?'🔊':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
@@ -22138,7 +22138,7 @@ function toggleAnimMode() {
   } else {
     tl.style.height=''; tl.style.overflow=''; tl.style.border='';
     tlm.style.height='0'; tlm.style.borderTop='none';
-    if (btn) { btn.classList.remove('on'); btn.style.color='#80b8e0'; }
+    if (btn) { btn.classList.remove('on'); btn.style.color='#707070'; }
     resizeTimeline();
     // Hide KF nav buttons
     document.querySelectorAll('[id^="kfnav-"]').forEach(el => el.style.display = 'none');
@@ -22166,15 +22166,15 @@ function generateBlinkAnim() {
   box.style.cssText = 'background:#242424;border:1px solid rgba(100,200,150,.5);border-radius:8px;padding:14px 16px;min-width:280px;font-size:11px;display:flex;flex-direction:column;gap:8px;';
   const dur = M.animation.duration||3;
   box.innerHTML = `<div style="font-weight:600;color:#80d0b0;">👁 ランダムまばたき生成</div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">速さ (秒):</span><input id="blk-spd" type="number" value="0.12" min="0.05" max="0.5" step="0.01" style="width:60px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">速さ (秒):</span><input id="blk-spd" type="number" value="0.12" min="0.05" max="0.5" step="0.01" style="width:60px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">対象パラメータ:</span>
-  <select id="blk-param" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="blk-param" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${['blinkL&blinkR','blinkL','blinkR'].map(v=>`<option value="${v}">${v}</option>`).join('')}
     ${Object.keys(M.params).filter(n=>n!=='blinkL'&&n!=='blinkR').map(n=>`<option value="${n}">${M.params[n].lbl||n}</option>`).join('')}
   </select></div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">配置:</span>
-  <select id="blk-mode" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="blk-mode" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="random">ランダム</option><option value="regular">均等</option>
   </select></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
@@ -22354,19 +22354,19 @@ function generateIdleLoop() {
 <table style="border-spacing:0 4px;width:100%;">
   <tr><td colspan="2" style="color:#8898cc;font-size:9px;padding-bottom:2px;border-bottom:1px solid #2a3a5a;">⚙ パラメータ設定</td></tr>
   <tr><td style="color:var(--dim);width:110px;">まばたき速さ (秒)</td>
-      <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">呼吸周期 (秒)</td>
-      <td><input id="idle-bperiod" type="number" value="${Math.min(4, dur * 0.8).toFixed(1)}" min="1" max="10" step="0.5" style="width:70px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bperiod" type="number" value="${Math.min(4, dur * 0.8).toFixed(1)}" min="1" max="10" step="0.5" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">呼吸対象パラメータ</td>
-      <td><select id="idle-breathparam" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+      <td><select id="idle-breathparam" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         ${Object.entries(M.params).map(([k,p])=>`<option value="${k}"${k==='bodyZ'?' selected':''}>${p.lbl||k}</option>`).join('')}
       </select></td></tr>
   <tr><td style="color:var(--dim);">呼吸振幅</td>
-      <td><input id="idle-bamp" type="number" value="0.2" min="0.01" max="1" step="0.05" style="width:70px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bamp" type="number" value="0.2" min="0.01" max="1" step="0.05" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">頭揺れ振幅</td>
-      <td><input id="idle-swayamp" type="number" value="0.05" min="0.01" max="0.5" step="0.01" style="width:70px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-swayamp" type="number" value="0.05" min="0.01" max="0.5" step="0.01" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">既存KFを</td>
-      <td><select id="idle-merge" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+      <td><select id="idle-merge" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         <option value="replace">上書き</option><option value="add">追加</option>
       </select></td></tr>
 </table>
@@ -22497,26 +22497,26 @@ function showProceduralAnimDialog() {
   box.innerHTML = `<div style="color:#a0b0d0;font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
 <div style="display:grid;grid-template-columns:100px 1fr;gap:4px;align-items:center;">
   <label style="color:var(--dim);">パラメータ</label>
-  <select id="pa-param" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-param" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${params.map(n=>`<option value="${n}"${n===ap?' selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}
   </select>
   <label style="color:var(--dim);">波形</label>
-  <select id="pa-wave" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-wave" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="sin">サイン波（滑らか）</option>
     <option value="tri">三角波（線形）</option>
     <option value="noise">ランダムノイズ</option>
     <option value="breath">呼吸（非対称サイン）</option>
   </select>
   <label style="color:var(--dim);">周期 (秒)</label>
-  <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">振幅</label>
-  <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">中心値</label>
-  <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">解像度 (fps)</label>
-  <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">既存KFを</label>
-  <select id="pa-merge" style="background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-merge" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="replace">上書き</option>
     <option value="add">追加</option>
   </select>
@@ -23892,7 +23892,7 @@ function quantizeKFTimes() {
 function toggleAutoKF() {
   tlAutoKF = !tlAutoKF;
   const btn = document.getElementById('btn-auto-kf');
-  if (btn) { btn.style.background = tlAutoKF ? '#3a1010' : '#2d2d2d'; btn.style.color = tlAutoKF ? '#ff6060' : '#c0a0ff'; btn.style.borderColor = tlAutoKF ? 'rgba(255,60,60,.6)' : 'var(--border)'; btn.textContent = tlAutoKF ? '⊕ ON' : '⊕ KF'; }
+  if (btn) { btn.style.background = tlAutoKF ? '#3a1010' : '#2d2d2d'; btn.style.color = tlAutoKF ? '#ff6060' : '#707070'; btn.style.borderColor = tlAutoKF ? 'rgba(255,60,60,.6)' : 'var(--border)'; btn.textContent = tlAutoKF ? '⊕ ON' : '⊕ KF'; }
 }
 
 // ==================== PARAM RECORDING ====================
@@ -25038,7 +25038,7 @@ async function showAICharacterCoachDialog() {
 
   const panel = document.createElement('div');
   _aiCoachPanel = panel;
-  panel.style.cssText = 'position:fixed;bottom:60px;right:14px;width:280px;background:#0d1820;border:1px solid rgba(60,220,100,.4);border-radius:8px;z-index:800;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.6);';
+  panel.style.cssText = 'position:fixed;bottom:60px;right:14px;width:280px;background:#1a1a1a;border:1px solid rgba(60,220,100,.4);border-radius:8px;z-index:800;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.6);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid rgba(60,220,100,.2);">
       <span style="font-size:11px;font-weight:600;color:#40dd70;">🎯 AIキャラクターコーチ</span>
@@ -25048,9 +25048,9 @@ async function showAICharacterCoachDialog() {
       <div style="font-size:9px;color:#4a8060;">分析対象</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
         <button class="coach-mode-btn active" data-mode="overall" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.4);color:#40dd70;">全体</button>
-        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
-        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
-        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#131820;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
+        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
+        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
+        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
       </div>
       <button id="coach-run" style="font-size:10px;padding:4px;border-radius:4px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.5);color:#40dd70;font-weight:600;">▶ 分析開始</button>
       <div id="coach-status" style="font-size:9px;color:#4a8060;display:none;"></div>
@@ -25131,7 +25131,7 @@ function showAnimCompareDialog() {
   }
   const W = Math.min(window.innerWidth - 80, 750);
   const H = 240;
-  const COLORS = ['#4e7cff', '#ff6060', '#60d890', '#ffd060', '#c080ff', '#ff80c0'];
+  const COLORS = ['#e07840', '#ff6060', '#60d890', '#ffd060', '#c080ff', '#ff80c0'];
 
   const mo = document.createElement('div');
   mo.className = 'mo';
@@ -25170,7 +25170,7 @@ function showAnimCompareDialog() {
     const cvs = document.getElementById('cmp-canvas');
     const ctx2 = cvs.getContext('2d');
     const W2 = cvs.width, H2 = cvs.height;
-    ctx2.fillStyle = '#0a0e1e'; ctx2.fillRect(0, 0, W2, H2);
+    ctx2.fillStyle = '#0a0a0a'; ctx2.fillRect(0, 0, W2, H2);
 
     const clipA = allAnims[idxA], clipB = allAnims[idxB];
     if (!clipA || !clipB) return;
@@ -25474,7 +25474,7 @@ function showParamCorrelation() {
       <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
       <button onclick="drawCorrPlot()" style="background:#1e2e40;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
     </div>
-    <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0c18;border-radius:4px;border:1px solid var(--border);"></canvas>
+    <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0a0a;border-radius:4px;border:1px solid var(--border);"></canvas>
     <div id="corr-info" style="font-size:9px;color:var(--dim);margin-top:4px;text-align:center;"></div>
   </div>`;
   showModal('パラメータ相関グラフ', bodyHTML);
@@ -27213,7 +27213,7 @@ function applyPlayheadToParams() {
       if (trackHit) {
         const {name, p, t, frames} = trackHit;
         const v = evalAnimTrack(frames, p || {min:-1,max:1,val:0}, t);
-        _kfTip.innerHTML=`<span style="color:#6878a0">${p?.lbl||name}</span>  @${t.toFixed(3)}s<br>v: <span style="color:#80c080">${v.toFixed(3)}</span>`;
+        _kfTip.innerHTML=`<span style="color:#686868">${p?.lbl||name}</span>  @${t.toFixed(3)}s<br>v: <span style="color:#80c080">${v.toFixed(3)}</span>`;
       } else {
         _kfTip.style.display='none'; return;
       }
@@ -27244,11 +27244,11 @@ function applyPlayheadToParams() {
     wrap.innerHTML=`<div style="color:var(--dim);margin-bottom:4px;">${pname}</div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
   <span style="color:var(--dim);width:12px">v</span>
-  <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+  <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
 </div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
   <span style="color:var(--dim);width:12px">t</span>
-  <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:#101422;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+  <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
   <span style="color:var(--dim)">s</span>
 </div>
 <div style="display:flex;gap:3px;justify-content:flex-end;">
@@ -27376,7 +27376,7 @@ function togglePhysSim() {
   if (btn) {
     btn.textContent = _physSimActive ? '■ シミュ停止' : '▶ シミュ';
     btn.style.background = _physSimActive ? 'rgba(224,120,64,.15)' : '#282828';
-    btn.style.color = _physSimActive ? '#ff80c0' : '#c0a0ff';
+    btn.style.color = _physSimActive ? 'var(--accent)' : '#707070';
     btn.style.borderColor = _physSimActive ? 'rgba(255,100,200,.5)' : 'rgba(140,100,255,.4)';
   }
   if (_physSimActive) {
@@ -28713,7 +28713,7 @@ const GE = {
   viewMaxV: 1.05,
   overlayParams: [], // additional params drawn as ghost curves
 };
-const GE_OVERLAY_COLORS = ['#ff6090','#60d890','#ffd060','#a06cff','#60d0ff','#ff9060'];
+const GE_OVERLAY_COLORS = ['#ff6090','#60d890','#ffd060','#e07840','#c09040','#ff9060'];
 
 function toggleGraphEditor() {
   GE.visible = !GE.visible;
@@ -28746,7 +28746,7 @@ function geRender() {
   const dpr = devicePixelRatio;
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#0d1020';
+  ctx.fillStyle = '#0d0d0d';
   ctx.fillRect(0, 0, W, H);
 
   const totalFrames = M.totalFrames || 120;
@@ -28781,7 +28781,7 @@ function geRender() {
     const v = GE.viewMinV + (i / hLines) * vRange;
     const y = vToY(v);
     ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
-    ctx.fillStyle = '#5a6a8a';
+    ctx.fillStyle = '#5a5a5a';
     ctx.font = `${9*dpr}px monospace`;
     ctx.textAlign = 'right';
     ctx.fillText(v.toFixed(1), PAD_L - 4*dpr, y + 3*dpr);
@@ -28866,7 +28866,7 @@ function geRender() {
     const x = tToX(kf.frame), y = vToY(kf.value);
     const r = 6 * dpr;
     const isSel = GE.selKF === idx;
-    const easingCol = (kf.slope != null ? '#a0e8ff' : KF_EASING_COLORS[kf.easing || 'ease']) || '#4e7cff';
+    const easingCol = (kf.slope != null ? '#f0d090' : KF_EASING_COLORS[kf.easing || 'ease']) || '#e07840';
     ctx.save();
     if (isSel) {
       ctx.shadowColor = 'rgba(255,200,80,0.8)';
@@ -28914,23 +28914,23 @@ function geRender() {
       const ang = Math.atan2(-slopePx, 1);
       const hx = Math.cos(ang) * HANDLE_DT, hy = Math.sin(ang) * HANDLE_DT;
       // Out handle
-      ctx.strokeStyle = 'rgba(160,232,255,0.7)'; ctx.lineWidth = 1 * dpr;
+      ctx.strokeStyle = 'rgba(240,208,144,0.7)'; ctx.lineWidth = 1 * dpr;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + hx, y + hy); ctx.stroke();
       ctx.beginPath(); ctx.arc(x + hx, y + hy, 4 * dpr, 0, Math.PI*2);
-      ctx.fillStyle = '#a0e8ff'; ctx.fill();
+      ctx.fillStyle = '#f0d090'; ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
       // In handle (mirror)
-      ctx.strokeStyle = 'rgba(160,232,255,0.7)'; ctx.lineWidth = 1 * dpr;
+      ctx.strokeStyle = 'rgba(240,208,144,0.7)'; ctx.lineWidth = 1 * dpr;
       ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - hx, y - hy); ctx.stroke();
       ctx.beginPath(); ctx.arc(x - hx, y - hy, 4 * dpr, 0, Math.PI*2);
-      ctx.fillStyle = '#a0e8ff'; ctx.fill();
+      ctx.fillStyle = '#f0d090'; ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
     }
   });
   canvas._ge_kfs_snap = kfs;
 }
 
-const KF_EASING_COLORS = { ease:'#4e7cff', linear:'#60d890', easeIn:'#ffd060', easeOut:'#f0a040', step:'#ff6060' };
+const KF_EASING_COLORS = { ease:'#e07840', linear:'#60d890', easeIn:'#ffd060', easeOut:'#f0a040', step:'#ff6060' };
 
 function applyEasing(f, type) {
   switch (type) {
@@ -29418,7 +29418,7 @@ function showGEEasingMenu(cx, cy, kf, extraItems) {
     menu.appendChild(sep0);
     extraItems.forEach(it => {
       const btn = document.createElement('div');
-      btn.style.cssText = 'padding:4px 10px;cursor:pointer;border-radius:4px;font-size:11px;color:#a0e8ff;';
+      btn.style.cssText = 'padding:4px 10px;cursor:pointer;border-radius:4px;font-size:11px;color:var(--text);';
       btn.textContent = it.label;
       btn.onmouseenter = () => btn.style.background = 'rgba(160,232,255,.08)';
       btn.onmouseleave = () => btn.style.background = '';
@@ -29434,7 +29434,7 @@ function showGEEasingMenu(cx, cy, kf, extraItems) {
     menu.appendChild(sep1);
   }
   const types = [
-    { id:'ease',    label:'⟿ Ease (デフォルト)', col:'#4e7cff' },
+    { id:'ease',    label:'⟿ Ease (デフォルト)', col:'#e07840' },
     { id:'linear',  label:'→ Linear',             col:'#60d890' },
     { id:'easeIn',  label:'⟶ Ease In',            col:'#ffd060' },
     { id:'easeOut', label:'⟹ Ease Out',           col:'#f0a040' },
@@ -29478,11 +29478,11 @@ async function generateExportThumbnails(mo) {
     const sw = aspect >= 1 ? tw : Math.round(th * aspect);
     const sh = aspect >= 1 ? Math.round(tw / aspect) : th;
     const ox = Math.round((tw - sw) / 2), oy = Math.round((th - sh) / 2);
-    tc.fillStyle = '#0d1117'; tc.fillRect(0, 0, tw, th);
+    tc.fillStyle = '#0d0d0d'; tc.fillRect(0, 0, tw, th);
     tc.drawImage(canvas, ox, oy, sw, sh);
     // time label
     tc.fillStyle = 'rgba(0,0,0,.55)'; tc.fillRect(0, th-14, tw, 14);
-    tc.fillStyle = '#80c0ff'; tc.font = '8px monospace'; tc.textAlign = 'center';
+    tc.fillStyle = '#a0a0a0'; tc.font = '8px monospace'; tc.textAlign = 'center';
     tc.fillText(`t=${times[i].toFixed(2)}s`, tw/2, th-4);
   }
   ST.animPlayhead = savedT;
@@ -29780,7 +29780,7 @@ function showGIFExportDialog() {
     <div id="gf-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div id="gf-progress" style="display:none;margin-bottom:6px;">
       <div style="font-size:9px;color:#ffd060;margin-bottom:3px;" id="gf-prog-text">フレームキャプチャ中...</div>
-      <div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:#4e7cff;width:0%;transition:width .1s;"></div></div>
+      <div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:#e07840;width:0%;transition:width .1s;"></div></div>
     </div>
     <div style="display:flex;gap:6px;">
       <button id="gf-start-btn" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
@@ -30502,7 +30502,7 @@ function toggleRndAnimate(on) {
     <button onclick="toggleWaveformMonitor()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
   </div>
   <div id="wf-sels" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;"></div>
-  <canvas id="wf-cv" width="264" height="100" style="width:100%;background:#060a12;border-radius:4px;display:block;"></canvas>`;
+  <canvas id="wf-cv" width="264" height="100" style="width:100%;background:#060606;border-radius:4px;display:block;"></canvas>`;
   document.body.appendChild(_pn);
 
   function _buildSels(){
@@ -30592,7 +30592,7 @@ function renderHistogram() {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#080a14';
+  ctx.fillStyle = '#080808';
   ctx.fillRect(0, 0, W, H);
 
   const allTracks = document.getElementById('hist-all-tracks')?.checked;
@@ -30605,7 +30605,7 @@ function renderHistogram() {
     : (selParam && tracks[selParam] ? [selParam] : []);
 
   if (!tracksToShow.length) {
-    ctx.fillStyle = '#6878a0';
+    ctx.fillStyle = '#686868';
     ctx.font = '11px monospace';
     ctx.fillText('KFなし', W/2-20, H/2);
     return;
@@ -30637,7 +30637,7 @@ function renderHistogram() {
   for (let i = 0; i <= 4; i++) {
     const y = pad.t + gH - (i / 4) * gH;
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + gW, y); ctx.stroke();
-    ctx.fillStyle = '#4e5880'; ctx.font = '9px monospace';
+    ctx.fillStyle = '#4e4e4e'; ctx.font = '9px monospace';
     ctx.fillText(Math.round(maxCount * i / 4), 2, y + 3);
   }
 
@@ -30659,7 +30659,7 @@ function renderHistogram() {
   });
 
   // X axis labels
-  ctx.fillStyle = '#6878a0'; ctx.font = '9px monospace';
+  ctx.fillStyle = '#686868'; ctx.font = '9px monospace';
   for (let i = 0; i <= 4; i++) {
     const v = globalMin + (i / 4) * (globalMax - globalMin);
     const x = pad.l + (i / 4) * gW;
