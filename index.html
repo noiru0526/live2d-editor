@@ -511,6 +511,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <button class="kfb-deform" onclick="scaleSelection()" title="選択頂点を拡大縮小">⤡ 拡大縮小</button>
       <button class="kfb-deform" onclick="rotateSelection()" title="選択頂点を回転">↻ 回転</button>
       <button class="kfb-deform" onclick="weldVertices()" title="近接頂点を溶接して結合">⊕ 頂点溶接</button>
+      <button class="kfb-deform" onclick="showGlueManager()" title="メッシュ境界を別パーツに結合（グルー）">🔗 グルー</button>
       <button class="kfb-del" onclick="deleteActiveParam()" id="btn-del-param" style="display:none;">× このパラメータを削除</button>
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
       <button class="kfb-loop" onclick="toggleLoopPreview()" id="btn-loop-prev">⟳ このパラメータをループ再生</button>
@@ -1448,6 +1449,7 @@ const M = {
   animClips: [],   // [{name:'クリップ名', animation:{...}}] named animation clips
   chatTriggers: [], // [{keyword, action:'pose'|'param'|'clip', target, value}] user-defined
   kfComments: {}, // {`${paramId}:${kfValue}`: 'comment text'} — notes attached to keyframes
+  glues: [], // [{id, name, srcPart, dstPart, weight, pairs:[{si,di}]}] mesh boundary glue constraints
   profile: {
     name: 'noiru',
     author: '',
@@ -1783,7 +1785,134 @@ function deformedVertsForPart(part) {
   }
   // Apply warp deformers that bind this part
   applyDeformersToVerts(pos, part.id);
+  // Apply glue constraints (mesh boundary binding)
+  applyGluesToVerts(pos, part);
   return pos;
+}
+
+// ==================== GLUE (メッシュ境界結合) ====================
+function getBoundaryVertices(mesh) {
+  const edgeCount = new Map();
+  for (const [a,b,c] of mesh.tris) {
+    for (const [u,v] of [[a,b],[b,c],[c,a]]) {
+      const key = u < v ? `${u}_${v}` : `${v}_${u}`;
+      edgeCount.set(key, (edgeCount.get(key) || 0) + 1);
+    }
+  }
+  const bv = new Set();
+  for (const [key, cnt] of edgeCount) {
+    if (cnt === 1) { const [u,v] = key.split('_').map(Number); bv.add(u); bv.add(v); }
+  }
+  return bv;
+}
+
+function detectGluePairs(srcPart, dstPart, threshold) {
+  const srcBV = getBoundaryVertices(srcPart.mesh);
+  const dstBV = getBoundaryVertices(dstPart.mesh);
+  const pairs = [];
+  const usedDst = new Set();
+  for (const si of srcBV) {
+    const sv = srcPart.mesh.verts[si];
+    let bestDi = -1, bestDist = threshold;
+    for (const di of dstBV) {
+      if (usedDst.has(di)) continue;
+      const dv = dstPart.mesh.verts[di];
+      const dist = Math.hypot(sv.x - dv.x, sv.y - dv.y);
+      if (dist < bestDist) { bestDist = dist; bestDi = di; }
+    }
+    if (bestDi >= 0) { pairs.push({ si, di: bestDi }); usedDst.add(bestDi); }
+  }
+  return pairs;
+}
+
+const _glueComputing = new Set();
+function applyGluesToVerts(pos, part) {
+  if (!M.glues || M.glues.length === 0) return;
+  if (_glueComputing.has(part.id)) return;
+  for (const glue of M.glues) {
+    if (glue.srcPart !== part.id || !glue.pairs?.length) continue;
+    const dstPart = M.parts.find(p => p.id === glue.dstPart);
+    if (!dstPart) continue;
+    _glueComputing.add(part.id);
+    const dstPos = deformedVertsForPart(dstPart);
+    _glueComputing.delete(part.id);
+    const w = glue.weight ?? 1.0;
+    for (const { si, di } of glue.pairs) {
+      if (si >= pos.length || di >= dstPos.length) continue;
+      pos[si].x += (dstPos[di].x - pos[si].x) * w;
+      pos[si].y += (dstPos[di].y - pos[si].y) * w;
+    }
+  }
+}
+
+function showGlueManager() {
+  const parts = M.parts;
+  const partOpts = parts.map((p,i) => `<option value="${p.id}">${p.name}</option>`).join('');
+  const glueList = (M.glues||[]).map((g,gi) => {
+    const sp = parts.find(p=>p.id===g.srcPart)?.name||g.srcPart;
+    const dp = parts.find(p=>p.id===g.dstPart)?.name||g.dstPart;
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px;background:#0d1030;border:1px solid #2a3060;border-radius:3px;margin-bottom:4px;">
+      <span style="flex:1;font-size:11px;color:#c0d0f0;">${g.name||'グルー'+gi} <span style="color:#6070a0;">${sp} → ${dp} (${g.pairs?.length||0}ペア)</span></span>
+      <input type="range" min="0" max="1" step="0.05" value="${g.weight??1}" style="width:60px;" oninput="M.glues[${gi}].weight=+this.value;ST.cachedVerts=null;redraw();" title="ウェイト">
+      <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:#300;border:1px solid #600;color:#f88;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
+    </div>`;
+  }).join('');
+  const html = `
+    <div style="font-size:11px;color:#8090c0;margin-bottom:8px;">グルー: メッシュ境界を結合して動きを伝える</div>
+    <div id="glue-list">${glueList || '<div style="color:#404060;font-size:10px;padding:4px;">グルーなし</div>'}</div>
+    <hr style="border:none;border-top:1px solid #2a3060;margin:10px 0;">
+    <div style="font-size:10px;color:#6070a0;margin-bottom:6px;">新規グルーを追加</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+      <div><label style="font-size:9px;color:#6070a0;">ソースパーツ（追従側）</label><br>
+        <select id="glue-src" style="width:100%;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
+      <div><label style="font-size:9px;color:#6070a0;">ターゲットパーツ（基準）</label><br>
+        <select id="glue-dst" style="width:100%;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <label style="font-size:9px;color:#6070a0;">境界検出しきい値(px)</label>
+      <input id="glue-thresh" type="number" value="20" min="1" max="200" style="width:70px;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">
+      <label style="font-size:9px;color:#6070a0;">ウェイト</label>
+      <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="_gluePreview()" style="flex:1;background:#1a2040;border:1px solid #3a5090;color:#90b0ff;border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
+      <button onclick="_glueApply()" style="flex:1;background:#102820;border:1px solid #205040;color:#70d8a0;border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
+    </div>
+    <div id="glue-preview-info" style="margin-top:6px;font-size:10px;color:#6070a0;"></div>`;
+  showModal('🔗 グルー（メッシュ境界結合）', html);
+}
+
+function _glueGetInputs() {
+  const srcId = document.getElementById('glue-src').value;
+  const dstId = document.getElementById('glue-dst').value;
+  const thresh = parseFloat(document.getElementById('glue-thresh').value) || 20;
+  const weight = Math.max(0, Math.min(1, parseFloat(document.getElementById('glue-weight').value) ?? 1));
+  const srcPart = M.parts.find(p => p.id === srcId);
+  const dstPart = M.parts.find(p => p.id === dstId);
+  return { srcId, dstId, thresh, weight, srcPart, dstPart };
+}
+
+function _gluePreview() {
+  const { srcId, dstId, thresh, srcPart, dstPart } = _glueGetInputs();
+  const info = document.getElementById('glue-preview-info');
+  if (!srcPart || !dstPart || srcId === dstId) { info.textContent = '異なるパーツを選択してください'; return; }
+  const pairs = detectGluePairs(srcPart, dstPart, thresh);
+  info.textContent = `${pairs.length} ペアを検出 (ソース境界: ${getBoundaryVertices(srcPart.mesh).size}頂点, ターゲット境界: ${getBoundaryVertices(dstPart.mesh).size}頂点)`;
+  info.style.color = pairs.length > 0 ? '#70d8a0' : '#f08080';
+}
+
+function _glueApply() {
+  const { srcId, dstId, thresh, weight, srcPart, dstPart } = _glueGetInputs();
+  const info = document.getElementById('glue-preview-info');
+  if (!srcPart || !dstPart || srcId === dstId) { info.textContent = '異なるパーツを選択してください'; return; }
+  const pairs = detectGluePairs(srcPart, dstPart, thresh);
+  if (pairs.length === 0) { info.textContent = 'ペアが見つかりません。しきい値を大きくしてください'; info.style.color='#f08080'; return; }
+  if (!M.glues) M.glues = [];
+  const sp = srcPart.name, dp = dstPart.name;
+  M.glues.push({ id: `glue_${Date.now()}`, name: `${sp}→${dp}`, srcPart: srcId, dstPart: dstId, weight, pairs });
+  ST.cachedVerts = null; redraw();
+  info.textContent = `追加完了: ${pairs.length}ペア`; info.style.color = '#70d8a0';
+  setTimeout(() => { const m = document.querySelector('.modal-overlay'); if(m) m.remove(); showGlueManager(); }, 600);
 }
 
 // Apply all deformers that bind the given partId to pos array
