@@ -134,7 +134,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .mcfg-row label{font-size:12px;width:44px;}
 .mcfg-row input{width:54px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:12px;}
 .mcfg-row button{flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 7px;cursor:pointer;font-size:12px;}
-.mcfg-row button:hover{background:#3a4470;}
+.mcfg-row button:hover{background:rgba(255,255,255,.08);}
 
 /* Bottom timeline panel */
 #timeline{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);height:80px;overflow:hidden;display:flex;flex-direction:column;}
@@ -160,7 +160,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .cur-notch{position:absolute;top:0;width:1px;height:100%;background:#fff;opacity:.8;pointer-events:none;transform:translateX(-50%);}
 
 /* Drop overlay */
-#drop-overlay{display:none;position:absolute;inset:0;background:rgba(78,124,255,.15);border:2px dashed var(--accent);z-index:10;align-items:center;justify-content:center;font-size:18px;color:var(--accent);}
+#drop-overlay{display:none;position:absolute;inset:0;background:rgba(224,120,64,.08);border:2px dashed var(--accent);z-index:10;align-items:center;justify-content:center;font-size:18px;color:var(--accent);}
 #drop-overlay.show{display:flex;}
 
 /* REC recording border */
@@ -188,7 +188,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 #ruler-v{position:absolute;top:0;left:0;bottom:0;width:16px;pointer-events:none;opacity:.5;}
 /* Context menu */
 #ctx-menu .cm-item{padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;}
-#ctx-menu .cm-item:hover{background:rgba(78,124,255,.2);}
+#ctx-menu .cm-item:hover{background:rgba(255,255,255,.08);}
 #ctx-menu .cm-sep{height:1px;background:var(--border);margin:3px 0;}
 #ctx-menu .cm-disabled{opacity:.4;pointer-events:none;}
 #ctx-menu .cm-shortcut{margin-left:auto;color:var(--dim);font-size:10px;}
@@ -238,20 +238,20 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .atlas-chk{accent-color:var(--accent);}
 
 /* Physics enhanced */
-.phys-group{background:#1e1e1e;border:1px solid rgba(46,54,86,.7);border-radius:4px;padding:5px 8px;margin-bottom:4px;}
+.phys-group{background:#1e1e1e;border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:5px 8px;margin-bottom:4px;}
 .phys-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:10px;}
 .phys-row label{color:var(--dim);width:55px;flex-shrink:0;}
 .phys-row input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;}
 .phys-val{font-size:10px;color:var(--accent);width:35px;text-align:right;}
 
-/* Param groups */
-.pgroup-header{display:flex;align-items:center;padding:3px 10px;cursor:pointer;border-bottom:1px solid rgba(46,54,86,.4);background:rgba(46,54,86,.2);}
-.pgroup-header:hover{background:rgba(78,124,255,.07);}
-.pgroup-icon{font-size:11px;margin-right:4px;color:var(--accent2);}
-.pgroup-label{font-size:11px;font-weight:700;color:var(--accent2);flex:1;}
-.pgroup-count{font-size:10px;color:var(--dim);}
-.pgroup-toggle{font-size:10px;color:var(--dim);margin-left:6px;}
-.pgroup-body{border-bottom:1px solid rgba(46,54,86,.3);}
+/* Param groups — Cubism folder style */
+.pgroup-header{display:flex;align-items:center;padding:3px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.03);}
+.pgroup-header:hover{background:rgba(255,255,255,.06);}
+.pgroup-icon{font-size:10px;margin-right:4px;color:var(--accent2);}
+.pgroup-label{font-size:10px;font-weight:700;color:rgba(190,170,130,.9);flex:1;letter-spacing:.5px;}
+.pgroup-count{font-size:9px;color:var(--dim);font-family:monospace;}
+.pgroup-toggle{font-size:9px;color:var(--dim);margin-left:6px;}
+.pgroup-body{border-bottom:1px solid rgba(255,255,255,.04);}
 
 /* Weight paint */
 .weight-palette{display:flex;gap:3px;padding:4px 8px;background:rgba(10,12,24,.6);}
@@ -267,16 +267,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 /* ===== UX PATTERN 2: Context-Sensitive Inspector Panel (Blender N-Panel Style) ===== */
 #ctx-info{border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(24,24,24,.6);}
 .ctx-info-none{padding:10px 12px;text-align:center;color:var(--dim);font-size:11px;font-style:italic;}
-.ctx-info-header{display:flex;align-items:center;gap:7px;padding:7px 12px 5px;border-bottom:1px solid rgba(46,54,86,.5);}
+.ctx-info-header{display:flex;align-items:center;gap:7px;padding:7px 12px 5px;border-bottom:1px solid rgba(255,255,255,.07);}
 .ctx-info-icon{font-size:14px;flex-shrink:0;}
 .ctx-info-name{font-size:12px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ctx-info-type{font-size:10px;color:var(--accent2);background:rgba(160,108,255,.15);border:1px solid rgba(160,108,255,.3);border-radius:3px;padding:1px 6px;flex-shrink:0;}
-.ctx-section{border-bottom:1px solid rgba(46,54,86,.3);}
+.ctx-info-type{font-size:10px;color:var(--accent);background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.35);border-radius:3px;padding:1px 6px;flex-shrink:0;}
+.ctx-section{border-bottom:1px solid rgba(255,255,255,.05);}
 .ctx-section>summary{display:flex;align-items:center;padding:5px 10px;cursor:pointer;font-size:10px;color:var(--dim);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;list-style:none;user-select:none;}
 .ctx-section>summary::-webkit-details-marker{display:none;}
-.ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent2);transition:transform .12s;display:inline-block;}
+.ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent);transition:transform .12s;display:inline-block;}
 .ctx-section[open]>summary::before{transform:rotate(90deg);}
-.ctx-section>summary:hover{background:rgba(78,124,255,.06);}
+.ctx-section>summary:hover{background:rgba(255,255,255,.04);}
 .ctx-row{display:flex;align-items:center;padding:3px 8px 3px 20px;gap:6px;font-size:11px;}
 .ctx-label{color:var(--dim);width:48px;flex-shrink:0;font-size:10px;}
 .ctx-val{color:var(--accent);font-family:monospace;font-size:11px;flex:1;}
@@ -434,7 +434,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
         <button onclick="duplicateActivePart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 0;cursor:pointer;font-size:10px;" title="アクティブパーツを複製">⿻ 複製</button>
       </div>
       <input type="file" id="part-file-input" accept="image/*" style="display:none" onchange="onPartFileInput(this)">
-      <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(46,54,86,.5);">
+      <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.07);">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
           <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">不透明:</label>
           <input type="range" id="part-opacity-slider" min="0" max="100" value="100" oninput="setActivePartOpacity(this.value)"
@@ -505,7 +505,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
-        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid rgba(46,54,86,.5);display:none;">
+        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid rgba(255,255,255,.07);display:none;">
           <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
             style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
@@ -525,7 +525,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="zoom-hud">100%</div>
     <div id="fps-hud">-- fps</div>
     <!-- Blender-style mode indicator badge -->
-    <div id="mode-badge" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(78,124,255,.18);border:1px solid rgba(78,124,255,.4);border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:var(--accent);pointer-events:none;letter-spacing:1.5px;text-transform:uppercase;backdrop-filter:blur(2px);">EDIT MODE</div>
+    <div id="mode-badge" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(60,60,60,.5);border:1px solid rgba(160,160,160,.25);border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:rgba(200,200,200,.7);pointer-events:none;letter-spacing:1.5px;text-transform:uppercase;backdrop-filter:blur(2px);">EDIT MODE</div>
     <div id="brush-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.8);border:1px solid var(--border);border-radius:4px;padding:3px 10px;font-size:10px;color:var(--dim);pointer-events:none;">ブラシ: <span id="brush-r-val">40</span>px [スクロールで変更]</div>
     <div id="mini-preview" style="display:none;position:absolute;top:8px;right:8px;background:#181818;border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="hideMiniPreview()" title="クリックで閉じる">
       <canvas id="mini-canvas" width="120" height="150" style="display:block;"></canvas>
@@ -857,7 +857,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <div style="font-size:9px;color:var(--dim);line-height:1.5;">
         頂点を選択→追加 (髪・耳・アクセサリー等)<br>エクスポートHTMLで二次揺れが有効</div>
       <!-- Physics enhanced controls -->
-      <div id="phys-global" style="margin-top:6px;border-top:1px solid rgba(46,54,86,.5);padding-top:5px;">
+      <div id="phys-global" style="margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:5px;">
         <div style="font-size:10px;color:var(--dim);margin-bottom:4px;">物理グローバル設定</div>
         <div class="phys-row"><label>重力X</label><input type="range" id="phys-gx" min="-1" max="1" step="0.05" value="0" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gx-v">0.00</span></div>
         <div class="phys-row"><label>重力Y</label><input type="range" id="phys-gy" min="-1" max="1" step="0.05" value="0.3" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gy-v">0.30</span></div>
@@ -910,10 +910,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 
 <!-- Shortcut help -->
 <div id="shortcut-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;">
-  <div onclick="event.stopPropagation()" style="background:#1e2540;border:1px solid #3a4470;border-radius:10px;padding:20px 28px;min-width:400px;color:#c8d4f0;max-height:80vh;overflow-y:auto;">
+  <div onclick="event.stopPropagation()" style="background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
     <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
-      <tr style="color:#6878a0;font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
+      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
       <tr><td style="padding:2px 16px 2px 0;font-family:monospace;color:#ffd060">Ctrl+O</td><td>画像を開く</td></tr>
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">Ctrl+S</td><td>モデルを保存</td></tr>
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">Ctrl+Z</td><td>元に戻す</td></tr>
@@ -921,11 +921,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">Ctrl+A</td><td>全頂点を選択 / アニメ時: KF全選択</td></tr>
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">Ctrl+D</td><td>選択解除 / アニメ時: KF選択解除</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">E</td><td>編集モード</td></tr>
-      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">P</td><td>プレビューモード</td></tr>
-      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">A</td><td>アニメーションタイムライン切替</td></tr>
-      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">D</td><td>デフォーマーモード切替</td></tr>
-      <tr><td style="font-family:monospace;color:#4e7cff;padding:2px 16px 2px 0">R</td><td>REC オン/オフ</td></tr>
+      <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">E</td><td>編集モード</td></tr>
+      <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">P</td><td>プレビューモード</td></tr>
+      <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">A</td><td>アニメーションタイムライン切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">D</td><td>デフォーマーモード切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">R</td><td>REC オン/オフ</td></tr>
       <tr><td style="height:8px"></td></tr>
       <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">M</td><td>メッシュ表示切替</td></tr>
       <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">X</td><td>ミラー編集切替</td></tr>
@@ -947,13 +947,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">?</td><td>このヘルプを表示</td></tr>
       <tr><td style="font-family:monospace;color:#ffd060;padding:2px 16px 2px 0">ESC</td><td>選択解除 / モード終了</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr><td style="font-family:monospace;color:#6878a0;padding:2px 16px 2px 0">スクロール</td><td>ズームイン/アウト</td></tr>
-      <tr><td style="font-family:monospace;color:#6878a0;padding:2px 16px 2px 0">中クリックドラッグ</td><td>パン</td></tr>
-      <tr><td style="font-family:monospace;color:#6878a0;padding:2px 16px 2px 0">Space+ドラッグ</td><td>パン（編集モード）</td></tr>
-      <tr><td style="font-family:monospace;color:#6878a0;padding:2px 16px 2px 0">Shift+クリック</td><td>頂点を追加選択</td></tr>
-      <tr><td style="font-family:monospace;color:#6878a0;padding:2px 16px 2px 0">ドラッグ(空白)</td><td>ボックス選択</td></tr>
+      <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">スクロール</td><td>ズームイン/アウト</td></tr>
+      <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">中クリックドラッグ</td><td>パン</td></tr>
+      <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">Space+ドラッグ</td><td>パン（編集モード）</td></tr>
+      <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">Shift+クリック</td><td>頂点を追加選択</td></tr>
+      <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">ドラッグ(空白)</td><td>ボックス選択</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr style="color:#6878a0;font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">アニメーションモード（A キー）</td></tr>
+      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">アニメーションモード（A キー）</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">J</td><td>1フレーム後退</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">K</td><td>停止</td></tr>
@@ -980,7 +980,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">⏱ リタイム</td><td>アニメ全体を新デュレーションに比例スケール</td></tr>
       <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">ミニマップクリック</td><td>タイムライン上部のミニマップでシークジャンプ</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr style="color:#6878a0;font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">エクスポートHTML内のショートカット</td></tr>
+      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">エクスポートHTML内のショートカット</td></tr>
       <tr><td style="font-family:monospace;color:#80d0ff;padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
       <tr><td style="font-family:monospace;color:#80d0ff;padding:2px 16px 2px 0">←→</td><td>1フレームシーク (Shift: 10フレーム)</td></tr>
       <tr><td style="font-family:monospace;color:#80d0ff;padding:2px 16px 2px 0">Home / End</td><td>先頭 / 末尾にジャンプ</td></tr>
@@ -1096,7 +1096,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
-      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:#1e2838;border:1px solid #3a4470;color:#a0c0ff;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#1e2830;border:1px solid rgba(80,180,100,.4);color:#80c0a0;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#1e2830;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
@@ -1200,8 +1200,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="modal-title" style="font-size:14px;font-weight:700;margin-bottom:14px;color:#fff;"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="closeModal()" style="background:#2d2d2d;border:1px solid #4e5880;color:#c8d4f0;padding:5px 16px;border-radius:5px;cursor:pointer;">キャンセル</button>
-      <button id="modal-ok" style="background:#4e7cff;border:none;color:#fff;padding:5px 16px;border-radius:5px;cursor:pointer;">適用</button>
+      <button onclick="closeModal()" style="background:#2d2d2d;border:1px solid rgba(255,255,255,.12);color:var(--dim);padding:5px 16px;border-radius:5px;cursor:pointer;">キャンセル</button>
+      <button id="modal-ok" style="background:rgba(224,120,64,.8);border:none;color:#fff;padding:5px 16px;border-radius:5px;cursor:pointer;">適用</button>
     </div>
   </div>
 </div>
@@ -1250,7 +1250,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1a2030;border:1px solid var(--border);color:#60d890;border-radius:3px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
-      style="width:46px;background:#1e1e1e;border:1px solid rgba(78,124,255,.4);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
+      style="width:46px;background:#1e1e1e;border:1px solid rgba(255,255,255,.15);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
       onkeydown="if(event.key==='Enter'){const t=parseFloat(this.value);if(!isNaN(t)){ST.animPlayhead=Math.max(0,Math.min(M.animation.duration||3,t));applyPlayheadToParams();drawMultiTimeline();}this.blur();}"
       onfocus="this.select()"></input>
     <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ開始点（秒）">イン:
@@ -1340,9 +1340,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2d2d2d;border:1px solid var(--border);color:#80c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#1e2a1e;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
     <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
-    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:#1e2028;border:1px solid rgba(120,180,255,.4);color:#90c0ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
-    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:#1e1a2a;border:1px solid rgba(200,140,255,.4);color:#c890ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
-    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#131828;border:1px solid rgba(100,80,200,.5);color:#a080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
+    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
+    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
+    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#2a1e38;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#1a2838;border:1px solid rgba(80,180,255,.4);color:#60c0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
@@ -1385,7 +1385,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
     <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#1e1828;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
-    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:#1a2030;border:1px solid rgba(80,160,255,.4);color:#80b0ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
+    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:#181818;border-bottom:1px solid rgba(60,70,110,.3);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -1869,7 +1869,7 @@ function redraw() {
     const maxW = 160;
     ctx.fillStyle = 'rgba(10,14,28,.7)';
     ctx.fillRect(2, 2, maxW+padX*2, hudParams.length*lineH+padY*2);
-    ctx.fillStyle = 'rgba(78,124,255,.4)';
+    ctx.fillStyle = 'rgba(224,120,64,.6)';
     ctx.fillRect(2, 2, 2, hudParams.length*lineH+padY*2);
     hudParams.forEach(([name, p], i) => {
       const lbl = (p.lbl||name).slice(0,14);
@@ -1975,31 +1975,31 @@ function showGlueManager() {
   const glueList = (M.glues||[]).map((g,gi) => {
     const sp = parts.find(p=>p.id===g.srcPart)?.name||g.srcPart;
     const dp = parts.find(p=>p.id===g.dstPart)?.name||g.dstPart;
-    return `<div style="display:flex;align-items:center;gap:6px;padding:4px;background:#0d1030;border:1px solid #2a3060;border-radius:3px;margin-bottom:4px;">
-      <span style="flex:1;font-size:11px;color:#c0d0f0;">${g.name||'グルー'+gi} <span style="color:#6070a0;">${sp} → ${dp} (${g.pairs?.length||0}ペア)</span></span>
+    return `<div style="display:flex;align-items:center;gap:6px;padding:4px;background:#1e1e1e;border:1px solid rgba(255,255,255,.08);border-radius:3px;margin-bottom:4px;">
+      <span style="flex:1;font-size:11px;color:var(--text);">${g.name||'グルー'+gi} <span style="color:var(--dim);">${sp} → ${dp} (${g.pairs?.length||0}ペア)</span></span>
       <input type="range" min="0" max="1" step="0.05" value="${g.weight??1}" style="width:60px;" oninput="M.glues[${gi}].weight=+this.value;ST.cachedVerts=null;redraw();" title="ウェイト">
       <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:#300;border:1px solid #600;color:#f88;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
     </div>`;
   }).join('');
   const html = `
-    <div style="font-size:11px;color:#8090c0;margin-bottom:8px;">グルー: メッシュ境界を結合して動きを伝える</div>
-    <div id="glue-list">${glueList || '<div style="color:#404060;font-size:10px;padding:4px;">グルーなし</div>'}</div>
-    <hr style="border:none;border-top:1px solid #2a3060;margin:10px 0;">
-    <div style="font-size:10px;color:#6070a0;margin-bottom:6px;">新規グルーを追加</div>
+    <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">グルー: メッシュ境界を結合して動きを伝える</div>
+    <div id="glue-list">${glueList || '<div style="color:var(--dim);font-size:10px;padding:4px;">グルーなし</div>'}</div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,.07);margin:10px 0;">
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px;">新規グルーを追加</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
-      <div><label style="font-size:9px;color:#6070a0;">ソースパーツ（追従側）</label><br>
-        <select id="glue-src" style="width:100%;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
-      <div><label style="font-size:9px;color:#6070a0;">ターゲットパーツ（基準）</label><br>
-        <select id="glue-dst" style="width:100%;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
+      <div><label style="font-size:9px;color:var(--dim);">ソースパーツ（追従側）</label><br>
+        <select id="glue-src" style="width:100%;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
+      <div><label style="font-size:9px;color:var(--dim);">ターゲットパーツ（基準）</label><br>
+        <select id="glue-dst" style="width:100%;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <label style="font-size:9px;color:#6070a0;">境界検出しきい値(px)</label>
-      <input id="glue-thresh" type="number" value="20" min="1" max="200" style="width:70px;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">
-      <label style="font-size:9px;color:#6070a0;">ウェイト</label>
-      <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:#0d1030;color:#c0d0f0;border:1px solid #2a3060;border-radius:3px;padding:3px;font-size:11px;">
+      <label style="font-size:9px;color:var(--dim);">境界検出しきい値(px)</label>
+      <input id="glue-thresh" type="number" value="20" min="1" max="200" style="width:70px;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
+      <label style="font-size:9px;color:var(--dim);">ウェイト</label>
+      <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;">
-      <button onclick="_gluePreview()" style="flex:1;background:#1a2040;border:1px solid #3a5090;color:#90b0ff;border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
+      <button onclick="_gluePreview()" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
       <button onclick="_glueApply()" style="flex:1;background:#102820;border:1px solid #205040;color:#70d8a0;border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
     </div>
     <div id="glue-preview-info" style="margin-top:6px;font-size:10px;color:#6070a0;"></div>`;
@@ -2296,7 +2296,7 @@ function drawWire(t, verts) {
     }
   }
 
-  ctx.strokeStyle='rgba(78,124,255,.3)';
+  ctx.strokeStyle='rgba(200,200,200,.25)';
   ctx.lineWidth=.7;
   for (const [i0,i1,i2] of M.mesh.tris) {
     const p0=i2c(verts[i0].x,verts[i0].y,t);
@@ -2324,7 +2324,7 @@ function drawWire(t, verts) {
     const hov=i===ST.hovV;
     const isSpring=springSet.has(i);
     const defdx=vertDefAmount(i);
-    let fill='rgba(78,124,255,.7)';
+    let fill='rgba(200,200,200,.75)';
     if (isSpring) fill='rgba(96,216,144,.75)';
     if (defdx>0) {
       const intensity=Math.min(defdx/20,1);
@@ -2335,7 +2335,7 @@ function drawWire(t, verts) {
     ctx.fillStyle=isPrimary?'#fff':(sel?'rgba(255,220,120,.95)':fill);
     ctx.fill();
     if (isPrimary||sel||hov||isSpring) {
-      ctx.strokeStyle=isPrimary?'rgba(78,124,255,.9)':(sel?'rgba(255,200,60,.7)':(isSpring?'rgba(96,216,144,.5)':'rgba(255,255,255,.5)'));
+      ctx.strokeStyle=isPrimary?'rgba(224,120,64,.9)':(sel?'rgba(255,200,60,.7)':(isSpring?'rgba(96,216,144,.5)':'rgba(255,255,255,.5)'));
       ctx.lineWidth=isPrimary?2:1.5; ctx.stroke();
     }
   }
@@ -2389,8 +2389,8 @@ function drawWire(t, verts) {
   if (ST.boxSel) {
     const {sx,sy,ex,ey}=ST.boxSel;
     const x=Math.min(sx,ex),y=Math.min(sy,ey),w=Math.abs(ex-sx),h=Math.abs(ey-sy);
-    ctx.fillStyle='rgba(78,124,255,.08)'; ctx.fillRect(x,y,w,h);
-    ctx.strokeStyle='rgba(78,124,255,.6)'; ctx.lineWidth=1;
+    ctx.fillStyle='rgba(224,120,64,.06)'; ctx.fillRect(x,y,w,h);
+    ctx.strokeStyle='rgba(224,120,64,.55)'; ctx.lineWidth=1;
     ctx.setLineDash([4,3]); ctx.strokeRect(x,y,w,h); ctx.setLineDash([]);
   }
 }
@@ -2830,16 +2830,16 @@ function updateUndoHistoryPanel() {
   if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:#3a4870;text-align:center;">履歴なし</div>'; return; }
   items.forEach((s,i) => {
     const d = document.createElement('div');
-    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid rgba(46,54,86,.3);';
-    d.innerHTML=`<span style="color:#3a4870;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#c8d4f0':'#6878a0'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);';
+    d.innerHTML=`<span style="color:#888;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
     d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
-    d.onmouseover = () => d.style.background='rgba(78,124,255,.07)';
+    d.onmouseover = () => d.style.background='rgba(255,255,255,.05)';
     d.onmouseout = () => d.style.background='';
     el.appendChild(d);
   });
   if (ST.redo.length) {
     const sep=document.createElement('div');
-    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a4870;border-top:1px solid rgba(46,54,86,.5);background:rgba(0,0,0,.2)';
+    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a4870;border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.2)';
     sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
     el.appendChild(sep);
   }
@@ -2930,7 +2930,7 @@ function updateModeBadge() {
   if (isRec) {
     modeLabel = 'REC MODE'; bg='rgba(255,68,68,.18)'; bc='rgba(255,68,68,.5)'; col='var(--rec)';
   } else if (isDef) {
-    modeLabel = 'DEFORMER MODE'; bg='rgba(160,108,255,.18)'; bc='rgba(160,108,255,.4)'; col='var(--accent2)';
+    modeLabel = 'DEFORMER MODE'; bg='rgba(224,120,64,.18)'; bc='rgba(224,120,64,.45)'; col='var(--accent)';
   } else if (mode === 'preview') {
     modeLabel = 'PREVIEW MODE'; bg='rgba(96,216,144,.15)'; bc='rgba(96,216,144,.4)'; col='var(--green)';
   } else {
@@ -3073,7 +3073,7 @@ function updateSliderFill(el, val, min, max) {
   // Show accent fill color when value is non-neutral
   const neutralVal = Math.max(min, Math.min(max, 0));
   const isNeutral = Math.abs(val - neutralVal) < 0.001;
-  el.style.setProperty('--fill-color', isNeutral ? 'rgba(78,124,255,.4)' : 'rgba(255,170,60,.7)');
+  el.style.setProperty('--fill-color', isNeutral ? 'rgba(180,180,180,.3)' : 'rgba(255,170,60,.7)');
 }
 
 function setParamVal(name, val) {
@@ -3216,8 +3216,8 @@ function buildParamUI() {
       // Add group header
       const hdr = document.createElement('div');
       const isCollapsed = _collapsedParamGroups.has(group.key);
-      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:rgba(78,124,255,.06);border-radius:3px;margin-bottom:2px;';
-      hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(128,160,200,.5);margin-left:auto;">${group.entries.length}</span>`;
+      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:rgba(255,255,255,.04);border-radius:3px;margin-bottom:2px;';
+      hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(180,180,180,.4);margin-left:auto;">${group.entries.length}</span>`;
       hdr.onclick = () => {
         if (_collapsedParamGroups.has(group.key)) _collapsedParamGroups.delete(group.key);
         else _collapsedParamGroups.add(group.key);
@@ -4075,7 +4075,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:#131828;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:#1e3050;border:1px solid rgba(78,124,255,.5);color:#80b0ff;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -4207,7 +4207,7 @@ function _showEmbedCode(filePath) {
   if (existing) existing.remove();
   const dlg = document.createElement('div');
   dlg.id = 'embed-code-dialog';
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
   dlg.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="color:#c8d4f0;font-size:12px;font-weight:bold;">📋 埋め込みコード</span>
@@ -4215,7 +4215,7 @@ function _showEmbedCode(filePath) {
     </div>
     <div style="color:#8898c0;margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
     <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:#181818;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
-    <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
     <div style="color:#8898c0;margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:#181818;border:1px solid #3a4470;color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
     <div style="color:#8898c0;margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
@@ -4233,7 +4233,7 @@ function _showEmbedCode(filePath) {
       <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-showchat" style="margin-right:2px;"> showchat=1 pos=<select id="obsq-chatpos" style="background:#181818;border:1px solid #3a4470;color:#c8d4f0;border-radius:2px;font-size:9px;padding:0 2px;"><option>bl</option><option>br</option><option>tl</option><option>tr</option></select></label>
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#181818;border:1px solid #3a4470;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
-    <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
     <div style="margin-top:10px;border-top:1px solid #2a3460;padding-top:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;color:#8898c0;flex:1;">💾 URLプリセット（最大5件）</span>
@@ -4417,8 +4417,8 @@ canvas{display:block;image-rendering:auto;}
 #expr-list .el{color:#8898c0;} #expr-list .el.active{color:#ffd060;font-weight:bold;}
 #pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
 #pose-bar button{background:rgba(20,24,44,.9);border:1px solid #3a4470;border-radius:5px;padding:4px 10px;color:#a0b0d0;font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
-#pose-bar button:hover{border-color:#4e7cff;color:#fff;}
-#pose-bar button.active{background:rgba(20,50,80,.9);border-color:#4e7cff;color:#60d890;font-weight:bold;}
+#pose-bar button:hover{border-color:rgba(224,120,64,.6);color:#fff;}
+#pose-bar button.active{background:rgba(224,120,64,.15);border-color:rgba(224,120,64,.7);color:#e0b860;font-weight:bold;}
 /* Chat overlay */
 #chat-ov{display:none;position:fixed;bottom:16px;left:14px;max-width:340px;z-index:98;pointer-events:none;font-family:'Segoe UI',sans-serif;}
 #chat-ov .cm{display:flex;flex-direction:column;gap:3px;max-height:240px;overflow:hidden;}
@@ -4509,8 +4509,8 @@ canvas.mirrored{transform:scaleX(-1);}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
-.spinner{width:36px;height:36px;border:3px solid rgba(78,124,255,.2);border-top-color:#4e7cff;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px;}
-.load-txt{color:#6878a0;font-size:11px;font-family:monospace;}
+.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.1);border-top-color:rgba(224,120,64,.8);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px;}
+.load-txt{color:#888;font-size:11px;font-family:monospace;}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Control panel */
 #cp-btn{position:fixed;top:10px;left:10px;background:rgba(20,24,44,.85);border:1px solid #3a4470;border-radius:5px;padding:4px 10px;color:#a0c0ff;font-size:12px;cursor:pointer;z-index:100;font-family:monospace;}
@@ -4539,7 +4539,7 @@ ${responsiveCanvas ? `#wrap { position: fixed; inset: 0; display: flex; align-it
 </head>
 <body>
 ${bgVideoUrl ? `<video autoplay loop muted playsinline style="position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none;" src="${bgVideoUrl.replace(/"/g,'&quot;')}"></video>` : ''}
-<div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div><div style="width:120px;height:2px;background:rgba(78,124,255,.2);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="load-prog" style="height:100%;width:0%;background:#4e7cff;border-radius:2px;transition:width .4s ease;"></div></div></div>
+<div id="loading"><div class="spinner"></div><div class="load-txt" id="load-msg">MediaPipe 読み込み中...</div><div style="width:120px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:8px;overflow:hidden;"><div id="load-prog" style="height:100%;width:0%;background:rgba(224,120,64,.8);border-radius:2px;transition:width .4s ease;"></div></div></div>
 <div id="wrap"><canvas id="c" width="${EW}" height="${EH}"></canvas></div>
 <script>(()=>{const _fn=parseFloat(new URLSearchParams(location.search).get('fadein'));if(_fn>0&&_fn<=30){const _cc=document.getElementById('c');if(_cc)_cc.style.opacity='0';}})();<\/script>
 ${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes('b')?'bottom:8px':'top:8px'};${creditPos.includes('r')?'right:12px':'left:12px'};color:${creditColor};font-size:10px;font-family:monospace;pointer-events:none;z-index:50;opacity:.7;white-space:nowrap;">${creditText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
@@ -4575,7 +4575,7 @@ ${includeCtrlPanel ? `
   </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:#6878a0;font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
-  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(78,124,255,.15);border:1px solid #3a4470;border-radius:3px;color:#80b0ff;font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
+  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:3px;color:var(--dim);font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
@@ -4606,9 +4606,9 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 1. OBS → ソース追加 → ブラウザ<br>
 2. このHTMLファイルのフルパスを入力:<br>
 <code id="obs-path-code" style="color:#ffd060;font-size:10px">file:///C:/path/to/avatar.html</code>
-<button onclick="(()=>{const p=document.getElementById('obs-path-code').textContent;navigator.clipboard?.writeText(p).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 パスをコピー',2000)}).catch(()=>alert(p));})()" style="margin-left:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:1px 5px;cursor:pointer;">📋 パスをコピー</button><br>
+<button onclick="(()=>{const p=document.getElementById('obs-path-code').textContent;navigator.clipboard?.writeText(p).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 パスをコピー',2000)}).catch(()=>alert(p));})()" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋 パスをコピー</button><br>
 3. 幅: <strong style="color:#ffd060">${EW}</strong> / 高さ: <strong style="color:#ffd060">${EH}</strong>
-<button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(78,124,255,.2);border:1px solid #4e7cff;border-radius:3px;color:#80b0ff;font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
+<button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
 ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
 <span style="color:#6878a0">カメラへのアクセスを許可してください</span>
 ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#6878a0">0キー = デフォルトに戻す</span>`:''}
@@ -6081,7 +6081,7 @@ window.saveScreenshot=function(filename){_doScreenshot(false,filename);};
       <input type="text" value="${(s.name||'スロット '+(i+1)).replace(/"/g,'&quot;')}"
         style="flex:1;background:#0d1020;border:1px solid #2a3060;color:#c8d4f0;border-radius:3px;padding:1px 4px;font-size:10px;min-width:0;"
         onchange="_slots[${i}].name=this.value;_persist();">
-      <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(78,124,255,.2);border:1px solid #3a4470;border-radius:3px;color:#80b0ff;font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
+      <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.4);border-radius:3px;color:var(--accent);font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
       <button onclick="_psSave(${i})" title="上書き保存" style="background:rgba(255,200,80,.1);border:1px solid #5a4a20;border-radius:3px;color:#ffd060;font-size:10px;padding:1px 5px;cursor:pointer;">💾</button>
       <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid #5a2020;border-radius:3px;color:#ff8080;font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
     </div>`).join('');
@@ -17966,7 +17966,7 @@ function showDriverManager() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#1a1e3a;border:1px solid rgba(78,124,255,.5);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
+  box.style.cssText = 'background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
   const refresh = () => {
     box.innerHTML = `<div style="font-size:12px;color:#8898c0;font-weight:bold;margin-bottom:4px;">🔗 パラメータドライバー管理</div>`;
     if (!_paramDrivers.length) { box.innerHTML += '<div style="color:var(--dim);">ドライバーはありません</div>'; }
@@ -17983,7 +17983,7 @@ function showDriverManager() {
       box.appendChild(row);
     });
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '閉じる'; closeBtn.style.cssText = 'margin-top:6px;background:#1e3050;border:1px solid rgba(78,124,255,.4);color:#4e9cff;border-radius:4px;padding:3px 10px;cursor:pointer;';
+    closeBtn.textContent = '閉じる'; closeBtn.style.cssText = 'margin-top:6px;background:#2d2d2d;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;';
     closeBtn.onclick = () => overlay.remove();
     box.appendChild(closeBtn);
   };
