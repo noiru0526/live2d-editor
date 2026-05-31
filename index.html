@@ -72,10 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .cur-tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6);transform:translateX(-50%);pointer-events:none;}
 
 /* Viewport */
-#vp{flex:1;overflow:hidden;position:relative;
-  background-color:#101018;
-  background-image:radial-gradient(circle,rgba(60,72,140,.35) 1px,transparent 1px);
-  background-size:24px 24px;}
+#vp{flex:1;overflow:hidden;position:relative;background-color:#0e0f18;}
 #c{display:block;cursor:crosshair;}
 
 /* Keyframe panel */
@@ -538,8 +535,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </div>
     <!-- Undo History Panel -->
     <div id="undo-history-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
-      <div style="display:flex;align-items:center;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.15);" onclick="toggleSection('undo-history-list',this)">
-        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;">操作履歴</span>
+      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('undo-history-list',this)">
+        操作履歴
         <span id="undo-count" style="margin-left:6px;font-size:9px;color:var(--accent2);font-family:monospace;"></span>
         <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
       </div>
@@ -549,8 +546,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </div>
     <!-- Animation Snippets Panel -->
     <div id="snippet-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
-      <div style="display:flex;align-items:center;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.15);" onclick="toggleSection('snippet-list',this)">
-        <span style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;">アニメスニペット</span>
+      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('snippet-list',this)">
+        アニメスニペット
         <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
       </div>
       <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:4px 6px;">
@@ -564,7 +561,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </div>
 
     <div id="mesh-cfg">
-      <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="mesh-cfg-body">
       <div class="mcfg-row"><label>列数:</label><input id="mcols" type="number" value="12" min="2" max="40"></div>
       <div class="mcfg-row"><label>行数:</label><input id="mrows" type="number" value="9" min="2" max="30"></div>
@@ -572,7 +569,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       </div><!-- mesh-cfg-body -->
     </div>
     <div id="embed-cfg" style="padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 5px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
+      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
         <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
         <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:#80b0ff;border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
         <span style="color:var(--dim)">▾</span>
@@ -1672,6 +1669,16 @@ function redraw() {
   ctx.save();
   ctx.scale(_DPR, _DPR);
   ctx.clearRect(0,0,CW(),CH());
+  // Dot-grid background (always rendered in screen space)
+  {
+    const sp = 24, r = 1;
+    ctx.fillStyle = 'rgba(58,72,130,.45)';
+    for (let gx = sp/2; gx < CW(); gx += sp) {
+      for (let gy = sp/2; gy < CH(); gy += sp) {
+        ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();
+      }
+    }
+  }
   // Camera track preview: apply __camZoom/__camX/__camY offset around canvas center (anim mode only)
   if (ST.animMode && M.img && (_editorCamZoom!==1 || _editorCamX!==0 || _editorCamY!==0)) {
     const tx=getTx(), scl=tx.s;
@@ -1726,13 +1733,13 @@ function redraw() {
     const fw = Math.round(M.iw * t.s) + 1, fh = Math.round(M.ih * t.s) + 1;
     ctx.save();
     // Outer shadow glow
-    ctx.shadowColor = 'rgba(40,60,160,.4)'; ctx.shadowBlur = 12;
-    ctx.strokeStyle = 'rgba(80,100,200,.25)'; ctx.lineWidth = 1;
+    ctx.shadowColor = 'rgba(40,60,200,.7)'; ctx.shadowBlur = 18;
+    ctx.strokeStyle = 'rgba(90,110,220,.45)'; ctx.lineWidth = 1.5;
     ctx.strokeRect(fx, fy, fw, fh);
     ctx.shadowBlur = 0;
-    // Corner markers
-    const cs = Math.max(8, Math.min(20, fw * 0.04));
-    ctx.strokeStyle = 'rgba(160,180,255,.55)'; ctx.lineWidth = 1.5;
+    // Corner L-markers
+    const cs = Math.max(10, Math.min(24, fw * 0.05));
+    ctx.strokeStyle = 'rgba(180,200,255,.8)'; ctx.lineWidth = 2;
     ctx.setLineDash([]);
     const corners = [[fx,fy,1,1],[fx+fw,fy,-1,1],[fx,fy+fh,1,-1],[fx+fw,fy+fh,-1,-1]];
     for (const [cx2,cy2,dx,dy] of corners) {
@@ -1741,9 +1748,9 @@ function redraw() {
       ctx.stroke();
     }
     // Dimension label
-    ctx.fillStyle = 'rgba(120,140,200,.45)'; ctx.font = `${Math.round(9*_DPR/_DPR)}px monospace`;
+    ctx.fillStyle = 'rgba(160,180,255,.65)'; ctx.font = '10px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(`${M.iw}×${M.ih}`, fx + 4, fy - 4);
+    ctx.fillText(`${M.iw}×${M.ih}`, fx + 4, fy - 5);
     ctx.restore();
   }
   drawImg(t, verts);
