@@ -24,17 +24,24 @@
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column;user-select:none;}
 
 /* Toolbar */
-#toolbar{display:flex;align-items:center;gap:4px;padding:4px 8px;background:linear-gradient(to bottom,var(--surface2),var(--panel));border-bottom:1px solid var(--border);flex-shrink:0;height:var(--toolbar-h);box-shadow:0 1px 3px rgba(0,0,0,.3);overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
-#toolbar::-webkit-scrollbar{height:5px;}
+#toolbar{display:flex;align-items:center;gap:3px;padding:3px 8px;
+  background:linear-gradient(to bottom,#1c1e2e,#161824);
+  border-bottom:1px solid var(--border);flex-shrink:0;height:var(--toolbar-h);
+  box-shadow:0 1px 4px rgba(0,0,0,.4);overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
+#toolbar::-webkit-scrollbar{height:4px;}
 #toolbar::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
-.tbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:4px 11px;cursor:pointer;font-size:12px;transition:background .12s,border-color .12s;flex-shrink:0;white-space:nowrap;}
-.tbtn:hover{background:var(--surface2);border-color:var(--border-strong);}
+.tbtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(200,210,240,.8);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-size:11px;transition:background .12s,border-color .12s,color .12s;flex-shrink:0;white-space:nowrap;}
+.tbtn:hover{background:rgba(78,124,255,.15);border-color:rgba(78,124,255,.4);color:#c8d4ff;}
 .tbtn:active{transform:translateY(1px);}
-.tbtn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.tbtn.on{background:rgba(78,124,255,.22);border-color:rgba(78,124,255,.6);color:var(--accent);}
 .tbtn.rec.on{background:rgba(255,68,68,.15);border-color:var(--rec);color:var(--rec);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
-.tsep{width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0;}
-#lbl-status{color:var(--dim);font-size:11px;margin-left:4px;white-space:nowrap;flex-shrink:0;}
+/* Toolbar group separator — more visible than before */
+.tsep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 5px;flex-shrink:0;}
+/* Toolbar group container — subtle background to visually cluster related buttons */
+.tgrp{display:flex;align-items:center;gap:2px;padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}
+#lbl-status{color:var(--dim);font-size:10px;margin-left:4px;white-space:nowrap;flex-shrink:0;}
 
 /* Layout */
 #workspace{display:flex;flex:1;overflow:hidden;}
@@ -43,7 +50,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .sidebar{flex-shrink:0;background:var(--panel);overflow-y:auto;display:flex;flex-direction:column;}
 #sl{width:220px;border-right:1px solid var(--border);}
 #sr{width:250px;border-left:1px solid var(--border);}
-.ptitle{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--dim);padding:9px 12px 7px;text-transform:uppercase;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ptitle{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(160,180,240,.75);
+  padding:6px 12px 5px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);border-left:2px solid rgba(78,124,255,.55);
+  background:linear-gradient(to right,rgba(78,124,255,.07),transparent 80%);
+  flex-shrink:0;}
 
 /* Parameter rows */
 .prow{padding:5px 10px;border-bottom:1px solid rgba(46,54,86,.5);cursor:pointer;}
@@ -61,7 +72,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .cur-tick{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.6);transform:translateX(-50%);pointer-events:none;}
 
 /* Viewport */
-#vp{flex:1;overflow:hidden;position:relative;background:#181818;}
+#vp{flex:1;overflow:hidden;position:relative;
+  background-color:#101018;
+  background-image:radial-gradient(circle,rgba(60,72,140,.35) 1px,transparent 1px);
+  background-size:24px 24px;}
 #c{display:block;cursor:crosshair;}
 
 /* Keyframe panel */
@@ -109,9 +123,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 #tl-canvas{position:absolute;inset:0;}
 
 /* Status bar */
-#sb{display:flex;gap:16px;padding:3px 12px;background:var(--panel);border-top:1px solid var(--border);font-size:11px;color:var(--dim);flex-shrink:0;}
-#sb-rec{margin-left:auto;}
+#sb{display:flex;align-items:center;gap:0;padding:0 8px;background:#0e0f1a;border-top:1px solid var(--border);font-size:10px;color:var(--dim);flex-shrink:0;height:22px;}
+#sb > span{padding:0 8px;border-right:1px solid rgba(255,255,255,.06);white-space:nowrap;line-height:22px;}
+#sb > span:last-child{border-right:none;}
+#sb-mode{background:rgba(78,124,255,.15);color:rgba(140,180,255,.9);font-weight:700;letter-spacing:1px;text-transform:uppercase;font-size:9px;}
+#sb-sel{color:rgba(200,220,255,.6);}
+#sb-rec{margin-left:auto;border-right:none!important;border-left:1px solid rgba(255,255,255,.06);}
 #sb-rec.on{color:var(--rec);}
+#sb-dirty{color:#ffd060;display:none;}
+#sb-dirty.show{display:inline;}
 
 /* Notch slider */
 .slider-wrap{position:relative;}
@@ -1401,10 +1421,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 </div>
 
 <div id="sb">
+  <span id="sb-mode">EDIT</span>
+  <span id="sb-sel">— 未選択</span>
   <span id="sb-xy">x: —  y: —</span>
   <span id="sb-vtx">頂点: —</span>
   <span id="sb-kf">KF: —</span>
   <span id="sb-part" style="color:#a06cff;">パーツ: ベース</span>
+  <span id="sb-dirty">● 未保存</span>
   <span id="sb-autosave" style="color:var(--green);display:none;">● AS</span>
   <span id="sb-rec">● REC OFF</span>
 </div>
@@ -1695,6 +1718,32 @@ function redraw() {
         ctx.fillRect(cx2, cy2, Math.min(csize, x1-cx2), Math.min(csize, y1-cy2));
       }
     }
+    ctx.restore();
+  }
+  // Model frame border (Cubism-style canvas boundary indicator)
+  {
+    const fx = Math.round(t.ox) - 0.5, fy = Math.round(t.oy) - 0.5;
+    const fw = Math.round(M.iw * t.s) + 1, fh = Math.round(M.ih * t.s) + 1;
+    ctx.save();
+    // Outer shadow glow
+    ctx.shadowColor = 'rgba(40,60,160,.4)'; ctx.shadowBlur = 12;
+    ctx.strokeStyle = 'rgba(80,100,200,.25)'; ctx.lineWidth = 1;
+    ctx.strokeRect(fx, fy, fw, fh);
+    ctx.shadowBlur = 0;
+    // Corner markers
+    const cs = Math.max(8, Math.min(20, fw * 0.04));
+    ctx.strokeStyle = 'rgba(160,180,255,.55)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+    const corners = [[fx,fy,1,1],[fx+fw,fy,-1,1],[fx,fy+fh,1,-1],[fx+fw,fy+fh,-1,-1]];
+    for (const [cx2,cy2,dx,dy] of corners) {
+      ctx.beginPath();
+      ctx.moveTo(cx2 + dx*cs, cy2); ctx.lineTo(cx2, cy2); ctx.lineTo(cx2, cy2 + dy*cs);
+      ctx.stroke();
+    }
+    // Dimension label
+    ctx.fillStyle = 'rgba(120,140,200,.45)'; ctx.font = `${Math.round(9*_DPR/_DPR)}px monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`${M.iw}×${M.ih}`, fx + 4, fy - 4);
     ctx.restore();
   }
   drawImg(t, verts);
@@ -2771,30 +2820,33 @@ function setMode(m) {
 
 function updateModeBadge() {
   const badge = document.getElementById('mode-badge');
+  const sbMode = document.getElementById('sb-mode');
   if (!badge) return;
   const isRec = ST.rec;
   const isDef = ST.deformerMode;
   const mode = ST.mode;
+  let modeLabel, bg, bc, col;
   if (isRec) {
-    badge.textContent = 'REC MODE';
-    badge.style.background = 'rgba(255,68,68,.18)';
-    badge.style.borderColor = 'rgba(255,68,68,.5)';
-    badge.style.color = 'var(--rec)';
+    modeLabel = 'REC MODE'; bg='rgba(255,68,68,.18)'; bc='rgba(255,68,68,.5)'; col='var(--rec)';
   } else if (isDef) {
-    badge.textContent = 'DEFORMER MODE';
-    badge.style.background = 'rgba(160,108,255,.18)';
-    badge.style.borderColor = 'rgba(160,108,255,.4)';
-    badge.style.color = 'var(--accent2)';
+    modeLabel = 'DEFORMER MODE'; bg='rgba(160,108,255,.18)'; bc='rgba(160,108,255,.4)'; col='var(--accent2)';
   } else if (mode === 'preview') {
-    badge.textContent = 'PREVIEW MODE';
-    badge.style.background = 'rgba(96,216,144,.15)';
-    badge.style.borderColor = 'rgba(96,216,144,.4)';
-    badge.style.color = 'var(--green)';
+    modeLabel = 'PREVIEW MODE'; bg='rgba(96,216,144,.15)'; bc='rgba(96,216,144,.4)'; col='var(--green)';
   } else {
-    badge.textContent = 'EDIT MODE';
-    badge.style.background = 'rgba(78,124,255,.18)';
-    badge.style.borderColor = 'rgba(78,124,255,.4)';
-    badge.style.color = 'var(--accent)';
+    modeLabel = 'EDIT MODE'; bg='rgba(78,124,255,.18)'; bc='rgba(78,124,255,.4)'; col='var(--accent)';
+  }
+  badge.textContent = modeLabel;
+  badge.style.background = bg; badge.style.borderColor = bc; badge.style.color = col;
+  if (sbMode) { sbMode.textContent = modeLabel.replace(' MODE',''); sbMode.style.color = col; }
+  // Update sb-sel with current selection
+  const sbSel = document.getElementById('sb-sel');
+  if (sbSel) {
+    const part = M.parts[M.activePart];
+    const partName = part?.name || '—';
+    const selDef = M.deformers?.find?.(d => d.selected);
+    if (selDef) sbSel.textContent = `⬡ ${selDef.name || selDef.id}`;
+    else if (ST.selVerts?.size > 0) sbSel.textContent = `◈ ${ST.selVerts.size}頂点選択`;
+    else sbSel.textContent = `◧ ${partName}`;
   }
 }
 
