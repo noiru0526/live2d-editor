@@ -483,6 +483,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
           <summary>バインド</summary>
           <div class="ctx-row" id="ctx-bind-row"><span class="ctx-label">パラメータ</span><span class="ctx-val" id="ctx-bind-val" style="font-size:9px;">なし</span></div>
         </details>
+        <details class="ctx-section" id="ctx-warp-section" style="display:none;">
+          <summary>グリッド解像度</summary>
+          <div class="ctx-row"><span class="ctx-label">列数</span><input class="ctx-val-input" id="ctx-warp-cols" type="number" min="1" max="10" step="1" onchange="ctxSetWarpGrid()" style="width:50px;"></div>
+          <div class="ctx-row"><span class="ctx-label">行数</span><input class="ctx-val-input" id="ctx-warp-rows" type="number" min="1" max="10" step="1" onchange="ctxSetWarpGrid()" style="width:50px;"></div>
+        </details>
         <details class="ctx-section">
           <summary>情報</summary>
           <div class="ctx-row"><span class="ctx-label">ID</span><span class="ctx-val" id="ctx-id" style="font-size:9px;">—</span></div>
@@ -1906,7 +1911,21 @@ function getClipCanvas(w,h) {
 function drawImg(t, activeVerts) {
   ctx.imageSmoothingEnabled=true;
   ctx.imageSmoothingQuality='high';
-  for (let pi=0; pi<M.parts.length; pi++) {
+  // F-05: drawOrder tracks — compute animated render order
+  let _renderOrder = Array.from({length: M.parts.length}, (_, i) => i);
+  if (ST.animMode) {
+    const _doVals = {};
+    for (const [k, frames] of Object.entries(M.animation?.tracks || {})) {
+      if (!k.startsWith('__drawOrder:') || !frames?.length) continue;
+      const pidx = M.parts.findIndex(p => p.id === k.slice(12));
+      if (pidx < 0) continue;
+      _doVals[pidx] = evalAnimTrack(frames, {min:0, max:M.parts.length-1, val:pidx}, ST.animPlayhead);
+    }
+    if (Object.keys(_doVals).length > 0) {
+      _renderOrder.sort((a, b) => (_doVals[a] ?? a) - (_doVals[b] ?? b));
+    }
+  }
+  for (const pi of _renderOrder) {
     const part=M.parts[pi];
     if (!part.visible || !part.img || !part.mesh.tris.length) continue;
     const verts=pi===M.activePart ? activeVerts : deformedVertsForPart(part);
@@ -5233,8 +5252,11 @@ function draw(ts){
       pd.filter.h = _animFn(frames, {min:-180,max:180,val:0}, _animT);
     }
   }
+  // F-05: drawOrder tracks — compute animated render order (export context)
+  let _exportRenderOrder=Array.from({length:PARTS.length},(_,i)=>i);
+  {const _doV={};for(const[k,f]of Object.entries(_animTrks)){if(!k.startsWith('__drawOrder:')||!f?.length)continue;const pi=PARTS.findIndex(p=>p.id===k.slice(12));if(pi<0)continue;_doV[pi]=_animFn(f,{min:0,max:PARTS.length-1,val:pi},_animT);}if(Object.keys(_doV).length>0)_exportRenderOrder.sort((a,b)=>(_doV[a]??a)-(_doV[b]??b));}
   // Draw all parts in order
-  for(let pi=0;pi<PARTS.length;pi++){
+  for(const pi of _exportRenderOrder){
     const pd=PARTS[pi];
     const pimg=partImgs[pi];
     if(!pimg.complete||!allVerts[pi]) continue;
@@ -19438,14 +19460,26 @@ function renderPartsList() {
         const k = '__'+pfx+':'+part.id;
         if (!M.animation.tracks[k]) { pushAnimUndo('フィルタートラック追加'); M.animation.tracks[k]=[{t:0,v:def,interp:'smooth'},{t:dur,v:def,interp:'smooth'}]; }
       };
+      const _hasDoTrack = !!M.animation.tracks['__drawOrder:'+part.id];
+      const mkDoTrack = () => {
+        const k = '__drawOrder:'+part.id;
+        if (!M.animation.tracks[k]) {
+          pushAnimUndo('描画順トラック追加');
+          const dur = M.animation.duration || 3;
+          M.animation.tracks[k] = [{t:0,v:pi,interp:'step'},{t:dur,v:pi,interp:'step'}];
+        }
+        renderPartsList(); drawMultiTimeline();
+      };
       showCtxMenu(e.clientX, e.clientY, [
         {icon:'⬜', label:'不透明度トラック', action:()=>{ mkTrack('opacity',1,0,1); renderPartsList(); drawMultiTimeline(); }},
         {icon:'☀', label:'輝度トラック', action:()=>{ mkTrack('brightness',100,0,200); renderPartsList(); drawMultiTimeline(); }},
         {icon:'◑', label:'コントラストトラック', action:()=>{ mkTrack('contrast',100,0,200); renderPartsList(); drawMultiTimeline(); }},
         {icon:'🎨', label:'彩度トラック', action:()=>{ mkTrack('saturation',100,0,200); renderPartsList(); drawMultiTimeline(); }},
         {icon:'🌈', label:'色相トラック', action:()=>{ mkTrack('hue',0,-180,180); renderPartsList(); drawMultiTimeline(); }},
+        {icon:'🔢', label:'描画順トラック', action: mkDoTrack},
         null,
         ...fxKeys.filter(_hasTrack).map(pfx=>({icon:'🗑',label:`「${pfx}」トラックを削除`,action:()=>{ const _k='__'+pfx+':'+part.id; if(!M.animation.tracks[_k])return; pushAnimUndo('フィルタートラック削除'); delete M.animation.tracks[_k]; renderPartsList(); drawMultiTimeline(); }})),
+        ...(_hasDoTrack?[{icon:'🗑',label:'描画順トラックを削除',action:()=>{ const _k='__drawOrder:'+part.id; pushAnimUndo('描画順トラック削除'); delete M.animation.tracks[_k]; renderPartsList(); drawMultiTimeline(); }}]:[]),
       ]);
     });
     actions.appendChild(fxBtn);
@@ -27928,10 +27962,21 @@ function updateContextPanel() {
   if (cy) cy.value = (def.oy||0).toFixed(1);
   if (cr) cr.value = (def.rot||0).toFixed(1);
   if (cs) cs.value = (def.scale||1).toFixed(2);
+  // Warp grid section visibility & values
+  const warpSec = document.getElementById('ctx-warp-section');
+  if (warpSec) {
+    warpSec.style.display = def.type === 'warp' ? '' : 'none';
+    if (def.type === 'warp') {
+      const cEl = document.getElementById('ctx-warp-cols');
+      const rEl = document.getElementById('ctx-warp-rows');
+      if (cEl) cEl.value = def.cols || 3;
+      if (rEl) rEl.value = def.rows || 3;
+    }
+  }
   // Vertex count
   const vtxEl = document.getElementById('ctx-vtx');
   if (vtxEl) {
-    if (def.type === 'warp') vtxEl.textContent = ((def.cols||2)*(def.rows||2)) + ' 頂点';
+    if (def.type === 'warp') vtxEl.textContent = ((def.cols+1)*(def.rows+1)) + ' 頂点';
     else vtxEl.textContent = '1 中心点';
   }
   // Bind info
@@ -30301,6 +30346,81 @@ function _abPlayLoop() {
   if (ind) { ind.textContent = _abPhase; ind.style.color = _abPhase === 'A' ? '#80ffb0' : '#80c8ff'; }
 
   _abRAF = requestAnimationFrame(_abPlayLoop);
+}
+
+// ==================== APPLY EXPRESSION / POSE (MIDI・GAMEPAD HELPERS) ====================
+let _exprFadeRAF = null;
+let _exprFadeDur = 0.25; // seconds; can be changed by user
+
+function applyPosePreset(pose) {
+  if (!pose || !pose.vals) return;
+  for (const [k, v] of Object.entries(pose.vals)) {
+    if (M.params[k]) M.params[k].val = v;
+  }
+  syncSliders(); ST.cachedVerts = null; redraw();
+  document.getElementById('lbl-status').textContent = `ポーズ「${pose.name}」を適用`;
+}
+
+function applyExpression(expr, fadeDur) {
+  if (!expr) return;
+  const targetVals = expr.values || expr.vals || {};
+  const dur = fadeDur !== undefined ? fadeDur : _exprFadeDur;
+
+  if (_exprFadeRAF) { cancelAnimationFrame(_exprFadeRAF); _exprFadeRAF = null; }
+
+  if (dur <= 0) {
+    for (const [k, v] of Object.entries(targetVals)) {
+      if (M.params[k]) M.params[k].val = v;
+    }
+    syncSliders(); ST.cachedVerts = null; redraw();
+    document.getElementById('lbl-status').textContent = `表情「${expr.name}」を適用`;
+    return;
+  }
+
+  // Capture start values for interpolation
+  const startVals = {};
+  for (const k of Object.keys(targetVals)) {
+    if (M.params[k]) startVals[k] = M.params[k].val;
+  }
+  const t0 = performance.now();
+
+  function _fadeTick() {
+    const elapsed = (performance.now() - t0) / 1000;
+    const rawT = Math.min(elapsed / dur, 1);
+    const ease = rawT * rawT * (3 - 2 * rawT); // smooth step
+    for (const [k, target] of Object.entries(targetVals)) {
+      if (!M.params[k]) continue;
+      M.params[k].val = (startVals[k] ?? 0) + (target - (startVals[k] ?? 0)) * ease;
+    }
+    syncSliders(); ST.cachedVerts = null; redraw();
+    if (rawT < 1) {
+      _exprFadeRAF = requestAnimationFrame(_fadeTick);
+    } else {
+      _exprFadeRAF = null;
+      document.getElementById('lbl-status').textContent = `表情「${expr.name}」を適用`;
+    }
+  }
+  _exprFadeRAF = requestAnimationFrame(_fadeTick);
+}
+
+// ==================== WARP DEFORMER GRID RESOLUTION ====================
+function ctxSetWarpGrid() {
+  const def = getActiveDeformer();
+  if (!def || def.type !== 'warp') return;
+  const newCols = Math.max(1, Math.min(10, parseInt(document.getElementById('ctx-warp-cols').value) || 3));
+  const newRows = Math.max(1, Math.min(10, parseInt(document.getElementById('ctx-warp-rows').value) || 3));
+  if (newCols === def.cols && newRows === def.rows) return;
+  if (!confirm(`グリッドを${newCols}×${newRows}に変更します。\n変形データがリセットされます。続行しますか？`)) {
+    updateContextPanel(); return;
+  }
+  def.cols = newCols;
+  def.rows = newRows;
+  def.def = {}; // reset deformation data; can't trivially resample
+  ST.cachedVerts = null;
+  updateContextPanel();
+  renderDeformerTree();
+  redraw();
+  document.getElementById('lbl-status').textContent = `ワープグリッド: ${newCols}×${newRows}（${(newCols+1)*(newRows+1)}頂点）`;
 }
 
 // ==================== INIT ====================
