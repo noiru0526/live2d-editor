@@ -1977,12 +1977,13 @@ function render() {
   const ts = performance.now();
   if (mode === 'preview') physStep(ts);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Viewport background — solid fill + dot-grid
-  ctx.fillStyle = '#1c1e2c';
+  // Viewport background — solid fill + high-visibility dot-grid
+  ctx.fillStyle = '#20222e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   {
-    const sp = 20 * (window.devicePixelRatio||1), r = 1.5 * (window.devicePixelRatio||1);
-    ctx.fillStyle = 'rgba(120,140,220,.5)';
+    const dpr = window.devicePixelRatio||1;
+    const sp = 20 * dpr, r = 2 * dpr;
+    ctx.fillStyle = 'rgba(160,180,255,.75)';
     for (let gx = sp/2; gx < canvas.width; gx += sp) {
       for (let gy = sp/2; gy < canvas.height; gy += sp) {
         ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();

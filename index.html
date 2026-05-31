@@ -1669,12 +1669,12 @@ function redraw() {
   ctx.save();
   ctx.scale(_DPR, _DPR);
   ctx.clearRect(0,0,CW(),CH());
-  // Canvas background — solid fill first, then dot-grid overlay
-  ctx.fillStyle = '#1c1e2c';
+  // Canvas background — solid fill + high-visibility dot-grid
+  ctx.fillStyle = '#20222e';
   ctx.fillRect(0, 0, CW(), CH());
   {
-    const sp = 20, r = 1.5;
-    ctx.fillStyle = 'rgba(120,140,220,.5)';
+    const sp = 20, r = 2;
+    ctx.fillStyle = 'rgba(160,180,255,.75)';
     for (let gx = sp/2; gx < CW(); gx += sp) {
       for (let gy = sp/2; gy < CH(); gy += sp) {
         ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();
