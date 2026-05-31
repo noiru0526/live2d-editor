@@ -18,38 +18,60 @@
   /* Spacing */
   --r-sm:3px; --r-md:5px; --r-lg:8px; --r-chip:20px;
   /* Toolbar height */
-  --toolbar-h:44px;
+  --toolbar-h:36px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column;user-select:none;}
 
-/* Toolbar */
-#toolbar{display:flex;align-items:center;gap:3px;padding:3px 8px;
-  background:linear-gradient(to bottom,#2e2e2e,#222222);
-  border-bottom:2px solid #1a1a1a;flex-shrink:0;height:var(--toolbar-h);
-  box-shadow:0 2px 6px rgba(0,0,0,.5);overflow-x:auto;
-  scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
-#toolbar::-webkit-scrollbar{height:4px;}
-#toolbar::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
-.tbtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(220,220,220,.9);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-size:11px;transition:background .12s,border-color .12s,color .12s;flex-shrink:0;white-space:nowrap;}
-.tbtn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff;}
+/* ===== Toolbar — Cubism-style compact tool strip ===== */
+#toolbar{display:flex;align-items:center;gap:2px;padding:0 6px;
+  background:#282828;
+  border-bottom:1px solid #181818;flex-shrink:0;height:36px;
+  box-shadow:0 1px 4px rgba(0,0,0,.6);overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:#444 transparent;}
+#toolbar::-webkit-scrollbar{height:3px;}
+#toolbar::-webkit-scrollbar-thumb{background:#444;border-radius:2px;}
+.tbtn{background:transparent;border:1px solid transparent;color:rgba(190,190,190,.85);
+  border-radius:3px;padding:2px 7px;cursor:pointer;font-size:11px;
+  transition:background .1s,border-color .1s,color .1s;flex-shrink:0;white-space:nowrap;
+  height:26px;display:flex;align-items:center;gap:3px;}
+.tbtn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;}
 .tbtn:active{transform:translateY(1px);}
-.tbtn.on{background:rgba(224,120,64,.25);border-color:rgba(224,120,64,.7);color:var(--accent);}
+.tbtn.on{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:var(--accent);}
 .tbtn.rec.on{background:rgba(255,68,68,.2);border-color:var(--rec);color:var(--rec);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
-/* Toolbar group separator — more visible than before */
-.tsep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 5px;flex-shrink:0;}
-/* Toolbar group container — subtle background to visually cluster related buttons */
-.tgrp{display:flex;align-items:center;gap:2px;padding:1px 3px;border-radius:4px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);}
-#lbl-status{color:var(--dim);font-size:10px;margin-left:4px;white-space:nowrap;flex-shrink:0;}
+.tsep{width:1px;height:18px;background:rgba(255,255,255,.12);margin:0 3px;flex-shrink:0;}
+.tgrp{display:flex;align-items:center;gap:1px;padding:1px 2px;border-radius:3px;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);}
+/* Mode indicator in toolbar (replaces old tab buttons) */
+#mode-pill{display:flex;align-items:center;gap:0;border-radius:3px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.15);flex-shrink:0;}
+.mpill{padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  cursor:pointer;color:rgba(160,160,160,.8);background:rgba(255,255,255,.04);
+  transition:background .1s,color .1s;height:22px;display:flex;align-items:center;border:none;}
+.mpill:hover{color:#fff;background:rgba(255,255,255,.12);}
+.mpill.on{background:rgba(224,120,64,.28);color:var(--accent);}
+#lbl-status{color:var(--dim);font-size:10px;margin-left:6px;white-space:nowrap;flex-shrink:0;}
+
+/* ===== Left panel Cubism-style tab strip ===== */
+#left-tabs{display:flex;height:28px;flex-shrink:0;background:#222;border-bottom:1px solid #111;}
+.ltab{flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+  color:rgba(160,160,160,.7);cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .12s,border-color .12s,background .12s;letter-spacing:.3px;
+  padding-bottom:1px;}
+.ltab:hover{color:#ccc;background:rgba(255,255,255,.04);}
+.ltab.on{color:rgba(200,220,255,.95);border-bottom-color:rgba(100,150,255,.9);
+  background:rgba(80,120,255,.08);}
+.lpanel{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;}
+.lpanel.hidden{display:none;}
 
 /* Layout */
 #workspace{display:flex;flex:1;overflow:hidden;}
 
 /* Sidebars */
-.sidebar{flex-shrink:0;background:var(--panel);overflow-y:auto;display:flex;flex-direction:column;}
-#sl{width:220px;border-right:2px solid #1a1a1a;}
-#sr{width:250px;border-left:2px solid #1a1a1a;}
+.sidebar{flex-shrink:0;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;}
+#sl{width:230px;border-right:2px solid #181818;}
+#sr{width:260px;border-left:2px solid #181818;}
 .ptitle{font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(200,215,255,.95);
   padding:7px 12px 6px;text-transform:uppercase;
   border-bottom:1px solid rgba(255,255,255,.08);border-left:3px solid rgba(100,150,255,.9);
@@ -270,100 +292,104 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 <body>
 
 <div id="toolbar">
-  <button class="tbtn on" id="btn-edit"    onclick="setMode('edit')">編集<span class="sk">E</span></button>
-  <button class="tbtn"    id="btn-preview" onclick="setMode('preview')">プレビュー<span class="sk">P</span></button>
+  <!-- Mode pill (replaces old 編集/プレビュー tabs — now compact, not a tab-like element) -->
+  <div id="mode-pill">
+    <button class="mpill on" id="btn-edit"    onclick="setMode('edit')"    title="編集モード (E)">編集</button>
+    <button class="mpill"    id="btn-preview" onclick="setMode('preview')" title="プレビューモード (P)">プレビュー</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn rec" id="btn-rec" onclick="toggleRec()" title="REC (R)">⏺ REC<span class="sk">R</span></button>
+  <!-- View display toggles -->
+  <div class="tgrp">
+    <button class="tbtn on" id="btn-mesh"   onclick="toggleMesh()"   title="メッシュ表示 (M)">メッシュ</button>
+    <button class="tbtn"    id="btn-mirror" onclick="toggleMirror()" title="ミラー編集 (X)">ミラー</button>
+    <button class="tbtn"    id="btn-onion"  onclick="toggleOnion()"  title="オニオンスキン (O)">オニオン</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn on" id="btn-mesh" onclick="toggleMesh()" title="メッシュ (M)">メッシュ<span class="sk">M</span></button>
-  <button class="tbtn" id="btn-mirror" onclick="toggleMirror()" title="左右ミラー編集 (X)">ミラー<span class="sk">X</span></button>
-  <button class="tbtn" id="btn-onion" onclick="toggleOnion()" title="ニュートラル表示 (O)">オニオン<span class="sk">O</span></button>
+  <!-- View controls -->
+  <div class="tgrp">
+    <button class="tbtn" onclick="fitView()"          title="画面にフィット (F)">フィット</button>
+    <button class="tbtn" id="btn-flip-h" onclick="toggleCanvasFlip()" title="水平反転">↔</button>
+    <button class="tbtn" id="btn-ruler"  onclick="toggleRulers()"     title="ルーラー">定規</button>
+    <button class="tbtn" id="btn-checker" onclick="toggleChecker()"   title="チェッカー">⬛</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" onclick="fitView()" title="表示リセット (F)">表示リセット<span class="sk">F</span></button>
-  <button class="tbtn" id="btn-flip-h" onclick="toggleCanvasFlip()" title="水平反転プレビュー（配信時の見え方を確認）">↔ 反転</button>
-  <button class="tbtn" id="btn-snap" onclick="toggleSnap()" title="グリッドスナップ (G)">スナップ<span class="sk">G</span></button>
-  <button class="tbtn" id="btn-arrows" onclick="toggleArrows()" title="変形矢印 (V)">矢印<span class="sk">V</span></button>
-  <button class="tbtn" id="btn-ruler" onclick="toggleRulers()" title="ルーラー">ルーラー</button>
-  <button class="tbtn" id="btn-brush" onclick="toggleBrush()" title="ブラシ選択 (B)">ブラシ<span class="sk">B</span></button>
-  <button class="tbtn" id="btn-sculpt" onclick="toggleSculpt()" title="スカルプト変形 (S)">スカルプト<span class="sk">S</span></button>
-  <button class="tbtn" id="btn-lasso" onclick="toggleLasso()" title="投げ縄選択 (L)">投げ縄<span class="sk">L</span></button>
-  <button class="tbtn" id="btn-weight-paint" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">ウェイト<span class="sk">W</span></button>
-  <button class="tbtn" onclick="showMiniPreview()" title="ミニプレビュー">▣ プレビュー</button>
-  <button class="tbtn" id="btn-bc" onclick="toggleBroadcastChannel()" title="BroadcastChannel API: 他タブからパラメータ制御&#10;送信: new BroadcastChannel('noiru-live2d').postMessage({cmd:'setParam',name:'headX',value:0.5})">📡 BC</button>
-  <button class="tbtn" id="btn-webcam" onclick="toggleWebcamTest()" title="Webカメラテスト">📷 カメラ</button>
-  <button class="tbtn" id="btn-mic" onclick="toggleMicTest()" title="マイクテスト（リップシンクプレビュー）">🎤 マイク</button>
-  <button class="tbtn" id="btn-midi" onclick="toggleMidiPanel()" title="MIDIコントローラー: CC→パラメータ・ノート→ポーズのマッピング">🎹 MIDI</button>
-  <button class="tbtn" id="btn-gamepad" onclick="toggleGamepadPanel()" title="ゲームパッドコントローラー: スティック軸→パラメータ・ボタン→ポーズのマッピング">🎮 GPad</button>
-  <button class="tbtn" id="btn-param-scan" onclick="toggleParamScan()" title="全パラメータを順番にmin→max→minスキャン（変形確認用）">🔍 スキャン</button>
-  <button class="tbtn" id="btn-param-hud" onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータ値HUDオーバーレイ（キャンバス上に現在値を表示）">📋 HUD</button>
-  <button class="tbtn" id="btn-osc" onclick="toggleOscilloscope()" title="パラメータ波形モニター: 全パラメータ値のリアルタイム波形表示">📈 波形</button>
+  <!-- Edit tools -->
+  <div class="tgrp">
+    <button class="tbtn" id="btn-snap"   onclick="toggleSnap()"   title="スナップ (G)">スナップ</button>
+    <button class="tbtn" id="btn-arrows" onclick="toggleArrows()" title="矢印 (V)">矢印</button>
+    <button class="tbtn" id="btn-brush"  onclick="toggleBrush()"  title="ブラシ (B)">ブラシ</button>
+    <button class="tbtn" id="btn-lasso"  onclick="toggleLasso()"  title="投げ縄 (L)">投げ縄</button>
+    <button class="tbtn" id="btn-sculpt" onclick="toggleSculpt()" title="スカルプト (S)">スカルプト</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" id="btn-neutral" onclick="resetToNeutral()" oncontextmenu="event.preventDefault();saveCustomNeutral();" title="全パラメータをニュートラルに戻す&#10;右クリック: 現在値をカスタムニュートラルとして保存">ニュートラル</button>
+  <!-- Deformer tools -->
+  <div class="tgrp">
+    <button class="tbtn" id="btn-def-mode" onclick="toggleDeformerMode()" title="デフォーマーモード (D)">デフォーマー</button>
+    <button class="tbtn" onclick="addWarpDeformer()"   title="ワープ追加">＋W</button>
+    <button class="tbtn" onclick="addRotateDeformer()" title="回転追加">＋R</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" id="btn-anim-rec" onclick="toggleAnimRec()" title="パラメータ変化をリアルタイム録音">⏺ アニメ録音</button>
-  <button class="tbtn" id="btn-face-rec" onclick="toggleFaceRec()" title="ウェブカム顔トラッキング + 録音を同時開始" style="color:#ff80c0;">🎭 顔録音</button>
-  <button class="tbtn" id="btn-anim-play" onclick="animPlay()" title="録音したアニメを再生">▶ アニメ再生</button>
-  <button class="tbtn" onclick="bakeAnimToTimeline()" title="録音データをタイムラインKFに変換" style="color:#d0c060;">🍞 ベイク</button>
-  <button class="tbtn" onclick="gradientKFBetween()" title="KF間に滑らかなグラジェント補間を追加" style="color:#80c0ff;">〜 補間</button>
-  <button class="tbtn" onclick="reduceKFDensity()" title="冗長なKFを間引いて軽量化" style="color:#a0c080;">✂ 間引き</button>
-  <button class="tbtn" onclick="pingPongAnim()" title="アニメーションを逆転させてピンポンループを作成" style="color:#ffd0a0;">⇌ ピンポン</button>
-  <button class="tbtn" id="btn-rnd-pose" onclick="randomizePose()" title="全パラメータをランダムな値に設定（表情・ポーズのバリエーション探索用）" style="color:#ff90d0;">🎲 ランダム</button>
-  <button class="tbtn" id="btn-rnd-cfg" onclick="toggleRandomPoseConfig()" title="ランダムポーズ設定（各パラメータの範囲・強度）" style="color:#ff90d0;padding:2px 5px;">⚙</button>
+  <!-- Playback & REC -->
+  <div class="tgrp">
+    <button class="tbtn rec" id="btn-rec"       onclick="toggleRec()"       title="REC (R)">● REC</button>
+    <button class="tbtn"     id="btn-anim-rec"  onclick="toggleAnimRec()"   title="アニメ録音">⏺</button>
+    <button class="tbtn"     id="btn-anim-play" onclick="animPlay()"        title="アニメ再生">▶</button>
+    <button class="tbtn"     id="btn-neutral"   onclick="resetToNeutral()"  oncontextmenu="event.preventDefault();saveCustomNeutral();" title="ニュートラル (右クリック=保存)">ニュートラル</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" id="btn-def-mode" onclick="toggleDeformerMode()" title="デフォーマー操作モード (D)">デフォーマー<span class="sk">D</span></button>
-  <button class="tbtn" onclick="addWarpDeformer()" title="ワープデフォーマーを追加">＋ワープ</button>
-  <button class="tbtn" onclick="addRotateDeformer()" title="回転デフォーマーを追加">＋回転</button>
+  <!-- File ops -->
+  <div class="tgrp">
+    <button class="tbtn" onclick="openImageDialog()">開く</button>
+    <button class="tbtn" onclick="saveModel()">保存</button>
+    <button class="tbtn" onclick="exportHTML()">HTML出力</button>
+  </div>
   <div class="tsep"></div>
-  <button class="tbtn" onclick="openImageDialog()">画像を開く</button>
-  <button class="tbtn" onclick="saveModel()">保存<span class="sk">^S</span></button>
-  <button class="tbtn" onclick="exportHTML()">HTML出力</button>
-  <button class="tbtn" onclick="previewHTML()" title="エクスポートHTMLを新しいウィンドウでプレビュー（ダウンロードなし）" style="color:#80ffd0;">👁 プレビュー</button>
-  <button class="tbtn" onclick="exportAllClipsHTML()" title="全クリップを個別HTMLファイルとしてダウンロード" style="color:#c0e8ff;">📦 全クリップ</button>
-  <button class="tbtn" onclick="exportMotion3JSON()" title=".motion3.json 出力" style="color:#80b8e0;">motion3</button>
-  <button class="tbtn" onclick="exportMoc3JSON()" title="Live2D Cubism互換 .moc3 JSON出力" style="color:#c0a0ff;">.moc3</button>
-  <button class="tbtn" onclick="quickPreviewExport()" title="エクスポートをプレビュー" style="color:#ffd060;">▶ テスト</button>
-  <button class="tbtn" id="btn-webm" onclick="startWebMCapture()" title="アニメーションをWebM動画でキャプチャ" style="color:#f0a0ff;">🎬 録画</button>
-  <button class="tbtn" id="btn-gif" onclick="exportGIF()" title="アニメーションをGIF出力（インターネット接続必要）" style="color:#c0ff60;">🎞 GIF</button>
-  <button class="tbtn" onclick="exportPNGSequence()" title="タイムラインアニメをPNG連番+ZIPで出力（JSZip使用）" style="color:#a0e8ff;">🖼 PNG列</button>
-  <button class="tbtn" onclick="captureFramePNG()" title="現在フレームをPNGとして保存（透過背景）" style="color:#d0f0ff;">📸</button>
-  <button class="tbtn" onclick="exportSpriteSheet()" title="タイムラインアニメをスプライトシートPNGで出力" style="color:#80c8ff;">🀱 スプライト</button>
-  <button class="tbtn" id="btn-hq" onclick="toggleHQRender()" title="高品質レンダリング ON/OFF（三角形サブディビジョン・重い）" style="color:#ffe090;">✨ HQ</button>
-  <button class="tbtn" id="btn-video-rec" onclick="toggleVideoRec()" title="キャンバスをWebM動画で録画">🎥 録画</button>
-  <button class="tbtn" onclick="showPNGSequenceDialog()" title="アニメーション区間をPNGシーケンスとして書き出し">🖼 PNG列</button>
-  <button class="tbtn" onclick="showGIFExportDialog()" title="アニメーションをGIFとして書き出し（WebCodecs不要・純JS）" style="color:#80ffb0;">🎞 GIF</button>
-  <button class="tbtn" id="btn-snapshot" onclick="takeSnapshot()" title="現在のビューをスナップショット（最大4枚）" style="color:#60d0ff;">📷 スナップ</button>
-  <button class="tbtn" id="btn-snapshot-panel" onclick="toggleSnapPanel()" title="スナップショット比較モード" style="color:#60d0ff;">🔲 比較</button>
-  <button class="tbtn" id="btn-histogram" onclick="toggleHistogramPanel()" title="パラメータKF値ヒストグラム表示" style="color:#ffd080;">📊 ヒスト</button>
-  <button class="tbtn" id="btn-wf" onclick="toggleWaveformMonitor()" title="パラメータリアルタイム波形モニター（最大3パラメータ同時表示）" style="color:#60d8ff;">📈 波形</button>
-  <button class="tbtn" id="btn-abplay" onclick="toggleABPlayback()" title="アニメーションA/B区間比較プレイバック" style="color:#80ffb0;">⇄ A/B再生</button>
-  <button class="tbtn" id="btn-weight" onclick="toggleWeightMode()" title="ウェイトペイントモード" style="color:#ff9060;">⚖ ウェイト</button>
+  <!-- Extra tools (overflow) -->
+  <button class="tbtn" id="btn-weight-paint" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">ウェイト</button>
+  <button class="tbtn" id="btn-face-rec"     onclick="toggleFaceRec()"     title="顔トラ録音" style="color:#ff80c0;">🎭</button>
+  <button class="tbtn" id="btn-webcam"       onclick="toggleWebcamTest()"  title="カメラ">📷</button>
+  <button class="tbtn" id="btn-mic"          onclick="toggleMicTest()"     title="マイク">🎤</button>
+  <button class="tbtn" id="btn-midi"         onclick="toggleMidiPanel()"   title="MIDI">🎹</button>
+  <button class="tbtn" id="btn-gamepad"      onclick="toggleGamepadPanel()" title="ゲームパッド">🎮</button>
+  <button class="tbtn" id="btn-param-hud"    onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータHUD">HUD</button>
+  <button class="tbtn" id="btn-hq"           onclick="toggleHQRender()"    title="高品質レンダリング">HQ</button>
+  <button class="tbtn" id="btn-weight"       onclick="toggleWeightMode()"  title="ウェイトモード" style="color:#ff9060;">⚖</button>
+  <button class="tbtn" id="btn-abplay"       onclick="toggleABPlayback()"  title="A/B再生" style="color:#80ffb0;">⇄</button>
+  <button class="tbtn" id="btn-rnd-pose"     onclick="randomizePose()"     title="ランダムポーズ" style="color:#ff90d0;">🎲</button>
+  <button class="tbtn"                       onclick="bakeAnimToTimeline()" title="タイムラインベイク" style="color:#d0c060;">🍞</button>
+  <button class="tbtn" id="btn-bc"           onclick="toggleBroadcastChannel()" title="BC">📡</button>
+  <button class="tbtn" id="btn-param-scan"   onclick="toggleParamScan()"   title="パラメータスキャン">🔍</button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="openRigger()" title="リギングエディタ (Ctrl+R)" style="color:#cba6f7;">🔧 リガー</button>
+  <button class="tbtn" onclick="autoScreenshot()" title="スクリーンショット (Ctrl+Shift+C)" style="color:#60d0ff;">📸 SS</button>
+  <div class="tsep"></div>
+  <button class="tbtn" onclick="showShortcutHelp()" title="ショートカット一覧 (?)">?</button>
+  <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="テーマ切替">🎨</button>
   <input type="file" id="file-input" accept="image/*" style="display:none" onchange="loadFromFileInput(this)">
-  <div class="tsep"></div>
-  <button class="tbtn" onclick="openRigger()" title="リギングエディタを開く (Ctrl+R)" style="color:#cba6f7;">🔧 リガー</button>
-  <div class="tsep"></div>
-  <button class="tbtn" onclick="showShortcutHelp()" title="? キーでも開けます" style="padding:3px 8px;">?</button>
-  <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="エディタカラーテーマ切替" style="padding:3px 8px;">🎨</button>
-  <button class="tbtn" id="btn-checker" onclick="toggleChecker()" title="透明背景チェッカーボード表示" style="padding:3px 8px;font-size:10px;">⬛</button>
+  <!-- Hidden stubs for JS-referenced IDs not in visible toolbar -->
+  <button id="btn-webm"         onclick="startWebMCapture()"    style="display:none"></button>
+  <button id="btn-gif"          onclick="exportGIF()"           style="display:none"></button>
+  <button id="btn-snapshot"     onclick="takeSnapshot()"        style="display:none"></button>
+  <button id="btn-snapshot-panel" onclick="toggleSnapPanel()"   style="display:none"></button>
+  <button id="btn-histogram"    onclick="toggleHistogramPanel()" style="display:none"></button>
+  <button id="btn-wf"           onclick="toggleWaveformMonitor()" style="display:none"></button>
+  <button id="btn-osc"          onclick="toggleOscilloscope()"  style="display:none"></button>
+  <button id="btn-rnd-cfg"      onclick="toggleRandomPoseConfig()" style="display:none"></button>
+  <button id="btn-video-rec"    onclick="toggleVideoRec()"      style="display:none"></button>
   <span id="lbl-status" style="margin-left:8px;">画像を開いてください</span>
 </div>
 
 <div id="workspace">
   <div class="sidebar" id="sl">
-    <!-- Deformer Section -->
-    <div id="deformer-section">
-      <div class="ptitle" style="display:flex;align-items:center;">デフォーマー
-        <button onclick="addWarpDeformer()" style="margin-left:auto;background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="ワープデフォーマー追加">+W</button>
-        <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
-      </div>
-      <div id="deformer-tree" style="max-height:120px;overflow-y:auto;"></div>
-      <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid rgba(46,54,86,.5);display:none;">
-        <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
-        <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
-          style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
-          <option value="">(全パラメータ積算)</option>
-        </select>
-      </div>
+    <!-- Cubism-style left panel tab strip -->
+    <div id="left-tabs">
+      <div class="ltab on"  id="ltab-params"  onclick="switchLeftTab('params')">パラメータ</div>
+      <div class="ltab"     id="ltab-parts"   onclick="switchLeftTab('parts')">パーツ</div>
+      <div class="ltab"     id="ltab-deform"  onclick="switchLeftTab('deform')">デフォーマー</div>
     </div>
+
+    <!-- Panel: パラメータ -->
+    <div class="lpanel" id="lpanel-params">
     <div class="ptitle" style="display:flex;align-items:center;">パラメータ
       <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;padding:0 6px;line-height:1;" title="パラメータを追加 (+)">+</button>
       <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
@@ -388,6 +414,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
     </div>
     <div id="params"></div>
+    </div><!-- /lpanel-params -->
+
+    <!-- Panel: パーツ -->
+    <div class="lpanel hidden" id="lpanel-parts">
     <div style="padding:5px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="padding:5px 4px 2px;display:flex;align-items:center;">
         パーツ
@@ -460,7 +490,26 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
       </div>
       <div id="pose-list" style="display:flex;flex-direction:column;gap:2px;"></div>
     </div>
-  </div>
+    </div><!-- /lpanel-parts -->
+
+    <!-- Panel: デフォーマー -->
+    <div class="lpanel hidden" id="lpanel-deform">
+      <div id="deformer-section" style="border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div class="ptitle" style="display:flex;align-items:center;">デフォーマー
+          <button onclick="addWarpDeformer()" style="margin-left:auto;background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="ワープデフォーマー追加">+W</button>
+          <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
+        </div>
+        <div id="deformer-tree" style="overflow-y:auto;max-height:400px;"></div>
+        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid rgba(46,54,86,.5);display:none;">
+          <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
+          <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
+            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
+            <option value="">(全パラメータ積算)</option>
+          </select>
+        </div>
+      </div>
+    </div><!-- /lpanel-deform -->
+  </div><!-- /sidebar #sl -->
 
   <div id="vp">
     <canvas id="c"></canvas>
@@ -2831,12 +2880,38 @@ function rotateSelection() {
 // ==================== MODE ====================
 function setMode(m) {
   ST.mode=m;
+  // mpill buttons (new compact mode indicator)
   document.getElementById('btn-edit').classList.toggle('on',m==='edit');
   document.getElementById('btn-preview').classList.toggle('on',m==='preview');
   if (m==='preview') { ST.rec=false; updateRecUI(); startPreview(); }
   else stopPreview();
   updateModeBadge();
   redraw();
+}
+
+function switchLeftTab(tab) {
+  ['params','parts','deform'].forEach(t => {
+    document.getElementById('ltab-'+t).classList.toggle('on', t===tab);
+    document.getElementById('lpanel-'+t).classList.toggle('hidden', t!==tab);
+  });
+}
+
+async function autoScreenshot(label) {
+  if (window.api && window.api.screenshot) {
+    const p = await window.api.screenshot(label || '');
+    if (p) {
+      const toast = document.getElementById('autosave-toast');
+      if (toast) { toast.textContent = 'SS保存: ' + p.split('/').pop(); toast.style.opacity=1; setTimeout(()=>toast.style.opacity=0, 2500); }
+    }
+  } else {
+    // Fallback: download canvas as PNG
+    const c = document.getElementById('c');
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.toDataURL('image/png');
+    a.download = 'screenshot-' + Date.now() + '.png';
+    a.click();
+  }
 }
 
 function updateModeBadge() {
@@ -16559,6 +16634,7 @@ document.addEventListener('keydown',e=>{
   if (e.ctrlKey&&e.key==='s') { saveModel(); e.preventDefault(); }
   if (e.ctrlKey&&e.key==='o') { openImageDialog(); e.preventDefault(); }
   if (!e.repeat&&e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='e') { quickExportHTML(); e.preventDefault(); }
+  if (!e.repeat&&e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='c') { autoScreenshot(); e.preventDefault(); }
   // KF copy/paste (anim mode)
   if (e.ctrlKey&&e.key==='c'&&ST.animMode&&tlSelectedKFs.size>0) {
     const kfToName=new Map();

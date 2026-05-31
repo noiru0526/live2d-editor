@@ -253,6 +253,24 @@ ipcMain.handle('get-save-path', async (e, defaultName) => {
   return result.canceled ? null : result.filePath;
 });
 
+// ===== IPC: SCREENSHOT =====
+ipcMain.handle('screenshot', async (e, label) => {
+  try {
+    const target = win && !win.isDestroyed() ? win : null;
+    if (!target) return null;
+    const img = await target.webContents.capturePage();
+    const dir = '/app/screenshots';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const suffix = label ? `-${label}` : '';
+    const filePath = path.join(dir, `screenshot${suffix}-${ts}.png`);
+    fs.writeFileSync(filePath, img.toPNG());
+    return filePath;
+  } catch (err) {
+    return null;
+  }
+});
+
 // ===== IPC: RIGGING EDITOR =====
 ipcMain.handle('open-rigger', async () => {
   createRiggerWindow();
