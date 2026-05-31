@@ -21348,7 +21348,7 @@ function drawMultiTimeline() {
   }
 
   // Time axis labels (top)
-  tlMultiCtx.fillStyle='rgba(104,120,160,.6)'; tlMultiCtx.font='8px monospace';
+  tlMultiCtx.fillStyle='rgba(140,140,140,.7)'; tlMultiCtx.font='8px monospace';
   const secStep = visibleDur>10?2:visibleDur>5?1:visibleDur>2?0.5:visibleDur>1?0.25:0.1;
   const _smpteF = 30; // SMPTE frame rate
   const _fmtTime = t => {
@@ -21396,7 +21396,7 @@ function drawMultiTimeline() {
     if (x<0||x>W) continue;
     tlMultiCtx.fillStyle='rgba(255,255,255,.05)';
     tlMultiCtx.fillRect(x,0,1,H);
-    tlMultiCtx.fillStyle='rgba(104,120,160,.7)';
+    tlMultiCtx.fillStyle='rgba(140,140,140,.7)';
     tlMultiCtx.fillText(_fmtTime(s),x+2,10);
   }
 
@@ -26793,7 +26793,7 @@ function toggleABPlay() {
     ST.cachedVerts = null; redraw();
     // Update badge
     if (_abCurrent === 'A') {
-      badge.textContent = 'A'; badge.style.background = 'rgba(80,140,255,.85)'; badge.style.color = '#fff';
+      badge.textContent = 'A'; badge.style.background = 'rgba(60,160,100,.85)'; badge.style.color = '#fff';
     } else {
       badge.textContent = 'B'; badge.style.background = 'rgba(255,140,60,.85)'; badge.style.color = '#fff';
     }
@@ -27431,7 +27431,7 @@ function togglePhysSim() {
     btn.textContent = _physSimActive ? '■ シミュ停止' : '▶ シミュ';
     btn.style.background = _physSimActive ? 'rgba(224,120,64,.15)' : '#282828';
     btn.style.color = _physSimActive ? 'var(--accent)' : '#707070';
-    btn.style.borderColor = _physSimActive ? 'rgba(255,100,200,.5)' : 'rgba(140,100,255,.4)';
+    btn.style.borderColor = _physSimActive ? 'rgba(224,120,64,.5)' : 'rgba(100,100,100,.4)';
   }
   if (_physSimActive) {
     _physState = {};
@@ -28368,7 +28368,7 @@ function buildTrackOverlay() {
     row.style.height = ovRhs[ri] + 'px';
     const isMuted = window._tlTrackVisible[name] === false;
     const isSyncSel = tlSyncScrubTracks.has(name);
-    if (isSyncSel) row.style.background = 'rgba(100,200,255,.12)';
+    if (isSyncSel) row.style.background = 'rgba(224,120,64,.10)';
     const nameEl = document.createElement('span');
     nameEl.className = 'tl-track-name' + (name === ST.ap ? ' active' : '') + (isSyncSel ? ' sync-sel' : '');
     const shortLbl = p.lbl.length > 9 ? p.lbl.slice(0, 8) + '…' : p.lbl;
@@ -28843,7 +28843,7 @@ function geRender() {
 
   // Zero line
   const y0 = vToY(0);
-  ctx.strokeStyle = 'rgba(120,140,200,0.3)';
+  ctx.strokeStyle = 'rgba(200,200,200,0.25)';
   ctx.lineWidth = 1;
   ctx.setLineDash([4*dpr, 4*dpr]);
   ctx.beginPath(); ctx.moveTo(PAD_L, y0); ctx.lineTo(W - PAD_R, y0); ctx.stroke();
