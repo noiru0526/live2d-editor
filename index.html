@@ -7,7 +7,7 @@
 :root {
   /* Core surfaces — Cubism dark gray theme */
   --bg:#1e1e1e; --panel:#252525; --surface:#232323; --surface2:#2d2d2d;
-  --border:#383838; --border-strong:#4a4a4a; --border-muted:#282828;
+  --border:#3a3a3a; --border-strong:#4a4a4a; --border-muted:#2a2a2a;
   /* Accent colors — Cubism orange */
   --accent:#e07840; --accent2:#c09040; --accent3:#c09060;
   --accent-dim:rgba(224,120,64,.15); --accent2-dim:rgba(192,144,64,.15);
@@ -89,11 +89,11 @@ button:focus{outline:none;}
 
 /* Sidebars */
 .sidebar{flex-shrink:0;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;}
-#sl{width:260px;border-right:1px solid #181818;}
-#sr{width:265px;border-left:1px solid #181818;}
+#sl{width:260px;border-right:1px solid var(--border);}
+#sr{width:265px;border-left:1px solid var(--border);}
 .ptitle{font-size:10px;font-weight:700;letter-spacing:1.8px;color:rgba(190,190,190,.9);
-  padding:5px 10px 4px;text-transform:uppercase;
-  border-bottom:1px solid rgba(255,255,255,.07);border-left:2px solid rgba(224,140,64,.8);
+  padding:3px 10px 3px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);border-left:2px solid rgba(224,140,64,.8);
   background:linear-gradient(to right,rgba(224,120,64,.06),transparent 60%);
   flex-shrink:0;}
 
@@ -25543,7 +25543,7 @@ function showParamCorrelation() {
     // Axes
     const mapX=v=>PAD+((v-pA.min)/(pA.max-pA.min||1))*(W-PAD*2);
     const mapY=v=>H-PAD-((v-pB.min)/(pB.max-pB.min||1))*(H-PAD*2);
-    ctx2.strokeStyle='#383838'; ctx2.lineWidth=1;
+    ctx2.strokeStyle='#3a3a3a'; ctx2.lineWidth=1;
     ctx2.beginPath(); ctx2.moveTo(PAD,PAD); ctx2.lineTo(PAD,H-PAD); ctx2.lineTo(W-PAD,H-PAD); ctx2.stroke();
     // Zero lines
     ctx2.strokeStyle='rgba(120,120,120,.4)'; ctx2.setLineDash([3,3]);
@@ -28144,7 +28144,7 @@ function showEasingPicker(callback, currentEasing) {
     const isCur = ease.id === currentEasing;
     const card = document.createElement('div');
     card.style.cssText = `background:${isCur?'rgba(224,120,64,.1)':'#141414'};border:1px solid ${isCur?'rgba(224,120,64,.6)':'#2a2a2a'};border-radius:6px;padding:5px 5px 4px;cursor:pointer;transition:all .12s;`;
-    card.onmouseover=()=>{if(!isCur){card.style.background='#1e1e1e';card.style.borderColor='#383838';}};
+    card.onmouseover=()=>{if(!isCur){card.style.background='#1e1e1e';card.style.borderColor='#3a3a3a';}};
     card.onmouseout=()=>{if(!isCur){card.style.background='#141414';card.style.borderColor='#2a2a2a';}};
     card.onclick=()=>{ overlay.remove(); callback(ease.id); };
     const cv = document.createElement('canvas');
