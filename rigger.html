@@ -38,8 +38,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 /* ===== LEFT PANEL ===== */
 #lp{width:270px;background:#222222;border-right:1px solid #383838;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-.ph{padding:7px 10px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #383838;flex-shrink:0;background:#1d1d1d}
-.ph h3{color:#707070;font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase}
+.ph{padding:7px 10px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #383838;border-left:3px solid rgba(100,150,255,.85);flex-shrink:0;background:linear-gradient(to right,rgba(80,120,255,.14),#1d1d1d 70%)}
+.ph h3{color:rgba(200,215,255,.95);font-size:11px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:#585858;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
 .ih:hover{color:#d8d8d8;background:#333333}
@@ -1977,6 +1977,18 @@ function render() {
   const ts = performance.now();
   if (mode === 'preview') physStep(ts);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Viewport background — solid fill + dot-grid
+  ctx.fillStyle = '#1c1e2c';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  {
+    const sp = 20 * (window.devicePixelRatio||1), r = 1.5 * (window.devicePixelRatio||1);
+    ctx.fillStyle = 'rgba(120,140,220,.5)';
+    for (let gx = sp/2; gx < canvas.width; gx += sp) {
+      for (let gy = sp/2; gy < canvas.height; gy += sp) {
+        ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();
+      }
+    }
+  }
 
   const tl = m2s(0,0), br = m2s(canvasW, canvasH);
 

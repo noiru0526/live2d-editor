@@ -25,17 +25,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 
 /* Toolbar */
 #toolbar{display:flex;align-items:center;gap:3px;padding:3px 8px;
-  background:linear-gradient(to bottom,#1c1e2e,#161824);
-  border-bottom:1px solid var(--border);flex-shrink:0;height:var(--toolbar-h);
-  box-shadow:0 1px 4px rgba(0,0,0,.4);overflow-x:auto;
+  background:linear-gradient(to bottom,#2e2e2e,#222222);
+  border-bottom:2px solid #1a1a1a;flex-shrink:0;height:var(--toolbar-h);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);overflow-x:auto;
   scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent;}
 #toolbar::-webkit-scrollbar{height:4px;}
 #toolbar::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
-.tbtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(200,210,240,.8);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-size:11px;transition:background .12s,border-color .12s,color .12s;flex-shrink:0;white-space:nowrap;}
-.tbtn:hover{background:rgba(78,124,255,.15);border-color:rgba(78,124,255,.4);color:#c8d4ff;}
+.tbtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(220,220,220,.9);border-radius:var(--r-sm);padding:3px 9px;cursor:pointer;font-size:11px;transition:background .12s,border-color .12s,color .12s;flex-shrink:0;white-space:nowrap;}
+.tbtn:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff;}
 .tbtn:active{transform:translateY(1px);}
-.tbtn.on{background:rgba(78,124,255,.22);border-color:rgba(78,124,255,.6);color:var(--accent);}
-.tbtn.rec.on{background:rgba(255,68,68,.15);border-color:var(--rec);color:var(--rec);animation:pulse 1s infinite;}
+.tbtn.on{background:rgba(224,120,64,.25);border-color:rgba(224,120,64,.7);color:var(--accent);}
+.tbtn.rec.on{background:rgba(255,68,68,.2);border-color:var(--rec);color:var(--rec);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 /* Toolbar group separator — more visible than before */
 .tsep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 5px;flex-shrink:0;}
@@ -48,12 +48,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 
 /* Sidebars */
 .sidebar{flex-shrink:0;background:var(--panel);overflow-y:auto;display:flex;flex-direction:column;}
-#sl{width:220px;border-right:1px solid var(--border);}
-#sr{width:250px;border-left:1px solid var(--border);}
-.ptitle{font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(160,180,240,.75);
-  padding:6px 12px 5px;text-transform:uppercase;
-  border-bottom:1px solid var(--border);border-left:2px solid rgba(78,124,255,.55);
-  background:linear-gradient(to right,rgba(78,124,255,.07),transparent 80%);
+#sl{width:220px;border-right:2px solid #1a1a1a;}
+#sr{width:250px;border-left:2px solid #1a1a1a;}
+.ptitle{font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(200,215,255,.95);
+  padding:7px 12px 6px;text-transform:uppercase;
+  border-bottom:1px solid rgba(255,255,255,.08);border-left:3px solid rgba(100,150,255,.9);
+  background:linear-gradient(to right,rgba(80,120,255,.16),transparent 70%);
   flex-shrink:0;}
 
 /* Parameter rows */
@@ -1669,10 +1669,12 @@ function redraw() {
   ctx.save();
   ctx.scale(_DPR, _DPR);
   ctx.clearRect(0,0,CW(),CH());
-  // Dot-grid background (always rendered in screen space)
+  // Canvas background — solid fill first, then dot-grid overlay
+  ctx.fillStyle = '#1c1e2c';
+  ctx.fillRect(0, 0, CW(), CH());
   {
-    const sp = 24, r = 1;
-    ctx.fillStyle = 'rgba(58,72,130,.45)';
+    const sp = 20, r = 1.5;
+    ctx.fillStyle = 'rgba(120,140,220,.5)';
     for (let gx = sp/2; gx < CW(); gx += sp) {
       for (let gy = sp/2; gy < CH(); gy += sp) {
         ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();
