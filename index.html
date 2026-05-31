@@ -1669,18 +1669,18 @@ function redraw() {
   ctx.save();
   ctx.scale(_DPR, _DPR);
   ctx.clearRect(0,0,CW(),CH());
-  // Canvas background — solid fill + high-visibility dot-grid
-  ctx.fillStyle = '#20222e';
+  // ===== Cubism-style viewport background =====
+  ctx.fillStyle = '#2a2a2a';
   ctx.fillRect(0, 0, CW(), CH());
-  {
-    const sp = 20, r = 2;
-    ctx.fillStyle = 'rgba(160,180,255,.75)';
-    for (let gx = sp/2; gx < CW(); gx += sp) {
-      for (let gy = sp/2; gy < CH(); gy += sp) {
-        ctx.beginPath(); ctx.arc(gx, gy, r, 0, Math.PI*2); ctx.fill();
-      }
-    }
-  }
+  // Minor grid lines (every 20px)
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 0.5;
+  const gs = 20;
+  for (let x = 0; x < CW(); x += gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH()); ctx.stroke(); }
+  for (let y = 0; y < CH(); y += gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW(),y); ctx.stroke(); }
+  // Major grid lines (every 100px)
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1;
+  for (let x = 0; x < CW(); x += 100) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH()); ctx.stroke(); }
+  for (let y = 0; y < CH(); y += 100) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW(),y); ctx.stroke(); }
   // Camera track preview: apply __camZoom/__camX/__camY offset around canvas center (anim mode only)
   if (ST.animMode && M.img && (_editorCamZoom!==1 || _editorCamX!==0 || _editorCamY!==0)) {
     const tx=getTx(), scl=tx.s;
@@ -1691,24 +1691,36 @@ function redraw() {
   }
   if (!M.img) {
     const cx=CW()/2, cy=CH()/2;
-    // Draw a soft glow circle
-    const grd=ctx.createRadialGradient(cx,cy,10,cx,cy,120);
-    grd.addColorStop(0,'rgba(78,124,255,.08)'); grd.addColorStop(1,'transparent');
-    ctx.fillStyle=grd; ctx.fillRect(0,0,CW(),CH());
-    // Draw face placeholder icon
-    ctx.strokeStyle='rgba(78,124,255,.25)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(cx,cy-20,50,0,Math.PI*2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx-16,cy-28,8,0,Math.PI*2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx+16,cy-28,8,0,Math.PI*2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx,cy-5,3,0,Math.PI); ctx.stroke();
-    // Text
-    ctx.fillStyle='rgba(200,212,240,.55)'; ctx.font='bold 16px Segoe UI';
-    ctx.textAlign='center';
-    ctx.fillText('Live2D Editor — noiru', cx, cy+50);
-    ctx.fillStyle='rgba(200,212,240,.28)'; ctx.font='13px Segoe UI';
-    ctx.fillText('Ctrl+O で画像を開く  または  ここにドロップ', cx, cy+76);
-    ctx.fillStyle='rgba(100,120,160,.4)'; ctx.font='11px Segoe UI';
-    ctx.fillText('PNG / JPG / WEBP 対応', cx, cy+98);
+    // Cubism-style: draw a canvas frame placeholder in the center
+    const fw=480, fh=540, fx=cx-fw/2, fy=cy-fh/2;
+    // Canvas area background
+    ctx.fillStyle='#1e1e1e'; ctx.fillRect(fx,fy,fw,fh);
+    // Checkerboard inside canvas
+    const cs=20;
+    for (let row=0; row<fh/cs; row++) for (let col=0; col<fw/cs; col++) {
+      if ((row+col)%2===0) { ctx.fillStyle='rgba(255,255,255,.03)'; ctx.fillRect(fx+col*cs,fy+row*cs,cs,cs); }
+    }
+    // Canvas border
+    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1;
+    ctx.strokeRect(fx,fy,fw,fh);
+    // Corner markers
+    const cm=14; ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5;
+    [[fx,fy,1,1],[fx+fw,fy,-1,1],[fx,fy+fh,1,-1],[fx+fw,fy+fh,-1,-1]].forEach(([x,y,dx,dy])=>{
+      ctx.beginPath(); ctx.moveTo(x+dx*cm,y); ctx.lineTo(x,y); ctx.lineTo(x,y+dy*cm); ctx.stroke();
+    });
+    // Center drop zone
+    ctx.strokeStyle='rgba(180,180,180,.3)'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+    ctx.strokeRect(cx-140,cy-60,280,120); ctx.setLineDash([]);
+    // Icons and text
+    ctx.fillStyle='rgba(200,200,200,.5)'; ctx.font='28px Segoe UI Emoji'; ctx.textAlign='center';
+    ctx.fillText('📂', cx, cy-20);
+    ctx.fillStyle='rgba(220,220,220,.7)'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText('画像をドロップ または Ctrl+O', cx, cy+16);
+    ctx.fillStyle='rgba(160,160,160,.5)'; ctx.font='11px Segoe UI';
+    ctx.fillText('PNG · JPG · WEBP', cx, cy+36);
+    // Dimension label
+    ctx.fillStyle='rgba(120,120,120,.6)'; ctx.font='10px monospace'; ctx.textAlign='left';
+    ctx.fillText('480 × 540', fx+4, fy-5);
     ctx.textAlign='left';
     return;
   }
