@@ -16977,7 +16977,7 @@ function openRigger() {
 // ==================== ELECTRON IPC ====================
 if (window.api) {
   window.api.on('open-image',  p=>loadPath(p));
-  window.api.on('load-model',  (d,p)=>loadJSON(d,p));
+  window.api.on('load-model',  (d,p)=>{ loadJSON(d,p); _discordRpcUpdate(); });
   window.api.on('save-model',  ()=>saveModel());
   window.api.on('save-model-as',p=>saveModel(p));
   window.api.on('export-html', p=>exportHTML(p));
@@ -16986,6 +16986,12 @@ if (window.api) {
   window.api.on('set-mode',    m=>setMode(m));
   window.api.on('reset-kf',    ()=>delKFData());
   window.api.on('reset-all',   ()=>{ M.def={}; ST.cachedVerts=null; redraw(); updateAllKFDots(); });
+}
+
+function _discordRpcUpdate() {
+  if (!window.api?.discordRpc) return;
+  const name = M.modelName || (M.parts.length ? `${M.parts.length}パーツ` : '新規プロジェクト');
+  window.api.discordRpc(`アバター編集中: ${name}`, 'Live2D Editor — noiru');
 }
 
 // ==================== AUTO PRESETS ====================

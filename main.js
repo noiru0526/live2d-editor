@@ -4,6 +4,45 @@ const fs = require('fs');
 
 let win, riggerWin;
 
+// ===== DISCORD RPC =====
+let discordRpc = null;
+const DISCORD_CLIENT_ID = '1378799440000000000'; // noiru Live2D Editor App ID (placeholder)
+
+function initDiscordRPC() {
+  try {
+    const RPC = require('discord-rpc');
+    discordRpc = new RPC.Client({ transport: 'ipc' });
+    discordRpc.on('ready', () => {
+      discordRpc.setActivity({
+        details: 'アバター制作中',
+        state: 'Live2D Editor — noiru',
+        startTimestamp: Math.floor(Date.now() / 1000),
+        largeImageKey: 'live2d_editor',
+        largeImageText: 'Live2D Editor',
+        instance: false,
+      }).catch(() => {});
+    });
+    discordRpc.login({ clientId: DISCORD_CLIENT_ID }).catch(() => {
+      // Discord not running or app not registered — silently ignore
+      discordRpc = null;
+    });
+  } catch (e) {
+    // discord-rpc not available — silently ignore
+  }
+}
+
+function updateDiscordRPC(details, state) {
+  if (!discordRpc) return;
+  discordRpc.setActivity({
+    details: details || 'アバター制作中',
+    state: state || 'Live2D Editor',
+    startTimestamp: Math.floor(Date.now() / 1000),
+    largeImageKey: 'live2d_editor',
+    largeImageText: 'Live2D Editor — noiru',
+    instance: false,
+  }).catch(() => {});
+}
+
 app.commandLine.appendSwitch('no-sandbox');
 
 process.on('uncaughtException', (err) => {
@@ -326,5 +365,16 @@ ipcMain.handle('rigger-export-avatar', async (e, html) => {
   return true;
 });
 
-app.whenReady().then(createWindow);
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+// IPC for Discord RPC state updates from renderer
+ipcMain.on('discord-rpc-update', (e, { details, state }) => {
+  updateDiscordRPC(details, state);
+});
+
+app.whenReady().then(() => {
+  createWindow();
+  initDiscordRPC();
+});
+app.on('window-all-closed', () => {
+  if (discordRpc) discordRpc.destroy().catch(() => {});
+  if (process.platform !== 'darwin') app.quit();
+});
