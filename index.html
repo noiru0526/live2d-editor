@@ -23,6 +23,25 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column;user-select:none;}
 
+/* ===== Global scrollbar — Cubism minimal dark ===== */
+*{scrollbar-width:thin;scrollbar-color:#3a3a3a #1a1a1a;}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:#1a1a1a;}
+::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#4a4a4a;}
+::-webkit-scrollbar-corner{background:#1a1a1a;}
+
+/* ===== Global form elements — Cubism consistent style ===== */
+input[type=text],input[type=number],input[type=search],textarea{
+  background:#1e1e1e;border:1px solid var(--border);color:var(--text);
+  border-radius:3px;padding:2px 6px;font-family:inherit;font-size:11px;outline:none;}
+input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(--accent);}
+select{background:#1e1e1e;border:1px solid var(--border);color:var(--text);
+  border-radius:3px;padding:2px 4px;font-family:inherit;font-size:11px;outline:none;cursor:pointer;}
+select:focus{border-color:var(--accent);}
+select option{background:#222222;color:var(--text);}
+button:focus{outline:none;}
+
 /* ===== Toolbar — Cubism-style compact tool strip ===== */
 #toolbar{display:flex;align-items:center;gap:2px;padding:0 6px;
   background:#282828;
@@ -292,6 +311,21 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .tl-track-eye{background:none;border:none;cursor:pointer;font-size:10px;padding:0 1px;line-height:1;opacity:.5;flex-shrink:0;}
 .tl-track-eye:hover{opacity:1;}
 .tl-track-eye.muted{opacity:.2;}
+
+/* ===== Bottom status bar — Cubism style ===== */
+#statusbar{
+  position:fixed;bottom:0;left:0;right:0;height:20px;
+  background:#1a1a1a;border-top:1px solid #111;
+  display:flex;align-items:center;padding:0 10px;gap:12px;
+  font-size:10px;font-family:'Consolas','Monaco',monospace;color:var(--dim);
+  z-index:60;user-select:none;flex-shrink:0;
+  box-shadow:0 -1px 3px rgba(0,0,0,.4);}
+#statusbar .sb-sep{width:1px;height:12px;background:rgba(255,255,255,.1);flex-shrink:0;}
+#statusbar .sb-item{display:flex;align-items:center;gap:4px;white-space:nowrap;}
+#statusbar .sb-label{color:rgba(120,120,120,.7);font-size:9px;}
+#statusbar .sb-val{color:var(--text);}
+#statusbar .sb-accent{color:var(--accent);}
+#statusbar .sb-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
 </style>
 </head>
 <body>
@@ -1013,7 +1047,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
     <div id="wc-hx" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:var(--text);">頭X: 0.00</div>
     <div id="wc-hy" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:var(--text);">頭Y: 0.00</div>
-    <div id="wc-bl" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:#a0e0ff;">瞬き: 0.00</div>
+    <div id="wc-bl" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:#c8c8c8;">瞬き: 0.00</div>
     <div id="wc-mo" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:#a0ffd0;">口: 0.00</div>
     <div id="wc-ex" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:#ffd0a0;">視線X: 0.00</div>
     <div id="wc-hz" style="font-size:9px;background:#181818;border-radius:3px;padding:2px 5px;color:#d0b0ff;">頭Z: 0.00</div>
@@ -1136,7 +1170,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   </div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <label style="font-size:10px;color:#a0b0d0;white-space:nowrap;">全体強度:</label>
+    <label style="font-size:10px;color:var(--dim);white-space:nowrap;">全体強度:</label>
     <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:#ff90d0;">
     <span id="rnd-global-lbl" style="font-size:10px;color:#ff90d0;min-width:28px;">100%</span>
     <button onclick="randomizePose()" style="background:#2e1830;border:1px solid rgba(255,144,208,.4);color:#ff90d0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
@@ -1174,11 +1208,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
   <span style="font-size:11px;color:#80ffb0;font-weight:700;">⇄ A/B再生</span>
   <span style="font-size:10px;color:var(--dim);">A:</span>
   <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:#1a1a1a;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:#4e6880;">→</span>
+  <span style="font-size:10px;color:#4e4e4e;">→</span>
   <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1a1a1a;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">B:</span>
   <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1a1a1a;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:#4e6880;">→</span>
+  <span style="font-size:10px;color:#4e4e4e;">→</span>
   <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:#1a1a1a;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">ホールド:</span>
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#1a1a1a;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
@@ -1365,12 +1399,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
-    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
+    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#222222;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#1e2222;border:1px solid rgba(60,180,220,.5);color:#40c0e0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
-    <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#1a0a30;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
+    <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
     <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#222222;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
-    <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1a1e20;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
+    <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1e201c;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#181818;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -1384,11 +1418,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <span style="font-size:10px;color:var(--dim);white-space:nowrap;">クリップ:</span>
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
-    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#1e1828;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
+    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#222222;border:1px solid rgba(160,80,255,.4);color:#c080ff;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
     <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
-  <div style="height:12px;flex-shrink:0;padding-left:90px;background:#181818;border-bottom:1px solid rgba(60,70,110,.3);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
+  <div style="height:12px;flex-shrink:0;padding-left:90px;background:#181818;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
     <canvas id="tl-minimap" style="display:block;width:100%;height:12px;"></canvas>
   </div>
   <div id="tl-multi-body" style="display:flex;flex:1;overflow:hidden;min-height:0;">
@@ -1402,10 +1436,26 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </div>
   </div>
   <!-- Horizontal scrollbar for zoomed timeline -->
-  <div id="tl-hscroll-wrap" style="display:flex;height:10px;flex-shrink:0;background:#181818;border-top:1px solid rgba(60,70,110,.4);padding:0 90px 0 0;">
+  <div id="tl-hscroll-wrap" style="display:flex;height:10px;flex-shrink:0;background:#181818;border-top:1px solid rgba(255,255,255,.06);padding:0 90px 0 0;">
     <input type="range" id="tl-hscroll" min="0" max="100" value="0" step="0.1"
       style="flex:1;height:100%;accent-color:var(--accent);opacity:0.6;cursor:pointer;margin:0;"
       oninput="tlZoomOff=(+this.value/100)*Math.max(0,(M.animation.duration||3)*(1-1/Math.max(1,tlZoom)));drawMultiTimeline();">
+  </div>
+</div>
+
+<!-- ===== Cubism-style status bar ===== -->
+<div id="statusbar">
+  <div class="sb-item"><span class="sb-label">フレーム</span><span class="sb-val" id="sb-frame">0</span><span class="sb-label">/</span><span class="sb-val" id="sb-frames-total">0</span></div>
+  <div class="sb-sep"></div>
+  <div class="sb-item"><span class="sb-label">時刻</span><span class="sb-val" id="sb-time">0.000s</span></div>
+  <div class="sb-sep"></div>
+  <div class="sb-item"><span class="sb-label">ズーム</span><span class="sb-val" id="sb-zoom">100%</span></div>
+  <div class="sb-sep"></div>
+  <div class="sb-item"><span class="sb-accent" id="sb-param-name">—</span></div>
+  <div class="sb-right">
+    <div class="sb-item"><span class="sb-label">モード</span><span class="sb-val" id="sb-mode">EDIT</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><span class="sb-val" id="sb-fps">-- fps</span></div>
   </div>
 </div>
 
@@ -1642,7 +1692,32 @@ function zoomToSelection() {
   ST.cachedVerts=null; updateZoomHUD(); redraw();
 }
 function updateZoomHUD() {
-  document.getElementById('zoom-hud').textContent = Math.round(ST.zoom*100)+'%';
+  const pct = Math.round(ST.zoom*100)+'%';
+  document.getElementById('zoom-hud').textContent = pct;
+  const sbz = document.getElementById('sb-zoom');
+  if (sbz) sbz.textContent = pct;
+}
+function updateStatusBar() {
+  try {
+    const fps = document.getElementById('fps-hud');
+    const sbfps = document.getElementById('sb-fps');
+    if (fps && sbfps) sbfps.textContent = fps.textContent;
+    const ph = ST.animPlayhead || 0;
+    const dur = M.animation?.duration || 0;
+    const fps30 = Math.round(ph * 30);
+    const totalF = Math.round(dur * 30);
+    const sbFrame = document.getElementById('sb-frame');
+    const sbTotal = document.getElementById('sb-frames-total');
+    const sbTime = document.getElementById('sb-time');
+    if (sbFrame) sbFrame.textContent = fps30;
+    if (sbTotal) sbTotal.textContent = totalF;
+    if (sbTime) sbTime.textContent = ph.toFixed(3) + 's';
+    const sbParam = document.getElementById('sb-param-name');
+    if (sbParam) sbParam.textContent = ST.ap ? (M.params[ST.ap]?.lbl || ST.ap) : '—';
+    const sbMode = document.getElementById('sb-mode');
+    if (sbMode) sbMode.textContent = ST.mode === 'preview' ? 'PREVIEW' : 'EDIT';
+    updateZoomHUD();
+  } catch(e) {}
 }
 
 // ==================== MESH ====================
@@ -3506,6 +3581,7 @@ function setAP(name) {
   const delBtn=document.getElementById('btn-del-param');
   if (delBtn) delBtn.style.display=M.params[name]?.custom?'':'none';
   updateKFList(); updateParamHUD(); drawTimeline();
+  updateStatusBar();
 }
 
 function updateKFDots(name) {
@@ -3810,6 +3886,7 @@ function startPreview() {
       PV.fps=Math.round(PV.frameCount*1000/(now-PV.fpsT));
       PV.frameCount=0; PV.fpsT=now;
       if (fpshud) fpshud.textContent=PV.fps+' fps';
+      updateStatusBar();
     }
     ST.previewRAF=requestAnimationFrame(tick);
   }
@@ -9065,7 +9142,7 @@ window.addEventListener('message',ev=>{
   const _lr=_pos==='right'?'right:0;left:auto;':'left:0;right:auto;';
   const _ov=document.createElement('div');
   _ov.id='chat-log-ov';
-  _ov.style.cssText=`position:fixed;top:40px;bottom:40px;${_lr}width:${_mw}px;z-index:75;background:rgba(6,10,24,.75);backdrop-filter:blur(4px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#334 #0a0e1a;border-left:1px solid rgba(78,124,255,.2);`;
+  _ov.style.cssText=`position:fixed;top:40px;bottom:40px;${_lr}width:${_mw}px;z-index:75;background:rgba(6,10,24,.75);backdrop-filter:blur(4px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#3a3a3a #1a1a1a;border-left:1px solid rgba(78,124,255,.2);`;
   document.body.appendChild(_ov);
   const _msgs=[];
   function _render(){
@@ -26816,6 +26893,7 @@ function applyPlayheadToParams() {
   _applyLoopFade(t);
   ST.cachedVerts=null; redraw();
   if (ST.animMode) updateKFNavDisplay();
+  updateStatusBar();
 }
 
 // Multi-track timeline interaction (playhead + KF drag + KF right-click delete)
@@ -30052,7 +30130,7 @@ function exportGIF() {
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9001;display:flex;align-items:center;justify-content:center;';
   const wh=Math.min(canvas.width,canvas.height,512);
   ov.innerHTML=`<div style="background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:280px;font-size:11px;color:var(--text);">
-    <div style="font-weight:700;font-size:13px;color:#80c0ff;margin-bottom:10px;">🎞 GIF書き出し設定</div>
+    <div style="font-weight:700;font-size:13px;color:var(--text-bright);margin-bottom:10px;">🎞 GIF書き出し設定</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;">
       <label style="color:var(--dim);">FPS<br><select id="gif-fps" style="width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
         <option value="6">6 fps（軽量）</option><option value="10">10 fps</option>
@@ -30072,9 +30150,9 @@ function exportGIF() {
         <option value="loop">ループ区間のみ</option>
       </select></label>
     </div>
-    <div id="gif-est" style="font-size:9px;color:#5a7090;margin-bottom:8px;"></div>
+    <div id="gif-est" style="font-size:9px;color:#5a5a5a;margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;">
-      <button id="gif-cancel" style="background:#2a3050;border:1px solid #3a4878;color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
+      <button id="gif-cancel" style="background:#282828;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
       <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:700;">書き出し開始</button>
     </div>
   </div>`;
