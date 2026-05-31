@@ -254,7 +254,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
 .pgroup-body{border-bottom:1px solid rgba(255,255,255,.04);}
 
 /* Weight paint */
-.weight-palette{display:flex;gap:3px;padding:4px 8px;background:rgba(10,12,24,.6);}
+.weight-palette{display:flex;gap:3px;padding:4px 8px;background:rgba(18,18,18,.8);}
 .weight-swatch{width:18px;height:18px;border-radius:3px;cursor:pointer;border:1px solid transparent;}
 .weight-swatch.active{border-color:#fff;}
 
@@ -1098,7 +1098,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <div style="display:flex;gap:2px;margin-top:4px;">
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
-      <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#1e2830;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
+      <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
@@ -1362,7 +1362,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#1e2228;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
-    <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#1e2228;border:1px solid rgba(180,120,255,.4);color:#a060d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
+    <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#1a1030;border:1px solid rgba(180,100,255,.5);color:#c070ff;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
@@ -4237,7 +4237,7 @@ function _showEmbedCode(filePath) {
     <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;color:var(--dim);flex:1;">💾 URLプリセット（最大5件）</span>
-        <button id="obs-preset-save" style="background:#1e2840;border:1px solid #3a5090;color:#80a0ff;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
+        <button id="obs-preset-save" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
       </div>
       <div id="obs-preset-list" style="display:flex;flex-direction:column;gap:3px;font-size:9px;"></div>
     </div>
@@ -8916,7 +8916,7 @@ window.addEventListener('message',ev=>{
   window.showPopupCard=function({img='',title='',body='',dur=5,color=''}={}){
     _card.innerHTML=(img?`<img src="${img}" style="width:100%;height:80px;object-fit:cover;display:block;">`:'')
       +`<div style="padding:8px 12px;"><div style="font-size:13px;font-weight:700;color:${color?'#'+color:'#e0e8ff'};margin-bottom:3px;">${title}</div>`
-      +(body?`<div style="font-size:11px;color:#8090b0;line-height:1.5;">${body}</div>`:'')+'</div>';
+      +(body?`<div style="font-size:11px;color:var(--dim);line-height:1.5;">${body}</div>`:'')+'</div>';
     _card.style.opacity='1'; _card.style.transform='translateY(0)';
     if(_hideT) clearTimeout(_hideT);
     _hideT=setTimeout(()=>{ _card.style.opacity='0'; _card.style.transform='translateY(-10px)'; },dur*1000);
@@ -17743,7 +17743,7 @@ function showChatTriggerPanel() {
           <span style="font-size:9px;color:var(--dim);white-space:nowrap;">値:</span>
           <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:#181818;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
         </div>
-        <button onclick="addChatTrigger()" style="background:#1e2818;border:1px solid rgba(200,200,80,.4);color:#ffd060;border-radius:3px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
+        <button onclick="addChatTrigger()" style="background:#282828;border:1px solid rgba(255,200,80,.35);color:#ffd060;border-radius:3px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -17768,7 +17768,7 @@ function renderCTList() {
   M.chatTriggers.forEach((t, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 5px;background:#1a1a1a;border-radius:3px;font-size:10px;';
-    row.innerHTML = `<code style="color:#ffd060;background:#1e2010;padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:#8090b0;">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:#60d890;cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
+    row.innerHTML = `<code style="color:#ffd060;background:#1e2010;padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:var(--dim);">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:#60d890;cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19135,7 +19135,7 @@ function _midiRenderCCList() {
   Object.entries(M.midiMappings.cc).forEach(([cc, param]) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:#1a1a1a;border-radius:3px;font-size:9px;';
-    row.innerHTML = `<code style="color:#c080ff;background:#1e1038;padding:1px 4px;border-radius:2px;">CC${cc}</code><span style="flex:1;color:#8090b0;">→ ${param}</span><button onclick="delete M.midiMappings.cc['${cc}'];_midiRenderCCList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML = `<code style="color:#c080ff;background:#1e1038;padding:1px 4px;border-radius:2px;">CC${cc}</code><span style="flex:1;color:var(--dim);">→ ${param}</span><button onclick="delete M.midiMappings.cc['${cc}'];_midiRenderCCList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19149,7 +19149,7 @@ function _midiRenderNoteList() {
     const nn = noteNames[parseInt(note) % 12] + Math.floor(parseInt(note) / 12 - 1);
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:#1a1a1a;border-radius:3px;font-size:9px;';
-    row.innerHTML = `<code style="color:#ff80c0;background:#1e0828;padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:#8090b0;">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML = `<code style="color:#ff80c0;background:#1e0828;padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:var(--dim);">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19184,9 +19184,9 @@ function toggleGamepadPanel() {
         <input id="gpad-axis-num" type="number" min="0" max="15" placeholder="軸#" style="width:44px;background:#181818;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="gpad-axis-param" style="flex:1;background:#181818;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
         <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:#181818;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
-        <button onclick="_gpadAddAxisMap()" style="background:#1e2818;border:1px solid rgba(60,200,80,.4);color:#60e090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_gpadAddAxisMap()" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
-      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#1e2818;border:1px solid rgba(60,200,80,.3);color:#40b060;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
+      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
     </div>
     <!-- Button Mappings -->
     <div>
@@ -19256,7 +19256,7 @@ function _gpadRenderAxisList() {
   list.innerHTML = '';
   (M.gamepadMappings?.axes||[]).forEach(m => {
     const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:#1a1a1a;border-radius:3px;font-size:9px;';
-    row.innerHTML=`<code style="color:#60e090;background:#0e2010;padding:1px 4px;border-radius:2px;">A${m.axis}</code><span style="flex:1;color:#8090b0;">→ ${m.param} ×${m.scale||1}</span><button onclick="M.gamepadMappings.axes=M.gamepadMappings.axes.filter(a=>a.axis!==${m.axis});_gpadRenderAxisList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML=`<code style="color:#60e090;background:#0e2010;padding:1px 4px;border-radius:2px;">A${m.axis}</code><span style="flex:1;color:var(--dim);">→ ${m.param} ×${m.scale||1}</span><button onclick="M.gamepadMappings.axes=M.gamepadMappings.axes.filter(a=>a.axis!==${m.axis});_gpadRenderAxisList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19265,7 +19265,7 @@ function _gpadRenderBtnList() {
   list.innerHTML = '';
   (M.gamepadMappings?.buttons||[]).forEach(m => {
     const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:#1a1a1a;border-radius:3px;font-size:9px;';
-    row.innerHTML=`<code style="color:#ffa060;background:#1e0e00;padding:1px 4px;border-radius:2px;">B${m.btn}</code><span style="flex:1;color:#8090b0;">→ ${m.target}</span><button onclick="M.gamepadMappings.buttons=M.gamepadMappings.buttons.filter(b=>b.btn!==${m.btn});_gpadRenderBtnList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML=`<code style="color:#ffa060;background:#1e0e00;padding:1px 4px;border-radius:2px;">B${m.btn}</code><span style="flex:1;color:var(--dim);">→ ${m.target}</span><button onclick="M.gamepadMappings.buttons=M.gamepadMappings.buttons.filter(b=>b.btn!==${m.btn});_gpadRenderBtnList();" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -20253,7 +20253,7 @@ function renderPoseList() {
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:3px;';
     const btn=document.createElement('button');
-    btn.style.cssText='flex:1;text-align:left;background:#1e2540;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
+    btn.style.cssText='flex:1;text-align:left;background:#242424;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
     btn.innerHTML=`${pose.thumbnail ? `<img src="${pose.thumbnail}" style="width:24px;height:24px;object-fit:cover;border-radius:2px;flex-shrink:0;opacity:.9;">` : `<span style="background:rgba(224,120,64,.15);color:var(--accent);border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>`}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pose.name}</span>`;
     btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
     btn.addEventListener('contextmenu',e=>{
@@ -20408,13 +20408,13 @@ function drawRulers() {
     rhCtx.fillStyle='rgba(28,28,28,.88)'; rhCtx.fillRect(0,0,rh.width,rh.height);
     const step=Math.max(10,Math.round(50/t.s)*10);
     const startX=Math.floor(-t.ox/t.s/step)*step;
-    rhCtx.fillStyle='#6878a0'; rhCtx.font='8px monospace';
+    rhCtx.fillStyle='rgba(160,160,160,.5)'; rhCtx.font='8px monospace';
     for (let x=startX; x<M.iw+step; x+=step) {
       const px=t.ox+x*t.s;
       if (px<0||px>rh.width) continue;
-      rhCtx.fillStyle='rgba(100,120,160,.5)';
+      rhCtx.fillStyle='rgba(160,160,160,.35)';
       rhCtx.fillRect(px,rh.height-4,1,4);
-      rhCtx.fillStyle='#6878a0';
+      rhCtx.fillStyle='rgba(160,160,160,.5)';
       rhCtx.fillText(x, px+2, rh.height-5);
     }
   }
@@ -20424,14 +20424,14 @@ function drawRulers() {
     const step=Math.max(10,Math.round(50/t.s)*10);
     const startY=Math.floor(-t.oy/t.s/step)*step;
     rvCtx.save(); rvCtx.rotate(-Math.PI/2);
-    rvCtx.fillStyle='#6878a0'; rvCtx.font='8px monospace';
+    rvCtx.fillStyle='rgba(160,160,160,.5)'; rvCtx.font='8px monospace';
     rvCtx.restore();
     for (let y=startY; y<M.ih+step; y+=step) {
       const py=t.oy+y*t.s;
       if (py<0||py>rv.height) continue;
-      rvCtx.fillStyle='rgba(100,120,160,.5)';
+      rvCtx.fillStyle='rgba(160,160,160,.35)';
       rvCtx.fillRect(rv.width-4,py,4,1);
-      rvCtx.fillStyle='#6878a0'; rvCtx.font='7px monospace';
+      rvCtx.fillStyle='rgba(160,160,160,.5)'; rvCtx.font='7px monospace';
       rvCtx.fillText(y, 0, py-1);
     }
   }
@@ -22178,7 +22178,7 @@ function generateBlinkAnim() {
     <option value="random">ランダム</option><option value="regular">均等</option>
   </select></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-  <button id="blk-ok" style="background:#1e3a28;border:1px solid rgba(100,200,150,.5);color:#80d0b0;border-radius:4px;padding:3px 12px;cursor:pointer;font-size:10px;">生成</button>
+  <button id="blk-ok" style="background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:10px;">生成</button>
   <button onclick="this.closest('[style]').remove()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
 </div>`;
   overlay.appendChild(box);
@@ -22668,7 +22668,7 @@ function showLipSyncDialog() {
       </label>
     </div>
     <div style="display:flex;gap:6px;margin-top:12px">
-      <button onclick="generateLipSyncKFs()" style="flex:1;background:#1a3028;border:1px solid rgba(80,200,160,.5);color:#60c8a0;border-radius:3px;padding:4px;cursor:pointer;font-size:10px">生成</button>
+      <button onclick="generateLipSyncKFs()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:3px;padding:4px;cursor:pointer;font-size:10px">生成</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#2d2d2d;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -23146,7 +23146,7 @@ function showKFShift() {
     </div>
     <div style="font-size:8px;color:#446060;margin-bottom:8px">※ 0秒未満になるKFは0にクランプされます</div>
     <div style="display:flex;gap:6px">
-      <button id="ks-ok" style="flex:1;background:#1e3040;border:1px solid #3a5060;color:#60d0a0;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
+      <button id="ks-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -23186,7 +23186,7 @@ function showTimeStretch() {
       <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="ts-dur" checked style="accent-color:var(--accent)"><span style="font-size:9px;color:#aaa">自動調整 (${cur.toFixed(1)}s → <span id="ts-dur-preview">${cur.toFixed(1)}</span>s)</span></label>
     </div>
     <div style="display:flex;gap:6px">
-      <button id="ts-ok" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80a0ff;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
+      <button id="ts-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -23231,7 +23231,7 @@ function showRangeCopyPaste() {
       <span style="font-size:9px;color:#888;min-width:24px;">終了</span>
       <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
-    <button id="rc-copy-btn" style="width:100%;background:#1a2e1a;border:1px solid rgba(96,216,144,.4);color:#60d890;border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
+    <button id="rc-copy-btn" style="width:100%;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
     <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
     <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
       <span style="font-size:9px;color:#888;min-width:60px;">挿入開始</span>
@@ -23321,7 +23321,7 @@ function showKFRamp() {
       </select>
     </div>
     <div style="display:flex;gap:6px">
-      <button id="ramp-ok" style="flex:1;background:#1e2e1e;border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
+      <button id="ramp-ok" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -23467,7 +23467,7 @@ function showPoseSequencer() {
       <input id="seq-reps" type="number" value="1" min="1" max="20" style="width:32px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
     </div>
     <div style="display:flex;gap:6px;">
-      <button id="seq-gen" style="flex:1;background:#1e2e24;border:1px solid rgba(100,200,180,.5);color:#80d8c0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
+      <button id="seq-gen" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -25320,7 +25320,7 @@ function showParamBatchEdit() {
       </table>
     </div>
     <div style="display:flex;gap:6px;margin-top:10px;">
-      <button id="pbe-apply" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80a0ff;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✓ 変更を適用</button>
+      <button id="pbe-apply" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✓ 変更を適用</button>
       <button onclick="this.closest('.mo').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
@@ -29544,7 +29544,7 @@ function showPNGSequenceDialog() {
     <div id="ps-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div id="ps-progress" style="display:none;font-size:10px;color:#ffd060;margin-bottom:6px;text-align:center;"></div>
     <div style="display:flex;gap:6px;">
-      <button id="ps-start-btn" style="flex:1;background:#1e3060;border:1px solid #3a5090;color:#80a0ff;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🖼 書き出し開始</button>
+      <button id="ps-start-btn" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🖼 書き出し開始</button>
       <button onclick="this.closest('.mo').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
@@ -30443,7 +30443,7 @@ function buildRndParamList() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:6px;';
     const lbl = document.createElement('span');
-    lbl.style.cssText = 'font-size:9px;color:#8090b0;width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;';
+    lbl.style.cssText = 'font-size:9px;color:var(--dim);width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;';
     lbl.textContent = k; lbl.title = k;
     const sl = document.createElement('input');
     sl.type = 'range'; sl.min = '0'; sl.max = '100'; sl.value = Math.round(str * 100);
