@@ -12,7 +12,7 @@
   --green:#60c060;--rec:#e04040;--warn:#e09040;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:11px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
 
 /* ===== TOOLBAR ===== */
 #toolbar{background:#282828;border-bottom:1px solid #181818;padding:0 8px;display:flex;align-items:center;gap:3px;flex-shrink:0;height:36px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.6)}
@@ -109,8 +109,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .mrow{display:flex;align-items:center;gap:5px;font-size:11px;color:#707070}
 .mi{background:#1a1a1a;border:1px solid #3a3a3a;color:#c8c8c8;font-size:11px;padding:3px 5px;border-radius:3px;width:50px;outline:none}
 .mi:focus{border-color:#e07840}
-/* Make all buttons inside .lsec-body larger */
-.lsec-body .tbtn{font-size:10px !important;padding:4px 6px !important}
+/* Uniform sizing for left-panel section buttons */
+.lsec-body .tbtn{font-size:9px !important;padding:3px 5px !important;height:auto !important}
 
 /* KF section */
 #kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
@@ -470,8 +470,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
         <div style="padding:3px 6px;border-top:1px solid #282828;display:flex;gap:3px;flex-shrink:0">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
+          <button class="tbtn" style="flex:1;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
+          <button class="tbtn" style="flex:1;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
         </div>
       </div>
     </div>
