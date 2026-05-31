@@ -1347,6 +1347,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;fo
     <button onclick="geAddKF()" style="margin-left:4px;background:#1e3020;border:1px solid #2a4030;color:#60d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
     <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
     <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:#1a1e34;border:1px solid #2a3050;color:#8090c0;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
+    <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:#1e1830;border:1px solid #3a2860;color:#c090ff;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
     <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
     <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:#1a2030;border:1px solid #3a4060;color:#8090c0;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
     <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
@@ -28605,7 +28606,26 @@ function geRender() {
     ctx.restore();
 
     // Tangent handles for selected KF
-    if (isSel && kf.slope != null) {
+    if (isSel && kf.bezier) {
+      // Full bezier: independent in/out handles
+      const dt = M.totalFrames || 120;
+      const defOutDx = kfs[idx+1] ? (kfs[idx+1].frame - kf.frame) / 3 : dt / 6;
+      const defInDx = idx > 0 ? -(kf.frame - kfs[idx-1].frame) / 3 : -dt / 6;
+      const outHandle = kf.tanOut || {dx: defOutDx, dy: 0};
+      const inHandle  = kf.tanIn  || {dx: defInDx, dy: 0};
+      const ohx = tToX(kf.frame + outHandle.dx), ohy = vToY(kf.value + outHandle.dy);
+      const ihx = tToX(kf.frame + inHandle.dx),  ihy = vToY(kf.value + inHandle.dy);
+      // Out handle
+      ctx.strokeStyle = 'rgba(255,160,80,0.8)'; ctx.lineWidth = 1 * dpr;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ohx, ohy); ctx.stroke();
+      ctx.beginPath(); ctx.arc(ohx, ohy, 5 * dpr, 0, Math.PI*2);
+      ctx.fillStyle = '#ffa050'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
+      // In handle
+      ctx.strokeStyle = 'rgba(80,200,160,0.8)'; ctx.lineWidth = 1 * dpr;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ihx, ihy); ctx.stroke();
+      ctx.beginPath(); ctx.arc(ihx, ihy, 5 * dpr, 0, Math.PI*2);
+      ctx.fillStyle = '#50c8a0'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1 * dpr; ctx.stroke();
+    } else if (isSel && kf.slope != null) {
       const HANDLE_DT = 24 * dpr;
       const slopePx = kf.slope * (plotH / vRange) / (plotW / tRange);
       const ang = Math.atan2(-slopePx, 1);
@@ -28647,6 +28667,28 @@ function _catmullSlope(kfs, i) {
   if (prev) return (cur.value - prev.value) / (cur.frame - prev.frame);
   return 0;
 }
+// Cubic bezier evaluation for graph editor KF segments
+function _geBezierSolve(f0, f1, t) {
+  const dt = Math.max(f1.frame - f0.frame, 0.0001);
+  // Normalized control point x values (time axis) — clamp to keep monotonic
+  const p1x = Math.max(0, Math.min(1, (f0.tanOut?.dx ?? dt / 3) / dt));
+  const p2x = Math.max(0, Math.min(1, 1 + (f1.tanIn?.dx ?? -(dt / 3)) / dt));
+  const tNorm = (t - f0.frame) / dt;
+  // Binary search for bezier parameter s
+  let lo = 0, hi = 1, s = tNorm;
+  for (let iter = 0; iter < 24; iter++) {
+    const bx = 3 * p1x * s * (1 - s) * (1 - s) + 3 * p2x * s * s * (1 - s) + s * s * s;
+    const diff = bx - tNorm;
+    if (Math.abs(diff) < 1e-5) break;
+    if (diff < 0) lo = s; else hi = s;
+    s = (lo + hi) * 0.5;
+  }
+  // Evaluate y at solved s
+  const p1y = f0.value + (f0.tanOut?.dy ?? 0);
+  const p2y = f1.value + (f1.tanIn?.dy ?? 0);
+  return (1-s)*(1-s)*(1-s)*f0.value + 3*(1-s)*(1-s)*s*p1y + 3*(1-s)*s*s*p2y + s*s*s*f1.value;
+}
+
 function interpKF(kfs, t) {
   if (kfs.length === 0) return 0;
   if (t <= kfs[0].frame) return kfs[0].value;
@@ -28655,6 +28697,8 @@ function interpKF(kfs, t) {
     if (t >= kfs[i].frame && t <= kfs[i+1].frame) {
       const dt = kfs[i+1].frame - kfs[i].frame;
       const u = (t - kfs[i].frame) / dt;
+      // Bezier mode: full cubic bezier with independent handles
+      if (kfs[i].bezier) return _geBezierSolve(kfs[i], kfs[i+1], t);
       // Use cubic Hermite when slope is set on either endpoint
       if (kfs[i].slope != null || kfs[i+1].slope != null) {
         const m0 = (kfs[i].slope != null ? kfs[i].slope : _catmullSlope(kfs, i)) * dt;
@@ -28695,8 +28739,31 @@ function geDeleteKF() {
   GE.selKF = null;
   document.getElementById('ge-del-btn').style.display = 'none';
   document.getElementById('ge-easing-btn').style.display = 'none';
+  document.getElementById('ge-bezier-btn').style.display = 'none';
   geRender();
   drawMultiTimeline();
+}
+
+function geBezierToggle() {
+  const track = M.kfTracks && M.kfTracks[GE.param];
+  if (!track || GE.selKF === null) return;
+  const sorted = [...track].sort((a,b) => a.frame - b.frame);
+  const kf = sorted[GE.selKF];
+  if (!kf) return;
+  pushAnimUndo('ベジェモード切替');
+  if (kf.bezier) {
+    delete kf.bezier; delete kf.tanIn; delete kf.tanOut;
+    document.getElementById('ge-bezier-btn').textContent = '⌒ ベジェ';
+  } else {
+    const idx = sorted.indexOf(kf);
+    const nextKf = sorted[idx + 1];
+    const prevKf = sorted[idx - 1];
+    kf.bezier = true;
+    kf.tanOut = { dx: nextKf ? (nextKf.frame - kf.frame) / 3 : 20, dy: 0 };
+    kf.tanIn  = { dx: prevKf ? -(kf.frame - prevKf.frame) / 3 : -20, dy: 0 };
+    document.getElementById('ge-bezier-btn').textContent = '⌒ ベジェ解除';
+  }
+  geRender();
 }
 
 // Mouse interaction for graph editor
@@ -28717,7 +28784,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const kfs = track ? [...track].sort((a,b) => a.frame - b.frame) : [];
     const HIT = 10 * dpr;
 
-    // Check handle hit first (when a KF is selected and has slope)
+    // Check bezier handle hit first
+    if (GE.selKF !== null && GE.selKF < kfs.length) {
+      const skf = kfs[GE.selKF];
+      if (skf.bezier) {
+        const kx = ge.tToX(skf.frame), ky = ge.vToY(skf.value);
+        const dt = M.totalFrames || 120;
+        const defOutDx = kfs[GE.selKF+1] ? (kfs[GE.selKF+1].frame - skf.frame) / 3 : dt / 6;
+        const defInDx  = GE.selKF > 0 ? -(skf.frame - kfs[GE.selKF-1].frame) / 3 : -dt / 6;
+        const outH = skf.tanOut || {dx: defOutDx, dy: 0};
+        const inH  = skf.tanIn  || {dx: defInDx, dy: 0};
+        const ohx = ge.tToX(skf.frame + outH.dx), ohy = ge.vToY(skf.value + outH.dy);
+        const ihx = ge.tToX(skf.frame + inH.dx),  ihy = ge.vToY(skf.value + inH.dy);
+        const HR = 8 * dpr;
+        if (Math.hypot(mx - ohx, my - ohy) < HR) {
+          GE.drag = { bezierKF: skf, handle: 'out' };
+          return;
+        }
+        if (Math.hypot(mx - ihx, my - ihy) < HR) {
+          GE.drag = { bezierKF: skf, handle: 'in' };
+          return;
+        }
+      }
+    }
+
+    // Check slope handle hit (when a KF is selected and has slope)
     if (GE.selKF !== null && GE.selKF < kfs.length) {
       const skf = kfs[GE.selKF];
       if (skf.slope != null) {
@@ -28746,11 +28837,15 @@ document.addEventListener('DOMContentLoaded', () => {
       GE.drag = { kfIdx: hitIdx, kf, origFrame: kf.frame, origVal: kf.value };
       document.getElementById('ge-del-btn').style.display = '';
       document.getElementById('ge-easing-btn').style.display = '';
+      const bezBtn = document.getElementById('ge-bezier-btn');
+      bezBtn.style.display = '';
+      bezBtn.textContent = kf.bezier ? '⌒ ベジェ解除' : '⌒ ベジェ';
     } else {
       GE.selKF = null;
       GE.drag = null;
       document.getElementById('ge-del-btn').style.display = 'none';
       document.getElementById('ge-easing-btn').style.display = 'none';
+      document.getElementById('ge-bezier-btn').style.display = 'none';
       // Click to add KF at position
       if (e.button === 0) {
         const t = Math.round(ge.xToT(mx));
@@ -28778,6 +28873,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let newT = ge.xToT(mx);
     let newV = ge.yToV(my);
     if (GE.snap) newT = Math.round(newT);
+    // Bezier handle drag
+    if (GE.drag.bezierKF) {
+      const skf = GE.drag.bezierKF;
+      const dFrame = ge.xToT(mx) - skf.frame;
+      const dVal   = ge.yToV(my) - skf.value;
+      if (GE.drag.handle === 'out') {
+        if (!skf.tanOut) skf.tanOut = {dx: 0, dy: 0};
+        skf.tanOut.dx = dFrame;
+        skf.tanOut.dy = dVal;
+      } else {
+        if (!skf.tanIn) skf.tanIn = {dx: 0, dy: 0};
+        skf.tanIn.dx = dFrame;
+        skf.tanIn.dy = dVal;
+      }
+      geRender(); return;
+    }
     // Slope handle drag
     if (GE.drag.slopeKF) {
       const ge = canvas._ge; if (!ge) return;
