@@ -6427,6 +6427,18 @@ function updateLFOField(id, key, val) {
   const lfo = lfos.find(l => l.id === id);
   if (lfo) lfo[key] = val;
 }
+function _lfoWaveSVG(wave, amp=0.6, offset=0) {
+  const steps = 40;
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const theta = 2 * Math.PI * t;
+    let v = _evalLFOWave(wave||'sine', theta) * Math.max(0.05, amp) + offset;
+    v = Math.max(-1.1, Math.min(1.1, v));
+    pts.push(`${(t * 76 + 2).toFixed(1)},${(10 - v * 8.5).toFixed(1)}`);
+  }
+  return `<svg width="80" height="20" viewBox="0 0 80 20" style="flex-shrink:0;opacity:.65;vertical-align:middle"><line x1="2" y1="10" x2="78" y2="10" stroke="#383838" stroke-width="0.5"/><polyline points="${pts.join(' ')}" fill="none" stroke="#e07840" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
 function renderLFOPanel() {
   const el = document.getElementById('lfo-list'); if (!el) return;
   const pe = document.getElementById('lfo-presets');
@@ -6441,18 +6453,19 @@ function renderLFOPanel() {
 <select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
 ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option>`).join('')}
 </select>
-<select onchange="updateLFOField('${lfo.id}','wave',this.value)" style="background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px;width:50px">
+<select onchange="updateLFOField('${lfo.id}','wave',this.value);this.closest('div').querySelector('.lfo-wave-svg').innerHTML=_lfoWaveSVG(this.value,lfos.find(l=>l.id==='${lfo.id}')?.amp,lfos.find(l=>l.id==='${lfo.id}')?.offset)" style="background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px;width:50px">
 <option value="sine"${lfo.wave==='sine'?' selected':''}>sine</option>
 <option value="triangle"${lfo.wave==='triangle'?' selected':''}>tri</option>
 <option value="sawtooth"${lfo.wave==='sawtooth'?' selected':''}>saw</option>
 <option value="noise"${lfo.wave==='noise'?' selected':''}>noise</option>
 </select>
+<span class="lfo-wave-svg">${_lfoWaveSVG(lfo.wave, lfo.amp, lfo.offset)}</span>
 <button class="ih" onclick="removeLFO('${lfo.id}')" style="color:#585858;font-size:10px;padding:0 4px">✕</button>
 </div>
 <div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:#666">
 <span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.freq||0).toFixed(2)}</span>
-<span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.amp||0).toFixed(2)}</span>
-<span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.offset||0).toFixed(2)}</span>
+<span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw){const _l=lfos.find(l=>l.id==='${lfo.id}');if(_l)_lw.innerHTML=_lfoWaveSVG(_l.wave,_l.amp,_l.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.amp||0).toFixed(2)}</span>
+<span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw2=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw2){const _l2=lfos.find(l=>l.id==='${lfo.id}');if(_l2)_lw2.innerHTML=_lfoWaveSVG(_l2.wave,_l2.amp,_l2.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.offset||0).toFixed(2)}</span>
 </div>
 </div>`).join('');
 }
