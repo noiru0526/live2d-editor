@@ -8128,6 +8128,7 @@ function showAvatarExportDialog() {
       if (discordMap) params.push('discordmap=' + encodeURIComponent(discordMap));
     }
     document.getElementById('av-url-preview').textContent = params.length ? '?' + params.join('&') : '（追加パラメータなし）';
+    _saveExportSettings();
   };
   overlay.querySelectorAll('input,select').forEach(el => el.addEventListener('change', updatePreview));
   overlay.querySelectorAll('input[type="text"]').forEach(el => el.addEventListener('input', updatePreview));
@@ -8136,7 +8137,38 @@ function showAvatarExportDialog() {
     const opts = document.getElementById('av-chat-opts');
     if (opts) opts.style.display = this.checked ? 'block' : 'none';
   });
+  // Restore saved settings
+  _restoreExportSettings();
   updatePreview();
+}
+
+const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
+function _saveExportSettings() {
+  const d = {};
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con'].forEach(id => {
+    const el = document.getElementById(id); if(el) d[id] = el.value;
+  });
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord'].forEach(id => {
+    const el = document.getElementById(id); if(el) d[id] = el.checked;
+  });
+  ['kill','death','win','lose','hit'].forEach(ev => {
+    const s = document.getElementById('av-ev-'+ev); if(s) d['av-ev-'+ev] = s.value;
+    const dur = document.getElementById('av-ev-'+ev+'-dur'); if(dur) d['av-ev-'+ev+'-dur'] = dur.value;
+  });
+  const role = document.getElementById('av-sync-role'); if(role) d['av-sync-role'] = role.value;
+  localStorage.setItem(_EXPORT_SETTINGS_KEY, JSON.stringify(d));
+}
+function _restoreExportSettings() {
+  let d; try { d = JSON.parse(localStorage.getItem(_EXPORT_SETTINGS_KEY)||'null'); } catch(e) { return; }
+  if(!d) return;
+  Object.entries(d).forEach(([id, val]) => {
+    const el = document.getElementById(id); if(!el) return;
+    if(typeof val === 'boolean') el.checked = val;
+    else el.value = val;
+  });
+  // Show chat options if chat is checked
+  const opts = document.getElementById('av-chat-opts');
+  if(opts) opts.style.display = document.getElementById('av-chat')?.checked ? 'block' : 'none';
 }
 
 async function doExportAvatar() {
@@ -8261,6 +8293,7 @@ async function doExportAvatar() {
     setStatus(`アバターHTMLを書き出しました: ${filename}`);
   }
 }
+
 
 async function exportAvatarHTMLDirect() {
   if (parts.length===0) { setStatus('パーツがありません'); return; }
