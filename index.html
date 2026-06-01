@@ -936,7 +936,7 @@ button:focus{outline:none;}
 
 <!-- Shortcut help -->
 <div id="shortcut-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;">
-  <div onclick="event.stopPropagation()" style="background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
+  <div onclick="event.stopPropagation()" style="background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
     <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
@@ -1131,8 +1131,8 @@ button:focus{outline:none;}
 </div>
 
 <!-- Canvas right-click context menu -->
-<div id="kf-inspector" style="display:none;position:fixed;z-index:190;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:8px 10px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.6);font-size:11px;color:var(--text);pointer-events:none;"></div>
-<div id="ctx-menu" style="display:none;position:fixed;z-index:200;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:4px 0;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:12px;color:var(--text);">
+<div id="kf-inspector" style="display:none;position:fixed;z-index:190;background:#252525;border:1px solid #3a3a3a;border-radius:6px;padding:8px 10px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.6);font-size:11px;color:var(--text);pointer-events:none;"></div>
+<div id="ctx-menu" style="display:none;position:fixed;z-index:200;background:#252525;border:1px solid #3a3a3a;border-radius:6px;padding:4px 0;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:12px;color:var(--text);">
 </div>
 
 <!-- Snapshot Compare Overlay -->
@@ -1222,7 +1222,7 @@ button:focus{outline:none;}
 
 <!-- Blink/Mouth setup modal -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:#242424;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
+  <div style="background:#252525;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
     <div id="modal-title" style="font-size:14px;font-weight:700;margin-bottom:14px;color:#fff;"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
@@ -2879,7 +2879,7 @@ function updateUndoHistoryPanel() {
   if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:#3a3a3a;text-align:center;">履歴なし</div>'; return; }
   items.forEach((s,i) => {
     const d = document.createElement('div');
-    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);';
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid #2e2e2e;';
     d.innerHTML=`<span style="color:#888;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
     d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
     d.onmouseover = () => d.style.background='rgba(255,255,255,.05)';
@@ -3644,11 +3644,11 @@ function editKFComment(paramId, kfv) {
   const current=(M.kfComments||{})[key]||'';
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
-  overlay.innerHTML=`<div style="background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  overlay.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="font-size:12px;color:var(--text);margin-bottom:8px">KFメモ — <span style="color:#ffd060">${paramId}:${kfv}</span></div>
     <textarea id="kfc-input" style="width:100%;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
-      <button onclick="this.closest('[style]').parentElement.remove()" style="background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="this.closest('[style]').parentElement.remove()" style="background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
       <button onclick="saveKFComment('${paramId}',${kfv});this.closest('[style]').parentElement.remove()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">保存</button>
     </div>
   </div>`;
@@ -4258,7 +4258,7 @@ function _showEmbedCode(filePath) {
   if (existing) existing.remove();
   const dlg = document.createElement('div');
   dlg.id = 'embed-code-dialog';
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
   dlg.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="color:var(--text);font-size:12px;font-weight:bold;">📋 埋め込みコード</span>
@@ -5085,7 +5085,7 @@ function showClipChainDialog() {
   const names = ['現在のアニメ', ...(MD.animClips||[]).map(c=>c.name)];
   const d = document.createElement('div');
   d.id = 'clip-chain-dialog';
-  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
   d.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;">
       <span style="font-size:11px;color:var(--text);font-weight:600;">🔗 クリップ連鎖再生</span>
@@ -6054,7 +6054,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -8962,7 +8962,7 @@ window.addEventListener('message',ev=>{
   let _hideT=null;
   const _card=document.createElement('div');
   _card.id='popup-card-ov';
-  _card.style.cssText=`position:fixed;${top}${lr}width:${_mw}px;z-index:73;background:rgba(8,12,24,.92);border:1px solid rgba(224,120,64,.4);border-radius:10px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.8);opacity:0;transition:opacity .3s,transform .3s;transform:translateY(-10px);pointer-events:none;backdrop-filter:blur(6px);`;
+  _card.style.cssText=`position:fixed;${top}${lr}width:${_mw}px;z-index:73;background:rgba(30,30,30,.95);border:1px solid rgba(224,120,64,.4);border-radius:10px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.8);opacity:0;transition:opacity .3s,transform .3s;transform:translateY(-10px);pointer-events:none;backdrop-filter:blur(6px);`;
   document.body.appendChild(_card);
   window.showPopupCard=function({img='',title='',body='',dur=5,color=''}={}){
     _card.innerHTML=(img?`<img src="${img}" style="width:100%;height:80px;object-fit:cover;display:block;">`:'')
@@ -17778,7 +17778,7 @@ function showChatTriggerPanel() {
   if (!M.chatTriggers) M.chatTriggers = [];
   const panel = document.createElement('div');
   panel.id = 'chat-trigger-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:300px;max-height:440px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:300px;max-height:440px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:#ffd060;font-weight:600;">💬 チャットトリガー設定</span>
@@ -17907,7 +17907,7 @@ function showPoseMorphPanel() {
   if (M.poses.length < 2) { alert('モーフには2つ以上のポーズが必要です'); return; }
   const panel = document.createElement('div');
   panel.id = 'pose-morph-panel';
-  panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
   const opts = M.poses.map((p,i) => `<option value="${i}">${p.name}</option>`).join('');
   panel.innerHTML = `<div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">⚗ ポーズモーフ<button onclick="document.getElementById('pose-morph-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button></div>
 <div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
@@ -17958,7 +17958,7 @@ function showMultiPoseBlend() {
   if (document.getElementById('multi-pose-blend-panel')) { document.getElementById('multi-pose-blend-panel').remove(); return; }
   const panel = document.createElement('div');
   panel.id = 'multi-pose-blend-panel';
-  panel.style.cssText = 'position:fixed;left:220px;top:80px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:260px;max-height:500px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  panel.style.cssText = 'position:fixed;left:220px;top:80px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:260px;max-height:500px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
   // Neutral values (current param state before any blending)
   const neutralVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
   const weights = new Array(poses.length).fill(0);
@@ -18023,7 +18023,7 @@ function showDriverManager() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
+  box.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
   const refresh = () => {
     box.innerHTML = `<div style="font-size:12px;color:var(--dim);font-weight:bold;margin-bottom:4px;">🔗 パラメータドライバー管理</div>`;
     if (!_paramDrivers.length) { box.innerHTML += '<div style="color:var(--dim);">ドライバーはありません</div>'; }
@@ -18110,7 +18110,7 @@ function showPoseTweenDialog() {
   if (!M.posePresets?.length) { alert('ポーズプリセットが登録されていません。先にポーズを保存してください。'); return; }
   const d = document.createElement('div');
   d.id = 'pose-tween-dialog';
-  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
   const poseOpts = M.posePresets.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('');
   const easingOpts = ['linear','smooth','ease-in','ease-out','ease-in-cubic','ease-out-cubic','elastic','back-out'].map(e=>`<option value="${e}">${e}</option>`).join('');
   d.innerHTML = `
@@ -19050,7 +19050,7 @@ function toggleMidiPanel() {
 function _buildMidiPanel() {
   const panel = document.createElement('div');
   panel.id = 'midi-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:310px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:310px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:var(--text-bright);font-weight:600;">🎹 MIDIコントロール</span>
@@ -19222,7 +19222,7 @@ function toggleGamepadPanel() {
   if (existing) { existing.remove(); _gpadActive=false; if(_gpadRAF){cancelAnimationFrame(_gpadRAF);_gpadRAF=null;} document.getElementById('btn-gamepad').classList.remove('on'); return; }
   const panel = document.createElement('div');
   panel.id = 'gpad-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#242424;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:320px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:320px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:#60e090;font-weight:600;">🎮 ゲームパッド</span>
@@ -20310,7 +20310,7 @@ function renderPoseList() {
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:3px;';
     const btn=document.createElement('button');
-    btn.style.cssText='flex:1;text-align:left;background:#242424;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
+    btn.style.cssText='flex:1;text-align:left;background:#252525;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
     btn.innerHTML=`${pose.thumbnail ? `<img src="${pose.thumbnail}" style="width:24px;height:24px;object-fit:cover;border-radius:2px;flex-shrink:0;opacity:.9;">` : `<span style="background:rgba(224,120,64,.15);color:var(--accent);border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>`}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pose.name}</span>`;
     btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
     btn.addEventListener('contextmenu',e=>{
@@ -22220,7 +22220,7 @@ function generateBlinkAnim() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#242424;border:1px solid rgba(100,200,150,.5);border-radius:8px;padding:14px 16px;min-width:280px;font-size:11px;display:flex;flex-direction:column;gap:8px;';
+  box.style.cssText = 'background:#252525;border:1px solid rgba(100,200,150,.5);border-radius:8px;padding:14px 16px;min-width:280px;font-size:11px;display:flex;flex-direction:column;gap:8px;';
   const dur = M.animation.duration||3;
   box.innerHTML = `<div style="font-weight:600;color:#80d0b0;">👁 ランダムまばたき生成</div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
@@ -22396,7 +22396,7 @@ function generateIdleLoop() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:310px;font-size:11px;display:flex;flex-direction:column;gap:9px;';
+  box.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:310px;font-size:11px;display:flex;flex-direction:column;gap:9px;';
   const hasParam = n => !!M.params[n];
   box.innerHTML = `
 <div style="font-weight:700;color:var(--text-bright);font-size:13px;">✨ アイドルループ生成</div>
@@ -22549,7 +22549,7 @@ function showProceduralAnimDialog() {
   overlay.id = 'proc-anim-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:8px;font-size:11px;';
+  box.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:8px;font-size:11px;';
   const ap = ST.ap || params[0];
   box.innerHTML = `<div style="color:var(--dim);font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
 <div style="display:grid;grid-template-columns:100px 1fr;gap:4px;align-items:center;">
@@ -23010,7 +23010,7 @@ function compareParamSnapshot() {
   showModal(`スナップショット比較 (${diffs.length}個に差分)`,
     `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#242424;"><th style="padding:3px 8px;">パラメータ</th><th style="padding:3px 8px;">スナップ</th><th style="padding:3px 8px;">現在値</th><th style="padding:3px 8px;">差分</th></tr>
+        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#252525;"><th style="padding:3px 8px;">パラメータ</th><th style="padding:3px 8px;">スナップ</th><th style="padding:3px 8px;">現在値</th><th style="padding:3px 8px;">差分</th></tr>
         ${rows}
       </table>
     </div>`
@@ -23143,7 +23143,7 @@ function showKFRangeDelete() {
     <div id="dr-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px">
       <button id="dr-ok" style="flex:1;background:#2e1a1a;border:1px solid rgba(255,80,80,.5);color:#ff8080;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23204,7 +23204,7 @@ function showKFShift() {
     <div style="font-size:8px;color:#446060;margin-bottom:8px">※ 0秒未満になるKFは0にクランプされます</div>
     <div style="display:flex;gap:6px">
       <button id="ks-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23244,7 +23244,7 @@ function showTimeStretch() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="ts-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23379,7 +23379,7 @@ function showKFRamp() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="ramp-ok" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23431,8 +23431,8 @@ function showAnimMerge() {
     </label>
     <div id="merge-info" style="font-size:9px;color:rgba(180,200,180,.8);min-height:16px;"></div>
     <div style="display:flex;gap:6px;margin-top:8px">
-      <button id="merge-ok" disabled style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:#505050;border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button id="merge-ok" disabled style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:#505050;border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23525,7 +23525,7 @@ function showPoseSequencer() {
     </div>
     <div style="display:flex;gap:6px;">
       <button id="seq-gen" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -24029,7 +24029,7 @@ function showParamRecSelect() {
   overlay.id = 'param-rec-select-modal';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;max-width:320px;width:90%;max-height:70vh;display:flex;flex-direction:column;gap:6px;font-size:11px;';
+  box.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;max-width:320px;width:90%;max-height:70vh;display:flex;flex-direction:column;gap:6px;font-size:11px;';
   const params = Object.entries(M.params);
   const selAll = _paramRecSelected.size === 0 || _paramRecSelected.size === params.length;
   box.innerHTML = `<div style="font-size:12px;color:var(--dim);font-weight:bold;margin-bottom:2px;">録音するパラメータを選択</div>
@@ -24611,7 +24611,7 @@ function mergeAnimClips() {
   if (!M.animClips?.length) { alert('保存済みクリップがありません。先にクリップを保存してください。'); return; }
   const allClips = [{name:'メイン（現在）', animation: M.animation}, ...M.animClips];
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   const checks = allClips.map((c,i) => `<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;"><input type="checkbox" data-idx="${i}" style="accent-color:var(--accent);" ${i===0?'checked':''}><span>${c.name}</span><span style="color:var(--dim);font-size:9px;margin-left:auto;">${(c.animation?.duration||3).toFixed(1)}s</span></label>`).join('');
   dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
@@ -24673,7 +24673,7 @@ function showKFList() {
   showModal(`KFリスト: ${p?.lbl||name} (${sorted.length}個)`,
     `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#242424;"><th style="padding:3px 8px;">#</th><th style="padding:3px 8px;">時刻</th><th style="padding:3px 8px;">値</th><th style="padding:3px 8px;">補間</th><th style="padding:3px 8px;">メモ</th></tr>
+        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#252525;"><th style="padding:3px 8px;">#</th><th style="padding:3px 8px;">時刻</th><th style="padding:3px 8px;">値</th><th style="padding:3px 8px;">補間</th><th style="padding:3px 8px;">メモ</th></tr>
         ${rows}
       </table>
       <div style="margin-top:8px;color:var(--dim);font-size:9px;">行クリックでプレイヘッド移動</div>
@@ -24708,7 +24708,7 @@ function showAllKfNotes() {
   showModal(`KFノート一覧 (${notes.length}件)`,
     `<div style="font-size:11px;max-height:65vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#242424;">
+        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:#252525;">
           <th style="padding:4px 8px;text-align:left;">時刻</th>
           <th style="padding:4px 8px;text-align:left;">トラック</th>
           <th style="padding:4px 8px;text-align:left;">ノート</th>
@@ -25378,7 +25378,7 @@ function showParamBatchEdit() {
     </div>
     <div style="display:flex;gap:6px;margin-top:10px;">
       <button id="pbe-apply" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✓ 変更を適用</button>
-      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
+      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -25648,7 +25648,7 @@ function decimateAnimKFs(eps) {
 
 function smartDecimateAnim() {
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">🗜 スマートデシメーション</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">各トラックの値域に対する相対閾値でKFを削減します。線形補間で再現できるKFを除去します。</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
@@ -26117,7 +26117,7 @@ function blendAnimations() {
   const clips = [{name:'メイン（現在）'}, ...M.animClips];
   const opts = clips.slice(1).map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">⚗ アニメーションブレンド</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">現在のアニメーションに別クリップのKFをブレンドします</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
@@ -26558,7 +26558,7 @@ function showClipBlend() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="cb-ok" style="flex:1;background:#282828;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -27222,7 +27222,7 @@ function applyPlayheadToParams() {
   // KF hover tooltip
   const _kfTip = (() => {
     const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;pointer-events:none;background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e0e8ff;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
+    el.style.cssText = 'position:fixed;pointer-events:none;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e0e8ff;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
     document.body.appendChild(el);
     return el;
   })();
@@ -27297,7 +27297,7 @@ function applyPlayheadToParams() {
     const p=M.params[hit.name];
     const wrap=document.createElement('div');
     wrap.id='kf-inline-edit';
-    wrap.style.cssText=`position:fixed;left:${e.clientX-60}px;top:${e.clientY-52}px;background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 8px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:10px;font-family:monospace;min-width:130px;`;
+    wrap.style.cssText=`position:fixed;left:${e.clientX-60}px;top:${e.clientY-52}px;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 8px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:10px;font-family:monospace;min-width:130px;`;
     const pname=p?.lbl||hit.name;
     wrap.innerHTML=`<div style="color:var(--dim);margin-bottom:4px;">${pname}</div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
@@ -27408,7 +27408,7 @@ function applyPlayheadToParams() {
       if (hit) {
         if (!_kfTip) {
           _kfTip = document.createElement('div');
-          _kfTip.style.cssText='position:fixed;background:#242424;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;pointer-events:none;z-index:9999;font-family:monospace;white-space:nowrap;';
+          _kfTip.style.cssText='position:fixed;background:#252525;border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:#fff;pointer-events:none;z-index:9999;font-family:monospace;white-space:nowrap;';
           document.body.appendChild(_kfTip);
         }
         const itype = hit.kf.interp || 'linear';
@@ -29419,7 +29419,7 @@ function geShowOverlayPicker() {
   const rect = btn.getBoundingClientRect();
   const menu = document.createElement('div');
   menu.id = 'ge-overlay-menu';
-  menu.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.bottom+2}px;background:#242424;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:4px;z-index:1000;min-width:140px;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  menu.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.bottom+2}px;background:#252525;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:4px;z-index:1000;min-width:140px;max-height:220px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
   const params = Object.keys(M.params || {});
   if (!params.length) { menu.remove(); return; }
   params.forEach((p, i) => {
@@ -29467,7 +29467,7 @@ function showGEEasingMenu(cx, cy, kf, extraItems) {
   if (existing) existing.remove();
   const menu = document.createElement('div');
   menu.id = 'ge-easing-menu';
-  menu.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;background:#242424;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:4px;z-index:1000;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
+  menu.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;background:#252525;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:4px;z-index:1000;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.5);`;
   // Bezier slope section (top)
   if (extraItems && extraItems.length) {
     const sep0 = document.createElement('div');
@@ -29603,7 +29603,7 @@ function showPNGSequenceDialog() {
     <div id="ps-progress" style="display:none;font-size:10px;color:#ffd060;margin-bottom:6px;text-align:center;"></div>
     <div style="display:flex;gap:6px;">
       <button id="ps-start-btn" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🖼 書き出し開始</button>
-      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
+      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -29842,7 +29842,7 @@ function showGIFExportDialog() {
     </div>
     <div style="display:flex;gap:6px;">
       <button id="gf-start-btn" style="flex:1;background:#222222;border:1px solid rgba(255,255,255,.15);color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
-      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#242424;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
+      <button onclick="this.closest('.mo').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -30109,7 +30109,7 @@ function exportGIF() {
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9001;display:flex;align-items:center;justify-content:center;';
   const wh=Math.min(canvas.width,canvas.height,512);
-  ov.innerHTML=`<div style="background:#242424;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:280px;font-size:11px;color:var(--text);">
+  ov.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:280px;font-size:11px;color:var(--text);">
     <div style="font-weight:700;font-size:13px;color:var(--text-bright);margin-bottom:10px;">🎞 GIF書き出し設定</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;">
       <label style="color:var(--dim);">FPS<br><select id="gif-fps" style="width:100%;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
