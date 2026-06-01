@@ -8020,10 +8020,17 @@ function showWsTestPanel() {
     {label:'death',json:'{"type":"death"}'},
     {label:'hit',json:'{"type":"hit"}'},
     {label:'win',json:'{"type":"win"}'},
+    {label:'lose',json:'{"type":"lose"}'},
+    {label:'assist',json:'{"type":"assist"}'},
     {label:'health 20%',json:'{"type":"health","value":0.2}'},
     {label:'health 100%',json:'{"type":"health","value":1}'},
     {label:'shake',json:'{"type":"shake","amp":10,"dur":0.5}'},
     {label:'flash red',json:'{"type":"flash","color":"rgba(255,0,0,0.5)","dur":300}'},
+    {label:'text メッセージ',json:'{"type":"text","text":"テスト！","dur":3000}'},
+    {label:'emote 🎉',json:'{"type":"emote","emoji":"🎉"}'},
+    {label:'brb toggle',json:'{"type":"brb"}'},
+    {label:'marquee',json:'{"type":"marquee","text":"テストマーキー "}'},
+    {label:'score +1',json:'{"type":"score","delta":1}'},
     {label:'expr →デフォルト',json:'{"type":"expr","index":-1}'},
     {label:'expr by name',json:'{"type":"expr","name":"笑い","dur":3000}'},
     {label:'param headX',json:'{"type":"param","name":"headX","value":0.5}'},
@@ -8077,6 +8084,10 @@ function showWsApiRef() {
     ['emote','絵文字リアクション表示（?emotes=1時）','{type:"emote",emoji:"🎉",dur:2200}'],
     ['score','スコアを設定/加算（?widget=score時）','{type:"score",value:9999} / {type:"score",delta:+1}'],
     ['text','HUD通知テキストを表示','{type:"text",text:"GG!",dur:3000}'],
+    ['brb','BRBオーバーレイ ON/OFF','{type:"brb"} / {type:"brb",text:"休憩中"}'],
+    ['marquee','マーキーテキストを更新/クリア','{type:"marquee",text:"テスト "}'],
+    ['assist','KDAウィジェットにアシスト加算','{type:"assist"}'],
+    ['pong','pingへの応答（無視）','{type:"pong"}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
