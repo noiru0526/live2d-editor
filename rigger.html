@@ -3961,9 +3961,9 @@ function showTexSwitchModal() {
   const toTexOpt=(selected)=>texOpts.map(t=>`<option value="${t.idx}"${t.idx===selected?' selected':''}>${t.name}</option>`).join('');
   const existingRules=(pt.texSwitchRanges||[]).map((r,i)=>`
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px;align-items:center" id="tsr-${i}">
-      <input type="number" value="${r.min}" step="0.1" placeholder="min" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'min',+this.value)">
-      <input type="number" value="${r.max}" step="0.1" placeholder="max" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'max',+this.value)">
-      <select style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px;font-size:10px" onchange="updateTexSwitchRule(${i},'texIdx',+this.value)">${toTexOpt(r.texIdx)}</select>
+      <input type="number" value="${r.min}" step="0.1" placeholder="min" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'min',+this.value)">
+      <input type="number" value="${r.max}" step="0.1" placeholder="max" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'max',+this.value)">
+      <select style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px;font-size:10px" onchange="updateTexSwitchRule(${i},'texIdx',+this.value)">${toTexOpt(r.texIdx)}</select>
       <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0">✕</button>
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
@@ -3971,7 +3971,7 @@ function showTexSwitchModal() {
   <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:bold">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:#606060;margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:#606060;margin-bottom:4px">切替パラメータ</div>
-  <select id="tsp-param" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
+  <select id="tsp-param" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
     <option value="">（なし）</option>${paramOpts}
   </select>
   <div style="font-size:10px;color:#606060;margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:8px;color:#4a5870"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
@@ -4028,7 +4028,7 @@ function showGenerateTextureModal() {
   mo.innerHTML=`<div style="background:#252525;border:1px solid rgba(120,120,120,.4);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
   <div style="font-size:13px;color:#c0c0c0;margin-bottom:12px;font-weight:bold">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:#606060;margin-bottom:4px">タイプ</div>
-  <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
+  <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
     <option value="solid">ソリッド（単色）</option>
     <option value="linear" selected>リニアグラデーション</option>
     <option value="radial">ラジアルグラデーション</option>
@@ -4037,11 +4037,11 @@ function showGenerateTextureModal() {
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
     <div>
       <div style="font-size:10px;color:#606060;margin-bottom:3px">幅</div>
-      <input id="gt-w" type="number" value="${parts[selPart].w||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 6px;font-size:11px">
+      <input id="gt-w" type="number" value="${parts[selPart].w||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 6px;font-size:11px">
     </div>
     <div>
       <div style="font-size:10px;color:#606060;margin-bottom:3px">高さ</div>
-      <input id="gt-h" type="number" value="${parts[selPart].h||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 6px;font-size:11px">
+      <input id="gt-h" type="number" value="${parts[selPart].h||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 6px;font-size:11px">
     </div>
   </div>
   <div id="gt-colors" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -4050,7 +4050,7 @@ function showGenerateTextureModal() {
   </div>
   <div id="gt-dir-wrap" style="margin-bottom:8px">
     <div style="font-size:10px;color:#606060;margin-bottom:3px">方向</div>
-    <select id="gt-dir" onchange="updateGentexPreview()" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px">
+    <select id="gt-dir" onchange="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px">
       <option value="horizontal">水平（左→右）</option><option value="vertical">垂直（上→下）</option>
       <option value="diagonal">斜め（左上→右下）</option><option value="diagonal2">斜め（左下→右上）</option>
     </select>
@@ -4402,7 +4402,7 @@ function generateColorVariants() {
     <div style="display:flex;flex-direction:column;gap:7px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">バリ数:</span>
-        <input id="cv-count" type="number" min="2" max="12" value="4" style="width:48px;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <input id="cv-count" type="number" min="2" max="12" value="4" style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
         <span style="font-size:9px;color:#606060;">個（元パーツ含まず）</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -4417,7 +4417,7 @@ function generateColorVariants() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">配置オフセ:</span>
-        <input id="cv-off" type="number" value="30" style="width:48px;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <input id="cv-off" type="number" value="30" style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
         <span style="font-size:9px;color:#606060;">px (X方向)</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -4533,18 +4533,18 @@ function showGlobalTransformModal() {
       <div style="font-size:9px;color:#606060;margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
         <span>X 移動 (px)</span>
-        <input id="gtf-dx" type="number" value="0" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="gtf-dx" type="number" value="0" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>Y 移動 (px)</span>
-        <input id="gtf-dy" type="number" value="0" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="gtf-dy" type="number" value="0" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>スケール</span>
-        <input id="gtf-sc" type="number" value="1" min="0.01" max="10" step="0.05" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="gtf-sc" type="number" value="1" min="0.01" max="10" step="0.05" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>スケール原点</span>
-        <select id="gtf-origin" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
+        <select id="gtf-origin" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
           <option value="canvas">キャンバス中央</option>
           <option value="zero">(0,0) 原点</option>
         </select>
         <span>対象</span>
-        <select id="gtf-target" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
+        <select id="gtf-target" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
           <option value="all">全パーツ</option>
           <option value="selected">選択パーツのみ</option>
         </select>
@@ -4805,7 +4805,7 @@ async function aiAutoNameParts() {
     results.push({ idx, pt, suggested });
 
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:6px;background:#141414;border-radius:4px;padding:5px 7px;';
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;background:#1e1e1e;border-radius:4px;padding:5px 7px;';
     row.innerHTML = `
       <span style="font-size:9px;color:#505050;width:16px;text-align:right;flex-shrink:0;">${i+1}</span>
       <span style="font-size:10px;color:#606060;min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pt.name}">${pt.name}</span>
@@ -4841,25 +4841,25 @@ function batchRenameParts() {
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#888888;">プレフィックス追加:</span>
-          <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#888888;">サフィックス追加:</span>
-          <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#888888;">検索:</span>
-          <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#888888;">置換:</span>
-          <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <label style="font-size:10px;color:#888888;display:flex;align-items:center;gap:4px;">
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
-          <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+          <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
           <span style="font-size:9px;color:#606060;">から開始 (例: _01, _02...)</span>
         </div>
         <div id="brn-preview" style="font-size:9px;color:#606060;background:#0e0e0e;border-radius:3px;padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
@@ -6863,24 +6863,24 @@ function showDeformWaveModal() {
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
         <span>振幅 (px)</span>
-        <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>周波数</span>
-        <input id="wave-freq" type="number" value="2" min="0.1" max="20" step="0.1" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="wave-freq" type="number" value="2" min="0.1" max="20" step="0.1" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>位相 (deg)</span>
-        <input id="wave-phase" type="number" value="0" min="-360" max="360" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
+        <input id="wave-phase" type="number" value="0" min="-360" max="360" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>方向</span>
-        <select id="wave-dir" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
+        <select id="wave-dir" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
           <option value="x">X（Y軸に波）</option>
           <option value="y">Y（X軸に波）</option>
           <option value="xy">XY 両方</option>
         </select>
         <span>適用先</span>
-        <select id="wave-mode" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
+        <select id="wave-mode" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
           <option value="add">加算（既存デフォームに加える）</option>
           <option value="set">上書き</option>
         </select>
         <span>対象KF</span>
-        <select id="wave-kf" style="background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
+        <select id="wave-kf" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px">
           <option value="current">現在のKFのみ</option>
           <option value="all">全KF</option>
         </select>
@@ -7161,11 +7161,11 @@ function showKFBlendTool() {
     <div style="display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">KF A:</span>
-        <select id="kfb-kfa" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.min(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+        <select id="kfb-kfa" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.min(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">KF B:</span>
-        <select id="kfb-kfb" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.max(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+        <select id="kfb-kfb" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.max(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">比率 t:</span>
@@ -7174,7 +7174,7 @@ function showKFBlendTool() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">保存先:</span>
-        <input id="kfb-dst" type="number" step="0.1" value="0.5" style="flex:1;background:#141414;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;" placeholder="新KF値（例: 0.5）">
+        <input id="kfb-dst" type="number" step="0.1" value="0.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;" placeholder="新KF値（例: 0.5）">
         <span style="font-size:9px;color:#606060;">KF値</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -7680,8 +7680,8 @@ function showVertexCoordHUD(vi, clientX, clientY) {
   hud.id = 'vert-coord-hud';
   hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:#1e1e1e;border:1px solid rgba(120,120,120,.5);border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:#c0c0c0;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
   hud.innerHTML = `<span style="color:#e07840;">${isDef?'Δ':'V'}${vi}</span>
-    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#141414;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
-    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#141414;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
     <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid rgba(120,120,120,.5);color:#c0c0c0;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
     <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:#606060;cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
   document.body.appendChild(hud);
@@ -7852,7 +7852,7 @@ function showAvatarExportDialog() {
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
-      <select id="av-fps" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;margin-bottom:12px">
+      <select id="av-fps" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;margin-bottom:12px">
         <option value="">制限なし（デバイス最大）</option>
         <option value="60">60 fps</option>
         <option value="30" selected>30 fps（推奨）</option>
@@ -7867,7 +7867,7 @@ function showAvatarExportDialog() {
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap">🎮 ゲーム名:</span>
-        <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
+        <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
@@ -7876,7 +7876,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
       </div>
-      <div id="av-chat-opts" style="display:none;background:#141414;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
+      <div id="av-chat-opts" style="display:none;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
         <div style="color:#606060;font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
         <input id="av-chat-channel" type="text" placeholder="チャンネル名..." style="width:100%;background:#0e0e0e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
         <div style="color:#606060;font-size:9px;margin-top:4px;margin-bottom:2px">コマンドプレフィックス（任意・例: !ex）</div>
@@ -7886,18 +7886,18 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
-        <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#141414;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
       </div>
       <div style="font-size:9px;color:#404040;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;font-size:10px;white-space:nowrap">チャンネル名:</span>
-        <input id="av-sync-ch" type="text" placeholder="avatar1（空白=無効）" style="flex:1;background:#141414;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
-        <select id="av-sync-role" style="background:#141414;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:3px 6px;font-size:10px">
+        <input id="av-sync-ch" type="text" placeholder="avatar1（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+        <select id="av-sync-role" style="background:#1e1e1e;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:3px 6px;font-size:10px">
           <option value="follower">フォロワー（受信）</option>
           <option value="leader">リーダー（送信）</option>
         </select>
@@ -7906,16 +7906,16 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
-        <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#141414;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+        <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
       <div style="font-size:9px;color:#406050;margin-bottom:12px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">OBS WS:</span>
-        <input id="av-obs-ws" type="text" placeholder="ws://localhost:4455（空白=無効）" style="flex:1;background:#141414;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
+        <input id="av-obs-ws" type="text" placeholder="ws://localhost:4455（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">パスワード:</span>
-        <input id="av-obs-pass" type="password" placeholder="（空白=なし）" style="width:80px;background:#141414;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px">
+        <input id="av-obs-pass" type="password" placeholder="（空白=なし）" style="width:80px;background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px">
       </div>
       <div style="font-size:9px;color:#404040;margin-bottom:4px">シーン名↔表情インデックスのマッピング（JSON形式）</div>
       <textarea id="av-obs-map" rows="3" placeholder='{"ゲーム": 0, "雑談": 1, "BRB": 2}' style="width:100%;background:#0e0e0e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
@@ -7928,10 +7928,10 @@ function showAvatarExportDialog() {
       <div style="font-size:9px;color:#404040;margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
-      <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#141414;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
+      <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
       <div style="font-size:9px;color:#505050;margin-bottom:12px">.html が自動で付きます</div>
 
-      <div style="background:#141414;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:12px">
+      <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:12px">
         <div style="font-size:9px;color:#505050;margin-bottom:2px">生成されるURLパラメータ（参考）</div>
         <div id="av-url-preview" style="font-size:9px;color:#606060;font-family:monospace;word-break:break-all">?fps=30</div>
       </div>

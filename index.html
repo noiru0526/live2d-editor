@@ -3644,7 +3644,7 @@ function editKFComment(paramId, kfv) {
   const current=(M.kfComments||{})[key]||'';
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
-  overlay.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  overlay.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="font-size:12px;color:var(--text);margin-bottom:8px">KFメモ — <span style="color:#ffd060">${paramId}:${kfv}</span></div>
     <textarea id="kfc-input" style="width:100%;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
@@ -5085,7 +5085,7 @@ function showClipChainDialog() {
   const names = ['現在のアニメ', ...(MD.animClips||[]).map(c=>c.name)];
   const d = document.createElement('div');
   d.id = 'clip-chain-dialog';
-  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:12px 14px;z-index:910;width:270px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
   d.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;">
       <span style="font-size:11px;color:var(--text);font-weight:600;">🔗 クリップ連鎖再生</span>
@@ -6054,7 +6054,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -17778,7 +17778,7 @@ function showChatTriggerPanel() {
   if (!M.chatTriggers) M.chatTriggers = [];
   const panel = document.createElement('div');
   panel.id = 'chat-trigger-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:300px;max-height:440px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;width:300px;max-height:440px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:#ffd060;font-weight:600;">💬 チャットトリガー設定</span>
@@ -17907,7 +17907,7 @@ function showPoseMorphPanel() {
   if (M.poses.length < 2) { alert('モーフには2つ以上のポーズが必要です'); return; }
   const panel = document.createElement('div');
   panel.id = 'pose-morph-panel';
-  panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
   const opts = M.poses.map((p,i) => `<option value="${i}">${p.name}</option>`).join('');
   panel.innerHTML = `<div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">⚗ ポーズモーフ<button onclick="document.getElementById('pose-morph-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button></div>
 <div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
@@ -17958,7 +17958,7 @@ function showMultiPoseBlend() {
   if (document.getElementById('multi-pose-blend-panel')) { document.getElementById('multi-pose-blend-panel').remove(); return; }
   const panel = document.createElement('div');
   panel.id = 'multi-pose-blend-panel';
-  panel.style.cssText = 'position:fixed;left:220px;top:80px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:260px;max-height:500px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
+  panel.style.cssText = 'position:fixed;left:220px;top:80px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;width:260px;max-height:500px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
   // Neutral values (current param state before any blending)
   const neutralVals = Object.fromEntries(Object.entries(M.params).map(([k,p])=>[k,p.val]));
   const weights = new Array(poses.length).fill(0);
@@ -18110,7 +18110,7 @@ function showPoseTweenDialog() {
   if (!M.posePresets?.length) { alert('ポーズプリセットが登録されていません。先にポーズを保存してください。'); return; }
   const d = document.createElement('div');
   d.id = 'pose-tween-dialog';
-  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:12px 14px;z-index:910;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
+  d.style.cssText = 'position:fixed;right:220px;top:50px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:12px 14px;z-index:910;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;color:var(--text);';
   const poseOpts = M.posePresets.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('');
   const easingOpts = ['linear','smooth','ease-in','ease-out','ease-in-cubic','ease-out-cubic','elastic','back-out'].map(e=>`<option value="${e}">${e}</option>`).join('');
   d.innerHTML = `
@@ -19050,7 +19050,7 @@ function toggleMidiPanel() {
 function _buildMidiPanel() {
   const panel = document.createElement('div');
   panel.id = 'midi-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:310px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;width:310px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:var(--text-bright);font-weight:600;">🎹 MIDIコントロール</span>
@@ -19222,7 +19222,7 @@ function toggleGamepadPanel() {
   if (existing) { existing.remove(); _gpadActive=false; if(_gpadRAF){cancelAnimationFrame(_gpadRAF);_gpadRAF=null;} document.getElementById('btn-gamepad').classList.remove('on'); return; }
   const panel = document.createElement('div');
   panel.id = 'gpad-panel';
-  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:10px 12px;z-index:900;width:320px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
+  panel.style.cssText = 'position:fixed;right:220px;top:40px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;width:320px;max-height:480px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);';
   panel.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
       <span style="font-size:11px;color:#60e090;font-weight:600;">🎮 ゲームパッド</span>
