@@ -8622,10 +8622,14 @@ let curExpr=-1;
 const physMap={};
 const EXPRS=MODEL.expressions||[];
 function ema(a,b,s){return a+(b-a)*s}
+// ?exprfade=<ms> — slow EMA for the first N ms after expression change (fade-in effect)
+const _exprFadeMs=Math.max(0,parseInt(_p.get('exprfade')||'0'));
+let _exprFadeStart=0;
 
 // Global applyExpr — apply or reset expression. Accessible from WS/OBS/Discord/gamepad handlers.
 function applyExpr(idx){
   curExpr=idx;
+  if(_exprFadeMs>0)_exprFadeStart=performance.now();
   if(idx<0||idx>=EXPRS.length){curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
   else{_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx+1));}
 }
@@ -9301,7 +9305,9 @@ function frame(ts){
     T.mouthOpen=_micMouthLevel;
   }
   const _es=Math.max(.1,Math.min(5,parseFloat(_p.get('exprspeed')||'1')));
-  const _c=(v)=>Math.min(1,v*_es); // clamp scaled EMA coeff to [0,1]
+  // ?exprfade: during fade-in window, scale EMA to be slower (progress 0→1 over fade duration)
+  const _fadeProg=_exprFadeMs>0?Math.min(1,(performance.now()-_exprFadeStart)/_exprFadeMs):1;
+  const _c=(v)=>Math.min(1,v*_es*(.1+.9*_fadeProg)); // slow at fade start, normal at end
   const sm=_c(.12);
   S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,_c(.09));
   S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,_c(.35));S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,_c(.35));
