@@ -8204,6 +8204,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:#e07840"> 話中頭揺れ</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-nosaccade"> 目の揺れ無効</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-noface"> 📷 顔追跡スキップ</label>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">揺れ強度(0-3):</span>
@@ -8455,6 +8456,7 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-chatbubble')?.checked) params.push('chatbubble=1');
     if (document.getElementById('av-pulse')?.checked) params.push('pulse=1');
     if (document.getElementById('av-wobblecam')?.checked) params.push('wobblecam=1');
+    if (document.getElementById('av-noface')?.checked) params.push('noface=1');
     const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
     const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
     const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
@@ -8512,7 +8514,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-noface','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8578,6 +8580,7 @@ async function doExportAvatar() {
   const talkBob = document.getElementById('av-talkbob')?.checked;
   const lowEnergy = document.getElementById('av-lowenergy')?.checked;
   const noSaccade = document.getElementById('av-nosaccade')?.checked;
+  const noFace = document.getElementById('av-noface')?.checked;
   const initEmote = document.getElementById('av-emote')?.value?.trim() || '';
   const exprBarPos = document.getElementById('av-exprbarpos')?.value || '';
   const afkOn = document.getElementById('av-afk')?.checked;
@@ -8682,6 +8685,7 @@ async function doExportAvatar() {
   if (talkBob) defaultParams.push('talkbob=1');
   if (lowEnergy) defaultParams.push('lowenergy=1');
   if (noSaccade) defaultParams.push('nosaccade=1');
+  if (noFace) defaultParams.push('noface=1');
   if (initEmote) defaultParams.push('emote=' + encodeURIComponent(initEmote));
   if (exprBarPos && exprBarPos !== 'bottom') defaultParams.push('exprbarpos=' + exprBarPos);
   if (afkOn) defaultParams.push('afk=' + afkSecs);
@@ -9835,7 +9839,7 @@ function frame(ts){
   }
   requestAnimationFrame(frame);
 }
-function start(){requestAnimationFrame(frame);setTimeout(initCam,500);}
+function start(){requestAnimationFrame(frame);if(_p.has('noface')){if(typeof _stEl!=='undefined'&&_stEl){_stEl.textContent='No-face mode';_stEl.style.color='#a0a0a0';}}else{setTimeout(initCam,500);}}
 // ===== PARTICLE SYSTEM (?particle=snow|rain|sakura|confetti|stars) =====
 (()=>{
   const pType=_p.get('particle');if(!pType)return;
