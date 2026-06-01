@@ -7996,6 +7996,21 @@ function showAvatarExportDialog() {
         <div style="color:#666;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
       </div>
 
+      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:#e07840"> 話中頭揺れ</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-nosaccade"> 目の揺れ無効</label>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">初期表情:</span>
+        <input id="av-emote" type="text" placeholder="表情名（空白=デフォルト）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">表情バー位置:</span>
+        <select id="av-exprbarpos" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+          <option value="bottom">下</option><option value="top">上</option><option value="left">左</option><option value="right">右</option>
+        </select>
+      </div>
+
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
         <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
@@ -8146,10 +8161,10 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8207,6 +8222,11 @@ async function doExportAvatar() {
   const discordMap = document.getElementById('av-discord-map')?.value?.trim() || '';
   const ttsOn = document.getElementById('av-tts')?.checked;
   const micOn = document.getElementById('av-mic')?.checked;
+  const talkBob = document.getElementById('av-talkbob')?.checked;
+  const lowEnergy = document.getElementById('av-lowenergy')?.checked;
+  const noSaccade = document.getElementById('av-nosaccade')?.checked;
+  const initEmote = document.getElementById('av-emote')?.value?.trim() || '';
+  const exprBarPos = document.getElementById('av-exprbarpos')?.value || '';
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   // Now safe to remove overlay
   document.getElementById('av-export-overlay')?.remove();
@@ -8264,6 +8284,12 @@ async function doExportAvatar() {
   // TTS / Mic
   if (ttsOn) defaultParams.push('tts=1');
   if (micOn) defaultParams.push('mic=1');
+  // Performance / acting mode
+  if (talkBob) defaultParams.push('talkbob=1');
+  if (lowEnergy) defaultParams.push('lowenergy=1');
+  if (noSaccade) defaultParams.push('nosaccade=1');
+  if (initEmote) defaultParams.push('emote=' + encodeURIComponent(initEmote));
+  if (exprBarPos && exprBarPos !== 'bottom') defaultParams.push('exprbarpos=' + exprBarPos);
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
