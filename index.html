@@ -132,11 +132,11 @@ button:focus{outline:none;}
 #kf-btns .kfb-add:hover{background:rgba(224,120,64,.1);border-color:rgba(224,120,64,.6);}
 #kf-btns .kfb-del{color:#c07070;border-color:rgba(192,100,100,.25);}
 #kf-btns .kfb-del:hover{background:rgba(180,60,60,.1);border-color:rgba(192,100,100,.5);}
-#kf-btns .kfb-copy{color:var(--dim);border-color:#3a3a3a;}
+#kf-btns .kfb-copy{color:var(--dim);border-color:#666;}
 #kf-btns .kfb-copy:hover{background:rgba(255,255,255,.06);}
 #kf-btns .kfb-deform{color:rgba(180,160,120,.8);border-color:rgba(180,140,90,.2);}
 #kf-btns .kfb-deform:hover{background:rgba(180,140,90,.08);}
-#kf-btns .kfb-loop{color:var(--dim);border-color:#3a3a3a;}
+#kf-btns .kfb-loop{color:var(--dim);border-color:#666;}
 #kf-btns .kfb-loop:hover{background:rgba(255,255,255,.05);}
 
 /* Parameter slider — Cubism-style thin track with thumb */
@@ -851,7 +851,7 @@ button:focus{outline:none;}
     <div id="auto-preset">
       <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('preset-body',this)">⚡ 自動プリセット<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="preset-body">
-      <div class="mcfg-row"><button onclick="fullAutoSetup()" style="background:#252525;border-color:#3a3a3a;color:var(--text);font-weight:bold;">⚡ ワンクリック全自動セットアップ</button></div>
+      <div class="mcfg-row"><button onclick="fullAutoSetup()" style="background:#252525;border-color:#666;color:var(--text);font-weight:bold;">⚡ ワンクリック全自動セットアップ</button></div>
       <div class="mcfg-row"><button onclick="applyHeadPreset()">頭 X/Y/Z（自動）</button></div>
       <div class="mcfg-row"><button onclick="showBlinkSetup()">まばたきセットアップ</button></div>
       <div class="mcfg-row"><button onclick="showBrowSetup()">眉毛セットアップ</button></div>
@@ -864,7 +864,7 @@ button:focus{outline:none;}
       <div class="mcfg-row"><button onclick="deformQC()" style="color:#ffd060;" title="変形データの問題を自動検出">🔍 変形QCチェック</button></div>
       <div class="mcfg-row"><button onclick="showModelQC()" style="color:var(--text);" title="モデル全体の品質チェック（メッシュ・頂点・パラメータ・サマリー）">📋 モデルQCレポート</button></div>
       <div class="mcfg-row"><button onclick="clearAllDef()" style="color:#f08080">全変形データ削除</button></div>
-      <div class="mcfg-row"><button onclick="fullAutoRig()" style="color:var(--text);background:#252525;border-color:#3a3a3a;" title="顔パーツに自動リグ（デフォーマー一括配置）">🤖 自動リグ（デフォーマー一括配置）</button></div>
+      <div class="mcfg-row"><button onclick="fullAutoRig()" style="color:var(--text);background:#252525;border-color:#666;" title="顔パーツに自動リグ（デフォーマー一括配置）">🤖 自動リグ（デフォーマー一括配置）</button></div>
       </div><!-- preset-body -->
     </div>
     <div id="vgroup-panel" style="padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;">
@@ -2889,7 +2889,7 @@ function updateUndoHistoryPanel() {
   });
   if (ST.redo.length) {
     const sep=document.createElement('div');
-    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a3a3a;border-top:1px solid #2e2e2e;background:transparent';
+    sep.style.cssText='padding:3px 10px;font-size:9px;color:#666;border-top:1px solid #2e2e2e;background:transparent';
     sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
     el.appendChild(sep);
   }
