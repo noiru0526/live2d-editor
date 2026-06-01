@@ -8723,13 +8723,18 @@ let _micMouthLevel=0;
         case 'flash':  triggerFlash(msg.color||'rgba(255,255,255,0.7)', msg.dur??120); break;
         case 'blur':   toggleBlur(); break;
         case 'expr':{
-          let _ni=-1;
-          if(msg.name){_ni=EXPRS.findIndex(e=>e.name.toLowerCase()===String(msg.name).toLowerCase());}
-          else if(msg.index!=null)_ni=msg.index;
-          applyExpr(_ni);
-          if(msg.dur>0&&_ni>=0){
+          if(msg.values&&typeof msg.values==='object'){
+            // Inline expression: apply arbitrary param values without pre-defined expression
+            _setExpr(msg.values);curExpr=-1; // -1 so auto-blink/mic still work on unlisted params
+          }else{
+            let _ni=-1;
+            if(msg.name){_ni=EXPRS.findIndex(e=>e.name.toLowerCase()===String(msg.name).toLowerCase());}
+            else if(msg.index!=null)_ni=msg.index;
+            applyExpr(_ni);
+          }
+          if(msg.dur>0){
             clearTimeout(window._wsExprTimer);
-            window._wsExprTimer=setTimeout(()=>applyExpr(-1),msg.dur);
+            window._wsExprTimer=setTimeout(()=>{applyExpr(-1);window._wsExprTimer=null;},msg.dur);
           }
           break;}
         case 'param':
