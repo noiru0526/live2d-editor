@@ -315,7 +315,7 @@ button:focus{outline:none;}
 #sb-frame-section{display:flex;align-items:center;gap:0;font-family:'Consolas','Monaco',monospace;}
 #sb-time-display{color:#999;font-family:'Consolas','Monaco',monospace;}
 #sb-zoom-display{color:#c0c0c0;}
-#sb-param-display{color:var(--accent);font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#sb-param-display{color:var(--accent);font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -1391,7 +1391,7 @@ button:focus{outline:none;}
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
     <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
-    <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
+    <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1508;border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
@@ -24268,10 +24268,10 @@ function showOverlayClipDialog() {
     _overlayAdditive = document.getElementById('ov-add').checked;
     _overlayT = 0; _overlayLastNow = null;
     const btn = document.getElementById('btn-overlay-clip');
-    if (btn) { btn.style.color = '#ffa040'; btn.style.borderColor = 'rgba(255,160,64,.8)'; btn.style.background = '#2a1a08'; }
+    if (btn) { btn.style.color = '#e07840'; btn.style.borderColor = 'rgba(224,120,64,.8)'; btn.style.background = '#2a1508'; }
     document.getElementById('lbl-status').textContent = `オーバーレイ ON: ${M.animClips[_overlayClipIdx]?.name} × ${Math.round(_overlayWeight*100)}%`;
   }, ()=>{
-    if (document.getElementById('ov-stop-btn')?.clicked) { _overlayClipIdx = -1; const btn=document.getElementById('btn-overlay-clip'); if(btn){btn.style.color='#ff9040';btn.style.borderColor='rgba(255,160,80,.4)';btn.style.background='#1a1e30';} }
+    if (document.getElementById('ov-stop-btn')?.clicked) { _overlayClipIdx = -1; const btn=document.getElementById('btn-overlay-clip'); if(btn){btn.style.color='#909090';btn.style.borderColor='rgba(255,255,255,.15)';btn.style.background='#1e1e1e';} }
   });
   const mo = document.querySelector('.modal-overlay');
   if (mo) {
@@ -24667,7 +24667,7 @@ function showKFList() {
       <td style="padding:3px 8px;color:#ffd060;font-family:monospace;">${fmtT}</td>
       <td style="padding:3px 8px;color:var(--text);font-family:monospace;">${kf.v.toFixed(4)}</td>
       <td style="padding:3px 8px;color:var(--dim);font-size:9px;">${kf.interp||'linear'}</td>
-      ${kf.note ? `<td style="padding:3px 8px;color:#ffa040;font-size:9px;" title="${kf.note}">📝</td>` : '<td></td>'}
+      ${kf.note ? `<td style="padding:3px 8px;color:#e07840;font-size:9px;" title="${kf.note}">📝</td>` : '<td></td>'}
     </tr>`;
   }).join('');
   const p = M.params[name];
@@ -24702,7 +24702,7 @@ function showAllKfNotes() {
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;" onclick="ST.ap='${trackName}';ST.animPlayhead=${kf.t};applyPlayheadToParams();drawMultiTimeline();renderParamPanel();document.getElementById('modal-overlay').style.display='none';">
       <td style="padding:4px 8px;color:#ffd060;font-family:monospace;white-space:nowrap;">${fmtT}</td>
       <td style="padding:4px 8px;color:var(--text);font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${trackName}">${colDot}${lbl}</td>
-      <td style="padding:4px 8px;color:#ffa040;font-size:10px;">${kf.note}</td>
+      <td style="padding:4px 8px;color:#e07840;font-size:10px;">${kf.note}</td>
       <td style="padding:4px 8px;color:var(--dim);font-size:9px;">${kf.v.toFixed(3)}</td>
     </tr>`;
   }).join('');
