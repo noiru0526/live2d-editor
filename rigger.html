@@ -8022,6 +8022,8 @@ function showAvatarExportDialog() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:#e07840"> 🕐 現在時刻</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#e07840"> ⏱ 配信タイマー</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-kda" style="accent-color:#e07840"> 🎯 K/D/A トラッカー</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px"><input type="checkbox" id="av-wg-countdown" style="accent-color:#e07840"> ⏳ カウントダウン (<input id="av-wg-countdown-secs" type="number" min="10" max="86400" value="300" style="width:44px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px">秒)</label>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap">🎮 ゲーム名:</span>
@@ -8212,10 +8214,10 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8249,6 +8251,9 @@ async function doExportAvatar() {
   const gpOn = document.getElementById('av-gamepad')?.checked;
   const wgClock = document.getElementById('av-wg-clock')?.checked;
   const wgTimer = document.getElementById('av-wg-timer')?.checked;
+  const wgKda = document.getElementById('av-wg-kda')?.checked;
+  const wgCountdown = document.getElementById('av-wg-countdown')?.checked;
+  const wgCountdownSecs = parseInt(document.getElementById('av-wg-countdown-secs')?.value||'300');
   const wgGame = document.getElementById('av-wg-game')?.value?.trim() || '';
   const autoIdle = document.getElementById('av-autoidle')?.checked;
   const chatEnabled = document.getElementById('av-chat')?.checked;
@@ -8300,6 +8305,8 @@ async function doExportAvatar() {
   const wgParts = [];
   if (wgClock) wgParts.push('clock');
   if (wgTimer) wgParts.push('timer');
+  if (wgKda) wgParts.push('kda');
+  if (wgCountdown) wgParts.push('countdown=' + wgCountdownSecs);
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
   if (autoIdle) defaultParams.push('autoidle=1');
@@ -8884,11 +8891,12 @@ let _micMouthLevel=0;
       if(window._afkBump)window._afkBump();
       const t=msg.type||msg.event||'';
       switch(t.toLowerCase()){
-        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); break;
-        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); _applyEvExpr('death'); break;
+        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); if(window._wgKDA)window._wgKDA('kill'); break;
+        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); _applyEvExpr('death'); if(window._wgKDA)window._wgKDA('death'); break;
         case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); _applyEvExpr('hit'); break;
         case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); _applyEvExpr('win'); break;
         case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); break;
+        case 'assist': if(window._wgKDA)window._wgKDA('assist'); break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
@@ -9330,6 +9338,30 @@ function initCam(){
   if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;}
   const textW=widgets.find(w=>w.startsWith('text='));
   if(textW){const txt=decodeURIComponent(textW.slice(5));makeWg('','wg-text');const el=document.getElementById('wg-text');if(el){el.style.fontSize='12px';el.textContent=txt;}}
+  // KDA tracker: ?widget=kda — updated via WS kill/death/assist events
+  if(widgets.includes('kda')){
+    let _k=0,_d=0,_a=0;
+    makeWg('K / D / A','wg-kda');
+    window._wgKDA=(type)=>{
+      if(type==='kill')_k++;else if(type==='death')_d++;else if(type==='assist')_a++;
+      const el=document.getElementById('wg-kda');if(el)el.textContent=`${_k} / ${_d} / ${_a}`;
+    };
+    const el=document.getElementById('wg-kda');if(el)el.textContent='0 / 0 / 0';
+  }
+  // Countdown timer: ?widget=countdown=<seconds>
+  const cdW=widgets.find(w=>w.startsWith('countdown='));
+  if(cdW){
+    const cdSecs=parseInt(cdW.slice(10))||300;
+    makeWg('カウントダウン','wg-countdown');
+    let _cdEnd=Date.now()+cdSecs*1000;
+    const _cdEl=document.getElementById('wg-countdown');
+    setInterval(()=>{
+      const rem=Math.max(0,_cdEnd-Date.now());
+      if(_cdEl)_cdEl.textContent=fmtDur(rem);
+      if(rem<=0&&_cdEl){_cdEl.style.color='#f87171';_cdEl.textContent='TIME!';}
+    },500);
+    window._cdReset=(s)=>{_cdEnd=Date.now()+(s||cdSecs)*1000;if(_cdEl){_cdEl.style.color='';}}
+  }
 })();
 // ===== TWITCH CHAT EXPRESSION TRIGGERS =====
 // Usage: ?chat=twitch&channel=channelname[&chatdur=5][&chatcmd=!cmd]
