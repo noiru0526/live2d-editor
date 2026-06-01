@@ -1078,6 +1078,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <button class="ab pr" onclick="saveModelOnly()" style="margin-bottom:4px">💾 モデル保存</button>
     <button class="ab pr" onclick="showAvatarExportDialog()">🎭 アバターHTML出力</button>
+    <button class="ab" onclick="previewAvatarInTab()" title="新しいタブでアバターをプレビュー" style="margin-bottom:4px;font-size:10px">👁 タブでプレビュー</button>
   </div>
 </div>
 
@@ -8297,7 +8298,7 @@ async function doExportAvatar() {
 
 async function exportAvatarHTMLDirect() {
   if (parts.length===0) { setStatus('パーツがありません'); return; }
-  const model={version:3, canvasW, canvasH, expressions, paramBindings, lfos, parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, paramBindings, lfos, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
   const html=buildAvatarHTML(model);
   if (isElectron) {
     const ok=await window.rigger.exportAvatar(html); if(ok) setStatus('アバターHTMLを保存しました');
@@ -8305,6 +8306,17 @@ async function exportAvatarHTMLDirect() {
     const b=new Blob([html],{type:'text/html'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='avatar-live2d.html'; a.click();
   }
+}
+
+function previewAvatarInTab() {
+  if (parts.length===0) { setStatus('パーツがありません'); return; }
+  const model={version:3, canvasW, canvasH, expressions, paramBindings, lfos, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
+  const html=buildAvatarHTML(model);
+  const b=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(b);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  setStatus('アバタープレビューを新しいタブで開きました');
 }
 
 function buildAvatarHTML(model) {
