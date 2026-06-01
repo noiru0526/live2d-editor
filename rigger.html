@@ -607,7 +607,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#707070">
       <div style="font-weight:600;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
@@ -618,7 +618,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
         <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
-      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
+      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#707070;z-index:200">
@@ -949,11 +949,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- Cubism-style parameter toolbar -->
       <div style="padding:3px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:4px;background:#1e1e1e">
         <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
-        <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:9px;border-radius:3px;padding:2px 5px;cursor:pointer">↺</button>
+        <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:9px;border-radius:4px;padding:2px 5px;cursor:pointer">↺</button>
         <span style="flex:1"></span>
-        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▶▶</button>
-        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▼▼</button>
-        <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#707070;background:none;border:1px solid #3a3a3a;padding:2px 5px;border-radius:3px">＋</button>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:4px;padding:2px 4px;cursor:pointer">▶▶</button>
+        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:4px;padding:2px 4px;cursor:pointer">▼▼</button>
+        <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#707070;background:none;border:1px solid #3a3a3a;padding:2px 5px;border-radius:4px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
       <div style="padding:5px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
@@ -1069,7 +1069,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:9px;color:#707070;text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
-            <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
+            <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
             <button onclick="clearPoseBlend()" style="background:none;border:none;color:#2a4040;cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
           </div>
         </div>
@@ -3209,14 +3209,14 @@ function showGuideManager() {
       <select id="gg-clr-${i}" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
         ${COLORS.map((c,ci)=>`<option value="${c}" ${g.color===c?'selected':''} style="background:${c}">色${ci+1}</option>`).join('')}
       </select>
-      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:#f08080;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
+      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:#f08080;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
     </div>`).join('');
   showModal('カスタムガイドライン管理', `
     <div style="font-size:12px;min-width:280px;display:grid;gap:6px;">
       <div style="color:var(--dim);font-size:10px;">キャンバスに参照線を追加（保存時にJSONに含まれません）</div>
       <div id="gg-list">${renderRows()}</div>
       <button onclick="javascript:_customGuides.push({axis:'x',pos:0,color:'rgba(255,200,80,0.7)'});render();document.getElementById('gg-list').innerHTML=document.getElementById('gg-list').innerHTML;"
-        style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
+        style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
     </div>
   `, () => {
     _customGuides.forEach((g, i) => {
@@ -4328,9 +4328,9 @@ function scalePartMesh() {
       <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
     </div>`;
   showModal(`メッシュスケール: ${pt.name}`, body, () => {
     const sx = parseFloat(document.getElementById('sc-x').value);
@@ -4361,9 +4361,9 @@ function rotatePartMesh() {
     </div>
     <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
     <div style="display:flex;gap:6px;margin-top:4px;">
-      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
-      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
-      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
+      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
+      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
+      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
     </div>`;
   showModal(`メッシュ回転: ${pt.name}`, body, () => {
     const deg = parseFloat(document.getElementById('rot-ang-num').value) || parseFloat(document.getElementById('rot-ang').value) || 0;
@@ -8044,7 +8044,7 @@ function showWsTestPanel() {
     {label:'pose reset',json:'{"type":"pose","reset":true}'},
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
-  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
+  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
   ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:#c8c8c8">🔌 WebSocket 送信テスト</span>
@@ -8355,7 +8355,7 @@ function showAvatarExportDialog() {
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="font-size:10px;color:#888888;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
-        <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:3px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
+        <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:4px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -9207,7 +9207,7 @@ _calibDefs.forEach(cd=>{
   });
 });
 const cbReset=document.createElement('button');
-cbReset.style.cssText='width:100%;margin-top:6px;background:rgba(60,30,10,.4);border:1px solid rgba(160,80,40,.3);color:#a07050;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;pointer-events:auto;';
+cbReset.style.cssText='width:100%;margin-top:6px;background:rgba(60,30,10,.4);border:1px solid rgba(160,80,40,.3);color:#a07050;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;pointer-events:auto;';
 cbReset.textContent='リセット';
 cbReset.onclick=()=>{localStorage.removeItem(_CALIB_KEY);location.reload();};
 _calibEl.appendChild(cbReset);
