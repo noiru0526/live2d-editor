@@ -39,7 +39,7 @@ input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(
 select{background:#1e1e1e;border:1px solid var(--border);color:var(--text);
   border-radius:3px;padding:2px 4px;font-family:inherit;font-size:11px;outline:none;cursor:pointer;}
 select:focus{border-color:var(--accent);}
-select option{background:#222222;color:var(--text);}
+select option{background:#252525;color:var(--text);}
 button:focus{outline:none;}
 
 /* ===== Toolbar — Cubism-style compact tool strip ===== */
@@ -1172,7 +1172,7 @@ button:focus{outline:none;}
     <input type="range" id="rnd-interval" min="0.5" max="10" step="0.5" value="2" oninput="document.getElementById('rnd-interval-lbl').textContent=this.value;" style="flex:1;accent-color:#ff90d0;">
   </div>
   <div id="rnd-param-list" style="display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto;"></div>
-  <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:#222222;border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
+  <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:#252525;border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
 </div>
 
 <!-- Parameter Histogram Panel -->
@@ -1387,15 +1387,15 @@ button:focus{outline:none;}
       <option value="custom">✋ カスタム</option>
     </select>
     <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
-    <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#222222;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
+    <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
     <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1e10;border:1px solid rgba(255,160,60,.4);color:#ffa040;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
-    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#222222;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
-    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#222222;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
+    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
+    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
-    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#222222;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
+    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#252525;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
     <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1e201c;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
@@ -1410,7 +1410,7 @@ button:focus{outline:none;}
     <span style="font-size:10px;color:var(--dim);white-space:nowrap;">クリップ:</span>
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
-    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#222222;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
+    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
     <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
@@ -3178,7 +3178,7 @@ function editParamVal(name, spanEl) {
   const inp = document.createElement('input');
   inp.type = 'number'; inp.value = p.val.toFixed(3);
   inp.step = p.step; inp.min = p.min; inp.max = p.max;
-  inp.style.cssText = 'width:52px;background:#141414;border:1px solid var(--accent);color:var(--kf);font-size:10px;font-family:monospace;padding:0 3px;border-radius:2px;outline:none;';
+  inp.style.cssText = 'width:52px;background:#1e1e1e;border:1px solid var(--accent);color:var(--kf);font-size:10px;font-family:monospace;padding:0 3px;border-radius:2px;outline:none;';
   spanEl.replaceWith(inp);
   inp.focus(); inp.select();
   const commit = () => {
@@ -18002,8 +18002,8 @@ function showMultiPoseBlend() {
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">スライダーで各ポーズの影響度を同時に調整できます。ニュートラル値からの差分を加算合成。</div>
   <div id="mpb-list"></div>
   <div style="display:flex;gap:6px;margin-top:8px;">
-    <button id="mpb-reset" style="flex:1;background:#222222;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
-    <button id="mpb-update-neutral" style="flex:1;background:#222222;border:1px solid rgba(100,200,200,.3);color:#80c0c0;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;" title="現在値をニュートラルとして更新">ニュートラル更新</button>
+    <button id="mpb-reset" style="flex:1;background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
+    <button id="mpb-update-neutral" style="flex:1;background:#252525;border:1px solid rgba(100,200,200,.3);color:#80c0c0;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;" title="現在値をニュートラルとして更新">ニュートラル更新</button>
   </div>`;
   document.body.appendChild(panel);
   renderRows();
@@ -18134,7 +18134,7 @@ function showPoseTweenDialog() {
       <select id="pt-ease" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
     </div>
     <div style="font-size:8px;color:#4a4a4a;margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
-    <button onclick="applyPoseTween()" style="width:100%;background:#222222;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
+    <button onclick="applyPoseTween()" style="width:100%;background:#252525;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
   document.body.appendChild(d);
   // Default: to = 1 (second option) if available
   if (M.posePresets.length > 1) document.getElementById('pt-to').selectedIndex = 1;
@@ -18667,7 +18667,7 @@ function renderWcExprBtns() {
     btn.id = `wc-expr-auto-${i}`;
     btn.textContent = ex.name;
     btn.title = '顔追跡値を一時オーバーライドしてこの表情を適用';
-    btn.style.cssText = 'background:#222222;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.onclick = () => applyWcExprPreset(i, 'auto');
     container.appendChild(btn);
   });
@@ -19059,7 +19059,7 @@ function _buildMidiPanel() {
       <button onclick="document.getElementById('midi-panel').remove();document.getElementById('btn-midi').classList.remove('on');" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button>
     </div>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">MIDIデバイスのCC(ノブ/スライダー)→パラメータ、ノート→ポーズ/表情のマッピング。</div>
-    <button onclick="_midiConnect()" style="width:100%;background:#222222;border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:8px;">🔌 MIDIデバイスに接続</button>
+    <button onclick="_midiConnect()" style="width:100%;background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:8px;">🔌 MIDIデバイスに接続</button>
     <!-- CC Monitor -->
     <div style="background:#1e1e1e;border-radius:4px;padding:6px;margin-bottom:8px;">
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px;letter-spacing:.5px;">▶ 受信CC（最新8件）</div>
@@ -19072,7 +19072,7 @@ function _buildMidiPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="midi-cc-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_midiAddCCMap()" style="background:#222222;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_midiAddCCMap()" style="background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>
     <!-- Note Mappings -->
@@ -19082,7 +19082,7 @@ function _buildMidiPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="midi-note-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_midiAddNoteMap()" style="background:#222222;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_midiAddNoteMap()" style="background:#252525;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -19252,7 +19252,7 @@ function toggleGamepadPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="gpad-btn-num" type="number" min="0" max="31" placeholder="B#" style="width:40px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="gpad-btn-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_gpadAddBtnMap()" style="background:#222222;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_gpadAddBtnMap()" style="background:#252525;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -22223,15 +22223,15 @@ function generateBlinkAnim() {
   box.style.cssText = 'background:#252525;border:1px solid rgba(100,200,150,.5);border-radius:8px;padding:14px 16px;min-width:280px;font-size:11px;display:flex;flex-direction:column;gap:8px;';
   const dur = M.animation.duration||3;
   box.innerHTML = `<div style="font-weight:600;color:#80d0b0;">👁 ランダムまばたき生成</div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">速さ (秒):</span><input id="blk-spd" type="number" value="0.12" min="0.05" max="0.5" step="0.01" style="width:60px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">速さ (秒):</span><input id="blk-spd" type="number" value="0.12" min="0.05" max="0.5" step="0.01" style="width:60px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">対象パラメータ:</span>
-  <select id="blk-param" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="blk-param" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${['blinkL&blinkR','blinkL','blinkR'].map(v=>`<option value="${v}">${v}</option>`).join('')}
     ${Object.keys(M.params).filter(n=>n!=='blinkL'&&n!=='blinkR').map(n=>`<option value="${n}">${M.params[n].lbl||n}</option>`).join('')}
   </select></div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">配置:</span>
-  <select id="blk-mode" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="blk-mode" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="random">ランダム</option><option value="regular">均等</option>
   </select></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
@@ -22411,24 +22411,24 @@ function generateIdleLoop() {
 <table style="border-spacing:0 4px;width:100%;">
   <tr><td colspan="2" style="color:var(--dim);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">⚙ パラメータ設定</td></tr>
   <tr><td style="color:var(--dim);width:110px;">まばたき速さ (秒)</td>
-      <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">呼吸周期 (秒)</td>
-      <td><input id="idle-bperiod" type="number" value="${Math.min(4, dur * 0.8).toFixed(1)}" min="1" max="10" step="0.5" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bperiod" type="number" value="${Math.min(4, dur * 0.8).toFixed(1)}" min="1" max="10" step="0.5" style="width:70px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">呼吸対象パラメータ</td>
-      <td><select id="idle-breathparam" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+      <td><select id="idle-breathparam" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         ${Object.entries(M.params).map(([k,p])=>`<option value="${k}"${k==='bodyZ'?' selected':''}>${p.lbl||k}</option>`).join('')}
       </select></td></tr>
   <tr><td style="color:var(--dim);">呼吸振幅</td>
-      <td><input id="idle-bamp" type="number" value="0.2" min="0.01" max="1" step="0.05" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-bamp" type="number" value="0.2" min="0.01" max="1" step="0.05" style="width:70px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">頭揺れ振幅</td>
-      <td><input id="idle-swayamp" type="number" value="0.05" min="0.01" max="0.5" step="0.01" style="width:70px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
+      <td><input id="idle-swayamp" type="number" value="0.05" min="0.01" max="0.5" step="0.01" style="width:70px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--dim);">既存KFを</td>
-      <td><select id="idle-merge" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+      <td><select id="idle-merge" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         <option value="replace">上書き</option><option value="add">追加</option>
       </select></td></tr>
 </table>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-  <button id="idle-ok" style="background:#222222;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:3px 14px;cursor:pointer;font-size:10px;font-weight:600;">生成</button>
+  <button id="idle-ok" style="background:#252525;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:3px 14px;cursor:pointer;font-size:10px;font-weight:600;">生成</button>
   <button onclick="this.closest('[style]').remove()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
 </div>`;
   overlay.appendChild(box);
@@ -22554,26 +22554,26 @@ function showProceduralAnimDialog() {
   box.innerHTML = `<div style="color:var(--dim);font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
 <div style="display:grid;grid-template-columns:100px 1fr;gap:4px;align-items:center;">
   <label style="color:var(--dim);">パラメータ</label>
-  <select id="pa-param" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-param" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${params.map(n=>`<option value="${n}"${n===ap?' selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}
   </select>
   <label style="color:var(--dim);">波形</label>
-  <select id="pa-wave" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-wave" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="sin">サイン波（滑らか）</option>
     <option value="tri">三角波（線形）</option>
     <option value="noise">ランダムノイズ</option>
     <option value="breath">呼吸（非対称サイン）</option>
   </select>
   <label style="color:var(--dim);">周期 (秒)</label>
-  <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">振幅</label>
-  <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">中心値</label>
-  <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">解像度 (fps)</label>
-  <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
+  <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
   <label style="color:var(--dim);">既存KFを</label>
-  <select id="pa-merge" style="background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
+  <select id="pa-merge" style="background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="replace">上書き</option>
     <option value="add">追加</option>
   </select>
@@ -23198,7 +23198,7 @@ function showKFShift() {
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       <span style="font-size:9px;color:#888;min-width:36px">時刻</span>
-      <input id="ks-offset" type="number" step="0.05" value="0" style="flex:1;background:#141414;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px">
+      <input id="ks-offset" type="number" step="0.05" value="0" style="flex:1;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px">
       <span style="font-size:9px;color:#888">秒</span>
     </div>
     <div style="font-size:8px;color:#446060;margin-bottom:8px">※ 0秒未満になるKFは0にクランプされます</div>
@@ -24225,13 +24225,13 @@ function renderClipTabs() {
     const playAllBtn = document.createElement('button');
     playAllBtn.textContent = '▶▶ 全順再';
     playAllBtn.title = '全クリップを順番に連続再生';
-    playAllBtn.style.cssText = 'background:#222222;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    playAllBtn.style.cssText = 'background:#252525;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     playAllBtn.onclick = () => playAllClipsSequential();
     document.getElementById('tl-clips-bar').appendChild(playAllBtn);
     const mergeBtn = document.createElement('button');
     mergeBtn.textContent = '⊕ 全結合';
     mergeBtn.title = '全クリップを時系列に結合してメインアニメーションに書き出す';
-    mergeBtn.style.cssText = 'background:#222222;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    mergeBtn.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     mergeBtn.onclick = () => mergeAllClips();
     document.getElementById('tl-clips-bar').appendChild(mergeBtn);
     // Overlay button
@@ -24926,7 +24926,7 @@ async function showAIAnimCritiqueDialog() {
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
       <div id="ai-crit-status" style="font-size:11px;color:#6090a0;min-height:20px">準備中...</div>
-      <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:#141414;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
+      <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:#1e1e1e;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
     </div>
   `, null, null);
   const statusEl = document.getElementById('ai-crit-status');
@@ -25105,9 +25105,9 @@ async function showAICharacterCoachDialog() {
       <div style="font-size:9px;color:#4a8060;">分析対象</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
         <button class="coach-mode-btn active" data-mode="overall" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.4);color:#40dd70;">全体</button>
-        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
-        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
-        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#222222;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
+        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
+        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
+        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
       </div>
       <button id="coach-run" style="font-size:10px;padding:4px;border-radius:4px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.5);color:#40dd70;font-weight:600;">▶ 分析開始</button>
       <div id="coach-status" style="font-size:9px;color:#4a8060;display:none;"></div>
@@ -25213,7 +25213,7 @@ function showAnimCompareDialog() {
       </select>
       <button onclick="_drawAnimCompare()" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">▶ 比較</button>
     </div>
-    <canvas id="cmp-canvas" width="${W}" height="${H}" style="display:block;border-radius:4px;border:1px solid rgba(255,255,255,.1);background:#141414;cursor:crosshair;"></canvas>
+    <canvas id="cmp-canvas" width="${W}" height="${H}" style="display:block;border-radius:4px;border:1px solid rgba(255,255,255,.1);background:#1e1e1e;cursor:crosshair;"></canvas>
     <div id="cmp-legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:9px;color:var(--dim);"></div>
     <div id="cmp-info" style="font-size:9px;color:var(--dim);min-height:16px;"></div>
   </div>`;
@@ -25529,7 +25529,7 @@ function showParamCorrelation() {
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
       <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
       <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
-      <button onclick="drawCorrPlot()" style="background:#222222;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
+      <button onclick="drawCorrPlot()" style="background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
     </div>
     <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0a0a;border-radius:4px;border:1px solid var(--border);"></canvas>
     <div id="corr-info" style="font-size:9px;color:var(--dim);margin-top:4px;text-align:center;"></div>
@@ -27302,11 +27302,11 @@ function applyPlayheadToParams() {
     wrap.innerHTML=`<div style="color:var(--dim);margin-bottom:4px;">${pname}</div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
   <span style="color:var(--dim);width:12px">v</span>
-  <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+  <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
 </div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
   <span style="color:var(--dim);width:12px">t</span>
-  <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:#141414;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
+  <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:#1e1e1e;border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
   <span style="color:var(--dim)">s</span>
 </div>
 <div style="display:flex;gap:3px;justify-content:flex-end;">
@@ -29590,7 +29590,7 @@ function showPNGSequenceDialog() {
     <div style="margin-bottom:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <span style="font-size:8px;color:var(--dim);">プレビュー (開始 / 中間 / 終了)</span>
-        <button id="ps-play-btn" style="background:#222222;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
+        <button id="ps-play-btn" style="background:#252525;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
       </div>
       <div id="ps-thumb-row" style="display:flex;gap:6px;">
         <canvas id="ps-thumb-0" width="90" height="90" style="border:1px solid rgba(255,255,255,.1);border-radius:3px;background:#1e1e1e;flex:1;max-width:90px;"></canvas>
@@ -29841,7 +29841,7 @@ function showGIFExportDialog() {
       <div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:#e07840;width:0%;transition:width .1s;"></div></div>
     </div>
     <div style="display:flex;gap:6px;">
-      <button id="gf-start-btn" style="flex:1;background:#222222;border:1px solid rgba(255,255,255,.15);color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
+      <button id="gf-start-btn" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.15);color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
       <button onclick="this.closest('.mo').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
