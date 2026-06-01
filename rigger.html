@@ -7985,6 +7985,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#e07840"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
       </div>
       <div id="av-chat-opts" style="display:none;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
         <div style="color:#606060;font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
@@ -8081,6 +8082,7 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-controls')?.checked) params.push('controls=1');
     if (document.getElementById('av-gamepad')?.checked) params.push('gamepad=1');
     if (document.getElementById('av-tts')?.checked) params.push('tts=1');
+    if (document.getElementById('av-mic')?.checked) params.push('mic=1');
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -8220,8 +8222,9 @@ async function doExportAvatar() {
     const discordMap = document.getElementById('av-discord-map')?.value?.trim();
     if (discordMap) defaultParams.push('discordmap=' + encodeURIComponent(discordMap));
   }
-  // TTS
+  // TTS / Mic
   if (document.getElementById('av-tts')?.checked) defaultParams.push('tts=1');
+  if (document.getElementById('av-mic')?.checked) defaultParams.push('mic=1');
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -8357,6 +8360,7 @@ function _buildHotkeyPanel(){
   rows.push(['C','顔追跡キャリブレーション']);
   rows.push(['---','--- アニメーション ---']);
   rows.push(['I','アイドルLFO ON/OFF（ゆらぎ切替）']);
+  if(window._micAnalyser)rows.push(['M','マイクリップシンク ON/OFF']);
   rows.push(['---','--- 画面エフェクト ---']);
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
@@ -8367,9 +8371,11 @@ function _buildHotkeyPanel(){
 }
 _buildHotkeyPanel();
 let _lfosMuted=false;
+let _micMuted=false;
 document.addEventListener('keydown',e=>{
   if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}
   if(e.key==='i'||e.key==='I'){_lfosMuted=!_lfosMuted;if(_stEl)_stEl.textContent='LFO '+ (_lfosMuted?'OFF':'ON');}
+  if((e.key==='m'||e.key==='M')&&window._micAnalyser){_micMuted=!_micMuted;if(_stEl)_stEl.textContent='🎙 '+ (_micMuted?'OFF':'ON');}
 });
 document.addEventListener('visibilitychange',()=>{_minFrameMs=document.hidden?200:1000/TARGET_FPS;});
 let curExpr=-1;
@@ -8596,6 +8602,29 @@ if(_p.has('tts')){
     if(e.key==='s'&&e.altKey){ const t=prompt('テキストを発話:'); if(t)speak(t); }
   });
 }
+
+// Microphone lip sync (?mic=1 — drives mouthOpen from mic audio when not face-tracking)
+// Optional: ?micgain=1.0 (amplitude scale) ?micthresh=0.015 (noise floor) ?micsmooth=0.3 (analyser smoothing)
+let _micMouthLevel=0;
+(function(){
+  if(!_p.has('mic'))return;
+  const micGain=parseFloat(_p.get('micgain')||'1');
+  const micThresh=parseFloat(_p.get('micthresh')||'0.015');
+  const micSmooth=parseFloat(_p.get('micsmooth')||'0.3');
+  navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(stream=>{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ac.createMediaStreamSource(stream);
+    const analyser=ac.createAnalyser();
+    analyser.fftSize=256;analyser.smoothingTimeConstant=micSmooth;
+    src.connect(analyser);
+    const buf=new Uint8Array(analyser.frequencyBinCount);
+    window._micAnalyser=analyser;window._micBuf=buf;
+    window._micGain=micGain;window._micThresh=micThresh;
+    if(_stEl){_stEl.textContent='🎙 マイク接続済み';setTimeout(()=>{if(SHOW_STATUS)_stEl.textContent='';},2000);}
+  }).catch(()=>{
+    if(_stEl){_stEl.textContent='⚠ マイク権限なし';setTimeout(()=>{if(SHOW_STATUS)_stEl.textContent='';},3000);}
+  });
+})();
 
 // OBS WebSocket v5 integration (?obsws=ws://localhost:4455&obspass=...&obsmap={...})
 (function(){
@@ -8951,6 +8980,13 @@ function frame(ts){
   const dt=Math.min((ts-last)/1000,.05);last=ts;
   _fpsCount++;if(ts-_fpsLast>=1000){_fpsVal=Math.round(_fpsCount*1000/(ts-_fpsLast));_fpsCount=0;_fpsLast=ts;}
   gpStep();
+  // Mic lip sync — update T.mouthOpen from microphone when not face-tracking and not using TTS
+  if(window._micAnalyser&&!_micMuted&&!tracking&&!_ttsSpeaking){
+    window._micAnalyser.getByteTimeDomainData(window._micBuf);
+    let _ms=0;for(let i=0;i<window._micBuf.length;i++){const v=(window._micBuf[i]-128)/128;_ms+=v*v;}
+    _micMouthLevel=Math.max(0,Math.min(1,(Math.sqrt(_ms/window._micBuf.length)-window._micThresh)/(0.15*window._micGain)));
+    T.mouthOpen=_micMouthLevel;
+  }
   const _es=Math.max(.1,Math.min(5,parseFloat(_p.get('exprspeed')||'1')));
   const _c=(v)=>Math.min(1,v*_es); // clamp scaled EMA coeff to [0,1]
   const sm=_c(.12);
