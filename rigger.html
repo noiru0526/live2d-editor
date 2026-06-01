@@ -5374,6 +5374,7 @@ function updateExpressionsUI() {
     const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(_exBaseline[k]??0))>0.01).length;
     const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:#383838;color:#666;border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
     d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name} — ダブルクリックで名前変更" ondblclick="event.stopPropagation();renameExpr(${i})">${ex.name}${diffBadge}</span>
+      <button class="ex-del" onclick="event.stopPropagation();editExprValues(${i})" title="値を編集" style="background:none;border:none;color:#666;cursor:pointer;font-size:9px;padding:1px 3px;">✏</button>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:#666;cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
       <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
     c.appendChild(d);
@@ -5396,6 +5397,40 @@ function duplicateExpr(idx) {
   const copy = { id: Date.now(), name: ex.name + '_copy', values: {...ex.values} };
   expressions.splice(idx + 1, 0, copy);
   updateExpressionsUI(); setStatus(`表情「${ex.name}」を複製 → 「${copy.name}」`);
+}
+function editExprValues(idx) {
+  if (idx < 0 || idx >= expressions.length) return;
+  const ex = expressions[idx];
+  document.getElementById('expr-edit-overlay')?.remove();
+  const ov = document.createElement('div'); ov.id='expr-edit-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:950;display:flex;align-items:center;justify-content:center;';
+  ov.onclick=(e)=>{if(e.target===ov)ov.remove();};
+  const _baseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length?pc.k[Math.floor(pc.k.length/2)]:0]));
+  const _vals = {...ex.values};
+  const allKeys = Object.keys(P);
+  let rows = '';
+  allKeys.forEach(k=>{
+    const pc=P[k]; if(!pc) return;
+    const [rmin,rmax]=pc.r; const v=_vals[k]??_baseline[k]??0;
+    const sv=((v-rmin)/(rmax-rmin)*100).toFixed(1);
+    const isDiff=Math.abs(v-(_baseline[k]??0))>0.01;
+    rows+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;opacity:${isDiff?1:.35}">
+      <span style="min-width:80px;font-size:9px;color:${isDiff?'#c0c0c0':'#555'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${k}">${pc.l||k}</span>
+      <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:#e07840;height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
+      <span data-val="${k}" style="font-size:8px;color:#808080;min-width:32px;text-align:right">${v.toFixed(2)}</span>
+    </div>`;
+  });
+  ov.innerHTML=`<div class="eev-wrap" style="background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
+    <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:#c8c8c8">✏ 表情値編集: ${ex.name}</span><button onclick="document.getElementById('expr-edit-overlay').remove()" style="margin-left:auto;background:none;border:none;color:#606060;cursor:pointer;font-size:14px">×</button></div>
+    <div style="font-size:8px;color:#505050;margin-bottom:8px">ベースライン差分 0.01以下は薄表示</div>
+    ${rows}
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:#c0a080;border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
+      <button onclick="document.getElementById('expr-edit-overlay').remove()" style="background:rgba(60,60,60,.5);border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+    </div>
+  </div>`;
+  ov.querySelector('.eev-wrap')._tmp = {..._vals};
+  document.body.appendChild(ov);
 }
 function exportExpressionsJSON() {
   const json=JSON.stringify({expressions},null,2);
