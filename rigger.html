@@ -8189,6 +8189,39 @@ async function doExportAvatar() {
       defaultParams.push(ev+'exprdur='+Math.round(dur*1000));
     }
   });
+  // Color grading
+  const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
+  const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
+  const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
+  const cgCon = parseFloat(document.getElementById('av-cg-con')?.value||'100');
+  if (cgHue !== 0) defaultParams.push('hue=' + cgHue);
+  if (cgSat !== 100) defaultParams.push('sat=' + cgSat);
+  if (cgBri !== 100) defaultParams.push('bri=' + cgBri);
+  if (cgCon !== 100) defaultParams.push('con=' + cgCon);
+  // Multi-avatar sync
+  const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
+  if (syncCh) {
+    defaultParams.push('sync=' + encodeURIComponent(syncCh));
+    const role = document.getElementById('av-sync-role')?.value;
+    if (role && role !== 'follower') defaultParams.push('syncrole=' + role);
+  }
+  // OBS scene → expression
+  const obsWs = document.getElementById('av-obs-ws')?.value?.trim();
+  if (obsWs) {
+    defaultParams.push('obsws=' + encodeURIComponent(obsWs));
+    const obsPass = document.getElementById('av-obs-pass')?.value?.trim();
+    if (obsPass) defaultParams.push('obspass=' + encodeURIComponent(obsPass));
+    const obsMap = document.getElementById('av-obs-map')?.value?.trim();
+    if (obsMap) defaultParams.push('obsmap=' + encodeURIComponent(obsMap));
+  }
+  // Discord RPC
+  if (document.getElementById('av-discord')?.checked) {
+    defaultParams.push('discord=1');
+    const discordMap = document.getElementById('av-discord-map')?.value?.trim();
+    if (discordMap) defaultParams.push('discordmap=' + encodeURIComponent(discordMap));
+  }
+  // TTS
+  if (document.getElementById('av-tts')?.checked) defaultParams.push('tts=1');
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
