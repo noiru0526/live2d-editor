@@ -1022,6 +1022,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
     </div>
 
+    <!-- LFO section -->
+    <div class="rsec-hd" onclick="toggleRSec('lfo')">
+      <span class="rsec-caret collapsed" id="rsec-caret-lfo">▼</span>
+      <span class="rsec-ttl">パラメータ自動化（LFO）</span>
+      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:#585858">＋</button>
+    </div>
+    <div id="rp-lfo" class="rpanel rp-collapsed">
+      <div id="lfo-list" style="flex:1;overflow-y:auto;padding:4px 6px"></div>
+      <div style="padding:4px 6px;border-top:1px solid #2e2e2e;font-size:9px;color:#505050;line-height:1.5;flex-shrink:0">
+        ⓘ プレビューモードで動作します。パラメータをサイン波等で自動変調します。
+      </div>
+    </div>
+
     <!-- 表情 section -->
     <div class="rsec-hd" onclick="toggleRSec('expr')">
       <span class="rsec-caret collapsed" id="rsec-caret-expr">▼</span>
@@ -1225,6 +1238,8 @@ let dragPartOX = 0, dragPartOY = 0, dragMultiOrigins = new Map();
 let pendingImg = null, pendingDataURL = null;
 let expressions = [], activeExprIdx = -1;
 let groups = [], customParams = {};
+let lfos = [];
+let _lfoIdCounter = 0;
 const collapsedGroups = new Set();
 const collapsedPartNodes = new Set();
 let deformers = [], selDeformer = -1;
@@ -1901,7 +1916,7 @@ function physStep(ts) {
 function getParamVals() {
   const v = {};
   for (const k of Object.keys(P)) v[k] = 0;
-  if (mode === 'preview') Object.assign(v, pv);
+  if (mode === 'preview') { Object.assign(v, pv); if (lfos.some(l=>l.enabled)) applyLFOsToVals(v, performance.now()/1000); }
   else if (mode === 'deform') { Object.assign(v, pv); v[selParam] = curKF; }
   return v;
 }
@@ -2496,8 +2511,8 @@ function render() {
     ctx.textAlign='left';
   }
 
-  // Request next frame in preview mode for physics
-  if (mode === 'preview' && parts.some(p => p.physics?.enabled)) {
+  // Request next frame in preview mode for physics or active LFOs
+  if (mode === 'preview' && (parts.some(p => p.physics?.enabled) || lfos.some(l => l.enabled))) {
     requestAnimationFrame(() => render());
   }
 
@@ -3029,10 +3044,12 @@ function loadModelFromJSON(json) {
     groups = data.groups || [];
     deformers = (data.deformers || []).map(o => o.type === 'rotation' ? RotationDeformer.fromJSON(o) : o.type === 'bone' ? BoneDeformer.fromJSON(o) : WarpDeformer.fromJSON(o));
     paramBindings = data.paramBindings || {};
+    lfos = data.lfos || [];
+    _lfoIdCounter = lfos.reduce((m,l) => { const n=parseInt((l.id||'').replace('lfo-',''))||0; return Math.max(m,n); }, 0);
     collapsedGroups.clear(); collapsedDeformers.clear(); selDeformer = -1;
     selPart = parts.length > 0 ? 0 : -1;
     selParts.clear(); if (selPart>=0) selParts.add(selPart);
-    updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); buildDeformerTree(); buildLPDeformerTree(); fitView();
+    updatePartsUI(); buildParamsUI(); buildKFUI(); updateExpressionsUI(); updatePhysicsUI(); buildDeformerTree(); buildLPDeformerTree(); renderLFOPanel(); fitView();
     setStatus(`モデル読込 — ${parts.length}パーツ, ${expressions.length}表情, ${groups.length}グループ`);
   } catch(err) { setStatus('JSON読込失敗: '+err.message); }
 }
@@ -6269,6 +6286,66 @@ function toggleSec(id) {
   el.style.display=el.style.display==='none'?'':'none';
 }
 
+// ===== LFO (Parameter Automation) =====
+function _evalLFOWave(wave, theta) {
+  if (wave === 'triangle') { const p=((theta/Math.PI)%2+2)%2; return p<1?2*p-1:3-2*p; }
+  if (wave === 'sawtooth') return ((theta/Math.PI)%2+2)%2-1;
+  if (wave === 'noise') return Math.sin(theta*1.3)*0.6+Math.sin(theta*2.7)*0.4; // approx smooth noise
+  return Math.sin(theta); // sine default
+}
+function applyLFOsToVals(vals, t) {
+  for (const lfo of lfos) {
+    if (!lfo.enabled || !P[lfo.param]) continue;
+    const pc = P[lfo.param];
+    const rmin = pc.r?.[0]??-1, rmax = pc.r?.[1]??1;
+    const range = Math.abs(rmax - rmin) / 2;
+    const theta = 2 * Math.PI * (lfo.freq || 0.5) * t + (lfo.phase || 0);
+    const v = (lfo.offset || 0) + _evalLFOWave(lfo.wave||'sine', theta) * (lfo.amp || 0) * range;
+    vals[lfo.param] = Math.max(rmin, Math.min(rmax, (vals[lfo.param] ?? 0) + v));
+  }
+}
+function addLFO() {
+  const firstParam = Object.keys(P)[0] || 'headX';
+  lfos.push({ id:'lfo-'+(++_lfoIdCounter), param:firstParam, wave:'sine', freq:0.5, amp:0.3, phase:0, offset:0, enabled:true });
+  renderLFOPanel();
+  if (mode === 'preview') render();
+}
+function removeLFO(id) {
+  lfos = lfos.filter(l => l.id !== id);
+  renderLFOPanel();
+}
+function updateLFOField(id, key, val) {
+  const lfo = lfos.find(l => l.id === id);
+  if (lfo) lfo[key] = val;
+}
+function renderLFOPanel() {
+  const el = document.getElementById('lfo-list'); if (!el) return;
+  if (!lfos.length) {
+    el.innerHTML = '<div style="color:#505050;font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
+  }
+  const pkeys = Object.keys(P);
+  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:3px;padding:4px 6px;margin-bottom:4px;background:#1e1e1e">
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
+<input type="checkbox" ${lfo.enabled?'checked':''} onchange="updateLFOField('${lfo.id}','enabled',this.checked)" style="accent-color:var(--accent);flex-shrink:0">
+<select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
+${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option>`).join('')}
+</select>
+<select onchange="updateLFOField('${lfo.id}','wave',this.value)" style="background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px;width:50px">
+<option value="sine"${lfo.wave==='sine'?' selected':''}>sine</option>
+<option value="triangle"${lfo.wave==='triangle'?' selected':''}>tri</option>
+<option value="sawtooth"${lfo.wave==='sawtooth'?' selected':''}>saw</option>
+<option value="noise"${lfo.wave==='noise'?' selected':''}>noise</option>
+</select>
+<button class="ih" onclick="removeLFO('${lfo.id}')" style="color:#585858;font-size:10px;padding:0 4px">✕</button>
+</div>
+<div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:#666">
+<span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.freq||0).toFixed(2)}</span>
+<span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.amp||0).toFixed(2)}</span>
+<span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.offset||0).toFixed(2)}</span>
+</div>
+</div>`).join('');
+}
+
 // ===== PARAMS UI =====
 const _pgCollapsed = {}; // {groupName: bool}
 function buildParamsUI() {
@@ -7821,7 +7898,7 @@ if (isElectron) {
 
 // ===== EXPORT =====
 async function saveModelOnly() {
-  const model={version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings, lfos, deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(true))};
   const json=JSON.stringify(model,null,2);
   if (isElectron) {
     const ok=await window.rigger.saveModel(json); if(ok) setStatus(`モデル保存完了 (${parts.length}パーツ, ${expressions.length}表情)`);
@@ -8077,7 +8154,7 @@ async function doExportAvatar() {
 
 async function exportAvatarHTMLDirect() {
   if (parts.length===0) { setStatus('パーツがありません'); return; }
-  const model={version:3, canvasW, canvasH, expressions, paramBindings, parts:parts.map(p=>p.toJSON(true))};
+  const model={version:3, canvasW, canvasH, expressions, paramBindings, lfos, parts:parts.map(p=>p.toJSON(true))};
   const html=buildAvatarHTML(model);
   if (isElectron) {
     const ok=await window.rigger.exportAvatar(html); if(ok) setStatus('アバターHTMLを保存しました');
@@ -8130,6 +8207,9 @@ const W=canvas.width,H=canvas.height;
 const S={headX:0,headY:0,headZ:0,eyeOpenL:0,eyeOpenR:0,eyeBallX:0,eyeBallY:0,browL:0,browR:0,mouthOpen:0,mouthForm:0,cheek:0,bodyX:0,bodyY:0,breath:0};
 const T={...S};
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
+const LFOS=MODEL.lfos||[];
+let _lfoT=0;
+function _lfoWave(w,th){if(w==='triangle'){const p=((th/Math.PI)%2+2)%2;return p<1?2*p-1:3-2*p;}if(w==='sawtooth')return((th/Math.PI)%2+2)%2-1;if(w==='noise')return Math.sin(th*1.3)*.6+Math.sin(th*2.7)*.4;return Math.sin(th);}
 // OBS/Performance settings from URL params
 // Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1&hue=30&sat=120&bri=90&con=110
 const _p=new URLSearchParams(location.search);
@@ -8755,6 +8835,8 @@ function frame(ts){
   const breathVal=Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09;
   S.breath=breathVal*.5+.5;
   const vals={...S,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
+  _lfoT+=dt;
+  for(const lfo of LFOS){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*_lfoT+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}
   applyAvatarBindings(vals);
   const cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
@@ -8908,7 +8990,7 @@ let _riggerAutoSaveTimer = null;
 function riggerAutoSave() {
   if (!parts.some(p => p.img)) return;
   try {
-    const model = {version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings,
+    const model = {version:3, canvasW, canvasH, expressions, groups, customParams, paramBindings, lfos,
                    deformers:deformers.map(d=>d.toJSON()), parts:parts.map(p=>p.toJSON(false))};
     const json = JSON.stringify(model);
     localStorage.setItem(RIGGER_AS_KEY, json);
@@ -8991,7 +9073,7 @@ function toggleRiggerGamepad() {
 }
 
 setupCanvas(); buildParamsUI(); buildKFUI(); setMode('parts'); fitView();
-updateExpressionsUI(); updatePhysicsUI(); updatePartsUI();
+updateExpressionsUI(); updatePhysicsUI(); updatePartsUI(); renderLFOPanel();
 setTimeout(drawXYGrid, 50);
 setTimeout(checkRiggerAutoSave, 500);
 startRiggerAutoSave();
