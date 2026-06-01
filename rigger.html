@@ -9899,6 +9899,11 @@ function initCam(){
 (function(){
   const wOverlay=document.getElementById('widget-overlay');
   if(!wOverlay)return;
+  // Widget overlay position: ?wgpos=tl|tr|bl|br (default bl)
+  const _wgPos=_p.get('wgpos')||'bl';
+  wOverlay.style.bottom=(_wgPos.includes('b'))?'16px':'auto';wOverlay.style.top=(_wgPos.includes('t'))?'16px':'auto';
+  wOverlay.style.left=(_wgPos.includes('l'))?'16px':'auto';wOverlay.style.right=(_wgPos.includes('r'))?'16px':'auto';
+  if(_wgPos.includes('r'))wOverlay.style.alignItems='flex-end';
   const wParam=_p.get('widget')||'';
   if(!wParam)return;
   const widgets=wParam.split(',').map(s=>s.trim()).filter(Boolean);
