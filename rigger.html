@@ -8300,6 +8300,12 @@ function showAvatarExportDialog() {
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景色:</span>
         <input id="av-bg-color" type="text" placeholder="透明（例: #00ff00 ）" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;font-size:10px">
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">スキャンライン(0-1):</span>
+        <input id="av-scanlines" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">フィルムグレイン(0-1):</span>
+        <input id="av-grain" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+      </div>
       <div style="font-size:9px;color:#404040;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
@@ -8403,6 +8409,8 @@ function showAvatarExportDialog() {
     const zv=parseFloat(document.getElementById('av-zoom')?.value||'1');if(!isNaN(zv)&&zv!==1&&zv>0)params.push('zoom='+zv);
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
     const flv=document.getElementById('av-flip')?.value;if(flv)params.push('flip='+flv);
+    const slv=parseFloat(document.getElementById('av-scanlines')?.value||'0');if(slv>0)params.push('scanlines='+slv);
+    const grv=parseFloat(document.getElementById('av-grain')?.value||'0');if(grv>0)params.push('grain='+grv);
     const cwTxt=document.getElementById('av-corner')?.value?.trim();if(cwTxt){params.push('corner='+encodeURIComponent(cwTxt));const cwPos=document.getElementById('av-cornerpos')?.value||'br';if(cwPos!=='br')params.push('cornerpos='+cwPos);}
     const ttTxt=document.getElementById('av-title')?.value?.trim();if(ttTxt)params.push('title='+encodeURIComponent(ttTxt));
     const wgP = [];
@@ -8481,7 +8489,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
@@ -8661,6 +8669,10 @@ async function doExportAvatar() {
   if (filterPreset) defaultParams.push('filter=' + filterPreset);
   const flipVal = document.getElementById('av-flip')?.value?.trim() || '';
   if (flipVal) defaultParams.push('flip=' + flipVal);
+  const scanlinesVal = parseFloat(document.getElementById('av-scanlines')?.value || '0');
+  const grainVal = parseFloat(document.getElementById('av-grain')?.value || '0');
+  if (scanlinesVal > 0) defaultParams.push('scanlines=' + scanlinesVal);
+  if (grainVal > 0) defaultParams.push('grain=' + grainVal);
   const cornerText = document.getElementById('av-corner')?.value?.trim() || '';
   const cornerPos = document.getElementById('av-cornerpos')?.value?.trim() || 'br';
   if (cornerText) { defaultParams.push('corner=' + encodeURIComponent(cornerText)); if (cornerPos !== 'br') defaultParams.push('cornerpos=' + cornerPos); }
@@ -8762,6 +8774,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 @keyframes brbFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #pulse-ring{position:fixed;inset:0;pointer-events:none;z-index:9;border-radius:0;animation:pulseRing 2.8s ease-in-out infinite}
 @keyframes pulseRing{0%,100%{box-shadow:inset 0 0 0 0 var(--pr,rgba(224,120,64,0))}50%{box-shadow:inset 0 0 22px 6px var(--pr,rgba(224,120,64,0.28))}}
+@keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,-1%)}50%{transform:translate(-1%,2%)}70%{transform:translate(2%,3%)}90%{transform:translate(-3%,1%)}}
 #ctrl-panel h4{font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:8px;color:#666;min-width:52px;text-align:right}
@@ -8871,6 +8884,10 @@ let _cbTimer=null;
 function showChatBubble(user,text){const el=document.getElementById('chat-bubble');if(!el)return;el.innerHTML=`<div class="cb-user">${user.replace(/</g,'&lt;')}</div><div class="cb-text">${text.replace(/</g,'&lt;')}</div>`;el.style.opacity='1';if(_cbTimer)clearTimeout(_cbTimer);_cbTimer=setTimeout(()=>{el.style.opacity='0';},Math.max(2000,parseInt(_p.get('cblife')||'5000')));}
 // Corner watermark (?corner=<text>) — fixed text label in a corner
 (()=>{const _cw=_p.get('corner');if(!_cw)return;const _cwEl=document.getElementById('corner-wm');if(!_cwEl)return;const _pos=_p.get('cornerpos')||'br';const _sz=Math.max(8,Math.min(48,parseInt(_p.get('cornersize')||'11')));const _op=Math.max(0.05,Math.min(1,parseFloat(_p.get('corneropacity')||'0.45')));const _col=_p.get('cornertc');const _bg=_p.get('cornerbg');_cwEl.textContent=decodeURIComponent(_cw);_cwEl.style.fontSize=_sz+'px';_cwEl.style.opacity=_op;_cwEl.style.color=_col?(_col.startsWith('#')||_col.startsWith('rgb')?_col:'#'+_col):'rgba(255,255,255,0.9)';if(_bg)_cwEl.style.background=_bg.startsWith('#')||_bg.startsWith('rgb')?_bg:'#'+_bg;_cwEl.style.padding=_bg?'2px 6px':'0';if(_bg)_cwEl.style.borderRadius='3px';const _pad='8px';if(_pos.includes('t'))_cwEl.style.top=_pad;else _cwEl.style.bottom=_pad;if(_pos.includes('l'))_cwEl.style.left=_pad;else _cwEl.style.right=_pad;_cwEl.style.display='block';})();
+// Scanlines (?scanlines=<0-1>) — CRT horizontal lines overlay
+(()=>{const _so=parseFloat(_p.get('scanlines')||'0');if(_so<=0)return;const d=document.createElement('div');d.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:11;opacity:${Math.min(1,_so)};background:repeating-linear-gradient(0deg,rgba(0,0,0,0.55) 0px,rgba(0,0,0,0.55) 1px,transparent 1px,transparent 3px)`;document.body.appendChild(d);})();
+// Film grain (?grain=<0-1>) — animated noise texture overlay
+(()=>{const _go=parseFloat(_p.get('grain')||'0');if(_go<=0)return;const svgN=`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='1'/></svg>`;const d=document.createElement('div');d.style.cssText=`position:fixed;inset:-50%;width:200%;height:200%;pointer-events:none;z-index:10;opacity:${Math.min(1,_go)};background-image:url("data:image/svg+xml,${svgN}");animation:grain .25s steps(1) infinite`;document.body.appendChild(d);})();
 // Page title override (?title=<text>) — shown in OBS browser source list
 (()=>{const _tt=_p.get('title');if(_tt)document.title=decodeURIComponent(_tt);})();
 // Pulse ring (?pulse=1|<color>) — inset glow pulse on viewport edge
