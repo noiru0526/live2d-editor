@@ -5315,7 +5315,13 @@ function clearAllPhysics() {
 // ===== EXPRESSIONS =====
 let pendingExprValues = null;
 function saveExpr() {
-  pendingExprValues = {...pv};
+  // Only capture params that differ meaningfully from baseline (center KF or 0)
+  const baseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k?.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
+  const vals = {};
+  for (const [k, v] of Object.entries(pv)) {
+    if (Math.abs(v - (baseline[k] ?? 0)) > 0.005) vals[k] = v;
+  }
+  pendingExprValues = vals;
   document.getElementById('exni').value = `表情${expressions.length+1}`;
   document.getElementById('exmod').style.display='flex';
   document.getElementById('exni').focus(); document.getElementById('exni').select();
