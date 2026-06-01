@@ -8018,7 +8018,17 @@ function showAvatarExportDialog() {
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
-      <div style="font-size:9px;color:#406050;margin-bottom:12px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
+      <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
+      <div style="display:grid;grid-template-columns:48px 1fr 48px 1fr;gap:4px 6px;font-size:10px;align-items:center;margin-bottom:12px">
+        <span style="color:#888">kill:</span>
+        <select id="av-ev-kill" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
+        <span style="color:#888">death:</span>
+        <select id="av-ev-death" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
+        <span style="color:#888">win:</span>
+        <select id="av-ev-win" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
+        <span style="color:#888">lose:</span>
+        <select id="av-ev-lose" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
+      </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
@@ -8089,6 +8099,10 @@ function showAvatarExportDialog() {
     if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
     if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
+    ['kill','death','win','lose'].forEach(ev => {
+      const v = document.getElementById('av-ev-'+ev)?.value?.trim();
+      if (v) params.push(ev+'expr='+encodeURIComponent(v));
+    });
     const obsWsUrl = document.getElementById('av-obs-ws')?.value?.trim();
     if (obsWsUrl) params.push('obsws=' + encodeURIComponent(obsWsUrl));
     const obsPass = document.getElementById('av-obs-pass')?.value?.trim();
@@ -8154,6 +8168,12 @@ async function doExportAvatar() {
     defaultParams.push('channel=' + encodeURIComponent(chatChannel));
     if (chatCmd) defaultParams.push('chatcmd=' + encodeURIComponent(chatCmd));
   }
+  const wsUrlExport = document.getElementById('av-ws-url')?.value?.trim() || '';
+  if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
+  ['kill','death','win','lose'].forEach(ev => {
+    const v = document.getElementById('av-ev-'+ev)?.value?.trim();
+    if (v) defaultParams.push(ev+'expr='+encodeURIComponent(v));
+  });
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
