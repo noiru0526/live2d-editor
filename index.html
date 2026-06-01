@@ -3225,7 +3225,7 @@ function buildParamUI() {
   const validRecent = _recentParams.filter(n => M.params[n] && !_favParams.has(n));
   if (validRecent.length > 0) {
     const recDiv = document.createElement('div');
-    recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;';
+    recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:#252525;border:1px solid #3a3a3a;border-radius:4px;';
     recDiv.innerHTML = `<div style="font-size:7px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
       validRecent.map(n => {
         const p = M.params[n]; const lbl = p?.lbl || n;
@@ -3265,7 +3265,7 @@ function buildParamUI() {
       // Add group header
       const hdr = document.createElement('div');
       const isCollapsed = _collapsedParamGroups.has(group.key);
-      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:rgba(255,255,255,.04);border-radius:3px;margin-bottom:2px;';
+      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:#252525;border-radius:3px;margin-bottom:2px;';
       hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(180,180,180,.4);margin-left:auto;">${group.entries.length}</span>`;
       hdr.onclick = () => {
         if (_collapsedParamGroups.has(group.key)) _collapsedParamGroups.delete(group.key);

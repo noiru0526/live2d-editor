@@ -58,7 +58,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 #deformer-list{height:180px;overflow-y:auto;padding:0;display:flex;flex-direction:column;background:#1e1e1e}
 #lp-deformer-section.lp-def-collapsed #deformer-list{display:none}
 .dl-row{display:flex;align-items:center;cursor:pointer;font-size:9px;padding:2px 4px;transition:background .08s;min-height:22px;border-left:2px solid transparent}
-.dl-row:hover{background:rgba(255,255,255,.04)}
+.dl-row:hover{background:rgba(255,255,255,.05)}
 .dl-row.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
 .dl-caret{font-size:7px;width:10px;flex-shrink:0;color:#666;cursor:pointer;text-align:center}
 .dl-icon{font-size:9px;flex-shrink:0;margin-right:2px}
@@ -5153,9 +5153,9 @@ function showPartNoteList() {
   const rows = noted.map(({pt, i}) => {
     const clrDot = pt.colorLabel ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${pt.colorLabel};margin-right:3px;flex-shrink:0"></span>` : '';
     const note = pt.note.replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
-      <td style="padding:4px 6px;font-size:9px;color:#505050;font-family:monospace;">${i}</td>
-      <td style="padding:4px 6px;font-size:10px;color:#80a8c0;white-space:nowrap;">${clrDot}${pt.name.replace(/</g,'&lt;')}</td>
+    return `<tr style="border-bottom:1px solid #2e2e2e;cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
+      <td style="padding:4px 6px;font-size:9px;color:#666;font-family:monospace;">${i}</td>
+      <td style="padding:4px 6px;font-size:10px;color:#c0c0c0;white-space:nowrap;">${clrDot}${pt.name.replace(/</g,'&lt;')}</td>
       <td style="padding:4px 6px;font-size:10px;color:#a0c080;">${note}</td>
     </tr>`;
   }).join('');
