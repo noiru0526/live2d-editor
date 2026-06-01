@@ -8076,6 +8076,7 @@ function showWsApiRef() {
     ['blur','ぼかし切替','{type:"blur"}'],
     ['emote','絵文字リアクション表示（?emotes=1時）','{type:"emote",emoji:"🎉",dur:2200}'],
     ['score','スコアを設定/加算（?widget=score時）','{type:"score",value:9999} / {type:"score",delta:+1}'],
+    ['text','HUD通知テキストを表示','{type:"text",text:"GG!",dur:3000}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -8227,6 +8228,10 @@ function showAvatarExportDialog() {
         <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
         <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
       </div>
+      <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ビネット（0〜1）:</span>
+        <input id="av-cg-vig" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+      </div>
       <div style="font-size:9px;color:#404040;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
@@ -8345,6 +8350,7 @@ function showAvatarExportDialog() {
     if (cgSat !== 100) params.push('sat=' + cgSat);
     if (cgBri !== 100) params.push('bri=' + cgBri);
     if (cgCon !== 100) params.push('con=' + cgCon);
+    const cgVig = parseFloat(document.getElementById('av-cg-vig')?.value||'0'); if(cgVig > 0) params.push('vignette='+cgVig);
     const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
     if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
@@ -8388,7 +8394,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes'].forEach(id => {
@@ -8511,6 +8517,8 @@ async function doExportAvatar() {
   if (cgSat !== 100) defaultParams.push('sat=' + cgSat);
   if (cgBri !== 100) defaultParams.push('bri=' + cgBri);
   if (cgCon !== 100) defaultParams.push('con=' + cgCon);
+  const cgVig2 = parseFloat(document.getElementById('av-cg-vig')?.value||'0');
+  if (cgVig2 > 0) defaultParams.push('vignette=' + cgVig2);
   // Multi-avatar sync
   if (syncCh) {
     defaultParams.push('sync=' + encodeURIComponent(syncCh));
@@ -8617,6 +8625,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
 #hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:30;pointer-events:none;display:none}
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
+#hud-msg{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.85);color:#e0e0e0;font-size:12px;font-family:sans-serif;padding:5px 16px;border-radius:20px;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s ease;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
 #brb-overlay{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;pointer-events:none;background:rgba(0,0,0,.55);transition:opacity .4s ease}
 #brb-overlay .brb-txt{font-family:sans-serif;font-size:42px;font-weight:900;color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.9),0 0 60px rgba(224,120,64,.4);letter-spacing:.05em;opacity:0;animation:brbFadeIn .5s ease forwards}
 #brb-overlay .brb-sub{font-size:14px;color:rgba(255,255,255,.55);font-family:monospace;opacity:0;animation:brbFadeIn .6s .15s ease forwards}
@@ -8634,7 +8643,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8694,6 +8703,9 @@ const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith(
 const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
+// Vignette effect
+const _vignAmt=Math.max(0,Math.min(1,parseFloat(_p.get('vignette')||'0')));
+if(_vignAmt>0){const _vg=document.createElement('div');_vg.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:10;background:radial-gradient(ellipse at center,transparent ${Math.round(40*(1-_vignAmt))}%,rgba(0,0,0,${(0.85*_vignAmt).toFixed(2)}) 100%)`;document.body.appendChild(_vg);}
 // Reaction emotes enabled
 const _emotesEnabled=_p.has('emotes');
 // HP bar
@@ -8930,6 +8942,14 @@ function triggerEmote(emoji='🎉', dur=2200, size=72) {
 }
 // Default emoji map for game events
 const _emoteMap = { kill:'💀', death:'😵', win:'🎉', lose:'😢', hit:'💥' };
+// HUD notification message
+let _hudMsgT=null;
+function showHudMsg(text,dur=3000){
+  const el=document.getElementById('hud-msg');if(!el)return;
+  el.textContent=text;el.style.opacity='1';
+  if(_hudMsgT)clearTimeout(_hudMsgT);
+  _hudMsgT=setTimeout(()=>el.style.opacity='0',dur);
+}
 let _blurOn=false;
 function toggleBlur(){
   _blurOn=!_blurOn;
@@ -9144,6 +9164,7 @@ let _micMouthLevel=0;
         case 'emote':  if(msg.emoji)triggerEmote(msg.emoji,msg.dur||2200,msg.size||72); break;
         case 'brb':    toggleBRB(msg.text); break;
         case 'score':  if(window._wgScore){const cur=parseInt(document.getElementById('wg-score')?.textContent||'0')||0;window._wgScore(msg.value!==undefined?parseInt(msg.value):cur+(parseInt(msg.delta)||0));} break;
+        case 'text':   if(msg.text)showHudMsg(String(msg.text),msg.dur||3000); break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
