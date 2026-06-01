@@ -8206,6 +8206,11 @@ canvas.width=MODEL.canvasW||1000;canvas.height=MODEL.canvasH||1000;
 const W=canvas.width,H=canvas.height;
 const S={headX:0,headY:0,headZ:0,eyeOpenL:0,eyeOpenR:0,eyeBallX:0,eyeBallY:0,browL:0,browR:0,mouthOpen:0,mouthForm:0,cheek:0,bodyX:0,bodyY:0,breath:0};
 const T={...S};
+// Custom params (non-standard) need their own EMA state for expression blending
+const _cKeys=Object.keys(PD).filter(k=>!(k in S));
+const _cS={};const _cT={};for(const k of _cKeys){_cS[k]=0;_cT[k]=0;}
+function _setExpr(vals){Object.assign(T,vals);for(const k of _cKeys)_cT[k]=vals[k]??0;}
+function _resetExpr(){for(const k of Object.keys(T))T[k]=0;for(const k of _cKeys)_cT[k]=0;}
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
 const LFOS=MODEL.lfos||[];
 let _lfoT=0;
@@ -8266,11 +8271,11 @@ if(EXPRS.length){const b=document.createElement('div');b.className='expr-btn';b.
 
 document.addEventListener('keydown',e=>{
   const n=parseInt(e.key);
-  if(e.key==='0'){curExpr=-1;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));for(const k of Object.keys(T))T[k]=0;}
+  if(e.key==='0'){curExpr=-1;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));_resetExpr();}
   else if(!isNaN(n)&&n>=1&&n<=EXPRS.length){
     curExpr=n-1;
     document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===n));
-    Object.assign(T,EXPRS[curExpr].values);
+    _setExpr(EXPRS[curExpr].values);
   }
 });
 
@@ -8280,10 +8285,10 @@ window.addEventListener('message',ev=>{
   if(d.type==='expr'){
     const n=d.idx;
     document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===n));
-    if(n===0){curExpr=-1;for(const k of Object.keys(T))T[k]=0;}
-    else if(n>=1&&n<=EXPRS.length){curExpr=n-1;Object.assign(T,EXPRS[curExpr].values);}
-  }else if(d.type==='params'){Object.assign(T,d.values);}
-  else if(d.type==='reset'){curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+    if(n===0){curExpr=-1;_resetExpr();}
+    else if(n>=1&&n<=EXPRS.length){curExpr=n-1;_setExpr(EXPRS[curExpr].values);}
+  }else if(d.type==='params'){Object.assign(T,d.values);for(const k of _cKeys)if(d.values[k]!==undefined)_cT[k]=d.values[k];}
+  else if(d.type==='reset'){curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
   else if(d.type==='shake'){
     // Camera shake: brief random camera jitter
     const amp=d.amp||8,dur=d.dur||400;
@@ -8317,7 +8322,7 @@ function gpStep(){
   if(du||dd||dl||dr){T.bodyX=(dr?0.5:0)-(dl?0.5:0);T.bodyY=(dd?0.5:0)-(du?0.5:0);}
   // Face buttons → expressions (X=0,○=1,□=2,△=3 / A=0,B=1,X=2,Y=3)
   [0,1,2,3].forEach((bi,i)=>{
-    if(_gpb(gp.buttons[bi])&&i<EXPRS.length){curExpr=i;Object.assign(T,EXPRS[i].values);document.querySelectorAll('.expr-btn').forEach((b,j)=>b.classList.toggle('on',j===i+1));}
+    if(_gpb(gp.buttons[bi])&&i<EXPRS.length){curExpr=i;_setExpr(EXPRS[i].values);document.querySelectorAll('.expr-btn').forEach((b,j)=>b.classList.toggle('on',j===i+1));}
   });
   if(_gpb(gp.buttons[8])||_gpb(gp.buttons[9])){curExpr=-1;for(const k of Object.keys(T))if(k!=='headX'&&k!=='headY')T[k]=0;}
 }
@@ -8826,6 +8831,7 @@ function frame(ts){
   S.browL=ema(S.browL,T.browL,.18);S.browR=ema(S.browR,T.browR,.18);
   S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,.32);S.mouthForm=ema(S.mouthForm,T.mouthForm,.12);
   S.cheek=ema(S.cheek,T.cheek,.08);S.bodyX=ema(S.bodyX,T.bodyX,.07);S.bodyY=ema(S.bodyY,T.bodyY,.07);
+  for(const k of _cKeys)_cS[k]=ema(_cS[k],_cT[k],.12);
   _ttsMouthStep(dt);
   physStep(dt);
   if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2+Math.random()*5;}}
@@ -8834,7 +8840,7 @@ function frame(ts){
   breathT+=dt*.36;
   const breathVal=Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09;
   S.breath=breathVal*.5+.5;
-  const vals={...S,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
+  const vals={...S,..._cS,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
   _lfoT+=dt;
   for(const lfo of LFOS){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*_lfoT+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}
   applyAvatarBindings(vals);
@@ -8935,9 +8941,9 @@ function initCam(){
   function applyExpr(idx){
     if(_chatTimer)clearTimeout(_chatTimer);
     curExpr=idx;
-    if(idx<0){for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
-    else{Object.assign(T,EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));}
-    if(idx>=0){_chatTimer=setTimeout(()=>{curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));},DUR);}
+    if(idx<0){_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+    else{_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));}
+    if(idx>=0){_chatTimer=setTimeout(()=>{curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));},DUR);}
   }
   function connect(){
     const ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
@@ -8967,7 +8973,7 @@ function initCam(){
   function doIdle(){
     if(curExpr>=0){sched();return;}
     const idx=Math.floor(Math.random()*EXPRS.length);
-    curExpr=idx;Object.assign(T,EXPRS[idx].values);
+    curExpr=idx;_setExpr(EXPRS[idx].values);
     document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));
     setTimeout(()=>{
       if(curExpr===idx){curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
