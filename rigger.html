@@ -8733,9 +8733,13 @@ let _micMouthLevel=0;
           }
           break;}
         case 'param':
-          if(msg.name){
-            if(typeof msg.value==='number')T[msg.name]=Math.max(-1,Math.min(1,msg.value));
-            else if(typeof msg.delta==='number')T[msg.name]=Math.max(-1,Math.min(1,(T[msg.name]||0)+msg.delta));
+          if(msg.name&&PD[msg.name]){
+            const _pc=PD[msg.name],_rmin=_pc.r?.[0]??-1,_rmax=_pc.r?.[1]??1;
+            const _isCustom=_cKeys.includes(msg.name);
+            const _cur=_isCustom?(_cT[msg.name]||0):(T[msg.name]||0);
+            const _nv=typeof msg.delta==='number'?_cur+msg.delta:(msg.value??_cur);
+            const _clamped=Math.max(_rmin,Math.min(_rmax,_nv));
+            if(_isCustom)_cT[msg.name]=_clamped;else T[msg.name]=_clamped;
           }
           break;
         case 'speak':  if(msg.text) speak(msg.text, msg.voice||0, msg.rate||1, msg.pitch||1); break;
