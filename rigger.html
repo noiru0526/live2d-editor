@@ -8141,6 +8141,22 @@ function showAvatarExportDialog() {
         </select>
       </div>
 
+      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">種類:</span>
+        <select id="av-particle" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+          <option value="">なし</option>
+          <option value="snow">❄ 雪</option>
+          <option value="rain">🌧 雨</option>
+          <option value="sakura">🌸 桜吹雪</option>
+          <option value="confetti">🎉 紙吹雪</option>
+          <option value="stars">⭐ 星屑</option>
+        </select>
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">密度:</span>
+        <input id="av-pdensity" type="number" min="10" max="200" value="60" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+      </div>
+      <div style="font-size:9px;color:#404040;margin-bottom:12px">キャンバス上にパーティクルをオーバーレイ表示。密度10〜200（デフォルト60）。</div>
+
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
         <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
@@ -8232,6 +8248,8 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-gamepad')?.checked) params.push('gamepad=1');
     if (document.getElementById('av-tts')?.checked) params.push('tts=1');
     if (document.getElementById('av-mic')?.checked) params.push('mic=1');
+    const ptType = document.getElementById('av-particle')?.value;
+    if (ptType) { params.push('particle=' + ptType); const ptD = parseInt(document.getElementById('av-pdensity')?.value||'60'); if(ptD !== 60) params.push('pdensity='+ptD); }
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -8294,7 +8312,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
@@ -8365,6 +8383,8 @@ async function doExportAvatar() {
   const exprBarPos = document.getElementById('av-exprbarpos')?.value || '';
   const afkOn = document.getElementById('av-afk')?.checked;
   const afkSecs = parseInt(document.getElementById('av-afk-secs')?.value || '300');
+  const particleType = document.getElementById('av-particle')?.value?.trim() || '';
+  const particleDensity = parseInt(document.getElementById('av-pdensity')?.value || '60');
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   // Now safe to remove overlay
   document.getElementById('av-export-overlay')?.remove();
@@ -8431,6 +8451,7 @@ async function doExportAvatar() {
   if (initEmote) defaultParams.push('emote=' + encodeURIComponent(initEmote));
   if (exprBarPos && exprBarPos !== 'bottom') defaultParams.push('exprbarpos=' + exprBarPos);
   if (afkOn) defaultParams.push('afk=' + afkSecs);
+  if (particleType) { defaultParams.push('particle=' + particleType); if (particleDensity !== 60) defaultParams.push('pdensity=' + particleDensity); }
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
