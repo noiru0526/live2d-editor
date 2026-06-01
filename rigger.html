@@ -82,7 +82,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .pi-drag{display:none}
 .pv{font-size:11px;cursor:pointer;color:#666;flex-shrink:0;width:16px;text-align:center;transition:color .1s}
 .pv:hover{color:#c0c0c0}
-.pv.on{color:#9090a0}
+.pv.on{color:#909090}
 .pi-lock{font-size:10px;cursor:pointer;color:#f59e0b;flex-shrink:0;transition:opacity .1s}
 .pi-lock:not(.on){display:none}
 .pn{flex:1;font-size:11px;color:#a8a8a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -889,7 +889,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:3px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
               <span style="font-size:7px;color:#606060;letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
-              <button onclick="showTexSwitchModal()" style="background:#1a2030;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
+              <button onclick="showTexSwitchModal()" style="background:#282828;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
             </div>
             <div id="texswitch-info" style="font-size:8px;color:#606060">未設定</div>
           </div>
@@ -1000,11 +1000,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <span class="rsec-ttl">物理シミュレーション</span>
     </div>
     <div id="rp-physics" class="rpanel rp-collapsed">
-      <div style="padding:4px 10px;border-bottom:1px solid #1a2030;display:flex;justify-content:flex-end;flex-shrink:0">
+      <div style="padding:4px 10px;border-bottom:1px solid #2e2e2e;display:flex;justify-content:flex-end;flex-shrink:0">
         <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:#585858">✕ 全OFF</button>
       </div>
       <!-- Physics presets -->
-      <div style="padding:4px 8px;border-bottom:1px solid #1a2030;flex-shrink:0">
+      <div style="padding:4px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="font-size:7px;color:#666;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">プリセット → 選択パーツに適用</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
           <button class="tbtn" onclick="applyPhysPreset('hair')"   style="font-size:8px;padding:2px 0" title="剛性:0.18 減衰:0.84 X:1.0 Y:0.3">💇 前髪</button>
@@ -2001,7 +2001,7 @@ function render() {
     for (let cy = tl.y; cy < br.y; cy+=cs)
       for (let cx = tl.x; cx < br.x; cx+=cs) {
         const even = (Math.floor((cx-tl.x)/cs)+Math.floor((cy-tl.y)/cs))%2===0;
-        ctx.fillStyle = even ? '#252840' : '#1a1e30';
+        ctx.fillStyle = even ? '#252525' : '#1e1e1e';
         ctx.fillRect(cx, cy, Math.min(cs, br.x-cx), Math.min(cs, br.y-cy));
       }
   } else {
@@ -3391,7 +3391,7 @@ function updatePartsUI() {
       d.appendChild(thumb);
     } else {
       const te=document.createElement('div'); te.className='pthumbs';
-      te.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:#3a4a5a'; te.textContent='?'; d.appendChild(te);
+      te.style.cssText='display:flex;align-items:center;justify-content:center;font-size:8px;color:#666'; te.textContent='?'; d.appendChild(te);
     }
     const visSpan = document.createElement('span');
     visSpan.className='pv'+(pt.visible?' on':''); visSpan.textContent=pt.visible?'👁':'·';
@@ -3654,7 +3654,7 @@ function updatePartPropsUI() {
         tsi.style.color = '#b09040';
         tsi.textContent = `${paramName}: ${pt.texSwitchRanges.length}ルール`;
       } else {
-        tsi.style.color = '#3a5060'; tsi.textContent = '未設定';
+        tsi.style.color = '#666'; tsi.textContent = '未設定';
       }
     }
   } else if (selDeformer < 0) {
@@ -3974,12 +3974,12 @@ function showTexSwitchModal() {
   <select id="tsp-param" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
     <option value="">（なし）</option>${paramOpts}
   </select>
-  <div style="font-size:10px;color:#606060;margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:8px;color:#4a5870"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
-  <div style="font-size:9px;color:#4a5060;display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px">
+  <div style="font-size:10px;color:#606060;margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:8px;color:#666"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
+  <div style="font-size:9px;color:#666;display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px">
     <span>最小値</span><span>最大値</span><span>テクスチャ</span><span></span>
   </div>
   <div id="tsr-list">${existingRules}</div>
-  <button onclick="addTexSwitchRule()" style="width:100%;background:#1a2030;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
+  <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
     <button onclick="clearTexSwitch()" style="background:#1a1a10;border:1px solid #403020;color:#806040;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
     <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
@@ -5718,12 +5718,12 @@ function buildLPDeformerTree() {
 
   body.innerHTML = '';
   if (deformers.length === 0) {
-    body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:8px 12px">デフォーマーなし<br><span style="color:#1a2a40">「＋ 追加」で作成</span></div>';
+    body.innerHTML = '<div style="font-size:8px;color:#666;padding:8px 12px">デフォーマーなし<br><span style="color:#1a2a40">「＋ 追加」で作成</span></div>';
     return;
   }
   topLevel.forEach(i => renderNode(i, 0));
   if (body.innerHTML === '' && filter) {
-    body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:8px 12px">「' + filter + '」に一致なし</div>';
+    body.innerHTML = '<div style="font-size:8px;color:#666;padding:8px 12px">「' + filter + '」に一致なし</div>';
   }
 }
 
@@ -5838,7 +5838,7 @@ function buildDeformerTree() {
     setStatus(`「${src.name}」をルートに移動`);
   };
   body.innerHTML = '';
-  if (deformers.length === 0) { body.innerHTML = '<div style="font-size:8px;color:#2a3a50;padding:4px">デフォーマーなし</div>'; return; }
+  if (deformers.length === 0) { body.innerHTML = '<div style="font-size:8px;color:#666;padding:4px">デフォーマーなし</div>'; return; }
   topLevel.forEach((i,j)=>renderNode(i,0,j===topLevel.length-1));
 }
 function updateDeformerPropsUI() {
@@ -6351,10 +6351,10 @@ function deleteCustomParam(key) {
 function buildBindingsUI() {
   const list = document.getElementById('bindings-list');
   if (!list) return;
-  if (!selParam) { list.innerHTML = '<span style="color:#1e3040">パラメータを選択</span>'; return; }
+  if (!selParam) { list.innerHTML = '<span style="color:#888">パラメータを選択</span>'; return; }
   const bindings = paramBindings[selParam] || [];
   if (bindings.length === 0) {
-    list.innerHTML = `<span style="color:#1e3040">バインドなし</span>`;
+    list.innerHTML = `<span style="color:#888">バインドなし</span>`;
     return;
   }
   list.innerHTML = bindings.map((b, i) => {
@@ -6485,7 +6485,7 @@ function drawXYGrid() {
   ctx2.fillRect(0, 0, W, H);
 
   // Minor grid lines
-  ctx2.strokeStyle = '#0d1e2c';
+  ctx2.strokeStyle = '#1e1e1e';
   ctx2.lineWidth = 0.5;
   for (let i = 0; i <= 4; i++) {
     const gx = (i / 4) * W, gy = (i / 4) * H;
@@ -6497,7 +6497,7 @@ function drawXYGrid() {
   const [xmin, xmax] = px.r, [ymin, ymax] = py.r;
   const cx0 = _xyParamToCanvas(0, xmin, xmax, W);
   const cy0 = H - _xyParamToCanvas(0, ymin, ymax, H);
-  ctx2.strokeStyle = '#1a3a50';
+  ctx2.strokeStyle = '#3a3a3a';
   ctx2.lineWidth = 1;
   ctx2.beginPath(); ctx2.moveTo(cx0, 0); ctx2.lineTo(cx0, H); ctx2.stroke();
   ctx2.beginPath(); ctx2.moveTo(0, cy0); ctx2.lineTo(W, cy0); ctx2.stroke();
@@ -8110,7 +8110,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cp-lbl{font-size:8px;color:#666;min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:#e07840;height:3px}
 .cp-val{font-size:7px;color:#808080;min-width:28px;text-align:left}
-#calib-panel{position:fixed;top:12px;left:12px;background:rgba(8,10,20,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0c0d8;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
+#calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#c0c0c0;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #calib-panel h4{font-size:9px;color:#a07050;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
 .cb-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .cb-lbl{font-size:8px;color:#605040;min-width:70px;text-align:right}
@@ -8169,7 +8169,7 @@ function _buildHotkeyPanel(){
   rows.push(['B','ブラーON/OFF']);
   rows.push(['L','ポーズロック（顔追跡を一時停止）']);
   if(_p.get('ws')){rows.push(['---','--- WebSocket ---']);rows.push(['WS',_p.get('ws')]);}
-  el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#504060;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#666;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
+  el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#666;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#666;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
 document.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}});
