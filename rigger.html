@@ -8203,6 +8203,7 @@ function showAvatarExportDialog() {
         <div style="color:#666;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:#e07840"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chatbubble" style="accent-color:#e07840"> 💬 チャット吹き出し（右上ポップアップ）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
@@ -8473,6 +8474,7 @@ function showAvatarExportDialog() {
       if (ch2) { params.push('chatoverlay=1'); if (!document.getElementById('av-chat')?.checked) params.push('channel=' + encodeURIComponent(ch2)); }
     }
     if (document.getElementById('av-chatbubble')?.checked) params.push('chatbubble=1');
+    if (document.getElementById('av-chattts')?.checked){params.push('chattts=1');const ctml=parseInt(document.getElementById('av-chatttsmaxlen')?.value||'80');if(ctml!==80)params.push('chatttsmaxlen='+ctml);}
     if (document.getElementById('av-pulse')?.checked) params.push('pulse=1');
     if (document.getElementById('av-wobblecam')?.checked) params.push('wobblecam=1');
     if (document.getElementById('av-noface')?.checked) params.push('noface=1');
@@ -8530,10 +8532,10 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-breathscale','av-speakexpr','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-breathscale','av-speakexpr','av-ttsrate','av-speakintro','av-chatttsmaxlen','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-noface','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-noface','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-chattts','av-pulse','av-wobblecam'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8661,6 +8663,8 @@ async function doExportAvatar() {
   }
   const chatBubbleOn = document.getElementById('av-chatbubble')?.checked;
   if (chatBubbleOn) defaultParams.push('chatbubble=1');
+  const chatTTSOn = document.getElementById('av-chattts')?.checked;
+  if (chatTTSOn){defaultParams.push('chattts=1');const ctml2=parseInt(document.getElementById('av-chatttsmaxlen')?.value||'80');if(ctml2!==80)defaultParams.push('chatttsmaxlen='+ctml2);}
   const pulseOn = document.getElementById('av-pulse')?.checked;
   if (pulseOn) defaultParams.push('pulse=1');
   const wobblecamOn = document.getElementById('av-wobblecam')?.checked;
@@ -10062,6 +10066,8 @@ function initCam(){
   const overlay=document.getElementById('chat-overlay');
   if(!overlay)return;
   const _hashColor=(s)=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))&0xffffffff;return `hsl(${(h>>>0)%360},60%,65%)`;};
+  const _chatTTS=_p.has('chattts');
+  const _chatTTSMax=Math.max(10,parseInt(_p.get('chatttsmaxlen')||'80'));
   const _addMsg=(user,text)=>{
     const d=document.createElement('div');d.className='chat-msg';
     d.innerHTML=`<span class="chat-user" style="color:${_hashColor(user)}">${user.replace(/</g,'&lt;')}</span><span>${text.replace(/</g,'&lt;')}</span>`;
@@ -10069,6 +10075,7 @@ function initCam(){
     while(overlay.children.length>maxMsgs)overlay.lastElementChild?.remove();
     setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(()=>d.remove(),500);},lifetime);
     if(_chatBubbleEnabled)showChatBubble(user,text);
+    if(_chatTTS&&typeof speak==='function'){const _msg=(text.length>_chatTTSMax?text.slice(0,_chatTTSMax)+'…':text);speak(_msg);}
   };
   // Share WS with expression trigger if channel is the same — use custom event
   window._chatOverlayAdd=_addMsg;
