@@ -8075,6 +8075,7 @@ function showWsApiRef() {
     ['speak','TTS発声','{type:"speak",text:"こんにちは",rate:1}'],
     ['blur','ぼかし切替','{type:"blur"}'],
     ['emote','絵文字リアクション表示（?emotes=1時）','{type:"emote",emoji:"🎉",dur:2200}'],
+    ['score','スコアを設定/加算（?widget=score時）','{type:"score",value:9999} / {type:"score",delta:+1}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -8153,6 +8154,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#e07840"> ⏱ 配信タイマー</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-kda" style="accent-color:#e07840"> 🎯 K/D/A トラッカー</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px"><input type="checkbox" id="av-wg-countdown" style="accent-color:#e07840"> ⏳ カウントダウン (<input id="av-wg-countdown-secs" type="number" min="10" max="86400" value="300" style="width:44px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px">秒)</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-score" style="accent-color:#e07840"> 🏆 スコアカウンター</label>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap">🎮 ゲーム名:</span>
@@ -8322,6 +8324,9 @@ function showAvatarExportDialog() {
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
+    if (document.getElementById('av-wg-kda')?.checked) wgP.push('kda');
+    if (document.getElementById('av-wg-score')?.checked) wgP.push('score');
+    if (document.getElementById('av-wg-countdown')?.checked) wgP.push('countdown=' + (parseInt(document.getElementById('av-wg-countdown-secs')?.value||'300')));
     const g = document.getElementById('av-wg-game')?.value?.trim();
     if (g) wgP.push('game=' + encodeURIComponent(g));
     if (wgP.length) params.push('widget=' + wgP.join(','));
@@ -8386,7 +8391,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8421,6 +8426,7 @@ async function doExportAvatar() {
   const wgClock = document.getElementById('av-wg-clock')?.checked;
   const wgTimer = document.getElementById('av-wg-timer')?.checked;
   const wgKda = document.getElementById('av-wg-kda')?.checked;
+  const wgScore = document.getElementById('av-wg-score')?.checked;
   const wgCountdown = document.getElementById('av-wg-countdown')?.checked;
   const wgCountdownSecs = parseInt(document.getElementById('av-wg-countdown-secs')?.value||'300');
   const wgGame = document.getElementById('av-wg-game')?.value?.trim() || '';
@@ -8482,6 +8488,7 @@ async function doExportAvatar() {
   if (wgClock) wgParts.push('clock');
   if (wgTimer) wgParts.push('timer');
   if (wgKda) wgParts.push('kda');
+  if (wgScore) wgParts.push('score');
   if (wgCountdown) wgParts.push('countdown=' + wgCountdownSecs);
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
@@ -9136,6 +9143,7 @@ let _micMouthLevel=0;
         case 'assist': if(window._wgKDA)window._wgKDA('assist'); break;
         case 'emote':  if(msg.emoji)triggerEmote(msg.emoji,msg.dur||2200,msg.size||72); break;
         case 'brb':    toggleBRB(msg.text); break;
+        case 'score':  if(window._wgScore){const cur=parseInt(document.getElementById('wg-score')?.textContent||'0')||0;window._wgScore(msg.value!==undefined?parseInt(msg.value):cur+(parseInt(msg.delta)||0));} break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
@@ -9650,6 +9658,16 @@ function initCam(){
       if(rem<=0&&_cdEl){_cdEl.style.color='#f87171';_cdEl.textContent='TIME!';}
     },500);
     window._cdReset=(s)=>{_cdEnd=Date.now()+(s||cdSecs)*1000;if(_cdEl){_cdEl.style.color='';}}
+  }
+  // Score tracker: ?widget=score[=N] — WS {type:score,value:N} or {type:score,delta:+1}
+  const scoreW=widgets.find(w=>w==='score'||w.startsWith('score='));
+  if(scoreW){
+    let _sc=parseInt((scoreW.includes('=')?scoreW.split('=')[1]:null)||'0')||0;
+    const _scLabel=decodeURIComponent(_p.get('scorelabel')||'スコア');
+    makeWg(_scLabel,'wg-score');
+    const _scEl=document.getElementById('wg-score');
+    if(_scEl)_scEl.textContent=String(_sc);
+    window._wgScore=(v)=>{_sc=v;if(_scEl)_scEl.textContent=String(_sc);};
   }
 })();
 // ===== TWITCH CHAT EXPRESSION TRIGGERS =====
