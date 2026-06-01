@@ -8498,6 +8498,9 @@ let _sacX=0,_sacY=0,_sacT=0,_sacInterval=3,_sacEnabled=!_p.has('nosaccade');
 const _talkBob=_p.has('talkbob');let _talkBobT=0;
 // ?lowenergy=1 — tired look: droopy eyes / slight slump when idle
 const _lowEnergy=_p.has('lowenergy');
+// ?wobble=<0.1-2.0> — extra body sway on top of breathing; makes idle feel more alive
+const _wobbleAmp=Math.max(0,Math.min(3,parseFloat(_p.get('wobble')||'0')));
+let _wobT=0;
 const LFOS=MODEL.lfos||[];
 let _rtLFOs=[]; // runtime LFOs added via WebSocket / postMessage (not baked into model)
 let _lfoT=0;
@@ -8551,6 +8554,8 @@ function _buildHotkeyPanel(){
   rows.push(['---','--- アニメーション ---']);
   rows.push(['I','アイドルLFO ON/OFF（ゆらぎ切替）']);
   if(window._micAnalyser)rows.push(['M','マイクリップシンク ON/OFF']);
+  rows.push(['[ ]','表情を前後に切替']);
+  rows.push(['Shift+S','スクリーンショット（PNG保存）']);
   rows.push(['---','--- 画面エフェクト ---']);
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
@@ -9280,6 +9285,13 @@ function frame(ts){
   breathT+=dt*.36;
   const breathVal=Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09;
   S.breath=breathVal*.5+.5;
+  // ?wobble=<strength> — extra gentle body sway (idle life) on top of breathing
+  if(_wobbleAmp>0){
+    _wobT+=dt;
+    S.bodyX+=Math.sin(_wobT*.41)*0.025*_wobbleAmp+Math.sin(_wobT*.23)*.012*_wobbleAmp;
+    S.bodyY+=Math.sin(_wobT*.33)*0.015*_wobbleAmp;
+    S.headX+=Math.sin(_wobT*.19)*.008*_wobbleAmp;
+  }
   const vals={...S,..._cS,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
   _lfoT+=dt;
   if(_rtLFOs.length){_rtLFOs=_rtLFOs.filter(l=>!l._dur||((_lfoT-l._t0)<l._dur));}
