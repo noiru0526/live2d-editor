@@ -8372,6 +8372,10 @@ function _resetExpr(){for(const k of Object.keys(T))T[k]=0;for(const k of _cKeys
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
 // Eye saccade — natural micro eye movements when not face-tracking (?nosaccade=1 to disable)
 let _sacX=0,_sacY=0,_sacT=0,_sacInterval=3,_sacEnabled=!_p.has('nosaccade');
+// ?talkbob=1 — subtle jaw-sync head motion while speaking (mouthOpen driven)
+const _talkBob=_p.has('talkbob');let _talkBobT=0;
+// ?lowenergy=1 — tired look: droopy eyes / slight slump when idle
+const _lowEnergy=_p.has('lowenergy');
 const LFOS=MODEL.lfos||[];
 let _rtLFOs=[]; // runtime LFOs added via WebSocket / postMessage (not baked into model)
 let _lfoT=0;
@@ -8459,10 +8463,16 @@ if(!_p.has('noexprbar')&&!OBS_MODE){
   else if(_ebp==='right'){bar.style.bottom='';bar.style.left='';bar.style.right='12px';bar.style.top='50%';bar.style.transform='translateY(-50%)';bar.style.flexDirection='column';}
 }else{bar.style.display='none';}
 
+// ?emote=<name> — set initial expression from URL
+(()=>{const _em=_p.get('emote');if(_em){const _ei=EXPRS.findIndex(e=>e.name.toLowerCase()===_em.toLowerCase());applyExpr(_ei);}})();
+
 document.addEventListener('keydown',e=>{
   const n=parseInt(e.key);
   if(e.key==='0') applyExpr(-1);
   else if(!isNaN(n)&&n>=1&&n<=EXPRS.length) applyExpr(n-1);
+  // [ / ] cycle through expressions
+  else if(e.key==='['&&EXPRS.length){applyExpr(curExpr<=0?EXPRS.length-1:curExpr-1);}
+  else if(e.key===']'&&EXPRS.length){applyExpr(curExpr<0?0:((curExpr+1)%EXPRS.length));}
 });
 
 // postMessage API — receive commands from multi-avatar.html parent
@@ -9095,6 +9105,18 @@ function frame(ts){
   S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,_c(.32));S.mouthForm=ema(S.mouthForm,T.mouthForm,_c(.12));
   S.cheek=ema(S.cheek,T.cheek,_c(.08));S.bodyX=ema(S.bodyX,T.bodyX,_c(.07));S.bodyY=ema(S.bodyY,T.bodyY,_c(.07));
   for(const k of _cKeys)_cS[k]=ema(_cS[k],_cT[k],_c(.12));
+  // Talking head bob — subtle head motion synced to mouthOpen (?talkbob=1)
+  if(_talkBob&&S.mouthOpen>0.08){
+    _talkBobT+=dt*11*S.mouthOpen;
+    S.headY+=Math.sin(_talkBobT)*0.022*S.mouthOpen;
+    S.headZ+=Math.sin(_talkBobT*.6)*0.007*S.mouthOpen;
+  }
+  // Low-energy look — droopy eyes / slight posture slump (?lowenergy=1)
+  if(_lowEnergy&&!tracking){
+    S.eyeOpenL=Math.min(S.eyeOpenL,.72);S.eyeOpenR=Math.min(S.eyeOpenR,.72);
+    if(S.mouthOpen<0.1)S.mouthForm=Math.max(S.mouthForm-.04,-.12);
+    S.bodyY-=0.04;
+  }
   _ttsMouthStep(dt);
   physStep(dt);
   if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2+Math.random()*5;}}
