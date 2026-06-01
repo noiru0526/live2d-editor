@@ -38,7 +38,7 @@ input[type=text],input[type=number],input[type=search],textarea{
   border-radius:3px;padding:2px 6px;font-family:inherit;font-size:11px;outline:none;}
 input[type=text]:focus,input[type=number]:focus,textarea:focus{border-color:var(--accent);}
 select{background:#1e1e1e;border:1px solid var(--border);color:var(--text);
-  border-radius:3px;padding:2px 4px;font-family:inherit;font-size:11px;outline:none;cursor:pointer;}
+  border-radius:4px;padding:2px 4px;font-family:inherit;font-size:11px;outline:none;cursor:pointer;}
 select:focus{border-color:var(--accent);}
 select option{background:#252525;color:var(--text);}
 button:focus{outline:none;}
@@ -165,7 +165,7 @@ button:focus{outline:none;}
 #sb{display:flex;align-items:center;gap:0;padding:0 8px;background:#1e1e1e;border-top:1px solid #2e2e2e;font-size:10px;color:#888;flex-shrink:0;height:20px;}
 #sb > span{padding:0 8px;border-right:1px solid #2e2e2e;white-space:nowrap;line-height:20px;}
 #sb > span:last-child{border-right:none;}
-#sb-mode{background:rgba(224,120,64,.15);color:rgba(224,160,100,.9);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-size:9px;}
+#sb-mode{background:rgba(224,120,64,.15);color:rgba(224,160,100,.9);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;font-size:9px;}
 #sb-sel{color:#888;}
 #sb-rec{margin-left:auto;border-right:none!important;border-left:1px solid #2e2e2e;}
 #sb-rec.on{color:var(--rec);}
@@ -273,7 +273,7 @@ button:focus{outline:none;}
 
 /* Weight paint */
 .weight-palette{display:flex;gap:3px;padding:4px 8px;background:#1e1e1e;}
-.weight-swatch{width:18px;height:18px;border-radius:3px;cursor:pointer;border:1px solid transparent;}
+.weight-swatch{width:18px;height:18px;border-radius:4px;cursor:pointer;border:1px solid transparent;}
 .weight-swatch.active{border-color:#fff;}
 
 /* ===== UX PATTERN 1: Keyboard Shortcut Badges (Professional Tool Style) ===== */
@@ -427,20 +427,20 @@ button:focus{outline:none;}
     <div style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
         style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
-      <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
-      <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
-      <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
-      <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
-      <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
-      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
+      <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
+      <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
+      <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
+      <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
+      <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:#ffd060;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
+      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
       <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
-      <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:3px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
-      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:#80c080;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
-      <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
+      <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
+      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:#80c080;border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
+      <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
     </div>
     <div id="params"></div>
     </div><!-- /lpanel-params -->
@@ -454,8 +454,8 @@ button:focus{outline:none;}
       </div>
       <div id="parts-list" style="display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto;padding:2px 0;"></div>
       <div style="display:flex;gap:3px;margin-top:3px;">
-        <button onclick="addNewPart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 0;cursor:pointer;font-size:10px;" title="新しいパーツ（レイヤー）を追加">+ 追加</button>
-        <button onclick="duplicateActivePart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 0;cursor:pointer;font-size:10px;" title="アクティブパーツを複製">⿻ 複製</button>
+        <button onclick="addNewPart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 0;cursor:pointer;font-size:10px;" title="新しいパーツ（レイヤー）を追加">+ 追加</button>
+        <button onclick="duplicateActivePart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 0;cursor:pointer;font-size:10px;" title="アクティブパーツを複製">⿻ 複製</button>
       </div>
       <input type="file" id="part-file-input" accept="image/*" style="display:none" onchange="onPartFileInput(this)">
       <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid #2e2e2e;">
@@ -634,9 +634,9 @@ button:focus{outline:none;}
       <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:4px 6px;">
         <div id="snippet-items"></div>
         <div style="display:flex;gap:4px;margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
-          <button onclick="saveCurrentAsSnippet()" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
-          <button onclick="exportSnippets()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
-          <button onclick="importSnippetsFile()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
+          <button onclick="saveCurrentAsSnippet()" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
+          <button onclick="exportSnippets()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
+          <button onclick="importSnippetsFile()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
         </div>
       </div>
     </div>
@@ -651,8 +651,8 @@ button:focus{outline:none;}
     </div>
     <div id="embed-cfg" style="padding:6px 10px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
-        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
-        <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
+        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
+        <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
         <span style="color:var(--dim)">▾</span>
       </span></div>
       <div id="embed-cfg-body">
@@ -680,7 +680,7 @@ button:focus{outline:none;}
       </div>
       <div class="mcfg-row" style="gap:4px;">
         <label>背景:</label>
-        <input id="export-bg" type="color" value="#1a1a2e" style="width:28px;height:22px;border:1px solid var(--border);border-radius:3px;padding:1px;cursor:pointer;background:none;">
+        <input id="export-bg" type="color" value="#1a1a2e" style="width:28px;height:22px;border:1px solid var(--border);border-radius:4px;padding:1px;cursor:pointer;background:none;">
         <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;flex:1;">
           <input type="checkbox" id="export-chromakey" style="accent-color:#00cc44;">
           <span>グリーンバック</span>
@@ -753,7 +753,7 @@ button:focus{outline:none;}
         </select>
       </div>
       <div class="mcfg-row">
-        <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
+        <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
@@ -875,10 +875,10 @@ button:focus{outline:none;}
       <div class="mcfg-title" style="padding:0 0 4px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('spring-body',this)">🌊 バネ骨格<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="spring-body">
       <div style="display:flex;gap:4px;margin-bottom:5px;">
-        <button onclick="addSpringBone()" style="flex:1;color:var(--dim);background:#252525;border:1px solid #3a3a3a;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
-        <button id="phys-sim-btn" onclick="togglePhysSim()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" title="リアルタイム物理シミュレーター ON/OFF">▶ シミュ</button>
-        <button onclick="resetPhysSim()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
-        <button onclick="bakePhysToTimeline()" style="background:#302010;border:1px solid rgba(200,180,80,.4);color:#d0c060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
+        <button onclick="addSpringBone()" style="flex:1;color:var(--dim);background:#252525;border:1px solid #3a3a3a;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
+        <button id="phys-sim-btn" onclick="togglePhysSim()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="リアルタイム物理シミュレーター ON/OFF">▶ シミュ</button>
+        <button onclick="resetPhysSim()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
+        <button onclick="bakePhysToTimeline()" style="background:#302010;border:1px solid rgba(200,180,80,.4);color:#d0c060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
       </div>
       <div id="spring-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:5px;"></div>
       <div style="font-size:9px;color:var(--dim);line-height:1.5;">
@@ -927,8 +927,8 @@ button:focus{outline:none;}
         <div style="font-size:9px;color:var(--dim);margin-bottom:5px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
         <div id="ma-slots" style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;"></div>
         <div style="display:flex;gap:4px;">
-          <button onclick="addMASlot()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
-          <button onclick="generateMultiAvatarHTML()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📤 HTML生成</button>
+          <button onclick="addMASlot()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
+          <button onclick="generateMultiAvatarHTML()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📤 HTML生成</button>
         </div>
       </div>
     </div>
@@ -1123,10 +1123,10 @@ button:focus{outline:none;}
     <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
-      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
-      <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
-      <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
-      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:3px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
+      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
+      <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
+      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
 </div>
@@ -1166,14 +1166,14 @@ button:focus{outline:none;}
     <label style="font-size:10px;color:var(--dim);white-space:nowrap;">全体強度:</label>
     <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:#ff90d0;">
     <span id="rnd-global-lbl" style="font-size:10px;color:#ff90d0;min-width:28px;">100%</span>
-    <button onclick="randomizePose()" style="background:#221520;border:1px solid rgba(255,144,208,.4);color:#ff90d0;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
+    <button onclick="randomizePose()" style="background:#221520;border:1px solid rgba(255,144,208,.4);color:#ff90d0;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
   </div>
   <div style="margin-bottom:6px;display:flex;gap:6px;">
     <label style="font-size:10px;color:var(--dim);"><input type="checkbox" id="rnd-animate" onchange="toggleRndAnimate(this.checked)" style="margin-right:3px;">自動ランダム (<span id="rnd-interval-lbl">2</span>s毎)</label>
     <input type="range" id="rnd-interval" min="0.5" max="10" step="0.5" value="2" oninput="document.getElementById('rnd-interval-lbl').textContent=this.value;" style="flex:1;accent-color:#ff90d0;">
   </div>
   <div id="rnd-param-list" style="display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto;"></div>
-  <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:#252525;border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:3px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
+  <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:#252525;border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:4px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
 </div>
 
 <!-- Parameter Histogram Panel -->
@@ -1181,7 +1181,7 @@ button:focus{outline:none;}
   <div style="display:flex;align-items:center;padding:6px 10px;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;position:sticky;top:0;">
     <span style="font-size:12px;font-weight:700;color:#ffd080;">📊 KFヒストグラム</span>
     <select id="hist-param-sel" onchange="renderHistogram()" style="flex:1;font-size:11px;background:#252525;border:1px solid #3a3a3a;color:var(--text);border-radius:3px;padding:1px 4px;"></select>
-    <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:3px;cursor:pointer;font-size:11px;">✕</button>
+    <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button>
   </div>
   <div style="padding:10px;">
     <canvas id="hist-canvas" width="300" height="140" style="width:100%;background:#1e1e1e;border-radius:4px;display:block;"></canvas>
@@ -1211,7 +1211,7 @@ button:focus{outline:none;}
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">s</span>
   <span id="ab-indicator" style="font-size:11px;font-weight:700;min-width:16px;color:#ffd080;">A</span>
-  <button onclick="stopABPlayback()" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:3px;cursor:pointer;font-size:11px;">停止</button>
+  <button onclick="stopABPlayback()" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">停止</button>
 </div>
 
 <!-- Weight Paint HUD -->
@@ -1237,8 +1237,8 @@ button:focus{outline:none;}
   <div id="tl-header">
     <span id="tl-param-name">headX</span>
     <span style="font-size:10px;color:var(--dim)">キーフレームをクリックで移動</span>
-    <button onclick="toggleAnimMode()" id="btn-anim-mode" style="margin-left:auto;background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="Aキーでアニメーションモード切替">🎬 アニメ</button>
-    <button onclick="addKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">+ KF追加</button>
+    <button onclick="toggleAnimMode()" id="btn-anim-mode" style="margin-left:auto;background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="Aキーでアニメーションモード切替">🎬 アニメ</button>
+    <button onclick="addKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">+ KF追加</button>
   </div>
   <div id="tl-track">
     <canvas id="tl-canvas"></canvas>
@@ -1248,12 +1248,12 @@ button:focus{outline:none;}
 <!-- Multi-track Animation Timeline -->
 <div id="timeline-multi" style="height:0;border:none;">
   <div id="tl-multi-header">
-    <button onclick="animMultiPlay()" id="btn-multi-play" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
-    <button onclick="animMultiStop()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
-    <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
-    <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:#1e1e1e;border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
-    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:#1e1e1e;border:1px solid rgba(150,150,150,.3);color:#888;border-radius:3px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
-    <select id="tl-speed" title="再生速度" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 2px;font-size:10px;cursor:pointer;">
+    <button onclick="animMultiPlay()" id="btn-multi-play" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
+    <button onclick="animMultiStop()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
+    <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
+    <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:#1e1e1e;border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
+    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:#1e1e1e;border:1px solid rgba(150,150,150,.3);color:#888;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
+    <select id="tl-speed" title="再生速度" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 2px;font-size:10px;cursor:pointer;">
       <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
       <option value="0.5">0.5x</option>
@@ -1274,7 +1274,7 @@ button:focus{outline:none;}
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
       style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
-    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1e1e1e;border:1px solid var(--border);color:#60d890;border-radius:3px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
+    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1e1e1e;border:1px solid var(--border);color:#60d890;border-radius:4px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
       style="width:46px;background:#1e1e1e;border:1px solid #3a3a3a;color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
@@ -1290,114 +1290,114 @@ button:focus{outline:none;}
         style="width:36px;background:#1e1e1e;border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
         onchange="M.animation.loopOut=this.value===''?null:(parseFloat(this.value)||null);">
     </label>
-    <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
-    <button onclick="addAnimKF()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
-    <button onclick="copyAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
-    <button onclick="pasteAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
-    <button onclick="selectAllAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
-    <button onclick="showAnimEasing()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
-    <button onclick="clearAnimTracks()" style="background:#2d2d2d;border:1px solid var(--border);color:#f08080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
-    <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2d2d2d;border:1px solid var(--border);color:#c0a080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
-    <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
-    <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2d2d2d;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
-    <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
-    <button onclick="showPoseSequencer()" title="複数ポーズを順番に並べてアニメーションKFを自動生成（ループ可）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🔀 シーケンサー</button>
-    <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
-    <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
-    <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
-    <button onclick="showKFRamp()" title="選択パラメータに等間隔KFのランプ（グラデーション）を生成" style="background:#2d2d2d;border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">∿ ランプ</button>
-    <button onclick="showAnimMerge()" title="別のアニメーションJSONをインポートして現在のトラックにマージ（時刻オフセット付き）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⊕ マージ</button>
-    <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
-    <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:#2a1a1a;border:1px solid rgba(255,80,80,.35);color:#ff8080;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
-    <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2d2d2d;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
-    <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
-    <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2d2d2d;border:1px solid var(--border);color:#c0d080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
-    <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2d2d2d;border:1px solid var(--border);color:#a0d0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
-    <button onclick="smartDecimateAnim()" title="スマートデシメーション: パラメータ値域に対する相対閾値で各トラックを個別に最適化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗜 スマート</button>
-    <button onclick="reverseAnimTimeRange()" title="指定した時間範囲内のKFを時間方向に反転（リバース）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 反転</button>
-    <button onclick="smoothAnimKFValues()" title="KF値をスムージング（録音後の値のブレを滑らかにする）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 スムージング</button>
-    <button onclick="addOvershootToKFs()" title="オーバーシュート追加: 各KFの後に行き過ぎKFを自動挿入（バウンシーな動き）" style="background:#2d2d2d;border:1px solid rgba(255,160,80,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⤷ 跳ね</button>
-    <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2d2d2d;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
-    <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
-    <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2d2d2d;border:1px solid var(--border);color:#d0c080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
-    <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
-    <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
-    <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
-    <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
-    <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
-    <button onclick="rescaleAnimationDuration()" title="アニメーション全体の長さをリスケール（全KFを比率で伸縮・ループ区間・マーカーも追従）" style="background:#2d2d2d;border:1px solid rgba(200,160,60,.4);color:#e0c060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 時間リスケール</button>
-    <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
-    <button onclick="repeatLoopRegion()" title="ループ区間を指定回数繰り返して展開（アニメーションを伸長）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#a0f0c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔁 区間繰り返し</button>
-    <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
-    <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
+    <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
+    <button onclick="addAnimKF()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
+    <button onclick="copyAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
+    <button onclick="pasteAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
+    <button onclick="selectAllAnimKF()" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
+    <button onclick="showAnimEasing()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
+    <button onclick="clearAnimTracks()" style="background:#2d2d2d;border:1px solid var(--border);color:#f08080;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
+    <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:#2d2d2d;border:1px solid var(--border);color:#c0a080;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
+    <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
+    <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:#2d2d2d;border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
+    <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="showPoseSequencer()" title="複数ポーズを順番に並べてアニメーションKFを自動生成（ループ可）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔀 シーケンサー</button>
+    <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
+    <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
+    <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
+    <button onclick="showKFRamp()" title="選択パラメータに等間隔KFのランプ（グラデーション）を生成" style="background:#2d2d2d;border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">∿ ランプ</button>
+    <button onclick="showAnimMerge()" title="別のアニメーションJSONをインポートして現在のトラックにマージ（時刻オフセット付き）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⊕ マージ</button>
+    <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
+    <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:#2a1a1a;border:1px solid rgba(255,80,80,.35);color:#ff8080;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
+    <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:#2d2d2d;border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
+    <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
+    <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:#2d2d2d;border:1px solid var(--border);color:#c0d080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
+    <button onclick="decimateAnimKFs()" title="冗長KFを自動削除（Ramer-Douglas-Peucker）&#10;右クリックで閾値を設定" oncontextmenu="event.preventDefault();const v=prompt('閾値 (デフォルト0.01)','0.01');if(v)decimateAnimKFs(parseFloat(v));" style="background:#2d2d2d;border:1px solid var(--border);color:#a0d0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊘ 間引き</button>
+    <button onclick="smartDecimateAnim()" title="スマートデシメーション: パラメータ値域に対する相対閾値で各トラックを個別に最適化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗜 スマート</button>
+    <button onclick="reverseAnimTimeRange()" title="指定した時間範囲内のKFを時間方向に反転（リバース）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 反転</button>
+    <button onclick="smoothAnimKFValues()" title="KF値をスムージング（録音後の値のブレを滑らかにする）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 スムージング</button>
+    <button onclick="addOvershootToKFs()" title="オーバーシュート追加: 各KFの後に行き過ぎKFを自動挿入（バウンシーな動き）" style="background:#2d2d2d;border:1px solid rgba(255,160,80,.4);color:#ffa060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⤷ 跳ね</button>
+    <button onclick="jitterAnimKFs()" title="選択KFに±8ms のランダムジッターを追加（自然なタイミング揺らぎ）&#10;右クリックで量を設定" oncontextmenu="event.preventDefault();const v=prompt('ジッター量(ms)',8);if(v)jitterAnimKFs(parseFloat(v)/1000);" style="background:#2d2d2d;border:1px solid var(--border);color:#d0a060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 ジッター</button>
+    <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
+    <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:#2d2d2d;border:1px solid var(--border);color:#d0c080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
+    <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
+    <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
+    <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
+    <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
+    <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
+    <button onclick="rescaleAnimationDuration()" title="アニメーション全体の長さをリスケール（全KFを比率で伸縮・ループ区間・マーカーも追従）" style="background:#2d2d2d;border:1px solid rgba(200,160,60,.4);color:#e0c060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 時間リスケール</button>
+    <button onclick="saveLoopAsClip()" title="ループ区間を新規クリップとして保存（元アニメは変更しない）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">➕ ループ→クリップ</button>
+    <button onclick="repeatLoopRegion()" title="ループ区間を指定回数繰り返して展開（アニメーションを伸長）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#a0f0c0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔁 区間繰り返し</button>
+    <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
+    <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
-    <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
-    <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
-    <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:#2d2d2d;border:1px solid var(--border);color:#c0e0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
-    <button onclick="showAllParamsHeatmap()" title="全パラメータのKF値密度ヒートマップ（どのパラメータがどの値域を多く使っているか）" style="background:#2d2d2d;border:1px solid rgba(255,180,80,.4);color:#ffc060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌡 値域マップ</button>
-    <button onclick="showParamCorrelation()" title="2パラメータ間のKF値相関散布図（同時刻の値を対プロット）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📉 相関グラフ</button>
-    <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
-    <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
-    <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
-    <button onclick="importMotionJSON()" title="JSONモーションインポート: {fps:30, tracks:{param:[v0,v1,...]}} 形式" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📄 JSON読込</button>
-    <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
-    <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
-    <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
-    <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#707070';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
-    <button id="btn-tl-fgrid" onclick="tlFrameGrid=!tlFrameGrid;this.style.color=tlFrameGrid?'#60d890':'#707070';this.style.borderColor=tlFrameGrid?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="フレームグリッド表示（スナップグリッドに合わせた縦線）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊞</button>
-    <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#707070';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
-    <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2d2d2d;border:1px solid var(--border);color:#d0a060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
-    <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2d2d2d;border:1px solid var(--border);color:#c0d090;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
-    <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
-    <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
-    <button onclick="showPoseTweenDialog()" title="ポーズトゥイーン: 2ポーズ間を補間するKFを自動生成（開始時刻・継続時間・イージングを設定）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔀 トゥイーン</button>
-    <button onclick="showMultiPoseBlend()" title="マルチポーズブレンド: 複数ポーズを同時にスライダーでウェイト調整してリアルタイムブレンド" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎚 ブレンダー</button>
-    <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
-    <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2d2d2d;border:1px solid var(--border);color:#a0ffd0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
-    <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd0a0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
-    <button onclick="shiftAllKFTimes()" title="KF時刻シフト: 全KF（または選択トラック）を指定秒数だけ前後にずらす" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⇄ シフト</button>
-    <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
-    <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
-    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:#2d2d2d;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
-    <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
-    <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
-    <button onclick="showTimeScaleDialog()" title="タイムスケール: 全KFの時刻を倍率変換してアニメ全体のスピードを変更&#10;例: 0.5→2倍速、2.0→半速" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⏩ 速度</button>
-    <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
-    <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
-    <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
-    <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
-    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
-    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
-    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
-    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
-    <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
-    <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
-    <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
-    <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#707070';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
-    <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#707070';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
-    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'var(--accent)':'#707070';this.style.borderColor=tlColorByGroup?'rgba(224,120,64,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
-    <button onclick="autoGroupByPrefix()" title="パラメータ名のプレフィックス（head/eye/mouth等）で自動グループ化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 自動G</button>
-    <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
-    <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#707070';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
-    <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 3px;font-size:9px;cursor:pointer;">
+    <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
+    <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
+    <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:#2d2d2d;border:1px solid var(--border);color:#c0e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
+    <button onclick="showAllParamsHeatmap()" title="全パラメータのKF値密度ヒートマップ（どのパラメータがどの値域を多く使っているか）" style="background:#2d2d2d;border:1px solid rgba(255,180,80,.4);color:#ffc060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🌡 値域マップ</button>
+    <button onclick="showParamCorrelation()" title="2パラメータ間のKF値相関散布図（同時刻の値を対プロット）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📉 相関グラフ</button>
+    <button onclick="exportAnimJSON()" title="アニメーションデータをJSONでエクスポート" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">💾 アニメJSON</button>
+    <button onclick="importAnimJSON()" title="アニメーションJSONをインポート（クリップに追加）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📂 インポート</button>
+    <button onclick="importMotionCSV()" title="CSVモーションインポート: time,param1,param2... 形式のCSVを読み込む" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV読込</button>
+    <button onclick="importMotionJSON()" title="JSONモーションインポート: {fps:30, tracks:{param:[v0,v1,...]}} 形式" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📄 JSON読込</button>
+    <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
+    <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
+    <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
+    <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#707070';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
+    <button id="btn-tl-fgrid" onclick="tlFrameGrid=!tlFrameGrid;this.style.color=tlFrameGrid?'#60d890':'#707070';this.style.borderColor=tlFrameGrid?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="フレームグリッド表示（スナップグリッドに合わせた縦線）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊞</button>
+    <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#707070';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
+    <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2d2d2d;border:1px solid var(--border);color:#d0a060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
+    <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2d2d2d;border:1px solid var(--border);color:#c0d090;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
+    <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
+    <button onclick="showPoseMorphPanel()" title="ポーズモーフ（2ポーズ間のブレンドパネル）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ モーフ</button>
+    <button onclick="showPoseTweenDialog()" title="ポーズトゥイーン: 2ポーズ間を補間するKFを自動生成（開始時刻・継続時間・イージングを設定）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔀 トゥイーン</button>
+    <button onclick="showMultiPoseBlend()" title="マルチポーズブレンド: 複数ポーズを同時にスライダーでウェイト調整してリアルタイムブレンド" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎚 ブレンダー</button>
+    <button onclick="blendAnimations()" title="2つのアニメーションクリップをブレンド・合成（ウェイト指定）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⚗ ブレンド</button>
+    <button onclick="trimAnimDuration()" title="継続時間を最後のKFに合わせてトリム" style="background:#2d2d2d;border:1px solid var(--border);color:#a0ffd0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ トリム</button>
+    <button onclick="timeStretchAnim()" title="タイムストレッチ: KFの時刻を倍率でスケール（0.5=2倍速, 2.0=半速）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 伸縮</button>
+    <button onclick="shiftAllKFTimes()" title="KF時刻シフト: 全KF（または選択トラック）を指定秒数だけ前後にずらす" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇄ シフト</button>
+    <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
+    <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
+    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:#2d2d2d;border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
+    <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
+    <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
+    <button onclick="showTimeScaleDialog()" title="タイムスケール: 全KFの時刻を倍率変換してアニメ全体のスピードを変更&#10;例: 0.5→2倍速、2.0→半速" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⏩ 速度</button>
+    <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
+    <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
+    <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
+    <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
+    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
+    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
+    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
+    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
+    <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
+    <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
+    <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
+    <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#707070';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
+    <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#707070';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
+    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'var(--accent)':'#707070';this.style.borderColor=tlColorByGroup?'rgba(224,120,64,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
+    <button onclick="autoGroupByPrefix()" title="パラメータ名のプレフィックス（head/eye/mouth等）で自動グループ化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 自動G</button>
+    <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
+    <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#707070';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
+    <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 3px;font-size:9px;cursor:pointer;">
       <option value="default">↕ デフォルト</option>
       <option value="alpha">🔤 アルファベット順</option>
       <option value="kf-count">📊 KF数順</option>
       <option value="active">🕐 アクティブ順</option>
       <option value="custom">✋ カスタム</option>
     </select>
-    <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
-    <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
-    <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
-    <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
+    <button id="btn-tl-row-h" onclick="cycleTLRowHeight()" title="トラック高さ切替: コンパクト/標準/広い" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">↕</button>
+    <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
+    <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
+    <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1508;border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
-    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
-    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
-    <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
-    <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
-    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
-    <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1e201c;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
+    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
+    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
+    <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
+    <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
+    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
+    <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1e201c;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#1e1e1e;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
@@ -1410,9 +1410,9 @@ button:focus{outline:none;}
   <div id="tl-clips-bar" style="display:none;flex-shrink:0;background:#1e1e1e;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:4px;min-height:26px;flex-wrap:wrap;">
     <span style="font-size:10px;color:var(--dim);white-space:nowrap;">クリップ:</span>
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
-    <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
-    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
-    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
+    <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
+    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
+    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -1441,14 +1441,14 @@ button:focus{outline:none;}
 <!-- Graph Editor (Animation Curve Editor) -->
 <div id="graph-editor" style="display:none;flex-shrink:0;height:200px;background:#1e1e1e;border-top:1px solid var(--border);position:relative;overflow:hidden;">
   <div id="ge-header" style="display:flex;align-items:center;gap:6px;padding:3px 10px;border-bottom:1px solid var(--border);background:var(--panel);height:26px;">
-    <span style="font-size:9px;color:var(--accent2);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">GRAPH EDITOR</span>
+    <span style="font-size:9px;color:var(--accent2);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">GRAPH EDITOR</span>
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
-    <button onclick="geAddKF()" style="margin-left:4px;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
-    <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
-    <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
-    <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
+    <button onclick="geAddKF()" style="margin-left:4px;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
+    <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
+    <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
+    <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
     <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
-    <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
+    <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
     <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
       スナップ<input type="checkbox" id="ge-snap" style="accent-color:var(--accent);">
     </label>
@@ -1460,7 +1460,7 @@ button:focus{outline:none;}
 <!-- Weight paint panel -->
 <div id="weight-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);background:#120c08;padding:6px 8px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <span style="font-size:9px;color:#ff9060;font-weight:700;letter-spacing:1px;">WEIGHT PAINT</span>
+    <span style="font-size:9px;color:#ff9060;font-weight:600;letter-spacing:1px;">WEIGHT PAINT</span>
     <select id="wt-deformer" style="background:#1e1210;border:1px solid #503020;color:#ff9060;font-size:10px;border-radius:3px;padding:1px 4px;" onchange="setWeightDeformer(this.value)">
       <option value="">デフォーマー選択...</option>
     </select>
@@ -1483,16 +1483,16 @@ button:focus{outline:none;}
     <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
       <input type="radio" name="wt-mode" value="sub" onchange="ST.weightBrushAdd=false">削除
     </label>
-    <button onclick="fillWeights(1)" style="background:#2a1008;border:1px solid #ff9060;color:#ff9060;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">全塗り</button>
-    <button onclick="fillWeights(0)" style="background:#1a1010;border:1px solid #804030;color:#c06040;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">全消し</button>
+    <button onclick="fillWeights(1)" style="background:#2a1008;border:1px solid #ff9060;color:#ff9060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全塗り</button>
+    <button onclick="fillWeights(0)" style="background:#1a1010;border:1px solid #804030;color:#c06040;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全消し</button>
   </div>
 </div>
 
 <!-- Snapshot comparison panel -->
 <div id="snap-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);background:#1e1e1e;padding:8px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-    <span style="font-size:9px;color:var(--dim);font-weight:700;letter-spacing:1px;">SNAPSHOT COMPARE</span>
-    <button onclick="clearAllSnapshots()" style="margin-left:auto;background:#1e1e1e;border:1px solid rgba(255,60,60,.3);color:#f08080;border-radius:3px;padding:1px 8px;cursor:pointer;font-size:10px;">全削除</button>
+    <span style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:1px;">SNAPSHOT COMPARE</span>
+    <button onclick="clearAllSnapshots()" style="margin-left:auto;background:#1e1e1e;border:1px solid rgba(255,60,60,.3);color:#f08080;border-radius:4px;padding:1px 8px;cursor:pointer;font-size:10px;">全削除</button>
     <button onclick="toggleSnapPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
   </div>
   <div id="snap-grid" style="display:flex;gap:8px;overflow-x:auto;"></div>
@@ -2028,7 +2028,7 @@ function showGlueManager() {
     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;background:#1e1e1e;border:1px solid rgba(255,255,255,.08);border-radius:3px;margin-bottom:4px;">
       <span style="flex:1;font-size:11px;color:var(--text);">${g.name||'グルー'+gi} <span style="color:var(--dim);">${sp} → ${dp} (${g.pairs?.length||0}ペア)</span></span>
       <input type="range" min="0" max="1" step="0.05" value="${g.weight??1}" style="width:60px;" oninput="M.glues[${gi}].weight=+this.value;ST.cachedVerts=null;redraw();" title="ウェイト">
-      <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:#300;border:1px solid #600;color:#f88;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
+      <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:#300;border:1px solid #600;color:#f88;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
     </div>`;
   }).join('');
   const html = `
@@ -2049,8 +2049,8 @@ function showGlueManager() {
       <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;">
-      <button onclick="_gluePreview()" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
-      <button onclick="_glueApply()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:3px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
+      <button onclick="_gluePreview()" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
+      <button onclick="_glueApply()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
     </div>
     <div id="glue-preview-info" style="margin-top:6px;font-size:10px;color:var(--dim);"></div>`;
   showModal('🔗 グルー（メッシュ境界結合）', html);
@@ -3219,7 +3219,7 @@ function buildParamUI() {
   if (_soloParam) {
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#3a2a00;border:1px solid #f0c040;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#f0c040;';
-    banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:3px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:bold;">解除</button>`;
+    banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:bold;">解除</button>`;
     cont.appendChild(banner);
   }
   // Recent params quick-access strip
@@ -3231,7 +3231,7 @@ function buildParamUI() {
       validRecent.map(n => {
         const p = M.params[n]; const lbl = p?.lbl || n;
         const isAP = n === ST.ap;
-        return `<button onclick="setAP('${n}')" title="${n}" style="background:${isAP?'rgba(224,120,64,.2)':'rgba(255,255,255,.05)'};border:1px solid ${isAP?'rgba(224,120,64,.5)':'rgba(255,255,255,.1)'};color:${isAP?'var(--accent)':'var(--dim)'};border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${lbl}</button>`;
+        return `<button onclick="setAP('${n}')" title="${n}" style="background:${isAP?'rgba(224,120,64,.2)':'rgba(255,255,255,.05)'};border:1px solid ${isAP?'rgba(224,120,64,.5)':'rgba(255,255,255,.1)'};color:${isAP?'var(--accent)':'var(--dim)'};border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${lbl}</button>`;
       }).join('') + `</div>`;
     cont.appendChild(recDiv);
   }
@@ -3266,7 +3266,7 @@ function buildParamUI() {
       // Add group header
       const hdr = document.createElement('div');
       const isCollapsed = _collapsedParamGroups.has(group.key);
-      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:#252525;border-radius:3px;margin-bottom:2px;';
+      hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:#252525;border-radius:4px;margin-bottom:2px;';
       hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(180,180,180,.4);margin-left:auto;">${group.entries.length}</span>`;
       hdr.onclick = () => {
         if (_collapsedParamGroups.has(group.key)) _collapsedParamGroups.delete(group.key);
@@ -4127,7 +4127,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:3px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -4267,7 +4267,7 @@ function _showEmbedCode(filePath) {
     </div>
     <div style="color:var(--dim);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
     <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:#1e1e1e;border:1px solid #3a3a3a;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
-    <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:#1e1e1e;border:1px solid #3a3a3a;color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
@@ -4285,11 +4285,11 @@ function _showEmbedCode(filePath) {
       <label style="display:flex;align-items:center;gap:3px;"><input type="checkbox" id="obsq-showchat" style="margin-right:2px;"> showchat=1 pos=<select id="obsq-chatpos" style="background:#1e1e1e;border:1px solid #3a3a3a;color:var(--text);border-radius:2px;font-size:9px;padding:0 2px;"><option>bl</option><option>br</option><option>tl</option><option>tr</option></select></label>
     </div>
     <textarea id="obs-url-out" readonly style="width:100%;height:36px;background:#1e1e1e;border:1px solid #3a3a3a;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${fileUrl}</textarea>
-    <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
+    <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
     <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;color:var(--dim);flex:1;">💾 URLプリセット（最大5件）</span>
-        <button id="obs-preset-save" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
+        <button id="obs-preset-save" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
       </div>
       <div id="obs-preset-list" style="display:flex;flex-direction:column;gap:3px;font-size:9px;"></div>
     </div>
@@ -4627,7 +4627,7 @@ ${includeCtrlPanel ? `
   </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:var(--dim);font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
-  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:3px;color:var(--dim);font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
+  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:4px;color:var(--dim);font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
@@ -4658,9 +4658,9 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 1. OBS → ソース追加 → ブラウザ<br>
 2. このHTMLファイルのフルパスを入力:<br>
 <code id="obs-path-code" style="color:#ffd060;font-size:10px">file:///C:/path/to/avatar.html</code>
-<button onclick="(()=>{const p=document.getElementById('obs-path-code').textContent;navigator.clipboard?.writeText(p).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 パスをコピー',2000)}).catch(()=>alert(p));})()" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋 パスをコピー</button><br>
+<button onclick="(()=>{const p=document.getElementById('obs-path-code').textContent;navigator.clipboard?.writeText(p).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 パスをコピー',2000)}).catch(()=>alert(p));})()" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋 パスをコピー</button><br>
 3. 幅: <strong style="color:#ffd060">${EW}</strong> / 高さ: <strong style="color:#ffd060">${EH}</strong>
-<button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
+<button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
 ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
 <span style="color:#686868">カメラへのアクセスを許可してください</span>
 ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#686868">0キー = デフォルトに戻す</span>`:''}
@@ -5098,7 +5098,7 @@ function showClipChainDialog() {
       <select id="chain-add-sel" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
         ${clips.map((ci,i)=>`<option value="${ci}">${names[i]}</option>`).join('')}
       </select>
-      <button onclick="_chainAddEntry()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">＋追加</button>
+      <button onclick="_chainAddEntry()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">＋追加</button>
     </div>
     <div style="display:flex;gap:4px;">
       <button onclick="_chainStartPlay()" style="flex:1;background:#1a2818;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">▶ 連鎖再生</button>
@@ -6133,9 +6133,9 @@ window.saveScreenshot=function(filename){_doScreenshot(false,filename);};
       <input type="text" value="${(s.name||'スロット '+(i+1)).replace(/"/g,'&quot;')}"
         style="flex:1;background:#1e1e1e;border:1px solid rgba(255,255,255,.08);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px;min-width:0;"
         onchange="_slots[${i}].name=this.value;_persist();">
-      <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.4);border-radius:3px;color:var(--accent);font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
-      <button onclick="_psSave(${i})" title="上書き保存" style="background:rgba(255,200,80,.1);border:1px solid #5a4a20;border-radius:3px;color:#ffd060;font-size:10px;padding:1px 5px;cursor:pointer;">💾</button>
-      <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid #5a2020;border-radius:3px;color:#ff8080;font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
+      <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.4);border-radius:4px;color:var(--accent);font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
+      <button onclick="_psSave(${i})" title="上書き保存" style="background:rgba(255,200,80,.1);border:1px solid #5a4a20;border-radius:4px;color:#ffd060;font-size:10px;padding:1px 5px;cursor:pointer;">💾</button>
+      <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid #5a2020;border-radius:4px;color:#ff8080;font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
     </div>`).join('');
   }
   window._psAddSlot=function(){
@@ -6853,10 +6853,10 @@ window._applyTrackPreset=function(preset){
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px 14px;color:var(--text);font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
   panel.innerHTML=`<div style="font-size:11px;font-weight:bold;margin-bottom:8px;color:var(--dim);">📡 顔追跡設定</div>
 <div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--dim);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
-<button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#ff9060;border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
-<button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
-<button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
-<button onclick="window._applyTrackPreset('stable')" title="安定: 揺れ・ノイズ耐性" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:rgba(160,210,160,.8);border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">🛡 安定</button>
+<button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#ff9060;border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
+<button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
+<button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
+<button onclick="window._applyTrackPreset('stable')" title="安定: 揺れ・ノイズ耐性" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:rgba(160,210,160,.8);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🛡 安定</button>
 </div></div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:var(--accent);" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
 <div style="font-size:9px;color:var(--dim);margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
@@ -6868,7 +6868,7 @@ window._applyTrackPreset=function(preset){
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--text)">👁 視線</span><input id="ts-eye" type="range" min="0.2" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--accent);" oninput="const _ev=Math.max(0.2,Math.min(3,parseFloat(this.value)));curSensEye=_ev;document.getElementById('ts-eye-val').textContent=_ev.toFixed(2);_saveTS({eye:_ev});"><span id="ts-eye-val">1.00</span></label>
 <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">表情トランジション</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#ffd080">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:#ffd060;" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
-<button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
+<button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
   document.body.appendChild(panel);
   // Sync sliders to persisted values on DOM creation (all settings)
   const _syncAllSliders=()=>{
@@ -17801,7 +17801,7 @@ function showChatTriggerPanel() {
           <span style="font-size:9px;color:var(--dim);white-space:nowrap;">値:</span>
           <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
         </div>
-        <button onclick="addChatTrigger()" style="background:#282828;border:1px solid rgba(255,200,80,.35);color:#ffd060;border-radius:3px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
+        <button onclick="addChatTrigger()" style="background:#282828;border:1px solid rgba(255,200,80,.35);color:#ffd060;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -17895,7 +17895,7 @@ function renderPosePresets() {
     const btn = document.createElement('button');
     btn.textContent = preset.name;
     btn.title = `クリックで適用 / 右クリックで削除 (${Object.keys(preset.vals).length}パラメータ)`;
-    btn.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:0 6px;cursor:pointer;font-size:10px;height:18px;';
+    btn.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 6px;cursor:pointer;font-size:10px;height:18px;';
     btn.onclick = () => loadPosePreset(i);
     btn.oncontextmenu = e => { e.preventDefault(); if (confirm(`プリセット「${preset.name}」を削除しますか？`)) { M.posePresets.splice(i,1); renderPosePresets(); } };
     list.appendChild(btn);
@@ -18668,7 +18668,7 @@ function renderWcExprBtns() {
     btn.id = `wc-expr-auto-${i}`;
     btn.textContent = ex.name;
     btn.title = '顔追跡値を一時オーバーライドしてこの表情を適用';
-    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.onclick = () => applyWcExprPreset(i, 'auto');
     container.appendChild(btn);
   });
@@ -18677,7 +18677,7 @@ function renderWcExprBtns() {
     const btn = document.createElement('button');
     btn.textContent = pr.name;
     btn.title = `保存プリセット「${pr.name}」を適用`;
-    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:#707070;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:#707070;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.oncontextmenu = (e) => {
       e.preventDefault();
       showCtxMenu(e.clientX, e.clientY, [
@@ -19073,7 +19073,7 @@ function _buildMidiPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="midi-cc-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_midiAddCCMap()" style="background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_midiAddCCMap()" style="background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>
     <!-- Note Mappings -->
@@ -19083,7 +19083,7 @@ function _buildMidiPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="midi-note-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_midiAddNoteMap()" style="background:#252525;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_midiAddNoteMap()" style="background:#252525;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -19242,9 +19242,9 @@ function toggleGamepadPanel() {
         <input id="gpad-axis-num" type="number" min="0" max="15" placeholder="軸#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="gpad-axis-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
         <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
-        <button onclick="_gpadAddAxisMap()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_gpadAddAxisMap()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
-      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
+      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
     </div>
     <!-- Button Mappings -->
     <div>
@@ -19253,7 +19253,7 @@ function toggleGamepadPanel() {
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="gpad-btn-num" type="number" min="0" max="31" placeholder="B#" style="width:40px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="gpad-btn-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_gpadAddBtnMap()" style="background:#252525;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_gpadAddBtnMap()" style="background:#252525;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -19613,7 +19613,7 @@ function renderVGroupList() {
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 0;';
     row.innerHTML=`<button onclick="selectVGroup('${nm.replace(/'/g,"\\'")}')"`+
-      ` style="flex:1;text-align:left;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 7px;cursor:pointer;font-size:11px;">`+
+      ` style="flex:1;text-align:left;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;">`+
       `${nm} <span style="color:var(--dim)">(${vs.size})</span></button>`+
       `<span onclick="deleteVGroup('${nm.replace(/'/g,"\\'")}')"`+
       ` style="color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>`;
@@ -20311,7 +20311,7 @@ function renderPoseList() {
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:3px;';
     const btn=document.createElement('button');
-    btn.style.cssText='flex:1;text-align:left;background:#252525;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
+    btn.style.cssText='flex:1;text-align:left;background:#252525;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 7px;cursor:pointer;font-size:11px;display:flex;align-items:center;gap:4px;transition:background .12s;';
     btn.innerHTML=`${pose.thumbnail ? `<img src="${pose.thumbnail}" style="width:24px;height:24px;object-fit:cover;border-radius:2px;flex-shrink:0;opacity:.9;">` : `<span style="background:rgba(224,120,64,.15);color:var(--accent);border-radius:2px;padding:0 4px;font-size:9px;font-family:monospace;">${idx<9?idx+1:'...'}</span>`}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pose.name}</span>`;
     btn.addEventListener('click',()=>{recallPose(idx);slider.value=100;});
     btn.addEventListener('contextmenu',e=>{
@@ -20932,7 +20932,7 @@ function renderDeformerTree() {
       const bound = def.bindParts.includes(ap.id);
       const bindBtn = document.createElement('button');
       bindBtn.textContent = bound ? '🔗 バインド解除' : '🔗 バインド';
-      bindBtn.style.cssText = `width:100%;margin-top:3px;background:${bound?'#2e201a':'#1e3020'};border:1px solid ${bound?'rgba(224,120,64,.5)':'#2a4030'};color:${bound?'#e07840':'#60d890'};border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;`;
+      bindBtn.style.cssText = `width:100%;margin-top:3px;background:${bound?'#2e201a':'#1e3020'};border:1px solid ${bound?'rgba(224,120,64,.5)':'#2a4030'};color:${bound?'#e07840':'#60d890'};border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;`;
       bindBtn.onclick = () => {
         if (bound) def.bindParts = def.bindParts.filter(p=>p!==ap.id);
         else def.bindParts.push(ap.id);
@@ -22091,7 +22091,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
             <div id="tc-preview" style="margin-top:8px;height:24px;border-radius:4px;background:hsl(${currentH},70%,60%);"></div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            ${[0,30,60,120,180,210,240,270,300,330].map(h=>`<div onclick="document.getElementById('tc-hue').value=${h};document.getElementById('tc-preview').style.background='hsl(${h},70%,60%)';document.getElementById('tc-hue-num').textContent=${h}" style="width:22px;height:22px;border-radius:3px;background:hsl(${h},70%,60%);cursor:pointer;border:1px solid rgba(255,255,255,.2)"></div>`).join('')}
+            ${[0,30,60,120,180,210,240,270,300,330].map(h=>`<div onclick="document.getElementById('tc-hue').value=${h};document.getElementById('tc-preview').style.background='hsl(${h},70%,60%)';document.getElementById('tc-hue-num').textContent=${h}" style="width:22px;height:22px;border-radius:4px;background:hsl(${h},70%,60%);cursor:pointer;border:1px solid rgba(255,255,255,.2)"></div>`).join('')}
           </div>
         </div>
       `, ()=>{
@@ -22726,8 +22726,8 @@ function showLipSyncDialog() {
       </label>
     </div>
     <div style="display:flex;gap:6px;margin-top:12px">
-      <button onclick="generateLipSyncKFs()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:3px;padding:4px;cursor:pointer;font-size:10px">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="generateLipSyncKFs()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">生成</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23511,7 +23511,7 @@ function showPoseSequencer() {
       <select id="seq-pose" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${poses.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}</select>
       <input id="seq-hold" type="number" value="0.5" step="0.1" min="0.05" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:#888">s</span>
-      <button onclick="seqAdd()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:10px;">追加</button>
+      <button onclick="seqAdd()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">追加</button>
     </div>
     <div id="seq-list" style="max-height:200px;overflow-y:auto;margin-bottom:8px;"></div>
     <div id="seq-total" style="font-size:9px;color:var(--dim);margin-bottom:8px;">合計: 0s</div>
@@ -23880,7 +23880,7 @@ function showTimeScaleDialog() {
         <div style="font-size:10px;color:#a0a0a0;margin-bottom:2px">プリセット:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${[['0.25x', 0.25], ['0.5x', 0.5], ['0.75x', 0.75], ['2x', 2], ['3x', 3], ['4x', 4]].map(([lbl, v]) =>
-            `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:#252525;border:1px solid #3a3a3a;color:var(--text);border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
+            `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:#252525;border:1px solid #3a3a3a;color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
           ).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
@@ -24047,7 +24047,7 @@ function showParamRecSelect() {
   const tempSel = new Set(_paramRecSelected.size ? _paramRecSelected : params.map(([n])=>n));
   params.forEach(([name, p]) => {
     const row = document.createElement('label');
-    row.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;padding:2px 4px;border-radius:3px;user-select:none;';
+    row.style.cssText = 'display:flex;align-items:center;gap:5px;cursor:pointer;padding:2px 4px;border-radius:4px;user-select:none;';
     row.style.background = tempSel.has(name) ? 'rgba(224,120,64,.08)' : '';
     const cb = document.createElement('input');
     cb.type = 'checkbox'; cb.checked = tempSel.has(name);
@@ -24103,7 +24103,7 @@ function toggleParamRecord() {
         const toast = document.createElement('div');
         toast.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);border:1px solid rgba(255,160,60,.5);border-radius:6px;padding:8px 14px;color:#ffa030;font-size:10px;font-family:monospace;z-index:800;display:flex;gap:10px;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.5);';
         toast.innerHTML = `<span>録音完了: ${kfCount}KF。ノイズを除去しますか？</span>
-          <button onclick="cleanupAnimKFs(0.008);this.closest('div').remove();" style="background:#2a1800;border:1px solid rgba(255,160,60,.6);color:#ffa030;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">✂ 整理</button>
+          <button onclick="cleanupAnimKFs(0.008);this.closest('div').remove();" style="background:#2a1800;border:1px solid rgba(255,160,60,.6);color:#ffa030;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">✂ 整理</button>
           <button onclick="this.closest('div').remove();" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;">閉じる</button>`;
         document.body.appendChild(toast);
         setTimeout(() => toast.isConnected && toast.remove(), 8000);
@@ -24190,7 +24190,7 @@ function renderClipTabs() {
     const btn = document.createElement('button');
     btn.textContent = clip.name;
     btn.title = `クリップ「${clip.name}」に切り替え`;
-    btn.style.cssText = `background:${isActive?'rgba(224,120,64,.15)':'#1e1e1e'};border:1px solid ${isActive?'rgba(224,120,64,.8)':'var(--border)'};color:${isActive?'#e07840':'var(--dim)'};border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;`;
+    btn.style.cssText = `background:${isActive?'rgba(224,120,64,.15)':'#1e1e1e'};border:1px solid ${isActive?'rgba(224,120,64,.8)':'var(--border)'};color:${isActive?'#e07840':'var(--dim)'};border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;`;
     btn.draggable = true;
     btn.dataset.clipIdx = i;
     btn.ondragstart = (e) => { e.dataTransfer.setData('text/plain', i); btn.style.opacity='.4'; };
@@ -24226,13 +24226,13 @@ function renderClipTabs() {
     const playAllBtn = document.createElement('button');
     playAllBtn.textContent = '▶▶ 全順再';
     playAllBtn.title = '全クリップを順番に連続再生';
-    playAllBtn.style.cssText = 'background:#252525;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    playAllBtn.style.cssText = 'background:#252525;border:1px solid rgba(100,200,100,.4);color:#80d890;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     playAllBtn.onclick = () => playAllClipsSequential();
     document.getElementById('tl-clips-bar').appendChild(playAllBtn);
     const mergeBtn = document.createElement('button');
     mergeBtn.textContent = '⊕ 全結合';
     mergeBtn.title = '全クリップを時系列に結合してメインアニメーションに書き出す';
-    mergeBtn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    mergeBtn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     mergeBtn.onclick = () => mergeAllClips();
     document.getElementById('tl-clips-bar').appendChild(mergeBtn);
     // Overlay button
@@ -24240,7 +24240,7 @@ function renderClipTabs() {
     overlayBtn.id = 'btn-overlay-clip';
     overlayBtn.textContent = '⊞ Overlay';
     overlayBtn.title = 'リアルタイムクリップオーバーレイ: 2つのクリップを同時再生してブレンド';
-    overlayBtn.style.cssText = 'background:#282828;border:1px solid rgba(255,160,80,.4);color:#ff9040;border-radius:3px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    overlayBtn.style.cssText = 'background:#282828;border:1px solid rgba(255,160,80,.4);color:#ff9040;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     overlayBtn.onclick = () => showOverlayClipDialog();
     document.getElementById('tl-clips-bar').appendChild(overlayBtn);
   }
@@ -25105,10 +25105,10 @@ async function showAICharacterCoachDialog() {
     <div style="padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
       <div style="font-size:9px;color:#4a8060;">分析対象</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        <button class="coach-mode-btn active" data-mode="overall" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.4);color:#40dd70;">全体</button>
-        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
-        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
-        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:3px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
+        <button class="coach-mode-btn active" data-mode="overall" style="font-size:9px;padding:2px 7px;border-radius:4px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.4);color:#40dd70;">全体</button>
+        <button class="coach-mode-btn" data-mode="timing" style="font-size:9px;padding:2px 7px;border-radius:4px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">タイミング</button>
+        <button class="coach-mode-btn" data-mode="loop" style="font-size:9px;padding:2px 7px;border-radius:4px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">ループ</button>
+        <button class="coach-mode-btn" data-mode="vtuber" style="font-size:9px;padding:2px 7px;border-radius:4px;cursor:pointer;background:#252525;border:1px solid rgba(60,220,100,.2);color:#4a8060;">VTuber</button>
       </div>
       <button id="coach-run" style="font-size:10px;padding:4px;border-radius:4px;cursor:pointer;background:#1a3020;border:1px solid rgba(60,220,100,.5);color:#40dd70;font-weight:600;">▶ 分析開始</button>
       <div id="coach-status" style="font-size:9px;color:#4a8060;display:none;"></div>
@@ -25530,7 +25530,7 @@ function showParamCorrelation() {
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
       <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
       <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
-      <button onclick="drawCorrPlot()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
+      <button onclick="drawCorrPlot()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
     </div>
     <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0a0a;border-radius:4px;border:1px solid var(--border);"></canvas>
     <div id="corr-info" style="font-size:9px;color:var(--dim);margin-top:4px;text-align:center;"></div>
@@ -27311,8 +27311,8 @@ function applyPlayheadToParams() {
   <span style="color:var(--dim)">s</span>
 </div>
 <div style="display:flex;gap:3px;justify-content:flex-end;">
-  <button id="kfie-ok" style="background:rgba(224,120,64,.18);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">✓</button>
-  <button id="kfie-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 6px;cursor:pointer;font-size:9px;">×</button>
+  <button id="kfie-ok" style="background:rgba(224,120,64,.18);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:9px;">✓</button>
+  <button id="kfie-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;">×</button>
 </div>`;
     document.body.appendChild(wrap);
     const vInput=document.getElementById('kfie-v');
@@ -27698,7 +27698,7 @@ function showParamGroupManager() {
       <div style="display:flex;flex-wrap:wrap;gap:3px;">`;
     for (const pid of paramNames) {
       const inGrp = PGROUPS[grp].includes(pid);
-      html += `<label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;background:#2d2d2d;padding:1px 5px;border-radius:3px;">
+      html += `<label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;background:#2d2d2d;padding:1px 5px;border-radius:4px;">
         <input type="checkbox" data-grp="${grp}" data-pid="${pid}" ${inGrp?'checked':''} style="accent-color:var(--accent2);">
         ${M.params[pid]?.lbl||pid}
       </label>`;
@@ -28705,7 +28705,7 @@ function renderSnapPanel() {
     img.title = 'クリックでパラメータを復元'; img.onclick = () => restoreSnapshotParams(i);
     const footer = document.createElement('div'); footer.style.cssText='padding:3px 6px;';
     const restoreBtn = document.createElement('button');
-    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px;cursor:pointer;font-size:9px;';
+    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;';
     restoreBtn.onclick = () => restoreSnapshotParams(i);
     footer.appendChild(restoreBtn); card.appendChild(header); card.appendChild(img); card.appendChild(footer); grid.appendChild(card);
   });
@@ -29428,7 +29428,7 @@ function geShowOverlayPicker() {
     const isOn = GE.overlayParams.includes(p);
     const col = GE_OVERLAY_COLORS[i % GE_OVERLAY_COLORS.length];
     const row = document.createElement('div');
-    row.style.cssText = `padding:4px 8px;cursor:pointer;border-radius:3px;font-size:11px;display:flex;align-items:center;gap:6px;color:${isOn?col:'#707070'};`;
+    row.style.cssText = `padding:4px 8px;cursor:pointer;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:6px;color:${isOn?col:'#707070'};`;
     row.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${isOn?col:'#404040'};display:inline-block;flex-shrink:0;"></span>${p}`;
     row.onmouseenter = () => row.style.background = 'rgba(255,255,255,.05)';
     row.onmouseleave = () => row.style.background = '';
@@ -29591,7 +29591,7 @@ function showPNGSequenceDialog() {
     <div style="margin-bottom:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <span style="font-size:8px;color:var(--dim);">プレビュー (開始 / 中間 / 終了)</span>
-        <button id="ps-play-btn" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
+        <button id="ps-play-btn" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
       </div>
       <div id="ps-thumb-row" style="display:flex;gap:6px;">
         <canvas id="ps-thumb-0" width="90" height="90" style="border:1px solid rgba(255,255,255,.1);border-radius:3px;background:#1e1e1e;flex:1;max-width:90px;"></canvas>
@@ -30397,7 +30397,7 @@ function buildSnippetUI() {
     nameEl.title = `${Object.keys(s.tracks||{}).length}トラック / ${s.dur?.toFixed(2)||'?'}s`;
     const insBtn = document.createElement('button');
     insBtn.textContent = '挿入';
-    insBtn.style.cssText = 'background:#1a3028;border:1px solid rgba(60,200,100,.3);color:#60c080;border-radius:3px;padding:1px 5px;cursor:pointer;font-size:9px;flex-shrink:0';
+    insBtn.style.cssText = 'background:#1a3028;border:1px solid rgba(60,200,100,.3);color:#60c080;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;flex-shrink:0';
     insBtn.onclick = () => insertSnippet(i);
     row.appendChild(nameEl);
     row.appendChild(insBtn);
