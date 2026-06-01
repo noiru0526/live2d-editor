@@ -7987,6 +7987,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px"><input type="checkbox" id="av-afk" style="accent-color:#e07840"> 😴 離席AFK検出 (秒: <input id="av-afk-secs" type="number" min="30" max="3600" value="300" style="width:44px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px">)</label>
       </div>
       <div id="av-chat-opts" style="display:none;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
         <div style="color:#606060;font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
@@ -8161,10 +8162,10 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8227,6 +8228,8 @@ async function doExportAvatar() {
   const noSaccade = document.getElementById('av-nosaccade')?.checked;
   const initEmote = document.getElementById('av-emote')?.value?.trim() || '';
   const exprBarPos = document.getElementById('av-exprbarpos')?.value || '';
+  const afkOn = document.getElementById('av-afk')?.checked;
+  const afkSecs = parseInt(document.getElementById('av-afk-secs')?.value || '300');
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   // Now safe to remove overlay
   document.getElementById('av-export-overlay')?.remove();
@@ -8290,6 +8293,7 @@ async function doExportAvatar() {
   if (noSaccade) defaultParams.push('nosaccade=1');
   if (initEmote) defaultParams.push('emote=' + encodeURIComponent(initEmote));
   if (exprBarPos && exprBarPos !== 'bottom') defaultParams.push('exprbarpos=' + exprBarPos);
+  if (afkOn) defaultParams.push('afk=' + afkSecs);
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -8664,6 +8668,31 @@ document.addEventListener('keydown',e=>{
   if(e.key==='l'||e.key==='L')togglePoseLock();
 });
 
+// AFK mode (?afk=<seconds>) — sleeping look after inactivity
+(()=>{
+  const _afkSecs=parseInt(_p.get('afk')||'0');if(!_afkSecs)return;
+  let _afkLast=Date.now(),_afkActive=false;
+  const _afkDelay=_afkSecs*1000;
+  const _afkEl=document.createElement('div');
+  _afkEl.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-120px);font-size:24px;color:rgba(180,220,255,.6);font-family:monospace;pointer-events:none;display:none;letter-spacing:4px;text-shadow:0 0 10px rgba(100,180,255,.4)';
+  _afkEl.textContent='z z z';document.body.appendChild(_afkEl);
+  function _afkWake(){if(!_afkActive)return;_afkActive=false;_afkEl.style.display='none';T.eyeOpenL=1;T.eyeOpenR=1;T.headY=0;T.browL=0;T.browR=0;}
+  function _afkSleep(){_afkActive=true;_afkEl.style.display='block';T.eyeOpenL=.08;T.eyeOpenR=.08;T.headY=.35;T.browL=-.1;T.browR=-.1;T.mouthOpen=0;}
+  const _afkBump=()=>{_afkLast=Date.now();_afkWake();};
+  document.addEventListener('keydown',_afkBump);
+  document.addEventListener('mousemove',_afkBump);
+  window._afkBump=_afkBump; // expose so tracking/WS can call it
+  setInterval(()=>{if(!_afkActive&&Date.now()-_afkLast>_afkDelay)_afkSleep();},2000);
+})();
+// Screenshot: Shift+S captures canvas as PNG
+document.addEventListener('keydown',e=>{
+  if(e.key==='S'&&e.shiftKey&&!e.ctrlKey){
+    const a=document.createElement('a');a.download='avatar-'+(new Date().toISOString().slice(0,19).replace(/:/g,'-'))+'.png';
+    a.href=canvas.toDataURL('image/png');a.click();
+    if(_stEl){_stEl.textContent='📸 保存しました';setTimeout(()=>{if(SHOW_STATUS)_stEl.textContent='';},2000);}
+  }
+});
+
 // TTS lipsync (?tts=1) — Web Speech Synthesis API driven mouthOpen
 // speak(text, voice?, rate?, pitch?) callable from console or WS events
 let _ttsSpeaking=false, _ttsTimer=null;
@@ -8802,6 +8831,7 @@ let _micMouthLevel=0;
     ws.onmessage=(ev)=>{
       let msg;
       try { msg=JSON.parse(ev.data); } catch(e){ return; }
+      if(window._afkBump)window._afkBump();
       const t=msg.type||msg.event||'';
       switch(t.toLowerCase()){
         case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); break;
@@ -9211,6 +9241,7 @@ function initCam(){
   fm.onResults(r=>{
     if(!r.multiFaceLandmarks?.length){tracking=false;return;}
     const lm=r.multiFaceLandmarks[0];tracking=true;
+    if(window._afkBump)window._afkBump();
     if(_poseLocked){return;} // pose lock: skip T writes
     T.headX=Math.max(-1,Math.min(1,dzone((lm[1].x-.5)*-_CALIB.headX)));
     T.headY=Math.max(-1,Math.min(1,dzone((lm[1].y-_CALIB.headYOfs)*-_CALIB.headY)));
