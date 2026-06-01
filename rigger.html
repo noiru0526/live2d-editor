@@ -8177,6 +8177,7 @@ function showAvatarExportDialog() {
         <input id="av-chat-cmd" type="text" placeholder="空白=全メッセージで反応..." style="width:100%;background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
         <div style="color:#666;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:#e07840"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chatbubble" style="accent-color:#e07840"> 💬 チャット吹き出し（右上ポップアップ）</label>
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
@@ -8355,6 +8356,7 @@ function showAvatarExportDialog() {
       const ch2 = document.getElementById('av-chat-channel')?.value?.trim();
       if (ch2) { params.push('chatoverlay=1'); if (!document.getElementById('av-chat')?.checked) params.push('channel=' + encodeURIComponent(ch2)); }
     }
+    if (document.getElementById('av-chatbubble')?.checked) params.push('chatbubble=1');
     const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
     const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
     const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
@@ -8412,7 +8414,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8524,6 +8526,8 @@ async function doExportAvatar() {
     defaultParams.push('chatoverlay=1');
     if (!chatEnabled) defaultParams.push('channel=' + encodeURIComponent(chatChannel));
   }
+  const chatBubbleOn = document.getElementById('av-chatbubble')?.checked;
+  if (chatBubbleOn) defaultParams.push('chatbubble=1');
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
   if (hpBarOn) defaultParams.push('hpbar=1');
   const emotesOn = document.getElementById('av-emotes')?.checked;
@@ -8647,10 +8651,13 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .wg-label{font-size:8px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
 .wg-val{font-size:13px;color:#e0e0e0;font-weight:bold}
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
-#hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:30;pointer-events:none;display:none}
+#hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:31;pointer-events:none;display:none}
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
 #hud-msg{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.85);color:#e0e0e0;font-size:12px;font-family:sans-serif;padding:5px 16px;border-radius:20px;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s ease;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
 #chat-overlay{position:fixed;bottom:60px;left:12px;z-index:40;pointer-events:none;display:flex;flex-direction:column-reverse;gap:4px;max-width:260px;max-height:40vh;overflow:hidden}
+#chat-bubble{position:fixed;top:18%;right:2%;z-index:45;pointer-events:none;max-width:220px;font-size:11px;font-family:sans-serif;opacity:0;transition:opacity .3s ease}
+#chat-bubble .cb-text{background:rgba(255,255,255,.94);color:#1a1a1a;padding:6px 10px;border-radius:12px;border-bottom-right-radius:2px;line-height:1.5;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+#chat-bubble .cb-user{font-size:9px;font-weight:700;margin-bottom:2px;color:#606060;text-align:right}
 #marquee-bar{position:fixed;bottom:0;left:0;right:0;height:22px;background:rgba(0,0,0,.75);z-index:35;overflow:hidden;display:none;pointer-events:none}
 #marquee-inner{position:absolute;top:0;white-space:nowrap;font-family:sans-serif;font-size:11px;color:#e0e0e0;line-height:22px;padding-left:100%;display:inline-block}
 .chat-msg{background:rgba(10,10,10,.78);color:#e8e8e8;font-size:11px;font-family:sans-serif;padding:3px 8px;border-radius:10px;border-left:2px solid rgba(255,255,255,.2);animation:chatFadeIn .25s ease forwards;line-height:1.4;word-break:break-word}
@@ -8673,7 +8680,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8734,7 +8741,7 @@ const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
 // Marquee ticker
-(()=>{const mt=_p.get('marquee');if(!mt)return;const bar=document.getElementById('marquee-bar');const inner=document.getElementById('marquee-inner');if(!bar||!inner)return;bar.style.display='block';const txt=decodeURIComponent(mt);const _bgC=_p.get('marqueebg');if(_bgC)bar.style.background=_bgC.startsWith('#')||_bgC.startsWith('rgb')?_bgC:'#'+_bgC;const _tc=_p.get('marqueetc');if(_tc)inner.style.color=_tc.startsWith('#')||_tc.startsWith('rgb')?_tc:'#'+_tc;const spd=Math.max(20,parseInt(_p.get('marqueespd')||'80'));inner.textContent=txt+'　　　　　';let pos=0;const w=inner.offsetWidth+100;function tick(ts){pos-=(spd/60);if(pos<-w){pos=window.innerWidth;}inner.style.transform=`translateX(${pos}px)`;requestAnimationFrame(tick);}requestAnimationFrame(tick);})();
+(()=>{const mt=_p.get('marquee');if(!mt)return;const bar=document.getElementById('marquee-bar');const inner=document.getElementById('marquee-inner');if(!bar||!inner)return;bar.style.display='block';const _hbw2=document.getElementById('hp-bar-wrap');if(_hbw2)_hbw2.style.bottom='22px';const txt=decodeURIComponent(mt);const _bgC=_p.get('marqueebg');if(_bgC)bar.style.background=_bgC.startsWith('#')||_bgC.startsWith('rgb')?_bgC:'#'+_bgC;const _tc=_p.get('marqueetc');if(_tc)inner.style.color=_tc.startsWith('#')||_tc.startsWith('rgb')?_tc:'#'+_tc;const spd=Math.max(20,parseInt(_p.get('marqueespd')||'80'));inner.textContent=txt+'　　　　　';let pos=0;const w=inner.offsetWidth+100;function tick(ts){pos-=(spd/60);if(pos<-w){pos=window.innerWidth;}inner.style.transform=`translateX(${pos}px)`;requestAnimationFrame(tick);}requestAnimationFrame(tick);})();
 // WS marquee update: {type:"marquee",text:"..."}
 // Vignette effect
 const _vignAmt=Math.max(0,Math.min(1,parseFloat(_p.get('vignette')||'0')));
@@ -8744,6 +8751,10 @@ const _emotesEnabled=_p.has('emotes');
 // HP bar
 const _hpBarEnabled=_p.has('hpbar');
 if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw.style.display='block';window._setHp=(v)=>{const hv=Math.max(0,Math.min(1,+v||0));window._avatarHealth=hv;const fill=document.getElementById('hp-bar-fill');if(!fill)return;fill.style.width=(hv*100)+'%';fill.style.backgroundColor=hv>0.5?`hsl(${Math.round(120*(hv-.5)/.5)},80%,45%)`:hv>0.25?`hsl(${Math.round(60*hv/.5)},80%,45%)`:'hsl(0,80%,40%)';};window._setHp(1);}
+// Chat bubble (?chatbubble=1) — right-side speech bubble for Twitch chat
+const _chatBubbleEnabled=_p.has('chatbubble');
+let _cbTimer=null;
+function showChatBubble(user,text){const el=document.getElementById('chat-bubble');if(!el)return;el.innerHTML=`<div class="cb-user">${user.replace(/</g,'&lt;')}</div><div class="cb-text">${text.replace(/</g,'&lt;')}</div>`;el.style.opacity='1';if(_cbTimer)clearTimeout(_cbTimer);_cbTimer=setTimeout(()=>{el.style.opacity='0';},Math.max(2000,parseInt(_p.get('cblife')||'5000')));}
 const _shadowParam=_p.get('shadow');
 if(_shadowParam){const _sb=isNaN(parseInt(_shadowParam))?16:Math.max(4,parseInt(_shadowParam));canvas.style.filter='drop-shadow(0 '+Math.round(_sb*.6)+'px '+_sb+'px rgba(0,0,0,0.55))'+(canvas.style.filter?(' '+canvas.style.filter):'');}
 const _glowParam=_p.get('glow');
@@ -9777,6 +9788,7 @@ function initCam(){
     overlay.prepend(d);
     while(overlay.children.length>maxMsgs)overlay.lastElementChild?.remove();
     setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(()=>d.remove(),500);},lifetime);
+    if(_chatBubbleEnabled)showChatBubble(user,text);
   };
   // Share WS with expression trigger if channel is the same — use custom event
   window._chatOverlayAdd=_addMsg;
