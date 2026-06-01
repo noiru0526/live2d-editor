@@ -209,7 +209,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-reset:hover{color:#e07840;opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
-.ci-arr{background:#262626;border:1px solid #3a3a3a;color:#808080;font-size:14px;padding:0 6px;cursor:pointer;border-radius:2px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
+.ci-arr{background:#252525;border:1px solid #3a3a3a;color:#808080;font-size:14px;padding:0 6px;cursor:pointer;border-radius:3px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
 .ci-arr:hover{color:#e07840;border-color:var(--accent)}
 .ci-num-sm{width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
 .ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -606,7 +606,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="mode-badge">PARTS</div>
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#707070">
-      <div style="font-weight:700;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
+      <div style="font-weight:600;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
       <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
@@ -622,13 +622,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#707070;z-index:200">
-      <span style="color:#c8c8c8;font-weight:700;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
+      <span style="color:#c8c8c8;font-weight:600;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#e07840" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
       <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#e07840" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
       <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
-      <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:3px;padding:1px 6px;cursor:pointer">全1</button>
-      <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:3px;padding:1px 6px;cursor:pointer">全0</button>
-      <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:3px;padding:1px 6px;cursor:pointer">自動計算</button>
+      <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
+      <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:4px;padding:1px 6px;cursor:pointer">全0</button>
+      <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:4px;padding:1px 6px;cursor:pointer">自動計算</button>
     </div>
   </div>
 
