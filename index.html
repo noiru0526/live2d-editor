@@ -1076,7 +1076,7 @@ button:focus{outline:none;}
       </div>
       <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
         <span style="font-size:8px;color:#a0c0c0;width:36px;">瞬き</span>
-        <input type="range" id="wc-gain-blink" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:rgba(160,200,220,.9);" oninput="document.getElementById('wc-gain-blink-val').textContent=parseFloat(this.value).toFixed(1)">
+        <input type="range" id="wc-gain-blink" min="0.2" max="4" step="0.1" value="1" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('wc-gain-blink-val').textContent=parseFloat(this.value).toFixed(1)">
         <span id="wc-gain-blink-val" style="font-size:8px;color:#a0c0c0;width:24px;">1.0</span>
       </div>
       <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
@@ -22699,7 +22699,7 @@ function showLipSyncDialog() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">BGM波形から mouthOpen のKFを生成します</div>
     <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
       <label>パラメータ
-        <select id="ls-param" style="width:100%;background:#1e1e1e;border:1px solid rgba(80,120,160,.4);color:#c0d8e0;border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
+        <select id="ls-param" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
           <option value="mouthOpen">mouthOpen（口 開き）</option>
           <option value="mouthShape">mouthShape（口 形）</option>
         </select>
@@ -24100,7 +24100,7 @@ function toggleParamRecord() {
     if (kfCount > 100) {
       setTimeout(() => {
         const toast = document.createElement('div');
-        toast.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(20,24,44,.95);border:1px solid rgba(255,160,60,.5);border-radius:6px;padding:8px 14px;color:#ffa030;font-size:10px;font-family:monospace;z-index:800;display:flex;gap:10px;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.5);';
+        toast.style.cssText = 'position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);border:1px solid rgba(255,160,60,.5);border-radius:6px;padding:8px 14px;color:#ffa030;font-size:10px;font-family:monospace;z-index:800;display:flex;gap:10px;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.5);';
         toast.innerHTML = `<span>録音完了: ${kfCount}KF。ノイズを除去しますか？</span>
           <button onclick="cleanupAnimKFs(0.008);this.closest('div').remove();" style="background:#2a1800;border:1px solid rgba(255,160,60,.6);color:#ffa030;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:9px;">✂ 整理</button>
           <button onclick="this.closest('div').remove();" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;">閉じる</button>`;
@@ -25362,7 +25362,7 @@ function showParamBatchEdit() {
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
     </div>
     <div style="font-size:9px;color:#666;margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
-    <div style="overflow-y:auto;flex:1;border:1px solid rgba(40,60,100,.4);border-radius:4px;">
+    <div style="overflow-y:auto;flex:1;border:1px solid #3a3a3a;border-radius:4px;">
       <table style="width:100%;border-collapse:collapse;">
         <thead style="position:sticky;top:0;background:#1e1e1e;z-index:1;">
           <tr style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;">
