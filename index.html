@@ -67,7 +67,7 @@ button:focus{outline:none;}
 #mode-pill{display:flex;align-items:center;gap:0;border-radius:4px;overflow:hidden;
   border:1px solid #3a3a3a;flex-shrink:0;}
 .mpill{padding:2px 10px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
-  cursor:pointer;color:rgba(160,160,160,.8);background:rgba(255,255,255,.04);
+  cursor:pointer;color:rgba(160,160,160,.8);background:#252525;
   transition:background .1s,color .1s;height:22px;display:flex;align-items:center;border:none;}
 .mpill:hover{color:#fff;background:rgba(255,255,255,.12);}
 .mpill.on{background:rgba(224,120,64,.28);color:var(--accent);}
@@ -432,7 +432,7 @@ button:focus{outline:none;}
       <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
       <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
       <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:#ffd060;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
-      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
+      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:3px 8px 2px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -634,9 +634,9 @@ button:focus{outline:none;}
       <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:4px 6px;">
         <div id="snippet-items"></div>
         <div style="display:flex;gap:4px;margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
-          <button onclick="saveCurrentAsSnippet()" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
-          <button onclick="exportSnippets()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
-          <button onclick="importSnippetsFile()" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
+          <button onclick="saveCurrentAsSnippet()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
+          <button onclick="exportSnippets()" style="background:#252525;border:1px solid #2e2e2e;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
+          <button onclick="importSnippetsFile()" style="background:#252525;border:1px solid #2e2e2e;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
         </div>
       </div>
     </div>
@@ -1123,7 +1123,7 @@ button:focus{outline:none;}
     <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
-      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:#ffd060;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
@@ -1367,9 +1367,9 @@ button:focus{outline:none;}
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
     <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:#2d2d2d;border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
-    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
-    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
-    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
+    <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
+    <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
+    <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
     <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
@@ -1412,7 +1412,7 @@ button:focus{outline:none;}
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
     <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
     <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
-    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
+    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -1445,10 +1445,10 @@ button:focus{outline:none;}
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
     <button onclick="geAddKF()" style="margin-left:4px;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
     <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:#f08080;border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
-    <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
-    <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
+    <button onclick="geShowEasingPicker()" id="ge-easing-btn" title="選択KFのイージングを変更" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">〜 イージング</button>
+    <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
     <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
-    <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
+    <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
     <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
       スナップ<input type="checkbox" id="ge-snap" style="accent-color:var(--accent);">
     </label>
@@ -2049,7 +2049,7 @@ function showGlueManager() {
       <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:#1e1e1e;color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;">
-      <button onclick="_gluePreview()" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
+      <button onclick="_gluePreview()" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
       <button onclick="_glueApply()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
     </div>
     <div id="glue-preview-info" style="margin-top:6px;font-size:10px;color:var(--dim);"></div>`;
@@ -4468,7 +4468,7 @@ canvas{display:block;image-rendering:auto;}
 #expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(22,22,22,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
 #expr-list .el{color:var(--dim);} #expr-list .el.active{color:#ffd060;font-weight:bold;}
 #pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
-#pose-bar button{background:rgba(28,28,28,.92);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
+#pose-bar button{background:rgba(28,28,28,.92);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
 #pose-bar button:hover{border-color:rgba(224,120,64,.6);color:#fff;}
 #pose-bar button.active{background:rgba(224,120,64,.15);border-color:rgba(224,120,64,.7);color:#e0b860;font-weight:bold;}
 /* Chat overlay */
@@ -4565,7 +4565,7 @@ canvas.mirrored{transform:scaleX(-1);}
 .load-txt{color:#888;font-size:11px;font-family:monospace;}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Control panel */
-#cp-btn{position:fixed;top:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 10px;color:var(--text);font-size:12px;cursor:pointer;z-index:100;font-family:monospace;}
+#cp-btn{position:fixed;top:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--text);font-size:12px;cursor:pointer;z-index:100;font-family:monospace;}
 #cp-panel{display:none;position:fixed;top:40px;left:10px;background:rgba(24,24,24,.95);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:10px 12px;color:var(--text);font-size:11px;font-family:monospace;z-index:100;max-height:70vh;overflow-y:auto;min-width:200px;backdrop-filter:blur(8px);}
 #cp-panel h3{font-size:11px;color:var(--accent);margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:4px;}
 .cp-row{display:flex;align-items:center;gap:6px;margin:3px 0;}
@@ -4598,11 +4598,11 @@ ${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes(
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
 ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).length>0) ? `<div id="anim-controls" style="position:fixed;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:99;min-width:160px;">
   <div style="display:flex;gap:4px;align-items:center;">
-    <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
-    <button id="anim-loop-btn" onclick="toggleAnimLoop()" title="ループ切替" style="background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:4px 7px;color:#ffd060;font-size:10px;font-family:monospace;cursor:pointer;">🔁</button>
-    <button onclick="animT=0;animLastNow=null;" title="先頭に戻す" style="background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏮</button>
-    <button id="anim-rev-btn" onclick="toggleReversePlay()" title="逆再生切替" style="background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏪</button>
-    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=Math.abs(parseFloat(this.value))*(_reversePlay?-1:1)" style="background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);color:var(--dim);border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
+    <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
+    <button id="anim-loop-btn" onclick="toggleAnimLoop()" title="ループ切替" style="background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:4px;padding:4px 7px;color:#ffd060;font-size:10px;font-family:monospace;cursor:pointer;">🔁</button>
+    <button onclick="animT=0;animLastNow=null;" title="先頭に戻す" style="background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏮</button>
+    <button id="anim-rev-btn" onclick="toggleReversePlay()" title="逆再生切替" style="background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏪</button>
+    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=Math.abs(parseFloat(this.value))*(_reversePlay?-1:1)" style="background:rgba(28,28,28,.88);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
       <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option>
       <option value="1.5">1.5x</option><option value="2">2x</option>
     </select>
@@ -4627,7 +4627,7 @@ ${includeCtrlPanel ? `
   </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:var(--dim);font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
-  <button onclick="_psAddSlot()" style="margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:4px;color:var(--dim);font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
+  <button onclick="_psAddSlot()" style="margin-top:4px;background:#252525;border:1px solid #3a3a3a;border-radius:4px;color:var(--dim);font-size:10px;padding:2px 7px;cursor:pointer;width:100%">＋ スロット追加</button>
 </div>` : ''}
 <div id="expr-hud"></div>
 <div id="dbg-ov"></div>
@@ -5974,7 +5974,7 @@ function _setPose(idx){
   if(_usp2.get('noui')!=='1'){
     const _pbtn=document.createElement('button');
     _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
-    _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+    _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
     _pbtn.onclick=window.openAvatarPiP;
     document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#707070';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
     document.body.appendChild(_pbtn);
@@ -5986,7 +5986,7 @@ let _speedVary=false, _speedVaryT=0;
 (()=>{
   const btn=document.createElement('button');
   btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
-  btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
+  btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
   btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#707070';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
   if(typeof animPlaying!=='undefined') btn.style.display='';
   document.body.appendChild(btn);
@@ -6772,7 +6772,7 @@ window.addEventListener('message',e=>{
   _gpBtn.id = 'gp-btn';
   _gpBtn.textContent = '🎮 Pad';
   _gpBtn.title = 'ゲームパッド: 左スティック=頭、右スティック=目線、ボタン=表情';
-  _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _gpBtn.onclick = () => {
     _gpActive = !_gpActive;
     _gpBtn.style.color = _gpActive ? '#60d890' : '#707070';
@@ -6808,7 +6808,7 @@ if ((MD.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).
   _idleBtn.id = 'idle-rand-btn';
   _idleBtn.textContent = '🎲 Auto';
   _idleBtn.title = 'アイドルランダム: クリップをランダムに自動再生';
-  _idleBtn.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _idleBtn.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _idleBtn.onclick = toggleIdleRandom;
   document.body.appendChild(_idleBtn);
 }
@@ -6817,7 +6817,7 @@ let _mouseTracking = false;
 const _mtBtn = document.createElement('button');
 _mtBtn.id = 'mt-btn';
 _mtBtn.textContent = '🖱 マウス追従';
-_mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+_mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
 _mtBtn.onclick = () => {
   _mouseTracking = !_mouseTracking;
   _mtBtn.style.color = _mouseTracking ? '#60d890' : '#707070';
@@ -6891,7 +6891,7 @@ window._applyTrackPreset=function(preset){
   const settBtn=document.createElement('button');
   settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
   settBtn.title='顔追跡の感度・デッドゾーン・スムース設定';
-  settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   settBtn.onclick=()=>{
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
@@ -6909,7 +6909,7 @@ window._applyTrackPreset=function(preset){
   _srBtn.id = 'sr-btn';
   _srBtn.textContent = '🎙 音声';
   _srBtn.title = '音声認識でキーワードトリガー（Chrome推奨）';
-  _srBtn.style.cssText = 'position:fixed;bottom:10px;left:230px;background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _srBtn.style.cssText = 'position:fixed;bottom:10px;left:230px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _srBtn.onclick = () => {
     if (_srActive) {
       _sr?.stop(); _srActive = false;
@@ -17914,7 +17914,7 @@ function showPoseMorphPanel() {
 <div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
 <div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--dim);">ポーズ B</label><br><select id="pm-b" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
 <div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;"><label style="font-size:10px;color:var(--dim);white-space:nowrap;">A ←→ B</label><input type="range" id="pm-blend" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:var(--accent);"><span id="pm-blend-val" style="font-size:10px;color:var(--text);width:28px;text-align:right;">50%</span></div>
-<div style="display:flex;gap:6px;margin-top:8px;"><button id="pm-apply" style="flex:1;background:#2a2a2a;border:1px solid rgba(255,255,255,.12);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;">現在値をポーズ保存</button></div>`;
+<div style="display:flex;gap:6px;margin-top:8px;"><button id="pm-apply" style="flex:1;background:#2a2a2a;border:1px solid #3a3a3a;color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;">現在値をポーズ保存</button></div>`;
   document.body.appendChild(panel);
   // Set B to pose 1 by default
   if (M.poses.length > 1) document.getElementById('pm-b').value = '1';
