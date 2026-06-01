@@ -1029,6 +1029,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:#585858">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
+      <div style="padding:4px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+        <div style="font-size:7px;color:#666;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">プリセット</div>
+        <div id="lfo-presets" style="display:flex;flex-wrap:wrap;gap:2px"></div>
+      </div>
       <div id="lfo-list" style="flex:1;overflow-y:auto;padding:4px 6px"></div>
       <div style="padding:4px 6px;border-top:1px solid #2e2e2e;font-size:9px;color:#505050;line-height:1.5;flex-shrink:0">
         ⓘ プレビューモードで動作します。パラメータをサイン波等で自動変調します。
@@ -6304,9 +6308,20 @@ function applyLFOsToVals(vals, t) {
     vals[lfo.param] = Math.max(rmin, Math.min(rmax, (vals[lfo.param] ?? 0) + v));
   }
 }
-function addLFO() {
+const LFO_PRESETS = [
+  { label:'🐾しっぽ', param:'headZ', wave:'sine',     freq:0.6,  amp:0.4, phase:0, offset:0 },
+  { label:'👂耳',     param:'headX', wave:'noise',    freq:0.8,  amp:0.3, phase:0, offset:0 },
+  { label:'🌬呼吸',  param:'bodyY', wave:'sine',     freq:0.25, amp:0.25,phase:0, offset:0 },
+  { label:'💫揺れ',  param:'headY', wave:'triangle', freq:0.4,  amp:0.2, phase:0, offset:0 },
+  { label:'✨まぶた', param:'eyeOpenL', wave:'sine',  freq:0.15, amp:0.15,phase:0, offset:0 },
+];
+function addLFO(preset) {
   const firstParam = Object.keys(P)[0] || 'headX';
-  lfos.push({ id:'lfo-'+(++_lfoIdCounter), param:firstParam, wave:'sine', freq:0.5, amp:0.3, phase:0, offset:0, enabled:true });
+  const lfo = preset
+    ? { id:'lfo-'+(++_lfoIdCounter), ...preset, enabled:true }
+    : { id:'lfo-'+(++_lfoIdCounter), param:firstParam, wave:'sine', freq:0.5, amp:0.3, phase:0, offset:0, enabled:true };
+  if (lfo.param && !P[lfo.param]) lfo.param = firstParam;
+  lfos.push(lfo);
   renderLFOPanel();
   if (mode === 'preview') render();
 }
@@ -6320,6 +6335,8 @@ function updateLFOField(id, key, val) {
 }
 function renderLFOPanel() {
   const el = document.getElementById('lfo-list'); if (!el) return;
+  const pe = document.getElementById('lfo-presets');
+  if (pe) pe.innerHTML = LFO_PRESETS.map((p,i)=>`<button class="tbtn" onclick="addLFO(LFO_PRESETS[${i}])" style="font-size:8px;padding:1px 4px" title="${p.param} ${p.wave} ${p.freq}Hz">${p.label}</button>`).join('');
   if (!lfos.length) {
     el.innerHTML = '<div style="color:#505050;font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
   }
