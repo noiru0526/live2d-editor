@@ -8301,6 +8301,8 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 <script>
 const MODEL=${MJ};
 const PD=${PJ};
+// _p merges URL search params with baked-in av-defaults meta (set by export dialog)
+const _p=window.__avp||new URLSearchParams(location.search);
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 canvas.width=MODEL.canvasW||1000;canvas.height=MODEL.canvasH||1000;
@@ -8320,10 +8322,9 @@ function _lfoWave(w,th){if(w==='triangle'){const p=((th/Math.PI)%2+2)%2;return p
 function _applyLFOs(vals,t){if(_lfosMuted)return;for(const lfo of [...LFOS,..._rtLFOs]){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*t+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}}
 function _setRtLFO(msg){const idx=_rtLFOs.findIndex(l=>l.param===msg.param);const lfo={param:msg.param||'headX',wave:msg.wave||'sine',freq:msg.freq??0.5,amp:msg.amp??0.3,phase:msg.phase||0,offset:msg.offset||0,enabled:true,_dur:msg.dur,_t0:_lfoT};if(idx>=0)_rtLFOs[idx]=lfo;else _rtLFOs.push(lfo);}
 // LFO URL params: ?lfooff=1 disable model LFOs | ?lfoamp=0.8 scale amplitudes | ?lfo=[{JSON}] add LFOs
-(()=>{const usp=new URLSearchParams(location.search);const lfoAmp=parseFloat(usp.get('lfoamp'));if(!isNaN(lfoAmp))for(const l of LFOS)l.amp=(l.amp||0)*lfoAmp;if(usp.has('lfooff'))for(const l of LFOS)l.enabled=false;const lfoJson=usp.get('lfo');if(lfoJson){try{const arr=JSON.parse(decodeURIComponent(lfoJson));if(Array.isArray(arr))for(const l of arr)_rtLFOs.push({...l,enabled:l.enabled!==false,_t0:0});}catch(e){}}})();
+(()=>{const lfoAmp=parseFloat(_p.get('lfoamp'));if(!isNaN(lfoAmp))for(const l of LFOS)l.amp=(l.amp||0)*lfoAmp;if(_p.has('lfooff'))for(const l of LFOS)l.enabled=false;const lfoJson=_p.get('lfo');if(lfoJson){try{const arr=JSON.parse(decodeURIComponent(lfoJson));if(Array.isArray(arr))for(const l of arr)_rtLFOs.push({...l,enabled:l.enabled!==false,_t0:0});}catch(e){}}})();
 // OBS/Performance settings from URL params
 // Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1&hue=30&sat=120&bri=90&con=110
-const _p=new URLSearchParams(location.search);
 const TARGET_FPS=Math.min(120,Math.max(5,parseInt(_p.get('fps')||'60')));
 const OBS_MODE=_p.has('obs');
 const PERF_HUD=_p.has('perf');
