@@ -2888,7 +2888,7 @@ function updateUndoHistoryPanel() {
   });
   if (ST.redo.length) {
     const sep=document.createElement('div');
-    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a3a3a;border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.2)';
+    sep.style.cssText='padding:3px 10px;font-size:9px;color:#3a3a3a;border-top:1px solid #2e2e2e;background:transparent';
     sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
     el.appendChild(sep);
   }
@@ -4258,7 +4258,7 @@ function _showEmbedCode(filePath) {
   if (existing) existing.remove();
   const dlg = document.createElement('div');
   dlg.id = 'embed-code-dialog';
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
   dlg.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="color:var(--text);font-size:12px;font-weight:bold;">📋 埋め込みコード</span>
@@ -8412,7 +8412,7 @@ window.addEventListener('message',ev=>{
     _log.unshift({icon,text,t:now});
     if(_log.length>_max) _log.pop();
     _ov.innerHTML=_log.map(e=>
-      `<div style="background:rgba(0,0,0,.7);border-radius:4px;padding:3px 8px;font-size:11px;color:#dde;display:flex;gap:5px;align-items:center;backdrop-filter:blur(3px);">
+      `<div style="background:rgba(20,20,20,.7);border-radius:4px;padding:3px 8px;font-size:11px;color:#e0e0e0;display:flex;gap:5px;align-items:center;backdrop-filter:blur(3px);">
         <span>${e.icon}</span><span style="color:#aac;">${e.t}</span><span>${e.text.slice(0,40)}</span></div>`
     ).join('');
   }
@@ -9047,7 +9047,7 @@ window.addEventListener('message',ev=>{
   let _hideT=null;
   function _show(user,msg,color){
     const uc=color&&/^#[0-9a-fA-F]{6}$/.test(color)?color:_accentCol;
-    _ov.innerHTML=`<div style="background:rgba(6,10,24,.88);border-left:4px solid ${uc};border-radius:4px 10px 10px 4px;padding:10px 16px;backdrop-filter:blur(6px);box-shadow:0 4px 20px rgba(0,0,0,.7);">
+    _ov.innerHTML=`<div style="background:rgba(20,20,20,.88);border-left:4px solid ${uc};border-radius:4px 10px 10px 4px;padding:10px 16px;backdrop-filter:blur(6px);box-shadow:0 4px 20px rgba(0,0,0,.7);">
       <div style="font-size:11px;color:${uc};font-weight:700;margin-bottom:5px;">💬 ${user}</div>
       <div style="font-size:15px;color:#dde;line-height:1.5;word-break:break-word;">"${msg.slice(0,150)}"</div>
     </div>`;

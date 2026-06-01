@@ -595,7 +595,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="coord-hud">0, 0</div>
     <div id="mode-badge">PARTS</div>
     <!-- Reference Image Panel -->
-    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid rgba(80,80,80,.35);border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#707070">
+    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#707070">
       <div style="font-weight:700;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
       <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid rgba(180,180,180,.2);color:#a0a0a0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
@@ -611,7 +611,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
-    <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid rgba(80,80,80,.4);border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#707070;z-index:200">
+    <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#707070;z-index:200">
       <span style="color:#c8c8c8;font-weight:700;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#e07840" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
       <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#f59e0b" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
@@ -1244,7 +1244,7 @@ function showRigCtxMenu(x, y, items) {
   document.getElementById('rig-ctx-menu')?.remove();
   const menu = document.createElement('div');
   menu.id = 'rig-ctx-menu';
-  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:#1e1e1e;border:1px solid rgba(120,120,120,.4);border-radius:6px;padding:3px 0;z-index:9999;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;`;
+  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:6px;padding:3px 0;z-index:9999;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;`;
   for (const item of items) {
     if (!item) { const sep=document.createElement('div'); sep.style.cssText='border-top:1px solid #3a3a3a;margin:2px 0;'; menu.appendChild(sep); continue; }
     const row = document.createElement('div');
@@ -3178,7 +3178,7 @@ function showGuideManager() {
       <div style="color:var(--dim);font-size:10px;">キャンバスに参照線を追加（保存時にJSONに含まれません）</div>
       <div id="gg-list">${renderRows()}</div>
       <button onclick="javascript:_customGuides.push({axis:'x',pos:0,color:'rgba(255,200,80,0.7)'});render();document.getElementById('gg-list').innerHTML=document.getElementById('gg-list').innerHTML;"
-        style="background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#909090;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
+        style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:3px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
     </div>
   `, () => {
     _customGuides.forEach((g, i) => {
@@ -4025,7 +4025,7 @@ function applyTexSwitch(){
 function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
-  mo.innerHTML=`<div style="background:#252525;border:1px solid rgba(120,120,120,.4);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
+  mo.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
   <div style="font-size:13px;color:#c0c0c0;margin-bottom:12px;font-weight:bold">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:#606060;margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
@@ -4395,7 +4395,7 @@ function generateColorVariants() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
   const inner = document.createElement('div');
-  inner.style.cssText = 'background:#1e1e1e;border:1px solid rgba(120,120,120,.4);border-radius:8px;padding:16px;min-width:300px;color:#c8c8c8;font-size:12px;';
+  inner.style.cssText = 'background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:16px;min-width:300px;color:#c8c8c8;font-size:12px;';
   inner.innerHTML = `
     <div style="font-size:13px;font-weight:600;color:#c0c0c0;margin-bottom:10px;">🎨 カラーバリエーション生成</div>
     <div style="font-size:9px;color:#606060;margin-bottom:10px;">色相シフトを等間隔で適用した複数バリエーションを一括生成します。</div>
@@ -4528,7 +4528,7 @@ function showGlobalTransformModal() {
   overlay.id = 'gtf-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid rgba(100,100,100,.3);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">⊙ 全体変換</div>
       <div style="font-size:9px;color:#606060;margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
@@ -4773,7 +4773,7 @@ async function aiAutoNameParts() {
 
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center;';
-  modal.innerHTML = `<div style="background:#1e1e1e;border:1px solid rgba(120,120,120,.4);border-radius:8px;padding:16px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;color:#c8c8c8;font-size:12px;">
+  modal.innerHTML = `<div style="background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:16px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;color:#c8c8c8;font-size:12px;">
     <div style="font-size:13px;font-weight:600;color:#c0c0c0;">🤖 AIパーツ自動命名（${targetIdxs.length}件）</div>
     <div id="ainm-status" style="font-size:10px;color:#909090;">分析中...</div>
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
@@ -4810,7 +4810,7 @@ async function aiAutoNameParts() {
       <span style="font-size:9px;color:#666;width:16px;text-align:right;flex-shrink:0;">${i+1}</span>
       <span style="font-size:10px;color:#606060;min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pt.name}">${pt.name}</span>
       <span style="color:#4a8060;font-size:10px;flex-shrink:0;">→</span>
-      <input type="text" value="${suggested}" style="flex:1;background:#1e1e1e;border:1px solid rgba(100,100,100,.3);color:#c8c8c8;border-radius:3px;padding:3px 5px;font-size:10px;outline:none;" data-result-idx="${results.length-1}">
+      <input type="text" value="${suggested}" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:3px;padding:3px 5px;font-size:10px;outline:none;" data-result-idx="${results.length-1}">
     `;
     listEl.appendChild(row);
   }
@@ -4836,7 +4836,7 @@ function batchRenameParts() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
   modal.innerHTML = `
-    <div style="background:#1e1e1e;border:1px solid rgba(120,120,120,.4);border-radius:8px;padding:16px;min-width:340px;color:#c8c8c8;font-size:12px;">
+    <div style="background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:16px;min-width:340px;color:#c8c8c8;font-size:12px;">
       <div style="font-size:13px;font-weight:600;color:#c0c0c0;margin-bottom:10px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
@@ -4866,7 +4866,7 @@ function batchRenameParts() {
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
         <button id="brn-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
-        <button id="brn-preview-btn" style="background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#a0a0a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
+        <button id="brn-preview-btn" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#a0a0a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
         <button id="brn-ok" style="background:#1e1e1e;border:1px solid rgba(120,120,120,.5);color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
       </div>
     </div>`;
@@ -6859,7 +6859,7 @@ function showDeformWaveModal() {
   overlay.id = 'wave-modal-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid rgba(100,100,100,.3);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
         <span>振幅 (px)</span>
@@ -7680,8 +7680,8 @@ function showVertexCoordHUD(vi, clientX, clientY) {
   hud.id = 'vert-coord-hud';
   hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:#1e1e1e;border:1px solid rgba(120,120,120,.5);border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:#c0c0c0;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
   hud.innerHTML = `<span style="color:#e07840;">${isDef?'Δ':'V'}${vi}</span>
-    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
-    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid rgba(120,120,120,.4);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
     <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid rgba(120,120,120,.5);color:#c0c0c0;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
     <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:#606060;cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
   document.body.appendChild(hud);
@@ -7794,7 +7794,7 @@ function showShortcutsOverlay() {
     `<tr><td style="padding:3px 12px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 12px;color:#a0a0a0;font-size:11px;">${v}</td></tr>` :
     `<tr><td colspan="2" style="padding:6px 12px 3px;font-size:9px;color:#666;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #3a3a3a;">${k}</td></tr>`
   ).join('');
-  d.innerHTML = `<div style="background:#252525;border:1px solid rgba(100,100,100,.3);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  d.innerHTML = `<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
       <span style="font-size:13px;font-weight:600;color:#c8c8c8;">⌨ キーボードショートカット</span>
       <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:#606060;cursor:pointer;font-size:16px;padding:0;">×</button>
@@ -7838,7 +7838,7 @@ function showAvatarExportDialog() {
   overlay.id = 'av-export-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid rgba(120,120,120,.4);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">🎭 アバターHTML書き出し設定</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
