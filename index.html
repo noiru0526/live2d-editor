@@ -1200,11 +1200,11 @@ button:focus{outline:none;}
   <span style="font-size:11px;color:#80ffb0;font-weight:700;">⇄ A/B再生</span>
   <span style="font-size:10px;color:var(--dim);">A:</span>
   <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:#4e4e4e;">→</span>
+  <span style="font-size:10px;color:#666;">→</span>
   <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">B:</span>
   <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:#4e4e4e;">→</span>
+  <span style="font-size:10px;color:#666;">→</span>
   <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">ホールド:</span>
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
@@ -4680,7 +4680,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">D</td><td>追跡デバッグ表示</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">J / F / B / G</td><td>シェイク / フラッシュ / ブラー / グリッチ</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">R</td><td>ルーレット（?roulette=設定時）</td></tr>
-      <tr><td colspan="2" style="color:#4a4a4a;font-size:10px;padding-top:6px;">─── URLパラメータ ───</td></tr>
+      <tr><td colspan="2" style="color:#666;font-size:10px;padding-top:6px;">─── URLパラメータ ───</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?bg=00ff00</td><td>背景色 (クロマキー等)</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;">?mirror=1</td><td>キャンバス左右反転</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?scale=N</td><td>アバタースケール（例: 1.5）/ ?x=N ?y=N: 位置オフセット(px)</td></tr>
@@ -5111,7 +5111,7 @@ function _renderChainList() {
   const list = document.getElementById('chain-list'); if (!list) return;
   list.innerHTML = '';
   if (!_clipChain.length) {
-    list.innerHTML = '<div style="font-size:9px;color:#4a4a4a;padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
+    list.innerHTML = '<div style="font-size:9px;color:#666;padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
   }
   const names = ['現在', ...(MD.animClips||[]).map(c=>c.name)];
   _clipChain.forEach((e, i) => {
@@ -5918,7 +5918,7 @@ function _dbgUpdate(){
     `<div>眉 L:${f(S.bwl)} R:${f(S.bwr)}</div>`+
     `<div>視線 X:${f(S.ex)} Y:${f(S.ey)}</div>`+
     (S.ck>0.05?`<div>頬: ${f(S.ck)}</div>`:'')+
-    `<div style="color:#4a4a4a;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
+    `<div style="color:#666;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
 }
 function _setDbgMode(on){
   _dbgMode=on;
@@ -17819,7 +17819,7 @@ function renderCTList() {
     return '?';
   };
   if (!M.chatTriggers.length) {
-    list.innerHTML = '<div style="font-size:9px;color:#4a4a4a;padding:4px 0;">登録なし（ポーズプリセットは自動生成されます）</div>';
+    list.innerHTML = '<div style="font-size:9px;color:#666;padding:4px 0;">登録なし（ポーズプリセットは自動生成されます）</div>';
     return;
   }
   M.chatTriggers.forEach((t, i) => {
@@ -18133,7 +18133,7 @@ function showPoseTweenDialog() {
       <span style="font-size:9px;color:var(--dim)">イージング</span>
       <select id="pt-ease" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
     </div>
-    <div style="font-size:8px;color:#4a4a4a;margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
+    <div style="font-size:8px;color:#666;margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
     <button onclick="applyPoseTween()" style="width:100%;background:#252525;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
   document.body.appendChild(d);
   // Default: to = 1 (second option) if available
@@ -23495,7 +23495,7 @@ function showPoseSequencer() {
         <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#666;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
         <button onclick="seqRemove(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
       </div>`).join('')
-    : '<div style="font-size:9px;color:#4a4a4a;padding:4px 0;">シーケンスが空です</div>';
+    : '<div style="font-size:9px;color:#666;padding:4px 0;">シーケンスが空です</div>';
     const total = sequence.reduce((a,s)=>a+s.holdSec,0);
     const totalEl = mo.querySelector('#seq-total');
     if (totalEl) totalEl.textContent = `合計: ${total.toFixed(2)}s`;
@@ -25797,7 +25797,7 @@ function renderMASlots() {
     if (slot.dataURL) row.querySelector('input').style.color = '#80c080';
     cont.appendChild(row);
   });
-  if (!_maSlots.length) cont.innerHTML = '<div style="font-size:9px;color:#4a4a4a;padding:4px 0;">「＋ アバター追加」でスロットを追加</div>';
+  if (!_maSlots.length) cont.innerHTML = '<div style="font-size:9px;color:#666;padding:4px 0;">「＋ アバター追加」でスロットを追加</div>';
 }
 
 function generateMultiAvatarHTML() {
