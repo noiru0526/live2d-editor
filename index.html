@@ -4666,8 +4666,8 @@ ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</str
 </div>
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:18px 24px;color:var(--text);font-family:monospace;font-size:11px;min-width:260px;max-width:360px;line-height:1.9;">
-    <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:6px;">⌨ ホットキー一覧</div>
+  <div style="background:#1e1e1e;border:1px solid #3a3a3a;border-radius:10px;padding:18px 24px;color:var(--text);font-family:monospace;font-size:11px;min-width:260px;max-width:360px;line-height:1.9;">
+    <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;border-bottom:1px solid #2e2e2e;padding-bottom:6px;">⌨ ホットキー一覧</div>
     <table style="border-collapse:collapse;width:100%;">
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;white-space:nowrap;">1 〜 9</td><td>表情・ポーズ切替</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">0</td><td>デフォルト表情に戻す</td></tr>
@@ -5116,7 +5116,7 @@ function _renderChainList() {
   const names = ['現在', ...(MD.animClips||[]).map(c=>c.name)];
   _clipChain.forEach((e, i) => {
     const row = document.createElement('div');
-    row.style.cssText = `display:flex;align-items:center;gap:4px;padding:2px 5px;background:${i===_chainPos&&_chainPlaying?'rgba(224,120,64,.1)':'#1a1a1a'};border:1px solid ${i===_chainPos&&_chainPlaying?'rgba(224,120,64,.4)':'rgba(255,255,255,.08)'};border-radius:3px;font-size:10px;`;
+    row.style.cssText = `display:flex;align-items:center;gap:4px;padding:2px 5px;background:${i===_chainPos&&_chainPlaying?'rgba(224,120,64,.1)':'#1a1a1a'};border:1px solid ${i===_chainPos&&_chainPlaying?'rgba(224,120,64,.4)':'#2e2e2e'};border-radius:3px;font-size:10px;`;
     row.innerHTML = `<span style="color:${i===_chainPos&&_chainPlaying?'var(--accent)':'var(--dim)'};min-width:14px;">${i+1}</span><span style="flex:1;color:var(--text);">${names[e.clipIdx+1]||'?'}</span><button onclick="_chainRemoveEntry(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
