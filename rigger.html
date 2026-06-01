@@ -8595,16 +8595,21 @@ if(_p.has('tts')){
     ws.onopen=()=>{ if(_stEl)_stEl.textContent='WS 接続済み'; };
     ws.onclose=()=>{ _wsReconnT=setTimeout(_wsConnect,3000); };
     ws.onerror=()=>{};
+    // Game event → expression mapping (?killexpr=name ?deathexpr=name ?winexpr=name ?loseexpr=name ?hitexpr=name)
+    // Optional: ?killexprdur=3000 (ms to hold before reverting)
+    const _evExpr={};['kill','death','win','lose','hit'].forEach(k=>{const n=_p.get(k+'expr');if(n)_evExpr[k]={name:n.toLowerCase(),dur:parseInt(_p.get(k+'exprdur')||'3000')};});
+    let _evExprTimer=null;
+    function _applyEvExpr(ev){const cfg=_evExpr[ev];if(!cfg||!EXPRS.length)return;const idx=EXPRS.findIndex(e=>e.name.toLowerCase()===cfg.name);if(idx<0)return;curExpr=idx;_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx+1));if(_evExprTimer)clearTimeout(_evExprTimer);_evExprTimer=setTimeout(()=>{curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));_evExprTimer=null;},cfg.dur);}
     ws.onmessage=(ev)=>{
       let msg;
       try { msg=JSON.parse(ev.data); } catch(e){ return; }
       const t=msg.type||msg.event||'';
       switch(t.toLowerCase()){
-        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); break;
-        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); break;
-        case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); break;
-        case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); break;
-        case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); break;
+        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); break;
+        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); _applyEvExpr('death'); break;
+        case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); _applyEvExpr('hit'); break;
+        case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); _applyEvExpr('win'); break;
+        case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); break;
         case 'shake':  triggerShake(msg.amp??8, msg.dur??0.3); break;
         case 'flash':  triggerFlash(msg.color||'rgba(255,255,255,0.7)', msg.dur??120); break;
         case 'blur':   toggleBlur(); break;
