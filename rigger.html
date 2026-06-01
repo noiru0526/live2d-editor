@@ -5360,12 +5360,22 @@ function updateExpressionsUI() {
     // Diff badge: count params changed from baseline (center KF value)
     const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(_exBaseline[k]??0))>0.01).length;
     const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:#383838;color:#666;border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
-    d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name}">${ex.name}${diffBadge}</span>
+    d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name} — ダブルクリックで名前変更" ondblclick="event.stopPropagation();renameExpr(${i})">${ex.name}${diffBadge}</span>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:#666;cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
       <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
     c.appendChild(d);
   });
   const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
+}
+function renameExpr(idx) {
+  if (idx < 0 || idx >= expressions.length) return;
+  const ex = expressions[idx];
+  const newName = prompt('表情の名前を変更:', ex.name);
+  if (newName !== null && newName.trim()) {
+    ex.name = newName.trim();
+    updateExpressionsUI();
+    setStatus(`表情名を「${ex.name}」に変更`);
+  }
 }
 function duplicateExpr(idx) {
   if (idx < 0 || idx >= expressions.length) return;
@@ -8235,6 +8245,8 @@ let _lfoT=0;
 function _lfoWave(w,th){if(w==='triangle'){const p=((th/Math.PI)%2+2)%2;return p<1?2*p-1:3-2*p;}if(w==='sawtooth')return((th/Math.PI)%2+2)%2-1;if(w==='noise')return Math.sin(th*1.3)*.6+Math.sin(th*2.7)*.4;return Math.sin(th);}
 function _applyLFOs(vals,t){for(const lfo of [...LFOS,..._rtLFOs]){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*t+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}}
 function _setRtLFO(msg){const idx=_rtLFOs.findIndex(l=>l.param===msg.param);const lfo={param:msg.param||'headX',wave:msg.wave||'sine',freq:msg.freq??0.5,amp:msg.amp??0.3,phase:msg.phase||0,offset:msg.offset||0,enabled:true,_dur:msg.dur,_t0:_lfoT};if(idx>=0)_rtLFOs[idx]=lfo;else _rtLFOs.push(lfo);}
+// LFO URL params: ?lfooff=1 disable model LFOs | ?lfoamp=0.8 scale amplitudes | ?lfo=[{JSON}] add LFOs
+(()=>{const usp=new URLSearchParams(location.search);const lfoAmp=parseFloat(usp.get('lfoamp'));if(!isNaN(lfoAmp))for(const l of LFOS)l.amp=(l.amp||0)*lfoAmp;if(usp.has('lfooff'))for(const l of LFOS)l.enabled=false;const lfoJson=usp.get('lfo');if(lfoJson){try{const arr=JSON.parse(decodeURIComponent(lfoJson));if(Array.isArray(arr))for(const l of arr)_rtLFOs.push({...l,enabled:l.enabled!==false,_t0:0});}catch(e){}}})();
 // OBS/Performance settings from URL params
 // Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1&hue=30&sat=120&bri=90&con=110
 const _p=new URLSearchParams(location.search);
