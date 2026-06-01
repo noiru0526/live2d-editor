@@ -3646,7 +3646,7 @@ function editKFComment(paramId, kfv) {
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="font-size:12px;color:var(--text);margin-bottom:8px">KFメモ — <span style="color:#ffd060">${paramId}:${kfv}</span></div>
-    <textarea id="kfc-input" style="width:100%;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
+    <textarea id="kfc-input" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
       <button onclick="this.closest('[style]').parentElement.remove()" style="background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
       <button onclick="saveKFComment('${paramId}',${kfv});this.closest('[style]').parentElement.remove()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">保存</button>
@@ -4265,7 +4265,7 @@ function _showEmbedCode(filePath) {
       <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
     </div>
     <div style="color:var(--dim);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
-    <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
+    <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:#1e1e1e;border:1px solid #3a3a3a;color:#ffd060;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:3px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
