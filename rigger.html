@@ -8348,8 +8348,9 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-lbl{font-size:8px;color:#605040;min-width:70px;text-align:right}
 .cb-sl{flex:1;accent-color:#d08040}
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
+#dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8384,6 +8385,8 @@ function _setRtLFO(msg){const idx=_rtLFOs.findIndex(l=>l.param===msg.param);cons
 const TARGET_FPS=Math.min(120,Math.max(5,parseInt(_p.get('fps')||'60')));
 const OBS_MODE=_p.has('obs');
 const PERF_HUD=_p.has('perf');
+const DEBUG_MODE=_p.has('debug');
+if(DEBUG_MODE){const _dbgEl=document.getElementById('dbg');if(_dbgEl)_dbgEl.style.display='block';}
 const SHOW_STATUS=!_p.has('nostatus')&&!OBS_MODE;
 let _minFrameMs=1000/TARGET_FPS;
 let _fpsCount=0,_fpsLast=0,_fpsVal=0;
@@ -8445,11 +8448,15 @@ function applyExpr(idx){
   else{_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx+1));}
 }
 
-// Build expression bar (?noexprbar=1 or obs=1 hides it)
+// Build expression bar (?noexprbar=1 or obs=1 hides it; ?exprbarpos=top|bottom|left|right)
 const bar=document.getElementById('expr-bar');
 if(!_p.has('noexprbar')&&!OBS_MODE){
   EXPRS.forEach((ex,i)=>{const b=document.createElement('div');b.className='expr-btn';b.id='eb-'+i;b.textContent='['.concat(i+1,'] ',ex.name);bar.appendChild(b);});
   if(EXPRS.length){const b=document.createElement('div');b.className='expr-btn';b.textContent='[0] デフォルト';bar.prepend(b);}
+  const _ebp=_p.get('exprbarpos')||'bottom';
+  if(_ebp==='top'){bar.style.bottom='';bar.style.top='12px';}
+  else if(_ebp==='left'){bar.style.bottom='';bar.style.left='12px';bar.style.top='50%';bar.style.transform='translateY(-50%)';bar.style.flexDirection='column';}
+  else if(_ebp==='right'){bar.style.bottom='';bar.style.left='';bar.style.right='12px';bar.style.top='50%';bar.style.transform='translateY(-50%)';bar.style.flexDirection='column';}
 }else{bar.style.display='none';}
 
 document.addEventListener('keydown',e=>{
@@ -8766,6 +8773,12 @@ let _micMouthLevel=0;
         case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); _applyEvExpr('hit'); break;
         case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); _applyEvExpr('win'); break;
         case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); break;
+        case 'health': {
+          const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
+          window._avatarHealth=hv;
+          if(hv<0.25){triggerFlash('rgba(220,0,0,'+(0.3*(1-hv/.25)).toFixed(2)+')',200);triggerShake(4*(1-hv/.25),.2);}
+          if(msg.expr!==undefined)applyExpr(msg.expr);
+          break;}
         case 'shake':  triggerShake(msg.amp??8, msg.dur??0.3); break;
         case 'flash':  triggerFlash(msg.color||'rgba(255,255,255,0.7)', msg.dur??120); break;
         case 'blur':   toggleBlur(); break;
@@ -9130,6 +9143,15 @@ function frame(ts){
     if(clipPt&&clipPt._img)ctx.restore();
   }
   ctx.restore();
+  if(DEBUG_MODE){
+    const _dbgEl=document.getElementById('dbg');
+    if(_dbgEl){
+      const allV={...S,..._cS};
+      const lines=Object.entries(allV).map(([k,v])=>(k+':').padEnd(14)+v.toFixed(3)).join('\n');
+      const exprName=curExpr>=0?(EXPRS[curExpr]?.name||('#'+curExpr)):'default';
+      _dbgEl.textContent=`expr: ${exprName}\nfps:  ${_fpsVal}\n\n${lines}`;
+    }
+  }
   requestAnimationFrame(frame);
 }
 function start(){requestAnimationFrame(frame);setTimeout(initCam,500);}
