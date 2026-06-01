@@ -20616,11 +20616,11 @@ function drawTimeline() {
   for (const kfv of p.kfs) {
     const x=pToX(kfv);
     const hasD=!!M.def[`${name}:${kfv}`];
-    tlCtx.fillStyle=hasD?'#ffd060':'rgba(200,212,240,.4)';
+    tlCtx.fillStyle=hasD?'#ffd060':'rgba(160,160,160,.4)';
     tlCtx.beginPath();
     tlCtx.moveTo(x,H/2-7); tlCtx.lineTo(x+5,H/2); tlCtx.lineTo(x,H/2+7); tlCtx.lineTo(x-5,H/2);
     tlCtx.closePath(); tlCtx.fill();
-    tlCtx.fillStyle=hasD?'rgba(255,208,96,.15)':'rgba(200,212,240,.05)';
+    tlCtx.fillStyle=hasD?'rgba(255,208,96,.15)':'rgba(160,160,160,.05)';
     tlCtx.fillRect(x-1,0,2,H);
     // KF value label
     tlCtx.fillStyle=hasD?'#ffd060':'#686868';
@@ -28109,7 +28109,7 @@ function _drawEasingThumb(cv, fn, selected) {
   const W = cv.width, H = cv.height, pad = 5;
   c.clearRect(0,0,W,H);
   // grid lines
-  c.strokeStyle = 'rgba(40,60,90,.5)'; c.lineWidth = .5;
+  c.strokeStyle = 'rgba(60,60,60,.5)'; c.lineWidth = .5;
   [.25,.5,.75].forEach(v=>{
     c.beginPath();c.moveTo(pad,pad+(1-v)*(H-2*pad));c.lineTo(W-pad,pad+(1-v)*(H-2*pad));c.stroke();
     c.beginPath();c.moveTo(pad+v*(W-2*pad),pad);c.lineTo(pad+v*(W-2*pad),H-pad);c.stroke();
