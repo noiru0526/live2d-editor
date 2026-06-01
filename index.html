@@ -23294,7 +23294,7 @@ function showRangeCopyPaste() {
       <span style="font-size:9px;color:#888;min-width:60px;">挿入開始</span>
       <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
     </div>
-    <div style="font-size:8px;color:#505050;margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
+    <div style="font-size:8px;color:#666;margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
     <div style="display:flex;gap:6px">
       <button id="rc-paste-btn" style="flex:1;background:${hasCb?'rgba(224,120,64,.18)':'#1e1e1e'};border:1px solid ${hasCb?'rgba(224,120,64,.5)':'rgba(255,255,255,.08)'};color:${hasCb?'var(--accent)':'#404040'};border-radius:4px;padding:4px;cursor:pointer;font-size:10px;" ${!hasCb?'disabled':''}>📌 ペースト</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#2d2d2d;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">閉じる</button>
@@ -23431,7 +23431,7 @@ function showAnimMerge() {
     </label>
     <div id="merge-info" style="font-size:9px;color:rgba(180,200,180,.8);min-height:16px;"></div>
     <div style="display:flex;gap:6px;margin-top:8px">
-      <button id="merge-ok" disabled style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:#505050;border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
+      <button id="merge-ok" disabled style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:#666;border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:#252525;border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -23491,8 +23491,8 @@ function showPoseSequencer() {
         <span style="color:#80d8c0;min-width:12px;">${i+1}.</span>
         <span style="flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${poses[item.poseIdx]?.name||'?'}</span>
         <span style="color:var(--dim);min-width:32px;text-align:right;">${item.holdSec.toFixed(2)}s</span>
-        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:#505050;cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
-        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#505050;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
+        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:#666;cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
+        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#666;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
         <button onclick="seqRemove(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
       </div>`).join('')
     : '<div style="font-size:9px;color:#4a4a4a;padding:4px 0;">シーケンスが空です</div>';
@@ -25343,7 +25343,7 @@ function showParamBatchEdit() {
     const isCustom = p.custom ? ' title="カスタムパラメータ"' : '';
     const mark = p.custom ? '<span style="color:var(--accent);font-size:8px;margin-left:2px;">✦</span>' : '';
     return `<tr data-name="${name}" style="border-bottom:1px solid rgba(255,255,255,.04);">
-      <td style="padding:2px 4px;font-size:9px;color:#505050;font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
+      <td style="padding:2px 4px;font-size:9px;color:#666;font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
       <td style="padding:2px 4px;"><input class="pbe-lbl" type="text" value="${lbl}" data-name="${name}"
         style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
       <td style="padding:2px 4px;"><input class="pbe-min" type="number" value="${p.min}" data-name="${name}" step="0.1"
@@ -25361,7 +25361,7 @@ function showParamBatchEdit() {
       <h3 style="font-size:13px;color:var(--text);margin:0;">⚙ パラメータ一括編集</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="font-size:9px;color:#505050;margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
+    <div style="font-size:9px;color:#666;margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
     <div style="overflow-y:auto;flex:1;border:1px solid rgba(40,60,100,.4);border-radius:4px;">
       <table style="width:100%;border-collapse:collapse;">
         <thead style="position:sticky;top:0;background:#1e1e1e;z-index:1;">
