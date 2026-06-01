@@ -8318,6 +8318,8 @@ const _cS={};const _cT={};for(const k of _cKeys){_cS[k]=0;_cT[k]=0;}
 function _setExpr(vals){Object.assign(T,vals);for(const k of _cKeys)_cT[k]=vals[k]??0;}
 function _resetExpr(){for(const k of Object.keys(T))T[k]=0;for(const k of _cKeys)_cT[k]=0;}
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
+// Eye saccade — natural micro eye movements when not face-tracking (?nosaccade=1 to disable)
+let _sacX=0,_sacY=0,_sacT=0,_sacInterval=3,_sacEnabled=!_p.has('nosaccade');
 const LFOS=MODEL.lfos||[];
 let _rtLFOs=[]; // runtime LFOs added via WebSocket / postMessage (not baked into model)
 let _lfoT=0;
@@ -8980,6 +8982,12 @@ function frame(ts){
   const dt=Math.min((ts-last)/1000,.05);last=ts;
   _fpsCount++;if(ts-_fpsLast>=1000){_fpsVal=Math.round(_fpsCount*1000/(ts-_fpsLast));_fpsCount=0;_fpsLast=ts;}
   gpStep();
+  // Eye saccade — natural random eye movements when not face-tracking (?nosaccade=1 to disable)
+  if(_sacEnabled&&!tracking){
+    _sacT-=dt;
+    if(_sacT<=0){_sacX=(Math.random()-.5)*.4;_sacY=(Math.random()-.5)*.3;_sacT=1.5+Math.random()*4;}
+    T.eyeBallX=_sacX;T.eyeBallY=_sacY;
+  }
   // Mic lip sync — update T.mouthOpen from microphone when not face-tracking and not using TTS
   if(window._micAnalyser&&!_micMuted&&!tracking&&!_ttsSpeaking){
     window._micAnalyser.getByteTimeDomainData(window._micBuf);
