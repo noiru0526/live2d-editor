@@ -242,6 +242,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-del{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0 3px;line-height:1}
 .ex-del:hover{color:#f87171}
 .ex-empty{padding:24px 10px;text-align:center;font-size:11px;color:#666;line-height:1.8}
+#expr-preview-tip{position:fixed;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:5px;padding:7px 9px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
+#expr-preview-tip .ept-title{font-size:10px;color:#c0c0c0;font-weight:600;margin-bottom:5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
+#expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+#expr-preview-tip .ept-label{min-width:65px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:#2a2a2a;border-radius:2px;overflow:hidden}
+#expr-preview-tip .ept-bar-fill{height:100%;background:#e07840;border-radius:2px}
+#expr-preview-tip .ept-val{min-width:30px;text-align:right;color:#808080}
 .expr-footer{padding:8px 10px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
 
 /* ===== STATUS BAR ===== */
@@ -308,6 +315,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 </style>
 </head>
 <body>
+<div id="expr-preview-tip"><div class="ept-title"></div><div class="ept-rows"></div></div>
 
 <!-- ===== TOOLBAR ===== -->
 <div id="toolbar">
@@ -5378,9 +5386,36 @@ function updateExpressionsUI() {
       <button class="ex-del" onclick="event.stopPropagation();editExprValues(${i})" title="値を編集" style="background:none;border:none;color:#666;cursor:pointer;font-size:9px;padding:1px 3px;">✏</button>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:#666;cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
       <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
+    d.addEventListener('mouseenter', (ev) => _showExprPreview(ex, _exBaseline, ev));
+    d.addEventListener('mouseleave', _hideExprPreview);
     c.appendChild(d);
   });
   const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
+}
+function _showExprPreview(ex, baseline, ev) {
+  const tip = document.getElementById('expr-preview-tip'); if (!tip) return;
+  const diffs = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(baseline[k]??0))>0.01);
+  tip.querySelector('.ept-title').textContent = ex.name + (diffs.length ? ` (${diffs.length}P)` : '');
+  const rowsEl = tip.querySelector('.ept-rows'); rowsEl.innerHTML = '';
+  if (!diffs.length) { rowsEl.innerHTML = '<div style="color:#555;font-style:italic">（変更なし）</div>'; }
+  else {
+    diffs.slice(0, 12).forEach(([k, v]) => {
+      const pc = P[k]; if (!pc) return;
+      const [rmin, rmax] = pc.r; const pct = Math.max(0, Math.min(100, (v - rmin) / (rmax - rmin) * 100));
+      const row = document.createElement('div'); row.className = 'ept-row';
+      row.innerHTML = `<span class="ept-label" title="${k}">${pc.l||k}</span><div class="ept-bar-bg"><div class="ept-bar-fill" style="width:${pct.toFixed(1)}%"></div></div><span class="ept-val">${v.toFixed(2)}</span>`;
+      rowsEl.appendChild(row);
+    });
+    if (diffs.length > 12) { const more = document.createElement('div'); more.style.cssText='color:#555;margin-top:2px'; more.textContent=`+ ${diffs.length-12} more`; rowsEl.appendChild(more); }
+  }
+  tip.style.display = 'block';
+  const r = ev.currentTarget.getBoundingClientRect();
+  const tx = r.right + 6, ty = r.top;
+  tip.style.left = (tx + tip.offsetWidth > window.innerWidth ? r.left - tip.offsetWidth - 6 : tx) + 'px';
+  tip.style.top = Math.min(ty, window.innerHeight - tip.offsetHeight - 8) + 'px';
+}
+function _hideExprPreview() {
+  const tip = document.getElementById('expr-preview-tip'); if (tip) tip.style.display = 'none';
 }
 function renameExpr(idx) {
   if (idx < 0 || idx >= expressions.length) return;
