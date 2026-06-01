@@ -278,11 +278,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pdef-del{background:none;border:none;color:#666;cursor:pointer;font-size:12px;padding:0 3px;line-height:1}
 .pdef-del:hover{color:#f87171}
 .pdef.rotation .pdef-name{color:#78500a}
-.pdef.rotation.sel .pdef-name{color:#f59e0b}
+.pdef.rotation.sel .pdef-name{color:#e07840}
 .pdef.rotation .pdef-caret{color:#78500a}
 .pdef.rotation .pdef-count{color:#78500a}
 .pdef.bone .pdef-name{color:#7a3510}
-.pdef.bone.sel .pdef-name{color:#ff7040}
+.pdef.bone.sel .pdef-name{color:#e07840}
 .pdef.bone .pdef-caret{color:#7a3510}
 .pdef.bone .pdef-count{color:#7a3510}
 
@@ -611,7 +611,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
       <label style="display:block;margin-bottom:3px">スケール <span id="ref-scl-v">1.00</span><br>
-        <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#f59e0b" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
+        <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#e07840" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
       </label>
       <div style="display:flex;gap:4px;margin-bottom:3px">
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#1e1e1e;border:1px solid #333;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
@@ -623,7 +623,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#707070;z-index:200">
       <span style="color:#c8c8c8;font-weight:700;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#e07840" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
-      <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#f59e0b" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
+      <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#e07840" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
       <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
       <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:3px;padding:1px 6px;cursor:pointer">全1</button>
       <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:3px;padding:1px 6px;cursor:pointer">全0</button>
@@ -1134,10 +1134,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <input type="radio" name="deftype" value="warp" checked style="accent-color:#e07840"> ⬡ ワープ変形
       </label>
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="radio" name="deftype" value="rotation" style="accent-color:#f59e0b"> ⟳ 回転
+        <input type="radio" name="deftype" value="rotation" style="accent-color:#e07840"> ⟳ 回転
       </label>
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="radio" name="deftype" value="bone" style="accent-color:#ff7040"> 🦴 ボーン(FK)
+        <input type="radio" name="deftype" value="bone" style="accent-color:#e07840"> 🦴 ボーン(FK)
       </label>
     </div>
     <p>選択したパーツをこのデフォーマーに割り当てます。</p>
@@ -4355,7 +4355,7 @@ function rotatePartMesh() {
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点をパーツ中心周りに回転します。<br><small style="font-size:9px;color:#606060;">デフォームデルタも同じ角度で回転されます。</small></div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
       <label style="font-size:11px;color:var(--dim);min-width:60px;">角度 (°)</label>
-      <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:#f59e0b" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
+      <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:#e07840" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
       <span id="rot-angv" style="font-size:10px;color:#f59e0b;font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
     <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
