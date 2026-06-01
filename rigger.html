@@ -8224,6 +8224,10 @@ function showAvatarExportDialog() {
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">起動時発話:</span>
         <input id="av-speakintro" type="text" placeholder="例: はじめまして！（空白=なし）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">🗣 TTS中表情:</span>
+        <input id="av-speakexpr" type="text" placeholder="表情名（例: 笑い）空白=なし" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
+      </div>
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">初期表情:</span>
         <input id="av-emote" type="text" placeholder="表情名（空白=デフォルト）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
@@ -8427,6 +8431,7 @@ function showAvatarExportDialog() {
     const wob = parseFloat(document.getElementById('av-wobble')?.value||'0'); if(wob>0) params.push('wobble='+wob);
     const blkR=parseFloat(document.getElementById('av-blinkrate')?.value||'1');if(!isNaN(blkR)&&blkR!==1)params.push('blinkrate='+blkR);
     const brtS=parseFloat(document.getElementById('av-breathscale')?.value||'1');if(!isNaN(brtS)&&brtS!==1)params.push('breathscale='+brtS);
+    const spkEx=document.getElementById('av-speakexpr')?.value?.trim();if(spkEx)params.push('speakexpr='+encodeURIComponent(spkEx));
     const ef = parseInt(document.getElementById('av-exprfade')?.value||'0'); if(ef>0) params.push('exprfade='+ef);
     const shd = parseInt(document.getElementById('av-shadow')?.value||'0'); if(shd>0) params.push('shadow='+shd);
     const bgi = document.getElementById('av-bgimage')?.value?.trim(); if(bgi) params.push('bgimage='+encodeURIComponent(bgi));
@@ -8519,7 +8524,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-breathscale','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-breathscale','av-speakexpr','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-noface','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
@@ -8598,6 +8603,7 @@ async function doExportAvatar() {
   const wobbleAmp = parseFloat(document.getElementById('av-wobble')?.value || '0');
   const blinkRateVal = parseFloat(document.getElementById('av-blinkrate')?.value || '1');
   const breathScaleVal = parseFloat(document.getElementById('av-breathscale')?.value || '1');
+  const speakExprTxt = document.getElementById('av-speakexpr')?.value?.trim() || '';
   const exprFadeMs = parseInt(document.getElementById('av-exprfade')?.value || '0');
   const ttsRate = parseFloat(document.getElementById('av-ttsrate')?.value || '1');
   const speakIntroText = document.getElementById('av-speakintro')?.value?.trim() || '';
@@ -8703,6 +8709,7 @@ async function doExportAvatar() {
   if (wobbleAmp > 0) defaultParams.push('wobble=' + wobbleAmp);
   if (!isNaN(blinkRateVal) && blinkRateVal !== 1) defaultParams.push('blinkrate=' + blinkRateVal);
   if (!isNaN(breathScaleVal) && breathScaleVal !== 1) defaultParams.push('breathscale=' + breathScaleVal);
+  if (speakExprTxt) defaultParams.push('speakexpr=' + encodeURIComponent(speakExprTxt));
   if (exprFadeMs > 0) defaultParams.push('exprfade=' + exprFadeMs);
   if (ttsRate !== 1) defaultParams.push('ttsrate=' + ttsRate);
   if (speakIntroText) defaultParams.push('speakintro=' + encodeURIComponent(speakIntroText));
@@ -9295,6 +9302,9 @@ const _ttsDV=parseInt(_p.get('ttsvoice')||'0');
 const _ttsDR=Math.max(0.1,Math.min(4,parseFloat(_p.get('ttsrate')||'1')));
 const _ttsDPi=Math.max(0,Math.min(2,parseFloat(_p.get('ttspitch')||'1')));
 let _ttsSpeaking=false, _ttsTimer=null;
+// ?speakexpr=<name> — auto-apply named expression while TTS is speaking
+const _speakExprName=(_p.get('speakexpr')||'').toLowerCase();
+const _speakExprIdx=_speakExprName?EXPRS.findIndex(e=>e.name.toLowerCase()===_speakExprName):-1;
 function speak(text,voiceIdx=_ttsDV,rate=_ttsDR,pitch=_ttsDPi){
   if(!('speechSynthesis' in window))return;
   const u=new SpeechSynthesisUtterance(text);
@@ -9302,8 +9312,8 @@ function speak(text,voiceIdx=_ttsDV,rate=_ttsDR,pitch=_ttsDPi){
   const jaVoices=voices.filter(v=>v.lang.startsWith('ja'));
   u.voice=(jaVoices[voiceIdx]||voices[voiceIdx]||voices[0])||null;
   u.rate=rate; u.pitch=pitch; u.lang='ja-JP';
-  u.onstart=()=>{ _ttsSpeaking=true; };
-  u.onend=()=>{ _ttsSpeaking=false; T.mouthOpen=0; };
+  u.onstart=()=>{ _ttsSpeaking=true; if(_speakExprIdx>=0)applyExpr(_speakExprIdx); };
+  u.onend=()=>{ _ttsSpeaking=false; T.mouthOpen=0; if(_speakExprIdx>=0)_resetExpr(); };
   u.onerror=()=>{ _ttsSpeaking=false; T.mouthOpen=0; };
   u.onboundary=(ev)=>{
     if(ev.name==='word'){
