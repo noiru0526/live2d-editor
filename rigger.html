@@ -972,6 +972,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span id="kf-loop-speed-v" style="font-size:8px;color:#e07840;min-width:20px;">1.0</span>
         </div>
       </div>
+      <div style="padding:2px 6px;border-bottom:1px solid #2a2a2a;flex-shrink:0;display:flex;align-items:center;gap:3px">
+        <span style="font-size:10px;color:#505050">🔍</span>
+        <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:#a0a0a0;font-size:10px;outline:none;padding:2px 0">
+        <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:#505050;cursor:pointer;font-size:10px;padding:0">×</button>
+      </div>
       <div id="params-list"></div>
       <!-- PARAM BINDINGS -->
       <div style="padding:4px 6px;border-top:1px solid #2e2e2e;flex-shrink:0">
@@ -1217,6 +1222,7 @@ let parts = [];
 let selPart = -1, selParts = new Set(), selParam = 'headX', curKF = 0;
 let mode = 'parts';
 let partsFilter = '';
+let paramsFilter = '';
 let partsColorFilter = null; // hex color string or '__none__'
 let pv = {};
 for (const k of Object.keys(P)) pv[k] = 0;
@@ -6385,10 +6391,12 @@ const _pgCollapsed = {}; // {groupName: bool}
 function buildParamsUI() {
   const list=document.getElementById('params-list'); list.innerHTML='';
   const allParams = {...P};
-  // Group params
+  // Group params (apply search filter)
+  const _pf=paramsFilter.trim();
   const groups = {};
   for (const [pn,pc] of Object.entries(allParams)) {
-    const g = pc.g || 'その他';
+    if(_pf&&!pn.toLowerCase().includes(_pf)&&!(pc.l||'').toLowerCase().includes(_pf))continue;
+    const g = _pf?'検索結果':(pc.g || 'その他');
     if (!groups[g]) groups[g]=[];
     groups[g].push([pn,pc]);
   }
