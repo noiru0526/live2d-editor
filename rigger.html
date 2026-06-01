@@ -8525,6 +8525,12 @@ const _GFilter=(()=>{const f=[];if(_GHue!==0)f.push('hue-rotate('+_GHue+'deg)');
 if(_GFilter)document.getElementById('c').style.filter=_GFilter;
 // Background color (?bg=<hex|css-color>) — useful for testing / non-transparent backgrounds
 const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith('rgb')||_bgC.startsWith('hsl')?_bgC:'#'+_bgC;document.body.style.background=_b;}
+// Background image (?bgimage=<url>) — displayed behind avatar; supports URLs and data URIs
+const _bgImg=_p.get('bgimage');
+if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
+// Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
+const _shadowParam=_p.get('shadow');
+if(_shadowParam){const _sb=isNaN(parseInt(_shadowParam))?16:Math.max(4,parseInt(_shadowParam));canvas.style.filter='drop-shadow(0 '+Math.round(_sb*.6)+'px '+_sb+'px rgba(0,0,0,0.55))'+(canvas.style.filter?(' '+canvas.style.filter):'');}
 const _stEl=document.getElementById('st');
 if(!SHOW_STATUS&&!PERF_HUD)_stEl.style.display='none';
 if(OBS_MODE){document.getElementById('obs-badge').style.display='block';}
