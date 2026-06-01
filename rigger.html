@@ -597,7 +597,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#707070">
       <div style="font-weight:700;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid rgba(180,180,180,.2);color:#a0a0a0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
@@ -761,7 +761,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
-            <button onclick="clearOpacityKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearOpacityKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <!-- Extended settings collapsible section -->
@@ -833,7 +833,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
               <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-              <button onclick="clearHSBKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+              <button onclick="clearHSBKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
           <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:#c09060;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
@@ -856,7 +856,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setScaleKFHere()" style="flex:1;background:#0e1e10;border:1px solid rgba(96,200,140,.4);color:#60c888;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-            <button onclick="clearScaleKF()" style="background:#1a1520;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearScaleKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:#50a870;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:7px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
@@ -880,8 +880,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:7px;color:#606060;letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
-              <button onclick="showGenerateTextureModal()" style="background:#252525;border:1px solid rgba(180,180,180,.2);color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
-              <button onclick="addAltTexture()" style="background:#252525;border:1px solid rgba(180,180,180,.2);color:#909090;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+              <button onclick="showGenerateTextureModal()" style="background:#252525;border:1px solid #2e2e2e;color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="addAltTexture()" style="background:#252525;border:1px solid #2e2e2e;color:#909090;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
@@ -3982,7 +3982,7 @@ function showTexSwitchModal() {
   <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
     <button onclick="clearTexSwitch()" style="background:#1a1a10;border:1px solid #403020;color:#806040;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
-    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:#d0c060;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
   </div>`;
@@ -4064,7 +4064,7 @@ function showGenerateTextureModal() {
     <canvas id="gt-preview" width="120" height="120" style="border:1px solid #3a3a3a;border-radius:4px;image-rendering:pixelated"></canvas>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="document.getElementById('gentex-mo').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('gentex-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyGeneratedTexture()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:#c0c0c0;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">∇ 生成・適用</button>
   </div>
   </div>`;
@@ -4550,7 +4550,7 @@ function showGlobalTransformModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyGlobalTransform()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -6886,7 +6886,7 @@ function showDeformWaveModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyDeformWave()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -7154,7 +7154,7 @@ function showKFBlendTool() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:flex;align-items:center;justify-content:center;';
   const inner = document.createElement('div');
-  inner.style.cssText = 'background:#1e1e1e;border:1px solid rgba(100,100,100,.4);border-radius:8px;padding:16px;min-width:280px;color:#c8c8c8;font-size:12px;';
+  inner.style.cssText = 'background:#1e1e1e;border:1px solid #3a3a3a;border-radius:8px;padding:16px;min-width:280px;color:#c8c8c8;font-size:12px;';
   inner.innerHTML = `
     <div style="font-size:13px;font-weight:600;color:#c0c0c0;margin-bottom:12px;">⇌ KFブレンド</div>
     <div style="font-size:10px;color:#606060;margin-bottom:10px;">2つのKFデフォームをブレンドして新しいKFを生成します。</div>
@@ -7260,7 +7260,7 @@ function showSnapshotCompare() {
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
       <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
-      <button onclick="this.closest('[style]').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
+      <button onclick="this.closest('[style]').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
     </div>`;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
@@ -7937,7 +7937,7 @@ function showAvatarExportDialog() {
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:#1e1e1e;border:1px solid rgba(100,100,100,.4);color:#808080;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="doExportAvatar()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:#c0c0c0;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px;font-weight:600">🎭 書き出し</button>
       </div>
     </div>`;
