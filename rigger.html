@@ -1005,7 +1005,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span id="def-tree-arrow" style="font-size:8px;color:#666">▼</span>
           </span>
         </div>
-        <div id="def-tree-body" style="display:block;max-height:180px;overflow-y:auto;background:#060b12;border-radius:3px;padding:2px 0"></div>
+        <div id="def-tree-body" style="display:block;max-height:180px;overflow-y:auto;background:#1e1e1e;border-radius:4px;padding:2px 0"></div>
       </div>
     </div>
 
@@ -5889,7 +5889,7 @@ function buildDeformerTree() {
     const row = document.createElement('div');
     row.dataset.defIdx = idx;
     row.draggable = true;
-    row.style.cssText = `display:flex;align-items:center;cursor:pointer;padding:2px 2px 2px ${4+depth*12}px;border-radius:2px;font-size:9px;gap:2px;${isSel?'background:rgba(224,120,64,.12);':''}transition:background .1s;`;
+    row.style.cssText = `display:flex;align-items:center;cursor:pointer;padding:2px 2px 2px ${4+depth*12}px;border-radius:3px;font-size:11px;gap:2px;${isSel?'background:rgba(224,120,64,.12);':''}transition:background .1s;`;
     // Collapse toggle
     const tog = document.createElement('span');
     tog.textContent = hasChildren ? (isCollapsed?'▶':'▼') : ' ';
@@ -5898,10 +5898,10 @@ function buildDeformerTree() {
     // Icon + name
     const label = document.createElement('span');
     label.style.cssText = `color:${isSel?'#e07840':col};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-    label.innerHTML = `<span style="font-size:9px">${icon}</span> <b>${d.name}</b>${pnames?`<span style="color:#404040;font-size:7px;margin-left:3px">[${pnames}]</span>`:''}`;
+    label.innerHTML = `<span style="font-size:9px">${icon}</span> <b>${d.name}</b>${pnames?`<span style="color:#555;font-size:9px;margin-left:3px">[${pnames}]</span>`:''}`;
     row.appendChild(tog); row.appendChild(label);
     // Hover highlight
-    row.onmouseenter = () => { if(!isSel) row.style.background='#232323'; };
+    row.onmouseenter = () => { if(!isSel) row.style.background='rgba(255,255,255,.05)'; };
     row.onmouseleave = () => { if(!isSel) row.style.background=''; };
     // Click = select
     row.onclick = (e) => { if(e.target===tog)return; selDeformer=idx; selPart=-1; updateDeformerPropsUI(); buildDeformerTree(); render(); };
