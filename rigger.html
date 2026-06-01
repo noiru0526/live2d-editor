@@ -8865,14 +8865,16 @@ function frame(ts){
   const dt=Math.min((ts-last)/1000,.05);last=ts;
   _fpsCount++;if(ts-_fpsLast>=1000){_fpsVal=Math.round(_fpsCount*1000/(ts-_fpsLast));_fpsCount=0;_fpsLast=ts;}
   gpStep();
-  const sm=.12;
-  S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,.09);
-  S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,.35);S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,.35);
-  S.eyeBallX=ema(S.eyeBallX,T.eyeBallX,.2);S.eyeBallY=ema(S.eyeBallY,T.eyeBallY,.2);
-  S.browL=ema(S.browL,T.browL,.18);S.browR=ema(S.browR,T.browR,.18);
-  S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,.32);S.mouthForm=ema(S.mouthForm,T.mouthForm,.12);
-  S.cheek=ema(S.cheek,T.cheek,.08);S.bodyX=ema(S.bodyX,T.bodyX,.07);S.bodyY=ema(S.bodyY,T.bodyY,.07);
-  for(const k of _cKeys)_cS[k]=ema(_cS[k],_cT[k],.12);
+  const _es=Math.max(.1,Math.min(5,parseFloat(_p.get('exprspeed')||'1')));
+  const _c=(v)=>Math.min(1,v*_es); // clamp scaled EMA coeff to [0,1]
+  const sm=_c(.12);
+  S.headX=ema(S.headX,T.headX,sm);S.headY=ema(S.headY,T.headY,sm);S.headZ=ema(S.headZ,T.headZ,_c(.09));
+  S.eyeOpenL=ema(S.eyeOpenL,T.eyeOpenL,_c(.35));S.eyeOpenR=ema(S.eyeOpenR,T.eyeOpenR,_c(.35));
+  S.eyeBallX=ema(S.eyeBallX,T.eyeBallX,_c(.2));S.eyeBallY=ema(S.eyeBallY,T.eyeBallY,_c(.2));
+  S.browL=ema(S.browL,T.browL,_c(.18));S.browR=ema(S.browR,T.browR,_c(.18));
+  S.mouthOpen=ema(S.mouthOpen,T.mouthOpen,_c(.32));S.mouthForm=ema(S.mouthForm,T.mouthForm,_c(.12));
+  S.cheek=ema(S.cheek,T.cheek,_c(.08));S.bodyX=ema(S.bodyX,T.bodyX,_c(.07));S.bodyY=ema(S.bodyY,T.bodyY,_c(.07));
+  for(const k of _cKeys)_cS[k]=ema(_cS[k],_cT[k],_c(.12));
   _ttsMouthStep(dt);
   physStep(dt);
   if(!ablink){ablinkT-=dt;if(ablinkT<=0){ablink=true;ablinkP=0;ablinkT=2+Math.random()*5;}}
