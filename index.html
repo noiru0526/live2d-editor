@@ -96,7 +96,7 @@ button:focus{outline:none;}
   flex-shrink:0;}
 
 /* Parameter rows — Cubism-style compact with precise value display */
-.prow{padding:4px 8px 3px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;position:relative;}
+.prow{padding:4px 8px 3px;border-bottom:1px solid #2e2e2e;cursor:pointer;position:relative;}
 .prow:hover{background:rgba(255,255,255,.05);}
 .prow.active{background:rgba(224,120,64,.1);border-left:2px solid var(--accent);padding-left:6px;}
 .prow.active .plabel{color:var(--text-bright);}
@@ -255,7 +255,7 @@ button:focus{outline:none;}
 .atlas-chk{accent-color:var(--accent);}
 
 /* Physics enhanced */
-.phys-group{background:#1e1e1e;border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:5px 8px;margin-bottom:4px;}
+.phys-group{background:#1e1e1e;border:1px solid #3a3a3a;border-radius:4px;padding:5px 8px;margin-bottom:4px;}
 .phys-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:10px;}
 .phys-row label{color:var(--dim);width:55px;flex-shrink:0;}
 .phys-row input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;}
@@ -284,11 +284,11 @@ button:focus{outline:none;}
 /* ===== UX PATTERN 2: Context-Sensitive Inspector Panel (Blender N-Panel Style) ===== */
 #ctx-info{border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(24,24,24,.6);}
 .ctx-info-none{padding:10px 12px;text-align:center;color:var(--dim);font-size:11px;font-style:italic;}
-.ctx-info-header{display:flex;align-items:center;gap:7px;padding:7px 12px 5px;border-bottom:1px solid rgba(255,255,255,.07);}
+.ctx-info-header{display:flex;align-items:center;gap:7px;padding:7px 12px 5px;border-bottom:1px solid #2e2e2e;}
 .ctx-info-icon{font-size:14px;flex-shrink:0;}
 .ctx-info-name{font-size:12px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ctx-info-type{font-size:10px;color:var(--accent);background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.35);border-radius:3px;padding:1px 6px;flex-shrink:0;}
-.ctx-section{border-bottom:1px solid rgba(255,255,255,.05);}
+.ctx-section{border-bottom:1px solid #2e2e2e;}
 .ctx-section>summary{display:flex;align-items:center;padding:4px 10px;cursor:pointer;font-size:11px;color:#9a9a9a;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;list-style:none;user-select:none;background:#2c2c2c;border-bottom:1px solid #3a3a3a;}
 .ctx-section>summary::-webkit-details-marker{display:none;}
 .ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent);transition:transform .12s;display:inline-block;}
@@ -457,7 +457,7 @@ button:focus{outline:none;}
         <button onclick="duplicateActivePart()" style="flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 0;cursor:pointer;font-size:10px;" title="アクティブパーツを複製">⿻ 複製</button>
       </div>
       <input type="file" id="part-file-input" accept="image/*" style="display:none" onchange="onPartFileInput(this)">
-      <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.07);">
+      <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid #2e2e2e;">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
           <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">不透明:</label>
           <input type="range" id="part-opacity-slider" min="0" max="100" value="100" oninput="setActivePartOpacity(this.value)"
@@ -528,7 +528,7 @@ button:focus{outline:none;}
           <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
-        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid rgba(255,255,255,.07);display:none;">
+        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid #2e2e2e;display:none;">
           <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
             style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
@@ -4270,7 +4270,7 @@ function _showEmbedCode(filePath) {
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:#1e1e1e;border:1px solid rgba(255,255,255,.1);color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:#a0b0c0;">
+    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:#888;">
       <label><input type="checkbox" id="obsq-bg" style="margin-right:2px;"> bg=00ff00 (クロマキー)</label>
       <label><input type="checkbox" id="obsq-mirror" style="margin-right:2px;"> mirror=1</label>
       <label><input type="checkbox" id="obsq-lowcpu" style="margin-right:2px;"> lowcpu=1</label>
@@ -23135,7 +23135,7 @@ function showKFRangeDelete() {
       <input id="dr-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="margin-bottom:8px;">
-      <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#a0b0c0;cursor:pointer;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#888;cursor:pointer;">
         <input type="checkbox" id="dr-current-only" style="accent-color:#ff6060;">
         現在のトラックのみ削除 (全トラックでなく選択中パラメータのみ)
       </label>
@@ -23889,7 +23889,7 @@ function showTimeScaleDialog() {
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
           <span id="ts-preview" style="font-size:11px;color:#60d890;min-width:60px;">→ ${dur.toFixed(2)}s</span>
         </div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#8090a0;margin-top:2px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:#888;margin-top:2px;">
           <input type="checkbox" id="ts-all-clips" style="accent-color:var(--accent)"> 全クリップに適用（クリップ1のみはOFF）
         </label>
       </div>
