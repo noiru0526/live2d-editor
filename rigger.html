@@ -8176,6 +8176,7 @@ function showAvatarExportDialog() {
         <div style="color:#606060;font-size:9px;margin-top:4px;margin-bottom:2px">コマンドプレフィックス（任意・例: !ex）</div>
         <input id="av-chat-cmd" type="text" placeholder="空白=全メッセージで反応..." style="width:100%;background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
         <div style="color:#666;font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:#e07840"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
@@ -8342,6 +8343,10 @@ function showAvatarExportDialog() {
       const cmd = document.getElementById('av-chat-cmd')?.value?.trim();
       if (cmd) params.push('chatcmd=' + encodeURIComponent(cmd));
     }
+    if (document.getElementById('av-chatoverlay')?.checked) {
+      const ch2 = document.getElementById('av-chat-channel')?.value?.trim();
+      if (ch2) { params.push('chatoverlay=1'); if (!document.getElementById('av-chat')?.checked) params.push('channel=' + encodeURIComponent(ch2)); }
+    }
     const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
     const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
     const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
@@ -8397,7 +8402,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8499,10 +8504,15 @@ async function doExportAvatar() {
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
   if (autoIdle) defaultParams.push('autoidle=1');
+  const chatOverlayOn = document.getElementById('av-chatoverlay')?.checked;
   if (chatEnabled && chatChannel) {
     defaultParams.push('chat=twitch');
     defaultParams.push('channel=' + encodeURIComponent(chatChannel));
     if (chatCmd) defaultParams.push('chatcmd=' + encodeURIComponent(chatCmd));
+  }
+  if (chatOverlayOn && chatChannel) {
+    defaultParams.push('chatoverlay=1');
+    if (!chatEnabled) defaultParams.push('channel=' + encodeURIComponent(chatChannel));
   }
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
   if (hpBarOn) defaultParams.push('hpbar=1');
@@ -8626,6 +8636,10 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:30;pointer-events:none;display:none}
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
 #hud-msg{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.85);color:#e0e0e0;font-size:12px;font-family:sans-serif;padding:5px 16px;border-radius:20px;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s ease;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
+#chat-overlay{position:fixed;bottom:60px;left:12px;z-index:40;pointer-events:none;display:flex;flex-direction:column-reverse;gap:4px;max-width:260px;max-height:40vh;overflow:hidden}
+.chat-msg{background:rgba(10,10,10,.78);color:#e8e8e8;font-size:11px;font-family:sans-serif;padding:3px 8px;border-radius:10px;border-left:2px solid rgba(255,255,255,.2);animation:chatFadeIn .25s ease forwards;line-height:1.4;word-break:break-word}
+.chat-msg .chat-user{font-weight:700;margin-right:4px}
+@keyframes chatFadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:.9;transform:none}}
 #brb-overlay{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;pointer-events:none;background:rgba(0,0,0,.55);transition:opacity .4s ease}
 #brb-overlay .brb-txt{font-family:sans-serif;font-size:42px;font-weight:900;color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.9),0 0 60px rgba(224,120,64,.4);letter-spacing:.05em;opacity:0;animation:brbFadeIn .5s ease forwards}
 #brb-overlay .brb-sub{font-size:14px;color:rgba(255,255,255,.55);font-family:monospace;opacity:0;animation:brbFadeIn .6s .15s ease forwards}
@@ -8643,7 +8657,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -9718,6 +9732,42 @@ function initCam(){
       const idx=EXPRS.findIndex(e=>e.name&&msg.includes(e.name.toLowerCase()));
       if(idx>=0)_chatApply(idx);
       else if(msg==='0'||msg==='reset')_chatApply(-1);
+    };
+    ws.onclose=()=>setTimeout(connect,5000);
+  }
+  connect();
+})();
+// ===== TWITCH CHAT OVERLAY (?chatoverlay=1 or ?co=1) =====
+// Shows chat messages as floating bubbles bottom-left. ?comaxmsgs=N (default 5), ?colife=N (ms, default 8000)
+(function(){
+  const enabled=_p.has('chatoverlay')||_p.has('co');
+  if(!enabled||!_p.has('channel'))return;
+  const channel=(_p.get('channel')||'').toLowerCase().replace(/^#/,'');
+  if(!channel)return;
+  const maxMsgs=Math.max(1,Math.min(20,parseInt(_p.get('comaxmsgs')||'5')));
+  const lifetime=Math.max(2000,parseInt(_p.get('colife')||'8000'));
+  const overlay=document.getElementById('chat-overlay');
+  if(!overlay)return;
+  const _hashColor=(s)=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))&0xffffffff;return `hsl(${(h>>>0)%360},60%,65%)`;};
+  const _addMsg=(user,text)=>{
+    const d=document.createElement('div');d.className='chat-msg';
+    d.innerHTML=`<span class="chat-user" style="color:${_hashColor(user)}">${user.replace(/</g,'&lt;')}</span><span>${text.replace(/</g,'&lt;')}</span>`;
+    overlay.prepend(d);
+    while(overlay.children.length>maxMsgs)overlay.lastElementChild?.remove();
+    setTimeout(()=>{d.style.transition='opacity .5s';d.style.opacity='0';setTimeout(()=>d.remove(),500);},lifetime);
+  };
+  // Share WS with expression trigger if channel is the same — use custom event
+  window._chatOverlayAdd=_addMsg;
+  function connect(){
+    const ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    ws.onopen=()=>{ws.send('NICK justinfan99999');ws.send('CAP REQ :twitch.tv/tags');ws.send('JOIN #'+channel);};
+    ws.onmessage=ev=>{
+      const line=ev.data.trim();
+      if(line.startsWith('PING')){ws.send('PONG :tmi.twitch.tv');return;}
+      const m=line.match(/@(?:.*?;)?display-name=([^;]*);.*PRIVMSG #\S+ :(.+)/);
+      if(m){_addMsg(m[1]||'anon',m[2]);return;}
+      const m2=line.match(/:([^!]+)!\S+ PRIVMSG #\S+ :(.+)/);
+      if(m2)_addMsg(m2[1],m2[2]);
     };
     ws.onclose=()=>setTimeout(connect,5000);
   }
