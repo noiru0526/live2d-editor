@@ -234,7 +234,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Expressions panel */
 #rp-expr{gap:0}
-.ex-item{display:flex;align-items:center;padding:7px 10px;font-size:11px;gap:6px;cursor:pointer;border-bottom:1px solid #2e2e2e;transition:background .08s}
+.ex-item{display:flex;align-items:center;padding:4px 8px;font-size:11px;gap:5px;cursor:pointer;border-bottom:1px solid #2e2e2e;transition:background .08s}
 .ex-item:hover{background:#252525}
 .ex-item.active{background:rgba(224,120,64,.12)}
 .ex-num{font-size:10px;color:#707070;font-family:monospace;min-width:18px}
@@ -242,7 +242,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-item.active .ex-name{color:#e07840}
 .ex-del{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0 3px;line-height:1}
 .ex-del:hover{color:#f87171}
-.ex-empty{padding:24px 10px;text-align:center;font-size:11px;color:#666;line-height:1.8}
+.ex-empty{padding:14px 10px;text-align:center;font-size:11px;color:#666;line-height:1.6}
 #expr-preview-tip{position:fixed;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:5px;padding:7px 9px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
 #expr-preview-tip .ept-title{font-size:10px;color:#c0c0c0;font-weight:600;margin-bottom:5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
@@ -6448,7 +6448,7 @@ function renderLFOPanel() {
     el.innerHTML = '<div style="color:#505050;font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
   }
   const pkeys = Object.keys(P);
-  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:3px;padding:4px 6px;margin-bottom:4px;background:#1e1e1e">
+  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:3px;padding:3px 5px;margin-bottom:2px;background:#1e1e1e">
 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
 <input type="checkbox" ${lfo.enabled?'checked':''} onchange="updateLFOField('${lfo.id}','enabled',this.checked)" style="accent-color:var(--accent);flex-shrink:0">
 <select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
