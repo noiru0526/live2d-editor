@@ -18560,10 +18560,10 @@ function drawFc2d() {
   const cv = document.getElementById('fc2d-canvas'); if (!cv) return;
   const ctx2 = cv.getContext('2d'), W = cv.width, H = cv.height;
   const active = _fc2dActive;
-  ctx2.fillStyle = active ? '#070f18' : '#05090f';
+  ctx2.fillStyle = active ? '#0a0a0a' : '#080808';
   ctx2.fillRect(0, 0, W, H);
   // Grid
-  ctx2.strokeStyle = active ? '#0d2035' : '#0a1820';
+  ctx2.strokeStyle = active ? '#1a1a1a' : '#141414';
   ctx2.lineWidth = 0.5;
   [0.25, 0.5, 0.75].forEach(t => {
     ctx2.beginPath(); ctx2.moveTo(t*W, 0); ctx2.lineTo(t*W, H); ctx2.stroke();
@@ -19356,7 +19356,7 @@ function _gpadLoop() {
       const barW = cv.width / Math.max(gp.axes.length, 4);
       gp.axes.forEach((v, i) => {
         const bx = i*barW+2, bw = barW-4, cy2 = cv.height/2;
-        ctx.fillStyle='#1a2a3a'; ctx.fillRect(bx, 4, bw, cv.height-8);
+        ctx.fillStyle='#252525'; ctx.fillRect(bx, 4, bw, cv.height-8);
         ctx.fillStyle=Math.abs(v)>0.1?'#60e090':'#2a4a3a';
         const h=(cv.height-8)*Math.abs(v)/2;
         ctx.fillRect(bx+1, v>0?cy2:cy2-h, bw-2, h||1);
@@ -30588,9 +30588,9 @@ function toggleRndAnimate(on) {
     const cv=document.getElementById('wf-cv'); if(!cv) return;
     const ctx=cv.getContext('2d'); if(!ctx) return;
     const W=cv.width,H=cv.height;
-    ctx.clearRect(0,0,W,H); ctx.fillStyle='#060a12'; ctx.fillRect(0,0,W,H);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
     // grid
-    ctx.strokeStyle='#1a2a3a'; ctx.lineWidth=0.5;
+    ctx.strokeStyle='#222222'; ctx.lineWidth=0.5;
     for(let y=0;y<=4;y++){ctx.beginPath();ctx.moveTo(0,Math.round(H*y/4)+.5);ctx.lineTo(W,Math.round(H*y/4)+.5);ctx.stroke();}
     for(let x=0;x<=8;x++){ctx.beginPath();ctx.moveTo(Math.round(W*x/8)+.5,0);ctx.lineTo(Math.round(W*x/8)+.5,H);ctx.stroke();}
     ctx.strokeStyle='#303030'; ctx.lineWidth=1;
