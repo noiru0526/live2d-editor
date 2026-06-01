@@ -8249,7 +8249,7 @@ const LFOS=MODEL.lfos||[];
 let _rtLFOs=[]; // runtime LFOs added via WebSocket / postMessage (not baked into model)
 let _lfoT=0;
 function _lfoWave(w,th){if(w==='triangle'){const p=((th/Math.PI)%2+2)%2;return p<1?2*p-1:3-2*p;}if(w==='sawtooth')return((th/Math.PI)%2+2)%2-1;if(w==='noise')return Math.sin(th*1.3)*.6+Math.sin(th*2.7)*.4;return Math.sin(th);}
-function _applyLFOs(vals,t){for(const lfo of [...LFOS,..._rtLFOs]){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*t+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}}
+function _applyLFOs(vals,t){if(_lfosMuted)return;for(const lfo of [...LFOS,..._rtLFOs]){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*t+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}}
 function _setRtLFO(msg){const idx=_rtLFOs.findIndex(l=>l.param===msg.param);const lfo={param:msg.param||'headX',wave:msg.wave||'sine',freq:msg.freq??0.5,amp:msg.amp??0.3,phase:msg.phase||0,offset:msg.offset||0,enabled:true,_dur:msg.dur,_t0:_lfoT};if(idx>=0)_rtLFOs[idx]=lfo;else _rtLFOs.push(lfo);}
 // LFO URL params: ?lfooff=1 disable model LFOs | ?lfoamp=0.8 scale amplitudes | ?lfo=[{JSON}] add LFOs
 (()=>{const usp=new URLSearchParams(location.search);const lfoAmp=parseFloat(usp.get('lfoamp'));if(!isNaN(lfoAmp))for(const l of LFOS)l.amp=(l.amp||0)*lfoAmp;if(usp.has('lfooff'))for(const l of LFOS)l.enabled=false;const lfoJson=usp.get('lfo');if(lfoJson){try{const arr=JSON.parse(decodeURIComponent(lfoJson));if(Array.isArray(arr))for(const l of arr)_rtLFOs.push({...l,enabled:l.enabled!==false,_t0:0});}catch(e){}}})();
@@ -8286,6 +8286,8 @@ function _buildHotkeyPanel(){
   rows.push(['P','パラメータパネル表示切替']);
   rows.push(['G','ゲームパッド ON/OFF']);
   rows.push(['C','顔追跡キャリブレーション']);
+  rows.push(['---','--- アニメーション ---']);
+  rows.push(['I','アイドルLFO ON/OFF（ゆらぎ切替）']);
   rows.push(['---','--- 画面エフェクト ---']);
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
@@ -8295,7 +8297,11 @@ function _buildHotkeyPanel(){
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#666;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#666;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
 }
 _buildHotkeyPanel();
-document.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}});
+let _lfosMuted=false;
+document.addEventListener('keydown',e=>{
+  if(e.key==='h'||e.key==='H'){_showHotkeys=!_showHotkeys;_buildHotkeyPanel();}
+  if(e.key==='i'||e.key==='I'){_lfosMuted=!_lfosMuted;if(_stEl)_stEl.textContent='LFO '+ (_lfosMuted?'OFF':'ON');}
+});
 document.addEventListener('visibilitychange',()=>{_minFrameMs=document.hidden?200:1000/TARGET_FPS;});
 let curExpr=-1;
 const physMap={};
