@@ -8033,6 +8033,7 @@ function showWsTestPanel() {
     {label:'score +1',json:'{"type":"score","delta":1}'},
     {label:'countdown 60s',json:'{"type":"countdown","value":60}'},
     {label:'exprblend',json:'{"type":"exprblend","blends":[{"name":"笑い","weight":0.6},{"name":"驚き","weight":0.4}]}'},
+    {label:'game update',json:'{"type":"game","name":"Valorant"}'},
     {label:'expr →デフォルト',json:'{"type":"expr","index":-1}'},
     {label:'expr by name',json:'{"type":"expr","name":"笑い","dur":3000}'},
     {label:'param headX',json:'{"type":"param","name":"headX","value":0.5}'},
@@ -8092,6 +8093,7 @@ function showWsApiRef() {
     ['pong','pingへの応答（無視）','{type:"pong"}'],
     ['countdown','カウントダウン残秒を設定（?widget=countdown時）','{type:"countdown",value:60}'],
     ['exprblend','複数表情を重み付きブレンド','{type:"exprblend",blends:[{name:"笑い",weight:0.7},{name:"驚き",weight:0.3}]}'],
+    ['game','ゲームウィジェット名を更新（?widget=game=時）','{type:"game",name:"Valorant"}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -9420,6 +9422,7 @@ let _micMouthLevel=0;
         case 'text':   if(msg.text)showHudMsg(String(msg.text),msg.dur||3000); break;
         case 'marquee':{const _mi=document.getElementById('marquee-inner');const _mb=document.getElementById('marquee-bar');if(_mi&&_mb){if(msg.text){_mi.textContent=String(msg.text)+'　　　　　';_mb.style.display='block';}else _mb.style.display='none';}break;}
         case 'countdown': if(window._cdReset)window._cdReset(msg.value!==undefined?parseInt(msg.value):undefined); break;
+        case 'game': if(msg.name!==undefined&&window._wgSetGame)window._wgSetGame(String(msg.name)); break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
@@ -9919,7 +9922,7 @@ function initCam(){
   }
   if(widgets.includes('timer')){makeWg('配信時間','wg-timer');setInterval(()=>{const el=document.getElementById('wg-timer');if(el)el.textContent=fmtDur(Date.now()-_streamStart);},1000);}
   const gameW=widgets.find(w=>w.startsWith('game='));
-  if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;}
+  if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;window._wgSetGame=(n)=>{if(el)el.textContent=String(n);}; }
   const textW=widgets.find(w=>w.startsWith('text='));
   if(textW){const txt=decodeURIComponent(textW.slice(5));makeWg('','wg-text');const el=document.getElementById('wg-text');if(el){el.style.fontSize='12px';el.textContent=txt;}}
   // KDA tracker: ?widget=kda — updated via WS kill/death/assist events
