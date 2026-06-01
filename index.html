@@ -23876,14 +23876,14 @@ function showTimeScaleDialog() {
       <div style="font-size:10px;color:var(--dim)">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
       <div style="font-size:10px;color:var(--dim)">現在の長さ: <b style="color:var(--text)">${dur.toFixed(2)}s</b></div>
       <div style="display:grid;gap:6px;">
-        <div style="font-size:10px;color:#aabbcc;margin-bottom:2px">プリセット:</div>
+        <div style="font-size:10px;color:#a0a0a0;margin-bottom:2px">プリセット:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${[['0.25x', 0.25], ['0.5x', 0.5], ['0.75x', 0.75], ['2x', 2], ['3x', 3], ['4x', 4]].map(([lbl, v]) =>
             `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:#282828;border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:3px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
           ).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-          <span style="font-size:10px;color:#aabbcc;white-space:nowrap">倍率:</span>
+          <span style="font-size:10px;color:#a0a0a0;white-space:nowrap">倍率:</span>
           <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
             style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
@@ -24925,7 +24925,7 @@ async function showAIAnimCritiqueDialog() {
   showModal('🔬 AIアニメーション批評', `
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
-      <div id="ai-crit-status" style="font-size:11px;color:#6090a0;min-height:20px">準備中...</div>
+      <div id="ai-crit-status" style="font-size:11px;color:#707070;min-height:20px">準備中...</div>
       <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:#1e1e1e;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
     </div>
   `, null, null);
@@ -25508,7 +25508,7 @@ function showAllParamsHeatmap() {
       const mc = Math.max(...counts, 1);
       const y = PAD + ri*ROW;
       ctx2.fillStyle='var(--dim)'; ctx2.font=`${ROW-2}px sans-serif`;
-      ctx2.fillStyle='#8899aa'; ctx2.fillText((p.lbl||name).slice(0,9), 2, y+ROW-3);
+      ctx2.fillStyle='#909090'; ctx2.fillText((p.lbl||name).slice(0,9), 2, y+ROW-3);
       for (let i=0;i<BINS;i++) {
         const norm = counts[i]/mc;
         const r=Math.round(norm*220), g=Math.round(norm*80), b=Math.round((1-norm)*220);
