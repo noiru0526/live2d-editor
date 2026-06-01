@@ -8074,6 +8074,7 @@ function showWsApiRef() {
     ['lfo','LFOランタイム追加','{type:"lfo",param:"headX",freq:0.5,amp:0.3}'],
     ['speak','TTS発声','{type:"speak",text:"こんにちは",rate:1}'],
     ['blur','ぼかし切替','{type:"blur"}'],
+    ['emote','絵文字リアクション表示（?emotes=1時）','{type:"emote",emoji:"🎉",dur:2200}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -8244,8 +8245,9 @@ function showAvatarExportDialog() {
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
-      <div style="display:flex;gap:5px;margin-bottom:5px;align-items:center;font-size:11px">
+      <div style="display:flex;gap:10px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-hpbar" style="accent-color:#e07840"> ❤ HPバー表示（画面下部）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-emotes" style="accent-color:#e07840"> 😀 リアクション絵文字</label>
       </div>
       <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
@@ -8343,6 +8345,7 @@ function showAvatarExportDialog() {
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
     if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
     if (document.getElementById('av-hpbar')?.checked) params.push('hpbar=1');
+    if (document.getElementById('av-emotes')?.checked) params.push('emotes=1');
     ['kill','death','win','lose','hit'].forEach(ev => {
       const v = document.getElementById('av-ev-'+ev)?.value?.trim();
       if (v) {
@@ -8383,7 +8386,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8490,6 +8493,8 @@ async function doExportAvatar() {
   }
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
   if (hpBarOn) defaultParams.push('hpbar=1');
+  const emotesOn = document.getElementById('av-emotes')?.checked;
+  if (emotesOn) defaultParams.push('emotes=1');
   Object.entries(evExprs).forEach(([ev, cfg]) => {
     defaultParams.push(ev+'expr='+encodeURIComponent(cfg.name));
     defaultParams.push(ev+'exprdur='+Math.round(cfg.dur*1000));
@@ -8678,6 +8683,8 @@ const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith(
 const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
+// Reaction emotes enabled
+const _emotesEnabled=_p.has('emotes');
 // HP bar
 const _hpBarEnabled=_p.has('hpbar');
 if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw.style.display='block';window._setHp=(v)=>{const hv=Math.max(0,Math.min(1,+v||0));window._avatarHealth=hv;const fill=document.getElementById('hp-bar-fill');if(!fill)return;fill.style.width=(hv*100)+'%';fill.style.backgroundColor=hv>0.5?`hsl(${Math.round(120*(hv-.5)/.5)},80%,45%)`:hv>0.25?`hsl(${Math.round(60*hv/.5)},80%,45%)`:'hsl(0,80%,40%)';};window._setHp(1);}
@@ -8900,6 +8907,17 @@ function triggerFlash(col='rgba(255,255,255,0.7)',dur=120){
   el.style.background=col; el.style.opacity='1';
   setTimeout(()=>el.style.opacity='0',dur);
 }
+// Reaction emote pop-up overlay
+function triggerEmote(emoji='🎉', dur=2200, size=72) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;left:50%;top:45%;transform:translate(-50%,-50%) scale(0.4);font-size:${size}px;pointer-events:none;z-index:80;transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;opacity:0;text-shadow:0 2px 12px rgba(0,0,0,.7);filter:drop-shadow(0 0 8px rgba(255,255,200,.5))`;
+  el.textContent = emoji;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{el.style.transform='translate(-50%,-50%) scale(1)';el.style.opacity='1';});});
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translate(-50%,-60%) scale(0.7)'; setTimeout(()=>el.remove(), 400); }, dur - 400);
+}
+// Default emoji map for game events
+const _emoteMap = { kill:'💀', death:'😵', win:'🎉', lose:'😢', hit:'💥' };
 let _blurOn=false;
 function toggleBlur(){
   _blurOn=!_blurOn;
@@ -9090,12 +9108,13 @@ let _micMouthLevel=0;
       if(window._afkBump)window._afkBump();
       const t=msg.type||msg.event||'';
       switch(t.toLowerCase()){
-        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); if(window._wgKDA)window._wgKDA('kill'); break;
-        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); _applyEvExpr('death'); if(window._wgKDA)window._wgKDA('death'); break;
-        case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); _applyEvExpr('hit'); break;
-        case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); _applyEvExpr('win'); break;
-        case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); break;
+        case 'kill':   triggerFlash('rgba(255,220,0,0.5)',150); triggerShake(6,0.25); _applyEvExpr('kill'); if(window._wgKDA)window._wgKDA('kill'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.kill); break;
+        case 'death':  triggerFlash('rgba(200,0,0,0.6)',300); triggerShake(14,0.6); _applyEvExpr('death'); if(window._wgKDA)window._wgKDA('death'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.death); break;
+        case 'hit':    triggerShake(5,0.18); triggerFlash('rgba(255,60,0,0.35)',100); _applyEvExpr('hit'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.hit,1000,56); break;
+        case 'win':    triggerFlash('rgba(0,255,180,0.4)',400); _applyEvExpr('win'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.win,3000); break;
+        case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.lose); break;
         case 'assist': if(window._wgKDA)window._wgKDA('assist'); break;
+        case 'emote':  if(msg.emoji)triggerEmote(msg.emoji,msg.dur||2200,msg.size||72); break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
