@@ -8215,7 +8215,8 @@ function showAvatarExportDialog() {
       <div style="display:flex;gap:8px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">👁 まばたき頻度(×):</span>
         <input id="av-blinkrate" type="number" min="0.1" max="10" step="0.1" value="1" placeholder="1=標準" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
-        <span style="color:#606060;font-size:9px">0.2=まれ・1=普通・3=nervous</span>
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">🫁 呼吸スケール(×):</span>
+        <input id="av-breathscale" type="number" min="0" max="3" step="0.1" value="1" placeholder="1=標準" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
       </div>
       <div style="display:flex;gap:8px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">TTSレート(0.5-2):</span>
@@ -8425,6 +8426,7 @@ function showAvatarExportDialog() {
     if (ptType) { params.push('particle=' + ptType); const ptD = parseInt(document.getElementById('av-pdensity')?.value||'60'); if(ptD !== 60) params.push('pdensity='+ptD); }
     const wob = parseFloat(document.getElementById('av-wobble')?.value||'0'); if(wob>0) params.push('wobble='+wob);
     const blkR=parseFloat(document.getElementById('av-blinkrate')?.value||'1');if(!isNaN(blkR)&&blkR!==1)params.push('blinkrate='+blkR);
+    const brtS=parseFloat(document.getElementById('av-breathscale')?.value||'1');if(!isNaN(brtS)&&brtS!==1)params.push('breathscale='+brtS);
     const ef = parseInt(document.getElementById('av-exprfade')?.value||'0'); if(ef>0) params.push('exprfade='+ef);
     const shd = parseInt(document.getElementById('av-shadow')?.value||'0'); if(shd>0) params.push('shadow='+shd);
     const bgi = document.getElementById('av-bgimage')?.value?.trim(); if(bgi) params.push('bgimage='+encodeURIComponent(bgi));
@@ -8517,7 +8519,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-blinkrate','av-breathscale','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-noface','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
@@ -8595,6 +8597,7 @@ async function doExportAvatar() {
   const particleDensity = parseInt(document.getElementById('av-pdensity')?.value || '60');
   const wobbleAmp = parseFloat(document.getElementById('av-wobble')?.value || '0');
   const blinkRateVal = parseFloat(document.getElementById('av-blinkrate')?.value || '1');
+  const breathScaleVal = parseFloat(document.getElementById('av-breathscale')?.value || '1');
   const exprFadeMs = parseInt(document.getElementById('av-exprfade')?.value || '0');
   const ttsRate = parseFloat(document.getElementById('av-ttsrate')?.value || '1');
   const speakIntroText = document.getElementById('av-speakintro')?.value?.trim() || '';
@@ -8699,6 +8702,7 @@ async function doExportAvatar() {
   if (particleType) { defaultParams.push('particle=' + particleType); if (particleDensity !== 60) defaultParams.push('pdensity=' + particleDensity); }
   if (wobbleAmp > 0) defaultParams.push('wobble=' + wobbleAmp);
   if (!isNaN(blinkRateVal) && blinkRateVal !== 1) defaultParams.push('blinkrate=' + blinkRateVal);
+  if (!isNaN(breathScaleVal) && breathScaleVal !== 1) defaultParams.push('breathscale=' + breathScaleVal);
   if (exprFadeMs > 0) defaultParams.push('exprfade=' + exprFadeMs);
   if (ttsRate !== 1) defaultParams.push('ttsrate=' + ttsRate);
   if (speakIntroText) defaultParams.push('speakintro=' + encodeURIComponent(speakIntroText));
@@ -8880,6 +8884,8 @@ let _sacX=0,_sacY=0,_sacT=0,_sacInterval=3,_sacEnabled=!_p.has('nosaccade');
 const _talkBob=_p.has('talkbob');let _talkBobT=0;
 // ?lowenergy=1 — tired look: droopy eyes / slight slump when idle
 const _lowEnergy=_p.has('lowenergy');
+// ?breathscale=<0-3> — breathing amplitude multiplier (0=no breath, 1=normal, 2=deep)
+const _breathScale=Math.max(0,Math.min(3,parseFloat(_p.get('breathscale')||'1')));
 // ?wobble=<0.1-2.0> — extra body sway on top of breathing; makes idle feel more alive
 const _wobbleAmp=Math.max(0,Math.min(3,parseFloat(_p.get('wobble')||'0')));
 let _wobT=0;
@@ -9789,8 +9795,8 @@ function frame(ts){
   else{ablinkP+=dt/.11;if(ablinkP>=1){ablink=false;ablinkP=0;}}
   const ab=ablink?Math.sin(ablinkP*Math.PI):0;
   breathT+=dt*.36;
-  const breathVal=Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09;
-  S.breath=breathVal*.5+.5;
+  const breathVal=(Math.sin(breathT)*.44+Math.sin(breathT*.48)*.09)*_breathScale;
+  S.breath=Math.max(0,Math.min(1,breathVal*.5+.5));
   // ?wobble=<strength> — extra gentle body sway (idle life) on top of breathing
   if(_wobbleAmp>0){
     _wobT+=dt;
