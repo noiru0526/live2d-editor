@@ -18576,7 +18576,7 @@ function drawFc2d() {
   ctx2.beginPath(); ctx2.moveTo(W/2, 0); ctx2.lineTo(W/2, H); ctx2.stroke();
   ctx2.beginPath(); ctx2.moveTo(0, H/2); ctx2.lineTo(W, H/2); ctx2.stroke();
   if (!active) {
-    ctx2.fillStyle = '#5a5a5a'; ctx2.font = '9px sans-serif';
+    ctx2.fillStyle = '#707070'; ctx2.font = '9px sans-serif';
     ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
     ctx2.fillText('手動制御 OFF', W/2, H/2);
     return;
@@ -28840,7 +28840,7 @@ function geRender() {
     const v = GE.viewMinV + (i / hLines) * vRange;
     const y = vToY(v);
     ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
-    ctx.fillStyle = '#5a5a5a';
+    ctx.fillStyle = '#707070';
     ctx.font = `${9*dpr}px monospace`;
     ctx.textAlign = 'right';
     ctx.fillText(v.toFixed(1), PAD_L - 4*dpr, y + 3*dpr);
@@ -30131,7 +30131,7 @@ function exportGIF() {
         <option value="loop">ループ区間のみ</option>
       </select></label>
     </div>
-    <div id="gif-est" style="font-size:9px;color:#5a5a5a;margin-bottom:8px;"></div>
+    <div id="gif-est" style="font-size:9px;color:#707070;margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;">
       <button id="gif-cancel" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
       <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:600;">書き出し開始</button>
