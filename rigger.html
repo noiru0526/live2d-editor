@@ -8132,6 +8132,12 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-nosaccade"> 目の揺れ無効</label>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">揺れ強度(0-3):</span>
+        <input id="av-wobble" type="number" min="0" max="3" step="0.5" value="0" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">表情フェード(ms):</span>
+        <input id="av-exprfade" type="number" min="0" max="5000" step="100" value="0" placeholder="0=瞬時" style="width:64px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+      </div>
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">初期表情:</span>
         <input id="av-emote" type="text" placeholder="表情名（空白=デフォルト）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
@@ -8139,6 +8145,12 @@ function showAvatarExportDialog() {
         <select id="av-exprbarpos" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
           <option value="bottom">下</option><option value="top">上</option><option value="left">左</option><option value="right">右</option>
         </select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;font-size:11px;flex-wrap:wrap">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ドロップシャドウ(px):</span>
+        <input id="av-shadow" type="number" min="0" max="64" step="2" value="0" placeholder="0=なし" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景画像URL:</span>
+        <input id="av-bgimage" type="text" placeholder="https://...（空白=なし）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
@@ -8250,6 +8262,10 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-mic')?.checked) params.push('mic=1');
     const ptType = document.getElementById('av-particle')?.value;
     if (ptType) { params.push('particle=' + ptType); const ptD = parseInt(document.getElementById('av-pdensity')?.value||'60'); if(ptD !== 60) params.push('pdensity='+ptD); }
+    const wob = parseFloat(document.getElementById('av-wobble')?.value||'0'); if(wob>0) params.push('wobble='+wob);
+    const ef = parseInt(document.getElementById('av-exprfade')?.value||'0'); if(ef>0) params.push('exprfade='+ef);
+    const shd = parseInt(document.getElementById('av-shadow')?.value||'0'); if(shd>0) params.push('shadow='+shd);
+    const bgi = document.getElementById('av-bgimage')?.value?.trim(); if(bgi) params.push('bgimage='+encodeURIComponent(bgi));
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -8312,7 +8328,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
@@ -8385,6 +8401,10 @@ async function doExportAvatar() {
   const afkSecs = parseInt(document.getElementById('av-afk-secs')?.value || '300');
   const particleType = document.getElementById('av-particle')?.value?.trim() || '';
   const particleDensity = parseInt(document.getElementById('av-pdensity')?.value || '60');
+  const wobbleAmp = parseFloat(document.getElementById('av-wobble')?.value || '0');
+  const exprFadeMs = parseInt(document.getElementById('av-exprfade')?.value || '0');
+  const shadowPx = parseInt(document.getElementById('av-shadow')?.value || '0');
+  const bgImageUrl = document.getElementById('av-bgimage')?.value?.trim() || '';
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
   // Now safe to remove overlay
   document.getElementById('av-export-overlay')?.remove();
@@ -8452,6 +8472,10 @@ async function doExportAvatar() {
   if (exprBarPos && exprBarPos !== 'bottom') defaultParams.push('exprbarpos=' + exprBarPos);
   if (afkOn) defaultParams.push('afk=' + afkSecs);
   if (particleType) { defaultParams.push('particle=' + particleType); if (particleDensity !== 60) defaultParams.push('pdensity=' + particleDensity); }
+  if (wobbleAmp > 0) defaultParams.push('wobble=' + wobbleAmp);
+  if (exprFadeMs > 0) defaultParams.push('exprfade=' + exprFadeMs);
+  if (shadowPx > 0) defaultParams.push('shadow=' + shadowPx);
+  if (bgImageUrl) defaultParams.push('bgimage=' + encodeURIComponent(bgImageUrl));
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
