@@ -8152,6 +8152,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-controls"> パラメータコントロールパネル（Pキー）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-mixer"> 🎚 表情ミキサーパネル（Mキー）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-gamepad"> ゲームパッド自動ON</label>
       </div>
 
@@ -8388,6 +8389,7 @@ function showAvatarExportDialog() {
     if (document.getElementById('av-perf')?.checked) params.push('perf=1');
     if (!document.getElementById('av-hotkeys')?.checked) params.push('hotkeys=0');
     if (document.getElementById('av-controls')?.checked) params.push('controls=1');
+    if (document.getElementById('av-mixer')?.checked) params.push('mixer=1');
     if (document.getElementById('av-gamepad')?.checked) params.push('gamepad=1');
     if (document.getElementById('av-tts')?.checked) params.push('tts=1');
     if (document.getElementById('av-mic')?.checked) params.push('mic=1');
@@ -8482,7 +8484,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8577,6 +8579,8 @@ async function doExportAvatar() {
   if (perf) defaultParams.push('perf=1');
   if (noHotkeys) defaultParams.push('hotkeys=0');
   if (showControls) defaultParams.push('controls=1');
+  const mixerOn = document.getElementById('av-mixer')?.checked;
+  if (mixerOn) defaultParams.push('mixer=1');
   if (gpOn) defaultParams.push('gamepad=1');
   // Widget params
   const wgParts = [];
@@ -8764,6 +8768,12 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cp-sl{flex:1;accent-color:#e07840;height:3px}
 .cp-val{font-size:7px;color:#808080;min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#c0c0c0;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
+#mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
+#mixer-panel h4{font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:3px}
+.mx-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.mx-lbl{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
+.mx-sl{flex:1;accent-color:#e07840;height:3px}
+.mx-v{font-size:8px;color:#606060;min-width:22px;text-align:right}
 #calib-panel h4{font-size:9px;color:#a07050;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
 .cb-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .cb-lbl{font-size:8px;color:#605040;min-width:70px;text-align:right}
@@ -8771,7 +8781,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="nameplate" style="display:none"></div><div id="pulse-ring" style="display:none"></div><div id="corner-wm" style="display:none"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="nameplate" style="display:none"></div><div id="pulse-ring" style="display:none"></div><div id="corner-wm" style="display:none"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="mixer-panel"><h4>🎚 表情ミキサー</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -9049,6 +9059,29 @@ function _updateCtrlSliders(){
 function _toggleCtrl(){_ctrlVisible=!_ctrlVisible;_ctrlEl.style.display=_ctrlVisible?'block':'none';if(_ctrlVisible)_updateCtrlSliders();}
 if(_ctrlVisible)_ctrlEl.style.display='block';
 document.addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P')_toggleCtrl();});
+// Expression mixer panel (?mixer=1, M key to toggle)
+(()=>{
+  if(!EXPRS.length)return;
+  const _mxEl=document.getElementById('mixer-panel');if(!_mxEl)return;
+  let _mxVisible=_p.has('mixer');
+  const _mxW=new Array(EXPRS.length).fill(0);
+  EXPRS.forEach((ex,i)=>{
+    const row=document.createElement('div');row.className='mx-row';
+    const lbl=document.createElement('span');lbl.className='mx-lbl';lbl.title=ex.name;lbl.textContent=ex.name;
+    const sl=document.createElement('input');sl.type='range';sl.className='mx-sl';sl.min=0;sl.max=100;sl.value=0;
+    const vl=document.createElement('span');vl.className='mx-v';vl.textContent='0';
+    sl.oninput=()=>{
+      _mxW[i]=sl.value/100;vl.textContent=Math.round(sl.value);
+      const blends=EXPRS.map((e,j)=>({name:e.name,weight:_mxW[j]})).filter(b=>b.weight>0);
+      if(blends.length)_blendExprs(blends);else{_resetExpr();curExpr=-1;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+    };
+    row.appendChild(lbl);row.appendChild(sl);row.appendChild(vl);
+    _mxEl.appendChild(row);
+  });
+  if(_mxVisible)_mxEl.style.display='block';
+  window._toggleMixer=()=>{_mxVisible=!_mxVisible;_mxEl.style.display=_mxVisible?'block':'none';};
+  document.addEventListener('keydown',e=>{if(e.key==='m'||e.key==='M')window._toggleMixer();});
+})();
 
 // Face tracking calibration (C key to toggle)
 const _CALIB_KEY='avatar-calib-v1';
