@@ -8360,9 +8360,12 @@ function showAvatarExportDialog() {
       <textarea id="av-discord-map" rows="2" placeholder='{"Valorant": 3, "Minecraft": 0, "__idle": 1}' style="width:100%;background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:#404040;margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名</div>
-      <input id="av-filename" type="text" value="avatar-live2d" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box;margin-bottom:6px">
-      <div style="font-size:9px;color:#666;margin-bottom:12px">.html が自動で付きます</div>
+      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名 / タイトル</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center">
+        <input id="av-filename" type="text" value="avatar-live2d" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box">
+        <input id="av-title" type="text" placeholder="OBSタイトル（任意）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;box-sizing:border-box">
+      </div>
+      <div style="font-size:9px;color:#666;margin-bottom:12px">.html が自動で付きます。タイトルはOBSのソース名に表示。</div>
 
       <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:4px;padding:6px 8px;margin-bottom:12px">
         <div style="font-size:9px;color:#666;margin-bottom:2px">生成されるURLパラメータ（参考）</div>
@@ -8399,6 +8402,7 @@ function showAvatarExportDialog() {
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
     const flv=document.getElementById('av-flip')?.value;if(flv)params.push('flip='+flv);
     const cwTxt=document.getElementById('av-corner')?.value?.trim();if(cwTxt){params.push('corner='+encodeURIComponent(cwTxt));const cwPos=document.getElementById('av-cornerpos')?.value||'br';if(cwPos!=='br')params.push('cornerpos='+cwPos);}
+    const ttTxt=document.getElementById('av-title')?.value?.trim();if(ttTxt)params.push('title='+encodeURIComponent(ttTxt));
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -8475,7 +8479,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
@@ -8656,6 +8660,8 @@ async function doExportAvatar() {
   const cornerText = document.getElementById('av-corner')?.value?.trim() || '';
   const cornerPos = document.getElementById('av-cornerpos')?.value?.trim() || 'br';
   if (cornerText) { defaultParams.push('corner=' + encodeURIComponent(cornerText)); if (cornerPos !== 'br') defaultParams.push('cornerpos=' + cornerPos); }
+  const titleText = document.getElementById('av-title')?.value?.trim() || '';
+  if (titleText) { defaultParams.push('title=' + encodeURIComponent(titleText)); html = html.replace(/<title>[^<]*<\/title>/, `<title>${titleText.replace(/</g,'&lt;')}</title>`); }
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -8855,6 +8861,8 @@ let _cbTimer=null;
 function showChatBubble(user,text){const el=document.getElementById('chat-bubble');if(!el)return;el.innerHTML=`<div class="cb-user">${user.replace(/</g,'&lt;')}</div><div class="cb-text">${text.replace(/</g,'&lt;')}</div>`;el.style.opacity='1';if(_cbTimer)clearTimeout(_cbTimer);_cbTimer=setTimeout(()=>{el.style.opacity='0';},Math.max(2000,parseInt(_p.get('cblife')||'5000')));}
 // Corner watermark (?corner=<text>) — fixed text label in a corner
 (()=>{const _cw=_p.get('corner');if(!_cw)return;const _cwEl=document.getElementById('corner-wm');if(!_cwEl)return;const _pos=_p.get('cornerpos')||'br';const _sz=Math.max(8,Math.min(48,parseInt(_p.get('cornersize')||'11')));const _op=Math.max(0.05,Math.min(1,parseFloat(_p.get('corneropacity')||'0.45')));const _col=_p.get('cornertc');const _bg=_p.get('cornerbg');_cwEl.textContent=decodeURIComponent(_cw);_cwEl.style.fontSize=_sz+'px';_cwEl.style.opacity=_op;_cwEl.style.color=_col?(_col.startsWith('#')||_col.startsWith('rgb')?_col:'#'+_col):'rgba(255,255,255,0.9)';if(_bg)_cwEl.style.background=_bg.startsWith('#')||_bg.startsWith('rgb')?_bg:'#'+_bg;_cwEl.style.padding=_bg?'2px 6px':'0';if(_bg)_cwEl.style.borderRadius='3px';const _pad='8px';if(_pos.includes('t'))_cwEl.style.top=_pad;else _cwEl.style.bottom=_pad;if(_pos.includes('l'))_cwEl.style.left=_pad;else _cwEl.style.right=_pad;_cwEl.style.display='block';})();
+// Page title override (?title=<text>) — shown in OBS browser source list
+(()=>{const _tt=_p.get('title');if(_tt)document.title=decodeURIComponent(_tt);})();
 // Pulse ring (?pulse=1|<color>) — inset glow pulse on viewport edge
 (()=>{const _pr=_p.get('pulse');if(!_pr)return;const _prel=document.getElementById('pulse-ring');if(!_prel)return;const _pc=_pr==='1'||_pr===''?'rgba(224,120,64,0.3)':(_pr.startsWith('#')||_pr.startsWith('rgb')?_pr:'#'+_pr);_prel.style.setProperty('--pr',_pc);_prel.style.display='block';})();
 // Nameplate (?nameplate=<name>) — streamer name card at bottom-center
