@@ -76,10 +76,10 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 .pi.drag-over-parent{background:rgba(96,192,160,.1);border-left-color:#60c0a0;border-left-style:solid;outline:1px dashed rgba(96,192,160,.4)}
 /* Cubism status dot column */
 .pi-dots{display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0;padding:0 4px;align-self:stretch}
-.pi-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;border:1px solid #444;flex-shrink:0}
+.pi-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;border:1px solid #3a3a3a;flex-shrink:0}
 .pi-dot.vis{background:#e07840;border-color:var(--accent)}
-.pi-dot.lock{background:#2a2a2a;border-color:#444}
-.pi-dot.locked{background:#f59e0b;border-color:#f59e0b}
+.pi-dot.lock{background:#2a2a2a;border-color:#3a3a3a}
+.pi-dot.locked{background:#a0a0a0;border-color:#a0a0a0}
 .pi-drag{display:none}
 .pv{font-size:11px;cursor:pointer;color:#666;flex-shrink:0;width:16px;text-align:center;transition:color .1s}
 .pv:hover{color:#c0c0c0}
@@ -168,7 +168,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 .pitem.spa .plbl .pname{color:#e07840}
 .pv2{font-size:10px;color:#a0a0a0;font-family:monospace;min-width:32px;text-align:right;flex-shrink:0}
 .pitem.spa .pv2{color:#e07840}
-.pkf-dot{width:7px;height:7px;border-radius:50%;border:1px solid #444;background:transparent;flex-shrink:0;cursor:default}
+.pkf-dot{width:7px;height:7px;border-radius:50%;border:1px solid #3a3a3a;background:transparent;flex-shrink:0;cursor:default}
 .pkf-dot.has-kf{background:#c83020;border-color:#e04030}
 .pkf-dot.near-kf{background:rgba(200,48,32,.4);border-color:#a02010}
 /* Cubism-style parameter sliders — inline in pitem */
@@ -934,7 +934,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
 
       <div class="prop-section" id="no-sel-msg" style="padding:24px 8px;text-align:center;color:#666;font-size:10px;line-height:2">
-        パーツを選択してください<br><span style="font-size:9px;color:#444">クリックで選択 / Shiftで複数選択</span>
+        パーツを選択してください<br><span style="font-size:9px;color:#666">クリックで選択 / Shiftで複数選択</span>
       </div>
     </div>
 
@@ -3793,7 +3793,7 @@ function toggleGlobalCoordMode() {
     lx.textContent='cX'; ly.textContent='cY';
     lx.title='グローバル座標モード ON（中心基準）';
   } else {
-    btn.textContent = 'LC'; btn.style.color='#646464'; btn.style.borderColor='#444';
+    btn.textContent = 'LC'; btn.style.color='#646464'; btn.style.borderColor='#3a3a3a';
     lx.textContent='X'; ly.textContent='Y';
     lx.title='クリックでグローバル座標に切替';
   }
