@@ -9900,7 +9900,11 @@ function initCam(){
   const fmtTime=d=>\`\${pad2(d.getHours())}:\${pad2(d.getMinutes())}:\${pad2(d.getSeconds())}\`;
   const fmtDur=ms=>{const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);return h?\`\${h}:\${pad2(m%60)}:\${pad2(s%60)}\`:\`\${m}:\${pad2(s%60)}\`;};
   const makeWg=(label,valId)=>{const d=document.createElement('div');d.className='wg-item';d.innerHTML=(label?\`<div class="wg-label">\${label}</div>\`:'')+\`<div id="\${valId}" class="wg-val">—</div>\`;wOverlay.appendChild(d);return d;};
-  if(widgets.includes('clock')){makeWg('現在時刻','wg-clock');setInterval(()=>{const el=document.getElementById('wg-clock');if(el)el.textContent=fmtTime(new Date());},1000);}
+  if(widgets.includes('clock')){
+    const _tz=_p.get('clocktz')||'';const _12h=_p.has('clock12');
+    const _fmtClock=()=>{try{const d=new Date();if(_tz){return d.toLocaleTimeString('ja-JP',{timeZone:_tz,hour12:_12h,hour:'2-digit',minute:'2-digit',second:'2-digit'});}return _12h?d.toLocaleTimeString('ja-JP',{hour12:true}):fmtTime(d);}catch(e){return fmtTime(new Date());}};
+    makeWg('現在時刻','wg-clock');setInterval(()=>{const el=document.getElementById('wg-clock');if(el)el.textContent=_fmtClock();},1000);
+  }
   if(widgets.includes('timer')){makeWg('配信時間','wg-timer');setInterval(()=>{const el=document.getElementById('wg-timer');if(el)el.textContent=fmtDur(Date.now()-_streamStart);},1000);}
   const gameW=widgets.find(w=>w.startsWith('game='));
   if(gameW){const gameName=decodeURIComponent(gameW.slice(5))||'GAME';makeWg('プレイ中','wg-game');const el=document.getElementById('wg-game');if(el)el.textContent=gameName;}
