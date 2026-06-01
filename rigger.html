@@ -8610,6 +8610,10 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
 #hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:30;pointer-events:none;display:none}
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
+#brb-overlay{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;pointer-events:none;background:rgba(0,0,0,.55);transition:opacity .4s ease}
+#brb-overlay .brb-txt{font-family:sans-serif;font-size:42px;font-weight:900;color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.9),0 0 60px rgba(224,120,64,.4);letter-spacing:.05em;opacity:0;animation:brbFadeIn .5s ease forwards}
+#brb-overlay .brb-sub{font-size:14px;color:rgba(255,255,255,.55);font-family:monospace;opacity:0;animation:brbFadeIn .6s .15s ease forwards}
+@keyframes brbFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #ctrl-panel h4{font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:8px;color:#666;min-width:52px;text-align:right}
@@ -8623,7 +8627,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8716,6 +8720,7 @@ function _buildHotkeyPanel(){
   rows.push(['J','スクリーンシェイク']);
   rows.push(['F','フラッシュ']);
   rows.push(['B','ブラーON/OFF']);
+  rows.push(['R','BRBオーバーレイ表示/非表示']);
   rows.push(['L','ポーズロック（顔追跡を一時停止）']);
   if(_p.get('ws')){rows.push(['---','--- WebSocket ---']);rows.push(['WS',_p.get('ws')]);}
   el.innerHTML=rows.map(([k,v])=>k==='---'?`<div style="color:#666;margin:3px 0;">${v}</div>`:k==='WS'?`<div style="color:#666;font-size:8px;">🔌 ${v}</div>`:`<div><kbd>${k}</kbd>${v}</div>`).join('');
@@ -8923,6 +8928,20 @@ function toggleBlur(){
   _blurOn=!_blurOn;
   document.body.style.filter=_blurOn?'blur(4px)':'';
 }
+let _brbOn=false;
+function toggleBRB(msg){
+  const el=document.getElementById('brb-overlay');if(!el)return;
+  _brbOn=!_brbOn;
+  if(_brbOn){
+    const txt=msg||_p.get('brbtext')||'BRB';
+    const sub=_p.get('brbsub')||'Be Right Back';
+    el.innerHTML=`<div class="brb-txt">${txt}</div><div class="brb-sub">${sub}</div>`;
+    el.style.display='flex';
+    if(window._afkBump)clearInterval();
+  } else {
+    el.style.opacity='0';setTimeout(()=>{el.style.display='none';el.style.opacity='';},400);
+  }
+}
 // Pose lock: freeze T state so facial tracking doesn't override it
 let _poseLocked = false, _frozenT = null;
 function togglePoseLock() {
@@ -8939,6 +8958,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='j'||e.key==='J')triggerShake(10,0.3);
   if(e.key==='f'||e.key==='F')triggerFlash();
   if(e.key==='b'||e.key==='B')toggleBlur();
+  if(e.key==='r'||e.key==='R')toggleBRB();
   if(e.key==='l'||e.key==='L')togglePoseLock();
 });
 
@@ -9115,6 +9135,7 @@ let _micMouthLevel=0;
         case 'lose':   triggerFlash('rgba(100,0,0,0.5)',500); triggerShake(8,0.5); _applyEvExpr('lose'); if(_emotesEnabled)triggerEmote(msg.emoji||_emoteMap.lose); break;
         case 'assist': if(window._wgKDA)window._wgKDA('assist'); break;
         case 'emote':  if(msg.emoji)triggerEmote(msg.emoji,msg.dur||2200,msg.size||72); break;
+        case 'brb':    toggleBRB(msg.text); break;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
