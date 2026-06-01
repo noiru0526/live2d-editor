@@ -393,6 +393,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tb-more-item" onclick="showPartNoteList();closeTbMore('tb-more-tools')">📝 ノート一覧</button>
         <button class="tb-more-item" id="btn-gpad" onclick="toggleRiggerGamepad();closeTbMore('tb-more-tools')" title="左スティック=頭XY, 右スティック=眼球">🎮 ゲームパッド</button>
         <button class="tb-more-item" onclick="showShortcutsOverlay();closeTbMore('tb-more-tools')" title="キーボードショートカット一覧">⌨ ショートカット</button>
+        <button class="tb-more-item" onclick="showWsTestPanel();closeTbMore('tb-more-tools')" title="WebSocket送信テストパネル">🔌 WS テスト</button>
       </div>
     </div>
   </div>
@@ -7961,6 +7962,50 @@ function showShortcutsOverlay() {
   document.body.appendChild(d);
 }
 
+function showWsTestPanel() {
+  document.getElementById('ws-test-panel')?.remove();
+  const ov=document.createElement('div');ov.id='ws-test-panel';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:950;display:flex;align-items:center;justify-content:center;';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  const presets=[
+    {label:'kill',json:'{"type":"kill"}'},
+    {label:'death',json:'{"type":"death"}'},
+    {label:'hit',json:'{"type":"hit"}'},
+    {label:'win',json:'{"type":"win"}'},
+    {label:'health 20%',json:'{"type":"health","value":0.2}'},
+    {label:'health 100%',json:'{"type":"health","value":1}'},
+    {label:'shake',json:'{"type":"shake","amp":10,"dur":0.5}'},
+    {label:'flash red',json:'{"type":"flash","color":"rgba(255,0,0,0.5)","dur":300}'},
+    {label:'expr →デフォルト',json:'{"type":"expr","index":-1}'},
+    {label:'expr by name',json:'{"type":"expr","name":"笑い","dur":3000}'},
+    {label:'param headX',json:'{"type":"param","name":"headX","value":0.5}'},
+    {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
+  ];
+  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
+  ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;margin-bottom:12px">
+      <span style="font-size:12px;font-weight:600;color:#c8c8c8">🔌 WebSocket 送信テスト</span>
+      <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:#606060;cursor:pointer;font-size:14px">×</button>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:9px;color:#666;margin-bottom:4px">送信先 URL</div>
+      <input id="wt-url" type="text" value="ws://localhost:8765" style="width:100%;background:#1a1a1a;border:1px solid #3a3a3a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:9px;color:#666;margin-bottom:4px">プリセット</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${presetsHtml}</div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:9px;color:#666;margin-bottom:4px">JSON メッセージ</div>
+      <textarea id="wt-input" rows="3" style="width:100%;background:#1a1a1a;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button onclick="(function(){const url=document.getElementById('wt-url').value.trim();const msg=document.getElementById('wt-input').value.trim();if(!url||!msg)return;try{JSON.parse(msg);}catch(e){document.getElementById('wt-status').textContent='JSON エラー: '+e.message;document.getElementById('wt-status').style.color='#f87171';return;}const ws=new WebSocket(url);ws.onopen=()=>{ws.send(msg);document.getElementById('wt-status').textContent='送信完了: '+msg.slice(0,40);document.getElementById('wt-status').style.color='#7af070';setTimeout(()=>ws.close(),500);};ws.onerror=()=>{document.getElementById('wt-status').textContent='接続エラー: '+url;document.getElementById('wt-status').style.color='#f87171';};})()" style="flex:1;background:rgba(60,160,80,.25);border:1px solid rgba(60,160,80,.5);color:#70d070;border-radius:4px;padding:6px;cursor:pointer;font-size:11px">送信</button>
+      <span id="wt-status" style="flex:2;font-size:9px;color:#606060;font-family:monospace"></span>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
 function showWsApiRef() {
   document.getElementById('ws-api-ref-overlay')?.remove();
   const d=document.createElement('div');d.id='ws-api-ref-overlay';
