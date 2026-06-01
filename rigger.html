@@ -8238,6 +8238,8 @@ function showAvatarExportDialog() {
       <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ズーム倍率:</span>
         <input id="av-zoom" type="number" min="0.2" max="3" step="0.1" value="1" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">不透明度(0-1):</span>
+        <input id="av-opacity" type="number" min="0" max="1" step="0.05" value="1" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">フィルタープリセット:</span>
         <select id="av-filter" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
           <option value="">なし</option>
@@ -8423,6 +8425,7 @@ function showAvatarExportDialog() {
     const ecs=parseInt(document.getElementById('av-exprcycle')?.value||'0');if(ecs>0)params.push('exprcycle='+ecs);
     const npTxt = document.getElementById('av-nameplate')?.value?.trim(); if(npTxt){params.push('nameplate='+encodeURIComponent(npTxt));const npSub=document.getElementById('av-npsub')?.value?.trim();if(npSub)params.push('npsub='+encodeURIComponent(npSub));}
     const zv=parseFloat(document.getElementById('av-zoom')?.value||'1');if(!isNaN(zv)&&zv!==1&&zv>0)params.push('zoom='+zv);
+    const ov=parseFloat(document.getElementById('av-opacity')?.value||'1');if(!isNaN(ov)&&ov<1&&ov>=0)params.push('opacity='+ov);
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
     const flv=document.getElementById('av-flip')?.value;if(flv)params.push('flip='+flv);
     const slv=parseFloat(document.getElementById('av-scanlines')?.value||'0');if(slv>0)params.push('scanlines='+slv);
@@ -8506,7 +8509,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-opacity','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
@@ -8693,6 +8696,8 @@ async function doExportAvatar() {
   if (bgVideoUrl) defaultParams.push('bgvideo=' + encodeURIComponent(bgVideoUrl));
   if (nameplateText) { defaultParams.push('nameplate=' + encodeURIComponent(nameplateText)); if (nameplateSubText) defaultParams.push('npsub=' + encodeURIComponent(nameplateSubText)); }
   if (!isNaN(zoomVal) && zoomVal !== 1 && zoomVal > 0) defaultParams.push('zoom=' + zoomVal);
+  const opacityVal = parseFloat(document.getElementById('av-opacity')?.value || '1');
+  if (!isNaN(opacityVal) && opacityVal < 1 && opacityVal >= 0) defaultParams.push('opacity=' + opacityVal);
   if (filterPreset) defaultParams.push('filter=' + filterPreset);
   const flipVal = document.getElementById('av-flip')?.value?.trim() || '';
   if (flipVal) defaultParams.push('flip=' + flipVal);
@@ -8908,6 +8913,8 @@ const _emotesEnabled=_p.has('emotes');
 // HP bar
 const _hpBarEnabled=_p.has('hpbar');
 if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw.style.display='block';window._setHp=(v)=>{const hv=Math.max(0,Math.min(1,+v||0));window._avatarHealth=hv;const fill=document.getElementById('hp-bar-fill');if(!fill)return;fill.style.width=(hv*100)+'%';fill.style.backgroundColor=hv>0.5?`hsl(${Math.round(120*(hv-.5)/.5)},80%,45%)`:hv>0.25?`hsl(${Math.round(60*hv/.5)},80%,45%)`:'hsl(0,80%,40%)';};window._setHp(1);}
+// Canvas opacity (?opacity=<0-1>)
+(()=>{const _op=parseFloat(_p.get('opacity')||'1');if(_op>=1||isNaN(_op))return;canvas.style.opacity=Math.max(0,Math.min(1,_op));})();
 // Chat bubble (?chatbubble=1) — right-side speech bubble for Twitch chat
 const _chatBubbleEnabled=_p.has('chatbubble');
 let _cbTimer=null;
