@@ -8032,6 +8032,7 @@ function showWsTestPanel() {
     {label:'marquee',json:'{"type":"marquee","text":"テストマーキー "}'},
     {label:'score +1',json:'{"type":"score","delta":1}'},
     {label:'countdown 60s',json:'{"type":"countdown","value":60}'},
+    {label:'exprblend',json:'{"type":"exprblend","blends":[{"name":"笑い","weight":0.6},{"name":"驚き","weight":0.4}]}'},
     {label:'expr →デフォルト',json:'{"type":"expr","index":-1}'},
     {label:'expr by name',json:'{"type":"expr","name":"笑い","dur":3000}'},
     {label:'param headX',json:'{"type":"param","name":"headX","value":0.5}'},
@@ -8090,6 +8091,7 @@ function showWsApiRef() {
     ['assist','KDAウィジェットにアシスト加算','{type:"assist"}'],
     ['pong','pingへの応答（無視）','{type:"pong"}'],
     ['countdown','カウントダウン残秒を設定（?widget=countdown時）','{type:"countdown",value:60}'],
+    ['exprblend','複数表情を重み付きブレンド','{type:"exprblend",blends:[{name:"笑い",weight:0.7},{name:"驚き",weight:0.3}]}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -8772,6 +8774,19 @@ const _cKeys=Object.keys(PD).filter(k=>!(k in S));
 const _cS={};const _cT={};for(const k of _cKeys){_cS[k]=0;_cT[k]=0;}
 function _setExpr(vals){Object.assign(T,vals);for(const k of _cKeys)_cT[k]=vals[k]??0;}
 function _resetExpr(){for(const k of Object.keys(T))T[k]=0;for(const k of _cKeys)_cT[k]=0;}
+// Blend multiple expressions by weight: [{name|idx, weight}]
+function _blendExprs(blends){
+  const acc={};let tw=0;
+  for(const b of blends){
+    const ni=typeof b.name==='string'?EXPRS.findIndex(e=>e.name.toLowerCase()===b.name.toLowerCase()):(b.idx??-1);
+    if(ni<0||ni>=EXPRS.length)continue;
+    const w=Math.max(0,Math.min(1,b.weight??1));tw+=w;
+    for(const[k,v]of Object.entries(EXPRS[ni].values))acc[k]=(acc[k]??0)+v*w;
+  }
+  if(tw>0){for(const k of Object.keys(acc))acc[k]/=tw;_setExpr(acc);curExpr=-2;}
+  else{_resetExpr();curExpr=-1;}
+  document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));
+}
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
 // Eye saccade — natural micro eye movements when not face-tracking (?nosaccade=1 to disable)
 let _sacX=0,_sacY=0,_sacT=0,_sacInterval=3,_sacEnabled=!_p.has('nosaccade');
@@ -9341,6 +9356,7 @@ let _micMouthLevel=0;
           break;
         case 'lfoset': if(Array.isArray(msg.lfos)){_rtLFOs=msg.lfos.map(l=>({...l,_t0:_lfoT}));} break;
         case 'pong': break;
+        case 'exprblend': if(Array.isArray(msg.blends))_blendExprs(msg.blends); break;
         case 'custom':
           if(msg.shake) triggerShake(msg.shake.amp??8, msg.shake.dur??0.3);
           if(msg.flash) triggerFlash(msg.flash.color||'rgba(255,255,255,0.7)', msg.flash.dur??120);
