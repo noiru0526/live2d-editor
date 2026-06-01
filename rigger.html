@@ -8651,6 +8651,8 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
 #hud-msg{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.85);color:#e0e0e0;font-size:12px;font-family:sans-serif;padding:5px 16px;border-radius:20px;z-index:60;pointer-events:none;opacity:0;transition:opacity .3s ease;border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(4px);white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
 #chat-overlay{position:fixed;bottom:60px;left:12px;z-index:40;pointer-events:none;display:flex;flex-direction:column-reverse;gap:4px;max-width:260px;max-height:40vh;overflow:hidden}
+#marquee-bar{position:fixed;bottom:0;left:0;right:0;height:22px;background:rgba(0,0,0,.75);z-index:35;overflow:hidden;display:none;pointer-events:none}
+#marquee-inner{position:absolute;top:0;white-space:nowrap;font-family:sans-serif;font-size:11px;color:#e0e0e0;line-height:22px;padding-left:100%;display:inline-block}
 .chat-msg{background:rgba(10,10,10,.78);color:#e8e8e8;font-size:11px;font-family:sans-serif;padding:3px 8px;border-radius:10px;border-left:2px solid rgba(255,255,255,.2);animation:chatFadeIn .25s ease forwards;line-height:1.4;word-break:break-word}
 .chat-msg .chat-user{font-weight:700;margin-right:4px}
 @keyframes chatFadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:.9;transform:none}}
@@ -8671,7 +8673,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8731,6 +8733,9 @@ const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith(
 const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
+// Marquee ticker
+(()=>{const mt=_p.get('marquee');if(!mt)return;const bar=document.getElementById('marquee-bar');const inner=document.getElementById('marquee-inner');if(!bar||!inner)return;bar.style.display='block';const txt=decodeURIComponent(mt);const _bgC=_p.get('marqueebg');if(_bgC)bar.style.background=_bgC.startsWith('#')||_bgC.startsWith('rgb')?_bgC:'#'+_bgC;const _tc=_p.get('marqueetc');if(_tc)inner.style.color=_tc.startsWith('#')||_tc.startsWith('rgb')?_tc:'#'+_tc;const spd=Math.max(20,parseInt(_p.get('marqueespd')||'80'));inner.textContent=txt+'　　　　　';let pos=0;const w=inner.offsetWidth+100;function tick(ts){pos-=(spd/60);if(pos<-w){pos=window.innerWidth;}inner.style.transform=`translateX(${pos}px)`;requestAnimationFrame(tick);}requestAnimationFrame(tick);})();
+// WS marquee update: {type:"marquee",text:"..."}
 // Vignette effect
 const _vignAmt=Math.max(0,Math.min(1,parseFloat(_p.get('vignette')||'0')));
 if(_vignAmt>0){const _vg=document.createElement('div');_vg.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:10;background:radial-gradient(ellipse at center,transparent ${Math.round(40*(1-_vignAmt))}%,rgba(0,0,0,${(0.85*_vignAmt).toFixed(2)}) 100%)`;document.body.appendChild(_vg);}
@@ -9195,6 +9200,7 @@ let _micMouthLevel=0;
         case 'brb':    toggleBRB(msg.text); break;
         case 'score':  if(window._wgScore){const cur=parseInt(document.getElementById('wg-score')?.textContent||'0')||0;window._wgScore(msg.value!==undefined?parseInt(msg.value):cur+(parseInt(msg.delta)||0));} break;
         case 'text':   if(msg.text)showHudMsg(String(msg.text),msg.dur||3000); break;
+        case 'marquee':{const _mi=document.getElementById('marquee-inner');const _mb=document.getElementById('marquee-bar');if(_mi&&_mb){if(msg.text){_mi.textContent=String(msg.text)+'　　　　　';_mb.style.display='block';}else _mb.style.display='none';}break;}
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
