@@ -9208,10 +9208,9 @@ function initCam(){
   function doIdle(){
     if(curExpr>=0){sched();return;}
     const idx=Math.floor(Math.random()*EXPRS.length);
-    curExpr=idx;_setExpr(EXPRS[idx].values);
-    document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));
+    applyExpr(idx);
     setTimeout(()=>{
-      if(curExpr===idx){curExpr=-1;for(const k of Object.keys(T))T[k]=0;document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+      if(curExpr===idx) applyExpr(-1);
       sched();
     },DUR);
   }
