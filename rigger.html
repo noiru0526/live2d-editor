@@ -8231,7 +8231,10 @@ function showAvatarExportDialog() {
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
-      <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"shake","amp":10,"dur":0.5}</code></div>
+      <div style="display:flex;gap:5px;margin-bottom:5px;align-items:center;font-size:11px">
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-hpbar" style="accent-color:#e07840"> ❤ HPバー表示（画面下部）</label>
+      </div>
+      <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
         <span style="color:#888;font-size:9px">kill:</span>
         <select id="av-ev-kill" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
@@ -8326,6 +8329,7 @@ function showAvatarExportDialog() {
     if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
     if (wsUrl2) params.push('ws=' + encodeURIComponent(wsUrl2));
+    if (document.getElementById('av-hpbar')?.checked) params.push('hpbar=1');
     ['kill','death','win','lose','hit'].forEach(ev => {
       const v = document.getElementById('av-ev-'+ev)?.value?.trim();
       if (v) {
@@ -8366,7 +8370,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8409,6 +8413,7 @@ async function doExportAvatar() {
   const chatChannel = document.getElementById('av-chat-channel')?.value?.trim() || '';
   const chatCmd = document.getElementById('av-chat-cmd')?.value?.trim() || '';
   const wsUrlExport = document.getElementById('av-ws-url')?.value?.trim() || '';
+  const hpBarOn = document.getElementById('av-hpbar')?.checked;
   const evExprs = {};
   ['kill','death','win','lose','hit'].forEach(ev => {
     const v = document.getElementById('av-ev-'+ev)?.value?.trim();
@@ -8471,6 +8476,7 @@ async function doExportAvatar() {
     if (chatCmd) defaultParams.push('chatcmd=' + encodeURIComponent(chatCmd));
   }
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
+  if (hpBarOn) defaultParams.push('hpbar=1');
   Object.entries(evExprs).forEach(([ev, cfg]) => {
     defaultParams.push(ev+'expr='+encodeURIComponent(cfg.name));
     defaultParams.push(ev+'exprdur='+Math.round(cfg.dur*1000));
@@ -8584,6 +8590,8 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .wg-label{font-size:8px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
 .wg-val{font-size:13px;color:#e0e0e0;font-weight:bold}
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
+#hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:30;pointer-events:none;display:none}
+#hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}
 #ctrl-panel h4{font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:8px;color:#666;min-width:52px;text-align:right}
@@ -8597,7 +8605,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8657,6 +8665,9 @@ const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith(
 const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
+// HP bar
+const _hpBarEnabled=_p.has('hpbar');
+if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw.style.display='block';window._setHp=(v)=>{const hv=Math.max(0,Math.min(1,+v||0));window._avatarHealth=hv;const fill=document.getElementById('hp-bar-fill');if(!fill)return;fill.style.width=(hv*100)+'%';fill.style.backgroundColor=hv>0.5?`hsl(${Math.round(120*(hv-.5)/.5)},80%,45%)`:hv>0.25?`hsl(${Math.round(60*hv/.5)},80%,45%)`:'hsl(0,80%,40%)';};window._setHp(1);}
 const _shadowParam=_p.get('shadow');
 if(_shadowParam){const _sb=isNaN(parseInt(_shadowParam))?16:Math.max(4,parseInt(_shadowParam));canvas.style.filter='drop-shadow(0 '+Math.round(_sb*.6)+'px '+_sb+'px rgba(0,0,0,0.55))'+(canvas.style.filter?(' '+canvas.style.filter):'');}
 const _stEl=document.getElementById('st');
@@ -9075,6 +9086,7 @@ let _micMouthLevel=0;
         case 'health': {
           const hv=Math.max(0,Math.min(1,parseFloat(msg.value??1)));
           window._avatarHealth=hv;
+          if(window._setHp)window._setHp(hv);
           if(hv<0.25){triggerFlash('rgba(220,0,0,'+(0.3*(1-hv/.25)).toFixed(2)+')',200);triggerShake(4*(1-hv/.25),.2);}
           if(msg.expr!==undefined)applyExpr(msg.expr);
           break;}
