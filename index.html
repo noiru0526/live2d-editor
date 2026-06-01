@@ -4475,13 +4475,13 @@ canvas{display:block;image-rendering:auto;}
 #chat-ov{display:none;position:fixed;bottom:16px;left:14px;max-width:340px;z-index:98;pointer-events:none;font-family:'Segoe UI',sans-serif;}
 #chat-ov .cm{display:flex;flex-direction:column;gap:3px;max-height:240px;overflow:hidden;}
 #chat-ov .cb{background:rgba(20,20,20,.82);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:5px 10px;font-size:11.5px;line-height:1.45;color:#e0e0e0;animation:cmfade 8s forwards;word-break:break-word;}
-#chat-ov .cb .cu{color:#7ec8ff;font-weight:700;margin-right:5px;}
+#chat-ov .cb .cu{color:#b0b0b0;font-weight:600;margin-right:5px;}
 #chat-ov.show{display:block;}
 /* Chat bubble (?chatbubble=1) */
 #cb-ov{display:none;position:fixed;z-index:97;pointer-events:none;font-family:'Segoe UI',sans-serif;max-width:320px;}
 #cb-ov.show{display:block;}
 #cb-ov .cbb{background:rgba(20,20,20,.88);border:1px solid rgba(224,120,64,.4);border-radius:14px;padding:8px 14px;font-size:12px;color:#e0e0e0;position:relative;word-break:break-word;line-height:1.5;backdrop-filter:blur(6px);box-shadow:0 2px 12px rgba(0,0,0,.5);animation:cbslide .25s ease forwards;}
-#cb-ov .cbu{color:#7ec8ff;font-weight:700;margin-right:5px;font-size:11px;}
+#cb-ov .cbu{color:#b0b0b0;font-weight:600;margin-right:5px;font-size:11px;}
 #cb-ov.pos-tl{top:16px;left:16px;}
 #cb-ov.pos-tc{top:16px;left:50%;transform:translateX(-50%);}
 #cb-ov.pos-tr{top:16px;right:16px;}
@@ -6055,7 +6055,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:700;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:#ffd060;padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -26119,7 +26119,7 @@ function blendAnimations() {
   const opts = clips.slice(1).map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
   const dlg = document.createElement('div');
   dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
-  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">⚗ アニメーションブレンド</div>
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">⚗ アニメーションブレンド</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">現在のアニメーションに別クリップのKFをブレンドします</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
       <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ブレンド元:</label>
@@ -27694,7 +27694,7 @@ function showParamGroupManager() {
   let html = '<div style="font-size:12px;line-height:2;display:grid;gap:6px;">';
   for (const [grp, ids] of Object.entries(PGROUPS)) {
     html += `<div style="background:#1e1e1e;border:1px solid #2d2d2d;border-radius:4px;padding:5px 8px;">
-      <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:4px;">${grp}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:4px;">${grp}</div>
       <div style="display:flex;flex-wrap:wrap;gap:3px;">`;
     for (const pid of paramNames) {
       const inGrp = PGROUPS[grp].includes(pid);
@@ -28142,7 +28142,7 @@ function showEasingPicker(callback, currentEasing) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(2px);';
   const box = document.createElement('div');
   box.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:560px;max-width:96vw;box-shadow:0 16px 48px rgba(0,0,0,.7);';
-  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:var(--dim);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
   for(const ease of EASING_CATALOG){
@@ -30111,7 +30111,7 @@ function exportGIF() {
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9001;display:flex;align-items:center;justify-content:center;';
   const wh=Math.min(canvas.width,canvas.height,512);
   ov.innerHTML=`<div style="background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:280px;font-size:11px;color:var(--text);">
-    <div style="font-weight:700;font-size:13px;color:var(--text-bright);margin-bottom:10px;">🎞 GIF書き出し設定</div>
+    <div style="font-weight:600;font-size:13px;color:var(--text-bright);margin-bottom:10px;">🎞 GIF書き出し設定</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;">
       <label style="color:var(--dim);">FPS<br><select id="gif-fps" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
         <option value="6">6 fps（軽量）</option><option value="10">10 fps</option>
@@ -30134,7 +30134,7 @@ function exportGIF() {
     <div id="gif-est" style="font-size:9px;color:#5a5a5a;margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;">
       <button id="gif-cancel" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
-      <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:700;">書き出し開始</button>
+      <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:600;">書き出し開始</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
