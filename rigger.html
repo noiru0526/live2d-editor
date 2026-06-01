@@ -8398,10 +8398,12 @@ function applyExpr(idx){
   else{_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx+1));}
 }
 
-// Build expression bar
+// Build expression bar (?noexprbar=1 or obs=1 hides it)
 const bar=document.getElementById('expr-bar');
-EXPRS.forEach((ex,i)=>{const b=document.createElement('div');b.className='expr-btn';b.id='eb-'+i;b.textContent='['.concat(i+1,'] ',ex.name);bar.appendChild(b);});
-if(EXPRS.length){const b=document.createElement('div');b.className='expr-btn';b.textContent='[0] デフォルト';bar.prepend(b);}
+if(!_p.has('noexprbar')&&!OBS_MODE){
+  EXPRS.forEach((ex,i)=>{const b=document.createElement('div');b.className='expr-btn';b.id='eb-'+i;b.textContent='['.concat(i+1,'] ',ex.name);bar.appendChild(b);});
+  if(EXPRS.length){const b=document.createElement('div');b.className='expr-btn';b.textContent='[0] デフォルト';bar.prepend(b);}
+}else{bar.style.display='none';}
 
 document.addEventListener('keydown',e=>{
   const n=parseInt(e.key);
@@ -8720,15 +8722,21 @@ let _micMouthLevel=0;
         case 'shake':  triggerShake(msg.amp??8, msg.dur??0.3); break;
         case 'flash':  triggerFlash(msg.color||'rgba(255,255,255,0.7)', msg.dur??120); break;
         case 'blur':   toggleBlur(); break;
-        case 'expr':
-          if(true){
-            if(msg.name){const ni=EXPRS.findIndex(e=>e.name.toLowerCase()===String(msg.name).toLowerCase());if(ni>=0)applyExpr(ni);}
-            else if(msg.index>=0)applyExpr(msg.index);
-            else if(msg.index===-1){curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
+        case 'expr':{
+          let _ni=-1;
+          if(msg.name){_ni=EXPRS.findIndex(e=>e.name.toLowerCase()===String(msg.name).toLowerCase());}
+          else if(msg.index!=null)_ni=msg.index;
+          applyExpr(_ni);
+          if(msg.dur>0&&_ni>=0){
+            clearTimeout(window._wsExprTimer);
+            window._wsExprTimer=setTimeout(()=>applyExpr(-1),msg.dur);
           }
-          break;
+          break;}
         case 'param':
-          if(msg.name&&typeof msg.value==='number')S[msg.name]=Math.max(-1,Math.min(1,msg.value));
+          if(msg.name){
+            if(typeof msg.value==='number')T[msg.name]=Math.max(-1,Math.min(1,msg.value));
+            else if(typeof msg.delta==='number')T[msg.name]=Math.max(-1,Math.min(1,(T[msg.name]||0)+msg.delta));
+          }
           break;
         case 'speak':  if(msg.text) speak(msg.text, msg.voice||0, msg.rate||1, msg.pitch||1); break;
         case 'lfo':
