@@ -8241,7 +8241,20 @@ function showAvatarExportDialog() {
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">サブ:</span>
         <input id="av-npsub" type="text" placeholder="サブタイトル（任意）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
-      <div style="font-size:9px;color:#404040;margin-bottom:12px">画面下部中央に半透明の名前カード表示。URLパラメータ: ?nameplate=名前&npsub=サブタイトル</div>
+      <div style="font-size:9px;color:#404040;margin-bottom:8px">画面下部中央に半透明の名前カード表示。URLパラメータ: ?nameplate=名前&npsub=サブタイトル</div>
+      <div style="font-size:10px;color:#888888;margin-bottom:4px;font-weight:600;letter-spacing:.5px">🏷 コーナー透かし</div>
+      <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">テキスト:</span>
+        <input id="av-corner" type="text" placeholder="例: © noiru（空白=非表示）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">位置:</span>
+        <select id="av-cornerpos" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:2px 4px;font-size:10px">
+          <option value="br">右下</option>
+          <option value="bl">左下</option>
+          <option value="tr">右上</option>
+          <option value="tl">左上</option>
+        </select>
+      </div>
+      <div style="font-size:9px;color:#404040;margin-bottom:12px">?corneropacity=0.4 ?cornersize=11 ?cornertc=#fff ?cornerbg=で色指定可。</div>
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">種類:</span>
@@ -8375,6 +8388,7 @@ function showAvatarExportDialog() {
     const npTxt = document.getElementById('av-nameplate')?.value?.trim(); if(npTxt){params.push('nameplate='+encodeURIComponent(npTxt));const npSub=document.getElementById('av-npsub')?.value?.trim();if(npSub)params.push('npsub='+encodeURIComponent(npSub));}
     const zv=parseFloat(document.getElementById('av-zoom')?.value||'1');if(!isNaN(zv)&&zv!==1&&zv>0)params.push('zoom='+zv);
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
+    const cwTxt=document.getElementById('av-corner')?.value?.trim();if(cwTxt){params.push('corner='+encodeURIComponent(cwTxt));const cwPos=document.getElementById('av-cornerpos')?.value||'br';if(cwPos!=='br')params.push('cornerpos='+cwPos);}
     const wgP = [];
     if (document.getElementById('av-wg-clock')?.checked) wgP.push('clock');
     if (document.getElementById('av-wg-timer')?.checked) wgP.push('timer');
@@ -8451,7 +8465,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-corner','av-cornerpos'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
@@ -8627,6 +8641,9 @@ async function doExportAvatar() {
   if (nameplateText) { defaultParams.push('nameplate=' + encodeURIComponent(nameplateText)); if (nameplateSubText) defaultParams.push('npsub=' + encodeURIComponent(nameplateSubText)); }
   if (!isNaN(zoomVal) && zoomVal !== 1 && zoomVal > 0) defaultParams.push('zoom=' + zoomVal);
   if (filterPreset) defaultParams.push('filter=' + filterPreset);
+  const cornerText = document.getElementById('av-corner')?.value?.trim() || '';
+  const cornerPos = document.getElementById('av-cornerpos')?.value?.trim() || 'br';
+  if (cornerText) { defaultParams.push('corner=' + encodeURIComponent(cornerText)); if (cornerPos !== 'br') defaultParams.push('cornerpos=' + cornerPos); }
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
@@ -8708,6 +8725,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #nameplate .np-name{font-family:sans-serif;font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.9);letter-spacing:.04em;white-space:nowrap;background:rgba(0,0,0,.55);padding:4px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(6px)}
 #nameplate .np-sub{font-family:sans-serif;font-size:9px;color:rgba(255,255,255,.55);letter-spacing:.06em;margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,.8)}
 @keyframes npFadeIn{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+#corner-wm{position:fixed;pointer-events:none;z-index:36;font-family:sans-serif;white-space:nowrap}
 #chat-bubble{position:fixed;top:18%;right:2%;z-index:45;pointer-events:none;max-width:220px;font-size:11px;font-family:sans-serif;opacity:0;transition:opacity .3s ease}
 #chat-bubble .cb-text{background:rgba(255,255,255,.94);color:#1a1a1a;padding:6px 10px;border-radius:12px;border-bottom-right-radius:2px;line-height:1.5;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 #chat-bubble .cb-user{font-size:9px;font-weight:700;margin-bottom:2px;color:#606060;text-align:right}
@@ -8735,7 +8753,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cb-val{font-size:7px;color:#806040;min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
-</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="nameplate" style="display:none"></div><div id="pulse-ring" style="display:none"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
+</head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="nameplate" style="display:none"></div><div id="pulse-ring" style="display:none"></div><div id="corner-wm" style="display:none"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1633559619/camera_utils.js" crossorigin="anonymous"><\/script>
 <script>
@@ -8810,6 +8828,8 @@ if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw
 const _chatBubbleEnabled=_p.has('chatbubble');
 let _cbTimer=null;
 function showChatBubble(user,text){const el=document.getElementById('chat-bubble');if(!el)return;el.innerHTML=`<div class="cb-user">${user.replace(/</g,'&lt;')}</div><div class="cb-text">${text.replace(/</g,'&lt;')}</div>`;el.style.opacity='1';if(_cbTimer)clearTimeout(_cbTimer);_cbTimer=setTimeout(()=>{el.style.opacity='0';},Math.max(2000,parseInt(_p.get('cblife')||'5000')));}
+// Corner watermark (?corner=<text>) — fixed text label in a corner
+(()=>{const _cw=_p.get('corner');if(!_cw)return;const _cwEl=document.getElementById('corner-wm');if(!_cwEl)return;const _pos=_p.get('cornerpos')||'br';const _sz=Math.max(8,Math.min(48,parseInt(_p.get('cornersize')||'11')));const _op=Math.max(0.05,Math.min(1,parseFloat(_p.get('corneropacity')||'0.45')));const _col=_p.get('cornertc');const _bg=_p.get('cornerbg');_cwEl.textContent=decodeURIComponent(_cw);_cwEl.style.fontSize=_sz+'px';_cwEl.style.opacity=_op;_cwEl.style.color=_col?(_col.startsWith('#')||_col.startsWith('rgb')?_col:'#'+_col):'rgba(255,255,255,0.9)';if(_bg)_cwEl.style.background=_bg.startsWith('#')||_bg.startsWith('rgb')?_bg:'#'+_bg;_cwEl.style.padding=_bg?'2px 6px':'0';if(_bg)_cwEl.style.borderRadius='3px';const _pad='8px';if(_pos.includes('t'))_cwEl.style.top=_pad;else _cwEl.style.bottom=_pad;if(_pos.includes('l'))_cwEl.style.left=_pad;else _cwEl.style.right=_pad;_cwEl.style.display='block';})();
 // Pulse ring (?pulse=1|<color>) — inset glow pulse on viewport edge
 (()=>{const _pr=_p.get('pulse');if(!_pr)return;const _prel=document.getElementById('pulse-ring');if(!_prel)return;const _pc=_pr==='1'||_pr===''?'rgba(224,120,64,0.3)':(_pr.startsWith('#')||_pr.startsWith('rgb')?_pr:'#'+_pr);_prel.style.setProperty('--pr',_pc);_prel.style.display='block';})();
 // Nameplate (?nameplate=<name>) — streamer name card at bottom-center
