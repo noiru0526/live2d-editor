@@ -8140,6 +8140,7 @@ function showAvatarExportDialog() {
 }
 
 async function doExportAvatar() {
+  // Read ALL dialog values BEFORE removing the overlay
   const fps = document.getElementById('av-fps')?.value || '';
   const obs = document.getElementById('av-obs')?.checked;
   const noStatus = document.getElementById('av-nostatus')?.checked;
@@ -8150,7 +8151,31 @@ async function doExportAvatar() {
   const wgClock = document.getElementById('av-wg-clock')?.checked;
   const wgTimer = document.getElementById('av-wg-timer')?.checked;
   const wgGame = document.getElementById('av-wg-game')?.value?.trim() || '';
+  const autoIdle = document.getElementById('av-autoidle')?.checked;
+  const chatEnabled = document.getElementById('av-chat')?.checked;
+  const chatChannel = document.getElementById('av-chat-channel')?.value?.trim() || '';
+  const chatCmd = document.getElementById('av-chat-cmd')?.value?.trim() || '';
+  const wsUrlExport = document.getElementById('av-ws-url')?.value?.trim() || '';
+  const evExprs = {};
+  ['kill','death','win','lose','hit'].forEach(ev => {
+    const v = document.getElementById('av-ev-'+ev)?.value?.trim();
+    if (v) evExprs[ev] = { name: v, dur: parseFloat(document.getElementById('av-ev-'+ev+'-dur')?.value||'3') };
+  });
+  const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
+  const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
+  const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
+  const cgCon = parseFloat(document.getElementById('av-cg-con')?.value||'100');
+  const syncCh = document.getElementById('av-sync-ch')?.value?.trim() || '';
+  const syncRole = document.getElementById('av-sync-role')?.value || '';
+  const obsWs = document.getElementById('av-obs-ws')?.value?.trim() || '';
+  const obsPass = document.getElementById('av-obs-pass')?.value?.trim() || '';
+  const obsMap = document.getElementById('av-obs-map')?.value?.trim() || '';
+  const discordOn = document.getElementById('av-discord')?.checked;
+  const discordMap = document.getElementById('av-discord-map')?.value?.trim() || '';
+  const ttsOn = document.getElementById('av-tts')?.checked;
+  const micOn = document.getElementById('av-mic')?.checked;
   let filename = (document.getElementById('av-filename')?.value?.trim() || 'avatar-live2d').replace(/\.html$/i, '') + '.html';
+  // Now safe to remove overlay
   document.getElementById('av-export-overlay')?.remove();
 
   const model = { version: 3, canvasW, canvasH, expressions, paramBindings, lfos, deformers: deformers.map(d => d.toJSON()), parts: parts.map(p => p.toJSON(true)) };
@@ -8171,60 +8196,41 @@ async function doExportAvatar() {
   if (wgTimer) wgParts.push('timer');
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
-  const autoIdle = document.getElementById('av-autoidle')?.checked;
-  const chatEnabled = document.getElementById('av-chat')?.checked;
-  const chatChannel = document.getElementById('av-chat-channel')?.value?.trim() || '';
-  const chatCmd = document.getElementById('av-chat-cmd')?.value?.trim() || '';
   if (autoIdle) defaultParams.push('autoidle=1');
   if (chatEnabled && chatChannel) {
     defaultParams.push('chat=twitch');
     defaultParams.push('channel=' + encodeURIComponent(chatChannel));
     if (chatCmd) defaultParams.push('chatcmd=' + encodeURIComponent(chatCmd));
   }
-  const wsUrlExport = document.getElementById('av-ws-url')?.value?.trim() || '';
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
-  ['kill','death','win','lose','hit'].forEach(ev => {
-    const v = document.getElementById('av-ev-'+ev)?.value?.trim();
-    if (v) {
-      defaultParams.push(ev+'expr='+encodeURIComponent(v));
-      const dur = parseFloat(document.getElementById('av-ev-'+ev+'-dur')?.value||'3');
-      defaultParams.push(ev+'exprdur='+Math.round(dur*1000));
-    }
+  Object.entries(evExprs).forEach(([ev, cfg]) => {
+    defaultParams.push(ev+'expr='+encodeURIComponent(cfg.name));
+    defaultParams.push(ev+'exprdur='+Math.round(cfg.dur*1000));
   });
   // Color grading
-  const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
-  const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
-  const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
-  const cgCon = parseFloat(document.getElementById('av-cg-con')?.value||'100');
   if (cgHue !== 0) defaultParams.push('hue=' + cgHue);
   if (cgSat !== 100) defaultParams.push('sat=' + cgSat);
   if (cgBri !== 100) defaultParams.push('bri=' + cgBri);
   if (cgCon !== 100) defaultParams.push('con=' + cgCon);
   // Multi-avatar sync
-  const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
   if (syncCh) {
     defaultParams.push('sync=' + encodeURIComponent(syncCh));
-    const role = document.getElementById('av-sync-role')?.value;
-    if (role && role !== 'follower') defaultParams.push('syncrole=' + role);
+    if (syncRole && syncRole !== 'follower') defaultParams.push('syncrole=' + syncRole);
   }
   // OBS scene → expression
-  const obsWs = document.getElementById('av-obs-ws')?.value?.trim();
   if (obsWs) {
     defaultParams.push('obsws=' + encodeURIComponent(obsWs));
-    const obsPass = document.getElementById('av-obs-pass')?.value?.trim();
     if (obsPass) defaultParams.push('obspass=' + encodeURIComponent(obsPass));
-    const obsMap = document.getElementById('av-obs-map')?.value?.trim();
     if (obsMap) defaultParams.push('obsmap=' + encodeURIComponent(obsMap));
   }
   // Discord RPC
-  if (document.getElementById('av-discord')?.checked) {
+  if (discordOn) {
     defaultParams.push('discord=1');
-    const discordMap = document.getElementById('av-discord-map')?.value?.trim();
     if (discordMap) defaultParams.push('discordmap=' + encodeURIComponent(discordMap));
   }
   // TTS / Mic
-  if (document.getElementById('av-tts')?.checked) defaultParams.push('tts=1');
-  if (document.getElementById('av-mic')?.checked) defaultParams.push('mic=1');
+  if (ttsOn) defaultParams.push('tts=1');
+  if (micOn) defaultParams.push('mic=1');
   if (defaultParams.length) {
     const metaTag = `<meta name="av-defaults" content="${defaultParams.join('&')}">`;
     html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">' + metaTag);
