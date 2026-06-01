@@ -8037,6 +8037,10 @@ function showWsTestPanel() {
     {label:'expr →デフォルト',json:'{"type":"expr","index":-1}'},
     {label:'expr by name',json:'{"type":"expr","name":"笑い","dur":3000}'},
     {label:'param headX',json:'{"type":"param","name":"headX","value":0.5}'},
+    {label:'params batch',json:'{"type":"params","values":{"headX":0.5,"headY":0.2,"eyeOpenL":0.8}}'},
+    {label:'pose lock',json:'{"type":"pose","lock":true}'},
+    {label:'pose unlock',json:'{"type":"pose","lock":false}'},
+    {label:'pose reset',json:'{"type":"pose","reset":true}'},
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
   const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:3px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
@@ -8094,6 +8098,8 @@ function showWsApiRef() {
     ['countdown','カウントダウン残秒を設定（?widget=countdown時）','{type:"countdown",value:60}'],
     ['exprblend','複数表情を重み付きブレンド','{type:"exprblend",blends:[{name:"笑い",weight:0.7},{name:"驚き",weight:0.3}]}'],
     ['game','ゲームウィジェット名を更新（?widget=game=時）','{type:"game",name:"Valorant"}'],
+    ['params','複数パラメータ一括設定','{type:"params",values:{headX:0.5,headY:0.2,eyeOpenL:0.8}}'],
+    ['pose','ポーズロック ON/OFF / リセット','{type:"pose",lock:true} / {type:"pose",reset:true}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
@@ -9494,6 +9500,21 @@ let _micMouthLevel=0;
             const _clamped=Math.max(_rmin,Math.min(_rmax,_nv));
             if(_isCustom)_cT[msg.name]=_clamped;else T[msg.name]=_clamped;
           }
+          break;
+        case 'params':
+          if(msg.values&&typeof msg.values==='object'){
+            for(const[k,v]of Object.entries(msg.values)){
+              if(!PD[k])continue;
+              const _pc2=PD[k],_rmin2=_pc2.r?.[0]??-1,_rmax2=_pc2.r?.[1]??1;
+              const _isC2=_cKeys.includes(k);
+              const _cv=Math.max(_rmin2,Math.min(_rmax2,parseFloat(v)));
+              if(_isC2)_cT[k]=_cv;else T[k]=_cv;
+            }
+          }
+          break;
+        case 'pose':
+          if(msg.lock!==undefined)_poseLocked=!!msg.lock;
+          if(msg.reset){_poseLocked=false;Object.keys(T).forEach(k=>{T[k]=0;});}
           break;
         case 'speak':  if(msg.text) speak(msg.text, msg.voice||0, msg.rate||1, msg.pitch||1); break;
         case 'lfo':
