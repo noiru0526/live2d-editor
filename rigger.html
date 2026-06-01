@@ -42,7 +42,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 .ph{padding:4px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;border-left:2px solid rgba(224,140,64,.8);flex-shrink:0;background:#2c2c2c}
 .ph h3{color:#c0c0c0;font-size:11px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
-.ih{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
+.ih{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;line-height:1}
 .ih:hover{color:#d8d8d8;background:#333333}
 
 /* Left panel tabs — hidden (Cubism-style split replaces tabs) */
@@ -187,7 +187,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .prop-sel{background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;font-size:11px;padding:3px 5px;border-radius:3px;outline:none;flex:1}
 .prop-sel:focus{border-color:var(--accent)}
 .prop-row .tbtn{font-size:10px;padding:3px 8px}
-.ab{display:block;width:100%;margin-bottom:3px;background:#1e1e1e;border:1px solid #3a3a3a;color:#707070;font-size:11px;padding:4px 8px;border-radius:3px;cursor:pointer;text-align:left;transition:all .1s}
+.ab{display:block;width:100%;margin-bottom:3px;background:#1e1e1e;border:1px solid #3a3a3a;color:#707070;font-size:11px;padding:4px 8px;border-radius:4px;cursor:pointer;text-align:left;transition:all .1s}
 .ab:hover{background:#2a2a2a;color:#c8c8c8;border-color:#3a3a3a}
 .ab.pr{background:linear-gradient(135deg,rgba(224,120,64,.3),rgba(192,80,40,.25));border-color:var(--accent);color:#ffd090}
 .ab.pr:hover{opacity:.85}
@@ -6448,7 +6448,7 @@ function renderLFOPanel() {
     el.innerHTML = '<div style="color:#505050;font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
   }
   const pkeys = Object.keys(P);
-  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:3px;padding:3px 5px;margin-bottom:2px;background:#1e1e1e">
+  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:4px;padding:3px 5px;margin-bottom:2px;background:#1e1e1e">
 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
 <input type="checkbox" ${lfo.enabled?'checked':''} onchange="updateLFOField('${lfo.id}','enabled',this.checked)" style="accent-color:var(--accent);flex-shrink:0">
 <select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
