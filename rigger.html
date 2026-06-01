@@ -9125,13 +9125,11 @@ function initCam(){
   const DUR=Math.max(1,parseInt(_p.get('chatdur')||'5'))*1000;
   const CMD_PREFIX=_p.get('chatcmd')||'';
   let _chatTimer=null;
-  function applyExpr(idx){
+  const _chatApply=(idx)=>{
     if(_chatTimer)clearTimeout(_chatTimer);
-    curExpr=idx;
-    if(idx<0){_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
-    else{_setExpr(EXPRS[idx].values);document.querySelectorAll('.expr-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));}
-    if(idx>=0){_chatTimer=setTimeout(()=>{curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));},DUR);}
-  }
+    applyExpr(idx);
+    if(idx>=0){_chatTimer=setTimeout(()=>applyExpr(-1),DUR);}
+  };
   function connect(){
     const ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
     ws.onopen=()=>{ws.send('NICK justinfan12345');ws.send('JOIN #'+channel);};
@@ -9143,8 +9141,8 @@ function initCam(){
       if(CMD_PREFIX&&!msg.startsWith(CMD_PREFIX.toLowerCase()))return;
       if(CMD_PREFIX)msg=msg.slice(CMD_PREFIX.length).trim();
       const idx=EXPRS.findIndex(e=>e.name&&msg.includes(e.name.toLowerCase()));
-      if(idx>=0)applyExpr(idx);
-      else if(msg==='0'||msg==='reset')applyExpr(-1);
+      if(idx>=0)_chatApply(idx);
+      else if(msg==='0'||msg==='reset')_chatApply(-1);
     };
     ws.onclose=()=>setTimeout(connect,5000);
   }
