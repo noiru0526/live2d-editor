@@ -8341,6 +8341,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-hpbar" style="accent-color:#e07840"> ❤ HPバー表示（画面下部）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-emotes" style="accent-color:#e07840"> 😀 リアクション絵文字</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-pulse" style="accent-color:#e07840"> 💓 パルスリング（枠発光）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wobblecam" style="accent-color:#e07840"> 🎥 カメラ揺れエフェクト</label>
       </div>
       <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
@@ -8448,6 +8449,7 @@ function showAvatarExportDialog() {
     }
     if (document.getElementById('av-chatbubble')?.checked) params.push('chatbubble=1');
     if (document.getElementById('av-pulse')?.checked) params.push('pulse=1');
+    if (document.getElementById('av-wobblecam')?.checked) params.push('wobblecam=1');
     const cgHue = parseFloat(document.getElementById('av-cg-hue')?.value||'0');
     const cgSat = parseFloat(document.getElementById('av-cg-sat')?.value||'100');
     const cgBri = parseFloat(document.getElementById('av-cg-bri')?.value||'100');
@@ -8505,7 +8507,7 @@ function _saveExportSettings() {
   ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-ttsrate','av-speakintro','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
-  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
+  ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse','av-wobblecam'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.checked;
   });
   ['kill','death','win','lose','hit'].forEach(ev => {
@@ -8631,6 +8633,8 @@ async function doExportAvatar() {
   if (chatBubbleOn) defaultParams.push('chatbubble=1');
   const pulseOn = document.getElementById('av-pulse')?.checked;
   if (pulseOn) defaultParams.push('pulse=1');
+  const wobblecamOn = document.getElementById('av-wobblecam')?.checked;
+  if (wobblecamOn) defaultParams.push('wobblecam=1');
   if (wsUrlExport) defaultParams.push('ws=' + encodeURIComponent(wsUrlExport));
   if (hpBarOn) defaultParams.push('hpbar=1');
   const emotesOn = document.getElementById('av-emotes')?.checked;
@@ -8796,6 +8800,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #pulse-ring{position:fixed;inset:0;pointer-events:none;z-index:9;border-radius:0;animation:pulseRing 2.8s ease-in-out infinite}
 @keyframes pulseRing{0%,100%{box-shadow:inset 0 0 0 0 var(--pr,rgba(224,120,64,0))}50%{box-shadow:inset 0 0 22px 6px var(--pr,rgba(224,120,64,0.28))}}
 @keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,-1%)}50%{transform:translate(-1%,2%)}70%{transform:translate(2%,3%)}90%{transform:translate(-3%,1%)}}
+@keyframes wobblecam{0%,100%{transform:rotate(0deg) scale(1)}20%{transform:rotate(0.15deg) scale(1.002)}40%{transform:rotate(-0.1deg) scale(0.999)}60%{transform:rotate(0.08deg) scale(1.001)}80%{transform:rotate(-0.12deg) scale(1.002)}}
 #ctrl-panel h4{font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:8px;color:#666;min-width:52px;text-align:right}
@@ -8907,6 +8912,8 @@ let _cbTimer=null;
 function showChatBubble(user,text){const el=document.getElementById('chat-bubble');if(!el)return;el.innerHTML=`<div class="cb-user">${user.replace(/</g,'&lt;')}</div><div class="cb-text">${text.replace(/</g,'&lt;')}</div>`;el.style.opacity='1';if(_cbTimer)clearTimeout(_cbTimer);_cbTimer=setTimeout(()=>{el.style.opacity='0';},Math.max(2000,parseInt(_p.get('cblife')||'5000')));}
 // Corner watermark (?corner=<text>) — fixed text label in a corner
 (()=>{const _cw=_p.get('corner');if(!_cw)return;const _cwEl=document.getElementById('corner-wm');if(!_cwEl)return;const _pos=_p.get('cornerpos')||'br';const _sz=Math.max(8,Math.min(48,parseInt(_p.get('cornersize')||'11')));const _op=Math.max(0.05,Math.min(1,parseFloat(_p.get('corneropacity')||'0.45')));const _col=_p.get('cornertc');const _bg=_p.get('cornerbg');_cwEl.textContent=decodeURIComponent(_cw);_cwEl.style.fontSize=_sz+'px';_cwEl.style.opacity=_op;_cwEl.style.color=_col?(_col.startsWith('#')||_col.startsWith('rgb')?_col:'#'+_col):'rgba(255,255,255,0.9)';if(_bg)_cwEl.style.background=_bg.startsWith('#')||_bg.startsWith('rgb')?_bg:'#'+_bg;_cwEl.style.padding=_bg?'2px 6px':'0';if(_bg)_cwEl.style.borderRadius='3px';const _pad='8px';if(_pos.includes('t'))_cwEl.style.top=_pad;else _cwEl.style.bottom=_pad;if(_pos.includes('l'))_cwEl.style.left=_pad;else _cwEl.style.right=_pad;_cwEl.style.display='block';})();
+// Camera wobble (?wobblecam=1) — subtle handheld-camera rotation animation on body
+(()=>{if(!_p.has('wobblecam'))return;const _spd=Math.max(0.5,parseFloat(_p.get('wobblecamspd')||'1'));document.body.style.animation=`wobblecam ${(7/_spd).toFixed(1)}s ease-in-out infinite`;document.body.style.transformOrigin='50% 50%';})();
 // Scanlines (?scanlines=<0-1>) — CRT horizontal lines overlay
 (()=>{const _so=parseFloat(_p.get('scanlines')||'0');if(_so<=0)return;const d=document.createElement('div');d.style.cssText=`position:fixed;inset:0;pointer-events:none;z-index:11;opacity:${Math.min(1,_so)};background:repeating-linear-gradient(0deg,rgba(0,0,0,0.55) 0px,rgba(0,0,0,0.55) 1px,transparent 1px,transparent 3px)`;document.body.appendChild(d);})();
 // Film grain (?grain=<0-1>) — animated noise texture overlay
