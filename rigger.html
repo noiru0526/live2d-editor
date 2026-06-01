@@ -9230,8 +9230,9 @@ let _micMouthLevel=0;
   function _wsConnect(){
     let ws;
     try { ws=new WebSocket(wsUrl); } catch(e){ return; }
-    ws.onopen=()=>{ if(_stEl)_stEl.textContent='WS 接続済み'; };
-    ws.onclose=()=>{ _wsReconnT=setTimeout(_wsConnect,3000); };
+    let _pingT=null;
+    ws.onopen=()=>{ if(_stEl)_stEl.textContent='WS 接続済み'; _pingT=setInterval(()=>{try{if(ws.readyState===1)ws.send(JSON.stringify({type:'ping'}));}catch(e){}},25000); };
+    ws.onclose=()=>{ if(_pingT){clearInterval(_pingT);_pingT=null;} _wsReconnT=setTimeout(_wsConnect,3000); };
     ws.onerror=()=>{};
     // Game event → expression mapping (?killexpr=name ?deathexpr=name ?winexpr=name ?loseexpr=name ?hitexpr=name)
     // Optional: ?killexprdur=3000 (ms to hold before reverting)
@@ -9297,6 +9298,7 @@ let _micMouthLevel=0;
           else if(msg.param){_setRtLFO(msg);}
           break;
         case 'lfoset': if(Array.isArray(msg.lfos)){_rtLFOs=msg.lfos.map(l=>({...l,_t0:_lfoT}));} break;
+        case 'pong': break;
         case 'custom':
           if(msg.shake) triggerShake(msg.shake.amp??8, msg.shake.dur??0.3);
           if(msg.flash) triggerFlash(msg.flash.color||'rgba(255,255,255,0.7)', msg.flash.dur??120);
