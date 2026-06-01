@@ -41,7 +41,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .ph{padding:4px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;border-left:2px solid rgba(224,140,64,.8);flex-shrink:0;background:#2c2c2c}
 .ph h3{color:#c0c0c0;font-size:11px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
-.ih{background:none;border:none;color:#585858;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
+.ih{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:3px;line-height:1}
 .ih:hover{color:#d8d8d8;background:#333333}
 
 /* Left panel tabs — hidden (Cubism-style split replaces tabs) */
@@ -132,7 +132,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 /* Section headers (Cubism インスペクタ/パラメータ style) */
 .rsec-hd{display:flex;align-items:center;padding:4px 10px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;flex-shrink:0;user-select:none}
 .rsec-hd:hover{background:#2a2a2a}
-.rsec-caret{font-size:9px;color:#585858;transition:transform .15s;display:inline-block;width:10px;text-align:center}
+.rsec-caret{font-size:9px;color:#666;transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
 .rsec-ttl{font-size:11px;font-weight:600;letter-spacing:1.2px;color:#9a9a9a;text-transform:uppercase;flex:1}
 .rsec-sub{font-size:9px;color:#666}
@@ -196,7 +196,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-lbl{color:#888;font-size:10px;min-width:72px;flex-shrink:0;letter-spacing:.3px}
 .ci-inp{flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;min-width:0;font-family:inherit}
 .ci-inp:focus{border-color:var(--accent)}
-.ci-ro{flex:1;font-size:10px;color:#606060;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-ro{flex:1;font-size:10px;color:#707070;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ci-num{width:64px;background:#1e1e1e;border:1px solid #3a3a3a;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace}
 .ci-num:focus{border-color:var(--accent)}
 /* Cubism-style color swatch (VT-002) */
@@ -236,7 +236,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-item{display:flex;align-items:center;padding:7px 10px;font-size:11px;gap:6px;cursor:pointer;border-bottom:1px solid #2e2e2e;transition:background .08s}
 .ex-item:hover{background:#252525}
 .ex-item.active{background:rgba(224,120,64,.12)}
-.ex-num{font-size:10px;color:#686868;font-family:monospace;min-width:18px}
+.ex-num{font-size:10px;color:#707070;font-family:monospace;min-width:18px}
 .ex-name{flex:1;color:#a0a0a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ex-item.active .ex-name{color:#e07840}
 .ex-del{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0 3px;line-height:1}
@@ -253,7 +253,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .mb h3{color:#e07840;font-size:14px;margin-bottom:12px;font-weight:600}
 .mb input[type=text]{background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;font-size:12px;padding:6px 9px;border-radius:3px;width:100%;margin-bottom:10px;outline:none}
 .mb input:focus{border-color:var(--accent)}
-.mb p{font-size:11px;color:#686868;margin-bottom:12px;line-height:1.6}
+.mb p{font-size:11px;color:#707070;margin-bottom:12px;line-height:1.6}
 .ma{display:flex;gap:7px;justify-content:flex-end}
 .mbn{background:#1e1e1e;border:1px solid #3a3a3a;color:#707070;font-size:11px;padding:5px 14px;border-radius:3px;cursor:pointer}
 .mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:#ffb070}
@@ -4421,7 +4421,7 @@ function generateColorVariants() {
         <span style="font-size:9px;color:#606060;">px (X方向)</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button id="cv-ok" style="flex:1;background:#1e1e1e;border:1px solid rgba(120,120,120,.5);color:#a0a0a0;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
+        <button id="cv-ok" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#a0a0a0;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
         <button onclick="this.closest('[style]').remove()" style="flex:1;background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
@@ -4779,7 +4779,7 @@ async function aiAutoNameParts() {
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
       <button id="ainm-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
-      <button id="ainm-apply" style="background:#1e1e1e;border:1px solid rgba(120,120,120,.5);color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
+      <button id="ainm-apply" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -4867,7 +4867,7 @@ function batchRenameParts() {
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
         <button id="brn-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
         <button id="brn-preview-btn" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#a0a0a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
-        <button id="brn-ok" style="background:#1e1e1e;border:1px solid rgba(120,120,120,.5);color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
+        <button id="brn-ok" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -7178,7 +7178,7 @@ function showKFBlendTool() {
         <span style="font-size:9px;color:#606060;">KF値</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button id="kfb-preview" style="flex:1;background:#1e1e1e;border:1px solid rgba(120,120,120,.5);color:#909090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
+        <button id="kfb-preview" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
         <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:#80d890;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
         <button id="kfb-cancel" style="flex:1;background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
@@ -7678,11 +7678,11 @@ function showVertexCoordHUD(vi, clientX, clientY) {
   const vy = isDef ? (d.dy||0) : pt.mesh.verts[vi].y;
   const hud = document.createElement('div');
   hud.id = 'vert-coord-hud';
-  hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:#1e1e1e;border:1px solid rgba(120,120,120,.5);border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:#c0c0c0;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
+  hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:#c0c0c0;box-shadow:0 2px 8px rgba(0,0,0,.5);`;
   hud.innerHTML = `<span style="color:#e07840;">${isDef?'Δ':'V'}${vi}</span>
     <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
     <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
-    <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid rgba(120,120,120,.5);color:#c0c0c0;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
+    <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
     <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:#606060;cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
   document.body.appendChild(hud);
   document.getElementById('vhud-x').addEventListener('keydown', e => { if(e.key==='Enter') applyVertexCoordHUD(vi,isDef); if(e.key==='Escape') hud.remove(); });
