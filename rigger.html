@@ -8181,6 +8181,7 @@ function showAvatarExportDialog() {
       <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#e07840"> 🎭 自動表情ランダム</label>
+        <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px">🔄 表情サイクル間隔(秒): <input id="av-exprcycle" type="number" min="0" max="3600" step="1" value="0" placeholder="0=無効" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"></label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
@@ -8410,6 +8411,7 @@ function showAvatarExportDialog() {
     const shd = parseInt(document.getElementById('av-shadow')?.value||'0'); if(shd>0) params.push('shadow='+shd);
     const bgi = document.getElementById('av-bgimage')?.value?.trim(); if(bgi) params.push('bgimage='+encodeURIComponent(bgi));
     const bgv = document.getElementById('av-bgvideo')?.value?.trim(); if(bgv) params.push('bgvideo='+encodeURIComponent(bgv));
+    const ecs=parseInt(document.getElementById('av-exprcycle')?.value||'0');if(ecs>0)params.push('exprcycle='+ecs);
     const npTxt = document.getElementById('av-nameplate')?.value?.trim(); if(npTxt){params.push('nameplate='+encodeURIComponent(npTxt));const npSub=document.getElementById('av-npsub')?.value?.trim();if(npSub)params.push('npsub='+encodeURIComponent(npSub));}
     const zv=parseFloat(document.getElementById('av-zoom')?.value||'1');if(!isNaN(zv)&&zv!==1&&zv>0)params.push('zoom='+zv);
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
@@ -8494,7 +8496,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-exprcycle','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
@@ -8605,6 +8607,8 @@ async function doExportAvatar() {
   if (wgGame) wgParts.push('game=' + encodeURIComponent(wgGame));
   if (wgParts.length) defaultParams.push('widget=' + wgParts.join(','));
   if (autoIdle) defaultParams.push('autoidle=1');
+  const exprCycleSecs = parseInt(document.getElementById('av-exprcycle')?.value || '0');
+  if (exprCycleSecs > 0) defaultParams.push('exprcycle=' + exprCycleSecs);
   const chatOverlayOn = document.getElementById('av-chatoverlay')?.checked;
   if (chatEnabled && chatChannel) {
     defaultParams.push('chat=twitch');
@@ -9990,6 +9994,13 @@ function initCam(){
   connect();
 })();
 // ===== AUTO-IDLE EXPRESSION VARIATION =====
+// Expression cycle: ?exprcycle=<seconds> — rotate through all expressions in order
+(function(){
+  const _cs=parseInt(_p.get('exprcycle')||'0');
+  if(!_cs||!EXPRS.length)return;
+  let _ci=-1;
+  setInterval(()=>{_ci=(_ci+1)%EXPRS.length;applyExpr(_ci);},Math.max(1,_cs)*1000);
+})();
 // Usage: ?autoidle=1[&idle-min=20][&idle-max=60][&idle-dur=3]
 (function(){
   if(!_p.has('autoidle')||!EXPRS.length)return;
