@@ -441,7 +441,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="font-size:10px;color:#666">🔍</span>
         <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
           oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
-          style="flex:1;background:#1e1e1e;border:1px solid #333;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+          style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
         <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:#666;cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
       <!-- Color label filter -->
@@ -476,7 +476,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span style="font-size:9px;color:#666">🔍</span>
           <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
             oninput="buildLPDeformerTree()"
-            style="flex:1;background:#1e1e1e;border:1px solid #333;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+            style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
           <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:#666;cursor:pointer;font-size:10px;padding:0">×</button>
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
@@ -615,8 +615,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#e07840" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
       </label>
       <div style="display:flex;gap:4px;margin-bottom:3px">
-        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#1e1e1e;border:1px solid #333;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
-        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:#1e1e1e;border:1px solid #333;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
+        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
+        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
       <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:3px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
@@ -775,7 +775,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:5px 8px;cursor:pointer;background:#1e1e1e;border-top:1px solid #3a3a3a;border-bottom:1px solid #2e2e2e;margin-top:4px;font-size:9px;color:#686868;user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:5px 8px;cursor:pointer;background:#1e1e1e;border-top:1px solid #3a3a3a;border-bottom:1px solid #2e2e2e;margin-top:4px;font-size:9px;color:#707070;user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -949,17 +949,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- Cubism-style parameter toolbar -->
       <div style="padding:3px 8px;border-bottom:1px solid #2a2a2a;flex-shrink:0;display:flex;align-items:center;gap:4px;background:#1e1e1e">
         <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
-        <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:9px;border-radius:3px;padding:2px 5px;cursor:pointer">↺</button>
+        <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:9px;border-radius:3px;padding:2px 5px;cursor:pointer">↺</button>
         <span style="flex:1"></span>
-        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▶▶</button>
-        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▼▼</button>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▶▶</button>
+        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #3a3a3a;color:#707070;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▼▼</button>
         <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#707070;background:none;border:1px solid #2a2a2a;padding:2px 5px;border-radius:3px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
       <div style="padding:5px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px">XY グリッド</span>
-          <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:#1e1e1e;border:1px solid #333;color:#909090;padding:1px 4px;border-radius:3px;cursor:pointer">
+          <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;padding:1px 4px;border-radius:3px;cursor:pointer">
             <option value="0">頭 X / Y</option>
             <option value="1">視線 X / Y</option>
             <option value="2">口 開 / 形</option>
