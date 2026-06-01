@@ -8229,9 +8229,17 @@ function showAvatarExportDialog() {
         <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
         <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
       </div>
-      <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:4px;align-items:center;font-size:11px">
+      <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ビネット（0〜1）:</span>
         <input id="av-cg-vig" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">グロー(px):</span>
+        <input id="av-cg-glow" type="number" min="0" max="60" step="2" value="0" placeholder="0=なし" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">色:</span>
+        <input id="av-cg-glow-color" type="color" value="#e07840" style="width:28px;height:22px;background:#1e1e1e;border:1px solid var(--border);border-radius:3px;cursor:pointer;padding:1px">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景色:</span>
+        <input id="av-bg-color" type="text" placeholder="透明（例: #00ff00 ）" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;font-size:10px">
       </div>
       <div style="font-size:9px;color:#404040;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
@@ -8356,6 +8364,8 @@ function showAvatarExportDialog() {
     if (cgBri !== 100) params.push('bri=' + cgBri);
     if (cgCon !== 100) params.push('con=' + cgCon);
     const cgVig = parseFloat(document.getElementById('av-cg-vig')?.value||'0'); if(cgVig > 0) params.push('vignette='+cgVig);
+    const cgGlow = parseInt(document.getElementById('av-cg-glow')?.value||'0'); if(cgGlow > 0) { const gc = document.getElementById('av-cg-glow-color')?.value||'#e07840'; params.push('glow='+cgGlow+','+gc.replace('#','')); }
+    const bgCol = document.getElementById('av-bg-color')?.value?.trim(); if(bgCol) params.push('bg='+encodeURIComponent(bgCol.replace('#','')));
     const syncCh = document.getElementById('av-sync-ch')?.value?.trim();
     if (syncCh) { params.push('sync=' + encodeURIComponent(syncCh)); const role = document.getElementById('av-sync-role')?.value; if (role && role !== 'follower') params.push('syncrole=' + role); }
     const wsUrl2 = document.getElementById('av-ws-url')?.value?.trim();
@@ -8399,7 +8409,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
+  ['av-fps','av-filename','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay'].forEach(id => {
@@ -8529,6 +8539,10 @@ async function doExportAvatar() {
   if (cgCon !== 100) defaultParams.push('con=' + cgCon);
   const cgVig2 = parseFloat(document.getElementById('av-cg-vig')?.value||'0');
   if (cgVig2 > 0) defaultParams.push('vignette=' + cgVig2);
+  const cgGlow2 = parseInt(document.getElementById('av-cg-glow')?.value||'0');
+  if (cgGlow2 > 0) { const gc2 = (document.getElementById('av-cg-glow-color')?.value||'#e07840').replace('#',''); defaultParams.push('glow='+cgGlow2+','+gc2); }
+  const bgCol2 = document.getElementById('av-bg-color')?.value?.trim();
+  if (bgCol2) defaultParams.push('bg=' + encodeURIComponent(bgCol2.replace('#','')));
   // Multi-avatar sync
   if (syncCh) {
     defaultParams.push('sync=' + encodeURIComponent(syncCh));
@@ -8727,6 +8741,8 @@ const _hpBarEnabled=_p.has('hpbar');
 if(_hpBarEnabled){const _hbw=document.getElementById('hp-bar-wrap');if(_hbw)_hbw.style.display='block';window._setHp=(v)=>{const hv=Math.max(0,Math.min(1,+v||0));window._avatarHealth=hv;const fill=document.getElementById('hp-bar-fill');if(!fill)return;fill.style.width=(hv*100)+'%';fill.style.backgroundColor=hv>0.5?`hsl(${Math.round(120*(hv-.5)/.5)},80%,45%)`:hv>0.25?`hsl(${Math.round(60*hv/.5)},80%,45%)`:'hsl(0,80%,40%)';};window._setHp(1);}
 const _shadowParam=_p.get('shadow');
 if(_shadowParam){const _sb=isNaN(parseInt(_shadowParam))?16:Math.max(4,parseInt(_shadowParam));canvas.style.filter='drop-shadow(0 '+Math.round(_sb*.6)+'px '+_sb+'px rgba(0,0,0,0.55))'+(canvas.style.filter?(' '+canvas.style.filter):'');}
+const _glowParam=_p.get('glow');
+if(_glowParam){const _gp=_glowParam.split(',');const _gc=_gp[1]?(_gp[1].startsWith('#')||_gp[1].startsWith('rgb')?_gp[1]:'#'+_gp[1]):'rgba(224,120,64,0.8)';const _gs=Math.max(2,Math.min(60,parseInt(_gp[0])||16));canvas.style.filter=(canvas.style.filter?canvas.style.filter+' ':'')+`drop-shadow(0 0 ${_gs}px ${_gc}) drop-shadow(0 0 ${Math.round(_gs*.5)}px ${_gc})`;}
 const _stEl=document.getElementById('st');
 if(!SHOW_STATUS&&!PERF_HUD)_stEl.style.display='none';
 if(OBS_MODE){document.getElementById('obs-badge').style.display='block';}
