@@ -4847,7 +4847,7 @@ async function aiAutoNameParts() {
     row.innerHTML = `
       <span style="font-size:9px;color:#666;width:16px;text-align:right;flex-shrink:0;">${i+1}</span>
       <span style="font-size:10px;color:#707070;min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pt.name}">${pt.name}</span>
-      <span style="color:#4a8060;font-size:10px;flex-shrink:0;">→</span>
+      <span style="color:#70a080;font-size:10px;flex-shrink:0;">→</span>
       <input type="text" value="${suggested}" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:3px;padding:3px 5px;font-size:10px;outline:none;" data-result-idx="${results.length-1}">
     `;
     listEl.appendChild(row);
@@ -8351,7 +8351,7 @@ function showAvatarExportDialog() {
           <option value="leader">リーダー（送信）</option>
         </select>
       </div>
-      <div style="font-size:9px;color:#406040;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
+      <div style="font-size:9px;color:#70a070;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="font-size:10px;color:#888888;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
@@ -8366,7 +8366,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-pulse" style="accent-color:#e07840"> 💓 パルスリング（枠発光）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wobblecam" style="accent-color:#e07840"> 🎥 カメラ揺れエフェクト</label>
       </div>
-      <div style="font-size:9px;color:#406050;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
+      <div style="font-size:9px;color:#60909a;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
         <span style="color:#888;font-size:9px">kill:</span>
         <select id="av-ev-kill" style="background:#1e1e1e;border:1px solid #2a2a2a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
