@@ -8222,6 +8222,10 @@ function showAvatarExportDialog() {
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景画像URL:</span>
         <input id="av-bgimage" type="text" placeholder="https://...（空白=なし）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;font-size:11px">
+        <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景動画URL:</span>
+        <input id="av-bgvideo" type="text" placeholder="https://...（ループ再生）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
+      </div>
       <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ズーム倍率:</span>
         <input id="av-zoom" type="number" min="0.2" max="3" step="0.1" value="1" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
@@ -8405,6 +8409,7 @@ function showAvatarExportDialog() {
     const ef = parseInt(document.getElementById('av-exprfade')?.value||'0'); if(ef>0) params.push('exprfade='+ef);
     const shd = parseInt(document.getElementById('av-shadow')?.value||'0'); if(shd>0) params.push('shadow='+shd);
     const bgi = document.getElementById('av-bgimage')?.value?.trim(); if(bgi) params.push('bgimage='+encodeURIComponent(bgi));
+    const bgv = document.getElementById('av-bgvideo')?.value?.trim(); if(bgv) params.push('bgvideo='+encodeURIComponent(bgv));
     const npTxt = document.getElementById('av-nameplate')?.value?.trim(); if(npTxt){params.push('nameplate='+encodeURIComponent(npTxt));const npSub=document.getElementById('av-npsub')?.value?.trim();if(npSub)params.push('npsub='+encodeURIComponent(npSub));}
     const zv=parseFloat(document.getElementById('av-zoom')?.value||'1');if(!isNaN(zv)&&zv!==1&&zv>0)params.push('zoom='+zv);
     const fv=document.getElementById('av-filter')?.value;if(fv)params.push('filter='+fv);
@@ -8489,7 +8494,7 @@ function showAvatarExportDialog() {
 const _EXPORT_SETTINGS_KEY = 'rigger-export-settings-v2';
 function _saveExportSettings() {
   const d = {};
-  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
+  ['av-fps','av-filename','av-title','av-wg-game','av-chat-channel','av-chat-cmd','av-ws-url','av-sync-ch','av-obs-ws','av-obs-pass','av-obs-map','av-discord-map','av-cg-hue','av-cg-sat','av-cg-bri','av-cg-con','av-cg-vig','av-cg-glow','av-cg-glow-color','av-bg-color','av-emote','av-exprbarpos','av-afk-secs','av-wg-countdown-secs','av-particle','av-pdensity','av-wobble','av-exprfade','av-shadow','av-bgimage','av-bgvideo','av-nameplate','av-npsub','av-zoom','av-filter','av-flip','av-corner','av-cornerpos','av-scanlines','av-grain'].forEach(id => {
     const el = document.getElementById(id); if(el) d[id] = el.value;
   });
   ['av-obs','av-nostatus','av-perf','av-hotkeys','av-controls','av-mixer','av-gamepad','av-wg-clock','av-wg-timer','av-wg-kda','av-wg-score','av-wg-countdown','av-autoidle','av-chat','av-tts','av-mic','av-discord','av-talkbob','av-lowenergy','av-nosaccade','av-afk','av-hpbar','av-emotes','av-chatoverlay','av-chatbubble','av-pulse'].forEach(id => {
@@ -8664,6 +8669,8 @@ async function doExportAvatar() {
   if (exprFadeMs > 0) defaultParams.push('exprfade=' + exprFadeMs);
   if (shadowPx > 0) defaultParams.push('shadow=' + shadowPx);
   if (bgImageUrl) defaultParams.push('bgimage=' + encodeURIComponent(bgImageUrl));
+  const bgVideoUrl = document.getElementById('av-bgvideo')?.value?.trim() || '';
+  if (bgVideoUrl) defaultParams.push('bgvideo=' + encodeURIComponent(bgVideoUrl));
   if (nameplateText) { defaultParams.push('nameplate=' + encodeURIComponent(nameplateText)); if (nameplateSubText) defaultParams.push('npsub=' + encodeURIComponent(nameplateSubText)); }
   if (!isNaN(zoomVal) && zoomVal !== 1 && zoomVal > 0) defaultParams.push('zoom=' + zoomVal);
   if (filterPreset) defaultParams.push('filter=' + filterPreset);
@@ -8866,6 +8873,8 @@ const _bgC=_p.get('bg');if(_bgC){const _b=_bgC.startsWith('#')||_bgC.startsWith(
 // Background image (?bgimage=<url>) — displayed behind avatar; supports URLs and data URIs
 const _bgImg=_p.get('bgimage');
 if(_bgImg){document.body.style.backgroundImage='url('+encodeURI(_bgImg)+')';document.body.style.backgroundSize=_p.get('bgsize')||'cover';document.body.style.backgroundPosition='center';}
+// Background video (?bgvideo=<url>) — looping video behind avatar
+(()=>{const _bv=_p.get('bgvideo');if(!_bv)return;const v=document.createElement('video');v.src=decodeURIComponent(_bv);v.autoplay=true;v.loop=true;v.muted=true;v.playsInline=true;v.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;pointer-events:none';const _fit=_p.get('bgvfit');if(_fit)v.style.objectFit=_fit;document.body.insertBefore(v,document.body.firstChild);v.play().catch(()=>{});})();
 // Canvas drop shadow (?shadow=1 or ?shadow=<blur>px)
 // Marquee ticker
 (()=>{const mt=_p.get('marquee');if(!mt)return;const bar=document.getElementById('marquee-bar');const inner=document.getElementById('marquee-inner');if(!bar||!inner)return;bar.style.display='block';const _hbw2=document.getElementById('hp-bar-wrap');if(_hbw2)_hbw2.style.bottom='22px';const txt=decodeURIComponent(mt);const _bgC=_p.get('marqueebg');if(_bgC)bar.style.background=_bgC.startsWith('#')||_bgC.startsWith('rgb')?_bgC:'#'+_bgC;const _tc=_p.get('marqueetc');if(_tc)inner.style.color=_tc.startsWith('#')||_tc.startsWith('rgb')?_tc:'#'+_tc;const spd=Math.max(20,parseInt(_p.get('marqueespd')||'80'));inner.textContent=txt+'　　　　　';let pos=0;const w=inner.offsetWidth+100;function tick(ts){pos-=(spd/60);if(pos<-w){pos=window.innerWidth;}inner.style.transform=`translateX(${pos}px)`;requestAnimationFrame(tick);}requestAnimationFrame(tick);})();
