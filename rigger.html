@@ -6440,6 +6440,8 @@ function buildParamsUI() {
       slider.type='range'; slider.min='0'; slider.max='100'; slider.value=sv;
       slider.style.setProperty('--fill', sv + '%');
       slider.oninput = () => { updPrm(pn, slider.value); slider.style.setProperty('--fill', slider.value + '%'); };
+      slider.ondblclick = () => { const [rmin,rmax]=pc.r; const mid=(0-rmin)/(rmax-rmin)*100; updPrm(pn,mid);slider.value=mid;slider.style.setProperty('--fill',mid+'%'); };
+      slider.title = 'ダブルクリックで0にリセット';
       item.appendChild(slider);
       const valSpan = document.createElement('span');
       valSpan.className = 'pv2'; valSpan.id = 'pv-'+pn; valSpan.textContent = val.toFixed(2);
@@ -7924,6 +7926,43 @@ function showShortcutsOverlay() {
   document.body.appendChild(d);
 }
 
+function showWsApiRef() {
+  document.getElementById('ws-api-ref-overlay')?.remove();
+  const d=document.createElement('div');d.id='ws-api-ref-overlay';
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:990;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  d.onclick=()=>d.remove();
+  const apiRows=[
+    ['イベント','説明','パラメータ例'],
+    ['kill','キル → 黄フラッシュ＋シェイク','{type:"kill"}'],
+    ['death','デス → 赤フラッシュ＋強シェイク','{type:"death"}'],
+    ['hit','被弾 → 軽いシェイク','{type:"hit"}'],
+    ['win','勝利 → 緑フラッシュ','{type:"win"}'],
+    ['lose','敗北 → 暗フラッシュ＋シェイク','{type:"lose"}'],
+    ['shake','カスタムシェイク','{type:"shake",amp:8,dur:0.4}'],
+    ['flash','カスタムフラッシュ','{type:"flash",color:"rgba(255,0,0,.5)",dur:200}'],
+    ['health','ライフ（0〜1）低値で揺れ+赤','{type:"health",value:0.2}'],
+    ['expr','表情切替（名前・番号・値）','{type:"expr",name:"怒り",dur:3000}'],
+    ['param','パラメータ直接制御','{type:"param",name:"headX",value:0.5}'],
+    ['lfo','LFOランタイム追加','{type:"lfo",param:"headX",freq:0.5,amp:0.3}'],
+    ['speak','TTS発声','{type:"speak",text:"こんにちは",rate:1}'],
+    ['blur','ぼかし切替','{type:"blur"}'],
+  ];
+  const rows=apiRows.map((r,i)=>i===0?
+    `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#606060;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
+    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 10px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 10px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 10px;font-family:monospace;font-size:9px;color:#607090">${r[2]}</td></tr>`
+  ).join('');
+  d.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
+      <span style="font-size:13px;font-weight:600;color:#c8c8c8">🔌 WebSocket API リファレンス</span>
+      <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:#606060;cursor:pointer;font-size:16px">×</button>
+    </div>
+    <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:#506050">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
+    <table style="width:100%;border-collapse:collapse">${rows}</table>
+    <div style="padding:12px 16px 0;font-size:9px;color:#404040">クリックして閉じる</div>
+  </div>`;
+  document.body.appendChild(d);
+}
+
 document.getElementById('ni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAdd();if(e.key==='Escape')cancelAdd();});
 document.getElementById('exni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmExpr();if(e.key==='Escape')cancelExpr();});
 document.getElementById('defni').addEventListener('keydown',e=>{if(e.key==='Enter')confirmAddDeformer();if(e.key==='Escape')cancelAddDeformer();});
@@ -8040,7 +8079,10 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:#406040;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="font-size:10px;color:#888888;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
+        <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:3px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
+      </div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
