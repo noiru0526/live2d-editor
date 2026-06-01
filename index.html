@@ -936,7 +936,7 @@ button:focus{outline:none;}
 
 <!-- Shortcut help -->
 <div id="shortcut-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;">
-  <div onclick="event.stopPropagation()" style="background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
+  <div onclick="event.stopPropagation()" style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
     <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
@@ -1140,7 +1140,7 @@ button:focus{outline:none;}
   <div style="display:flex;align-items:center;padding:6px 12px;background:#1e1e1e;border-bottom:1px solid #3a3a3a;gap:8px;flex-shrink:0;">
     <span style="font-size:13px;font-weight:700;color:#fff;">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
-    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:#2d2d2d;border:1px solid rgba(255,255,255,.12);color:var(--dim);padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
+    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
   </div>
   <div style="flex:1;display:flex;overflow:hidden;">
     <div style="flex:1;display:flex;flex-direction:column;border-right:2px solid #3a3a3a;">
@@ -1222,11 +1222,11 @@ button:focus{outline:none;}
 
 <!-- Blink/Mouth setup modal -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:#252525;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
+  <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
     <div id="modal-title" style="font-size:14px;font-weight:700;margin-bottom:14px;color:#fff;"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="closeModal()" style="background:#2d2d2d;border:1px solid rgba(255,255,255,.12);color:var(--dim);padding:5px 16px;border-radius:5px;cursor:pointer;">キャンセル</button>
+      <button onclick="closeModal()" style="background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:5px 16px;border-radius:5px;cursor:pointer;">キャンセル</button>
       <button id="modal-ok" style="background:rgba(224,120,64,.8);border:none;color:#fff;padding:5px 16px;border-radius:5px;cursor:pointer;">適用</button>
     </div>
   </div>
@@ -1276,7 +1276,7 @@ button:focus{outline:none;}
     <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1e1e1e;border:1px solid var(--border);color:#60d890;border-radius:3px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
-      style="width:46px;background:#1e1e1e;border:1px solid rgba(255,255,255,.15);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
+      style="width:46px;background:#1e1e1e;border:1px solid #3a3a3a;color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
       onkeydown="if(event.key==='Enter'){const t=parseFloat(this.value);if(!isNaN(t)){ST.animPlayhead=Math.max(0,Math.min(M.animation.duration||3,t));applyPlayheadToParams();drawMultiTimeline();}this.blur();}"
       onfocus="this.select()"></input>
     <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ開始点（秒）">イン:
@@ -1395,7 +1395,7 @@ button:focus{outline:none;}
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:#252525;border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
-    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#252525;border:1px solid rgba(255,255,255,.15);color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
+    <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>
     <button onclick="showAnimCompareDialog()" title="アニメーション比較: 2クリップを並べてグラフ重ね表示・タイミングや値の差を可視化" style="background:#1e201c;border:1px solid rgba(150,200,100,.4);color:#90c860;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 比較</button>
   </div>
   <!-- Track search bar -->
@@ -4461,7 +4461,7 @@ body{display:flex;justify-content:center;align-items:center;}
 canvas{display:block;image-rendering:auto;}
 #st{position:fixed;top:10px;right:10px;background:rgba(0,0,0,.6);color:#aaa;font-size:11px;font-family:monospace;padding:4px 10px;border-radius:4px;cursor:pointer;z-index:10;}
 #st.ok{color:#70d870;}#st.err{color:#f08080;}
-#obs-tip{display:none;position:fixed;top:40px;right:10px;background:rgba(28,28,28,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:12px 14px;color:var(--text);font-size:11px;font-family:sans-serif;line-height:1.8;max-width:260px;z-index:99;}
+#obs-tip{display:none;position:fixed;top:40px;right:10px;background:#1e1e1e;border:1px solid #3a3a3a;border-radius:6px;padding:12px 14px;color:var(--text);font-size:11px;font-family:sans-serif;line-height:1.8;max-width:260px;z-index:99;}
 #expr-hud{display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:4px 12px;color:#ffd060;font-size:11px;font-family:monospace;pointer-events:none;z-index:99;}
 #dbg-ov{display:none;position:fixed;top:10px;left:10px;background:rgba(0,0,0,.78);color:#00e080;font-size:9.5px;font-family:monospace;padding:6px 10px;border-radius:5px;pointer-events:none;z-index:99;line-height:1.65;min-width:160px;}
 #expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(22,22,22,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
