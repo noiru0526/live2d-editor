@@ -152,7 +152,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 #params-list{padding:0}
 .pg{display:flex;align-items:center;gap:5px;font-size:10px;color:#888;letter-spacing:.5px;padding:4px 8px 3px;font-weight:500;background:#252525;border-bottom:1px solid #3a3a3a;cursor:pointer;user-select:none}
 .pg:hover{background:#2a2a2a;color:#aaa}
-.pg-arrow{font-size:9px;color:#555;transition:transform .12s;display:inline-block;flex-shrink:0}
+.pg-arrow{font-size:9px;color:#666;transition:transform .12s;display:inline-block;flex-shrink:0}
 .pg.collapsed .pg-arrow{transform:rotate(-90deg)}
 .pg-icon{font-size:11px;flex-shrink:0}
 .pg-name{flex:1}
@@ -382,7 +382,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
         <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
         <div class="tb-more-sep"></div>
-        <span style="padding:3px 12px;font-size:9px;color:#555">グリッドサイズ: </span>
+        <span style="padding:3px 12px;font-size:9px;color:#666">グリッドサイズ: </span>
         <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5"
           style="margin:2px 12px 4px;width:56px;background:#1e1e1e;border:1px solid #3a3a3a;color:#707070;border-radius:3px;padding:2px 4px;font-size:10px;text-align:center"
           onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
@@ -662,7 +662,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="prop-row">
             <span class="prop-lbl">分割</span>
             <input class="prop-in" id="dp-cols" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
-            <span style="font-size:9px;color:#646464;margin:0 2px">×</span>
+            <span style="font-size:9px;color:#707070;margin:0 2px">×</span>
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
           </div>
           <div class="prop-row" style="border-top:1px solid #2a2a2a;margin-top:4px;padding-top:4px">
@@ -694,7 +694,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl">拡縮X</span><input class="prop-in" id="rp-sx" type="number" step="0.01" min="0.01" max="5" oninput="applyRotScale()">
             <span class="prop-lbl" style="margin-left:2px">Y</span><input class="prop-in" id="rp-sy" type="number" step="0.01" min="0.01" max="5" oninput="applyRotScale()">
           </div>
-          <div style="font-size:8px;color:#646464;margin:2px 4px">※ 角度・拡縮は選択中パラメータのキーフレーム値</div>
+          <div style="font-size:8px;color:#707070;margin:2px 4px">※ 角度・拡縮は選択中パラメータのキーフレーム値</div>
           <div class="prop-row">
             <span class="prop-lbl">親デフォーマー</span>
             <select class="prop-sel" id="rp-parent" onchange="applyRotParent(this.value)" style="flex:1;font-size:9px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:3px;padding:2px">
@@ -722,7 +722,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
               <option value="">なし</option>
             </select>
           </div>
-          <div style="font-size:8px;color:#646464;margin:2px 4px">※ KF角はデルタ（静止からの変化）</div>
+          <div style="font-size:8px;color:#707070;margin:2px 4px">※ KF角はデルタ（静止からの変化）</div>
         </div>
         <div class="prop-row" style="margin-top:4px">
           <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
@@ -752,7 +752,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div class="prop-row">
           <span class="prop-lbl">W/H</span>
-          <span id="pp-wh" style="font-size:9px;color:#646464;font-family:monospace">—</span>
+          <span id="pp-wh" style="font-size:9px;color:#707070;font-family:monospace">—</span>
         </div>
         <div class="prop-row">
           <span class="prop-lbl">不透明</span>
@@ -933,7 +933,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
 
-      <div class="prop-section" id="no-sel-msg" style="padding:24px 8px;text-align:center;color:#555;font-size:10px;line-height:2">
+      <div class="prop-section" id="no-sel-msg" style="padding:24px 8px;text-align:center;color:#666;font-size:10px;line-height:2">
         パーツを選択してください<br><span style="font-size:9px;color:#444">クリックで選択 / Shiftで複数選択</span>
       </div>
     </div>
@@ -953,7 +953,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="flex:1"></span>
         <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▶▶</button>
         <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:1px solid #2a2a2a;color:#686868;font-size:8px;border-radius:3px;padding:2px 4px;cursor:pointer">▼▼</button>
-        <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#646464;background:none;border:1px solid #2a2a2a;padding:2px 5px;border-radius:3px">＋</button>
+        <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#707070;background:none;border:1px solid #2a2a2a;padding:2px 5px;border-radius:3px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
       <div style="padding:5px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
@@ -974,10 +974,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div style="padding:4px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
           <span style="font-size:9px;color:#606060;text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
-          <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:#646464">▶ 再生</button>
+          <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:#707070">▶ 再生</button>
         </div>
         <div style="display:flex;gap:4px;align-items:center">
-          <span style="font-size:8px;color:#646464;white-space:nowrap;">速度</span>
+          <span style="font-size:8px;color:#707070;white-space:nowrap;">速度</span>
           <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:#e07840;">
           <span id="kf-loop-speed-v" style="font-size:8px;color:#e07840;min-width:20px;">1.0</span>
         </div>
@@ -1016,7 +1016,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <div id="rp-physics" class="rpanel rp-collapsed">
       <div style="padding:4px 10px;border-bottom:1px solid #2e2e2e;display:flex;justify-content:flex-end;flex-shrink:0">
-        <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:#585858">✕ 全OFF</button>
+        <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:#666">✕ 全OFF</button>
       </div>
       <!-- Physics presets -->
       <div style="padding:4px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
@@ -1041,7 +1041,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('lfo')">
       <span class="rsec-caret collapsed" id="rsec-caret-lfo">▼</span>
       <span class="rsec-ttl">パラメータ自動化（LFO）</span>
-      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:#585858">＋</button>
+      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:#666">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
       <div style="padding:4px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
@@ -1058,7 +1058,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('expr')">
       <span class="rsec-caret collapsed" id="rsec-caret-expr">▼</span>
       <span class="rsec-ttl">表情</span>
-      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:12px;color:#585858">＋</button>
+      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:12px;color:#666">＋</button>
     </div>
     <div id="rp-expr" class="rpanel rp-collapsed">
       <div id="expr-list" style="flex:1;overflow-y:auto">
@@ -5398,7 +5398,7 @@ function _showExprPreview(ex, baseline, ev) {
   const diffs = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(baseline[k]??0))>0.01);
   tip.querySelector('.ept-title').textContent = ex.name + (diffs.length ? ` (${diffs.length}P)` : '');
   const rowsEl = tip.querySelector('.ept-rows'); rowsEl.innerHTML = '';
-  if (!diffs.length) { rowsEl.innerHTML = '<div style="color:#555;font-style:italic">（変更なし）</div>'; }
+  if (!diffs.length) { rowsEl.innerHTML = '<div style="color:#666;font-style:italic">（変更なし）</div>'; }
   else {
     diffs.slice(0, 12).forEach(([k, v]) => {
       const pc = P[k]; if (!pc) return;
@@ -5898,7 +5898,7 @@ function buildDeformerTree() {
     // Icon + name
     const label = document.createElement('span');
     label.style.cssText = `color:${isSel?'#e07840':col};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
-    label.innerHTML = `<span style="font-size:9px">${icon}</span> <b>${d.name}</b>${pnames?`<span style="color:#555;font-size:9px;margin-left:3px">[${pnames}]</span>`:''}`;
+    label.innerHTML = `<span style="font-size:9px">${icon}</span> <b>${d.name}</b>${pnames?`<span style="color:#666;font-size:9px;margin-left:3px">[${pnames}]</span>`:''}`;
     row.appendChild(tog); row.appendChild(label);
     // Hover highlight
     row.onmouseenter = () => { if(!isSel) row.style.background='rgba(255,255,255,.05)'; };
@@ -6461,7 +6461,7 @@ ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option
 <option value="noise"${lfo.wave==='noise'?' selected':''}>noise</option>
 </select>
 <span class="lfo-wave-svg">${_lfoWaveSVG(lfo.wave, lfo.amp, lfo.offset)}</span>
-<button class="ih" onclick="removeLFO('${lfo.id}')" style="color:#585858;font-size:10px;padding:0 4px">✕</button>
+<button class="ih" onclick="removeLFO('${lfo.id}')" style="color:#666;font-size:10px;padding:0 4px">✕</button>
 </div>
 <div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:#666">
 <span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.freq||0).toFixed(2)}</span>
