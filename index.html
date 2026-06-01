@@ -938,7 +938,7 @@ button:focus{outline:none;}
 <!-- Shortcut help -->
 <div id="shortcut-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;">
   <div onclick="event.stopPropagation()" style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
-    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
+    <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
       <tr><td style="padding:2px 16px 2px 0;font-family:monospace;color:#ffd060">Ctrl+O</td><td>画像を開く</td></tr>
@@ -1139,17 +1139,17 @@ button:focus{outline:none;}
 <!-- Snapshot Compare Overlay -->
 <div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:#0e0e0e;z-index:180;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:6px 12px;background:#1e1e1e;border-bottom:1px solid #3a3a3a;gap:8px;flex-shrink:0;">
-    <span style="font-size:13px;font-weight:700;color:#fff;">スナップショット比較</span>
+    <span style="font-size:13px;font-weight:600;color:#fff;">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
     <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
   </div>
   <div style="flex:1;display:flex;overflow:hidden;">
     <div style="flex:1;display:flex;flex-direction:column;border-right:2px solid #3a3a3a;">
-      <div style="padding:4px 8px;background:#1e1e1e;font-size:10px;color:var(--accent);font-weight:700;">A: スナップショット</div>
+      <div style="padding:4px 8px;background:#1e1e1e;font-size:10px;color:var(--accent);font-weight:600;">A: スナップショット</div>
       <canvas id="snapshot-canvas-a" style="flex:1;object-fit:contain;display:block;max-width:100%;max-height:100%;"></canvas>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
-      <div style="padding:4px 8px;background:#1e1e1e;font-size:10px;color:var(--dim);font-weight:700;">B: 現在</div>
+      <div style="padding:4px 8px;background:#1e1e1e;font-size:10px;color:var(--dim);font-weight:600;">B: 現在</div>
       <canvas id="snapshot-canvas-b" style="flex:1;object-fit:contain;display:block;max-width:100%;max-height:100%;"></canvas>
     </div>
   </div>
@@ -1158,7 +1158,7 @@ button:focus{outline:none;}
 <!-- Random Pose Config Panel -->
 <div id="rnd-pose-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:#252525;border:1px solid rgba(255,144,208,.3);border-radius:8px;z-index:162;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:10px 14px;min-width:280px;max-height:60vh;overflow-y:auto;">
   <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
-    <span style="font-size:12px;font-weight:700;color:#ff90d0;">🎲 ランダムポーズ設定</span>
+    <span style="font-size:12px;font-weight:600;color:#ff90d0;">🎲 ランダムポーズ設定</span>
     <button onclick="document.getElementById('rnd-pose-panel').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;">✕</button>
   </div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
@@ -1179,7 +1179,7 @@ button:focus{outline:none;}
 <!-- Parameter Histogram Panel -->
 <div id="histogram-panel" style="display:none;position:fixed;right:16px;top:48px;width:340px;max-height:70vh;overflow-y:auto;background:#252525;border:1px solid #3a3a3a;border-radius:8px;z-index:160;box-shadow:0 4px 20px rgba(0,0,0,.6);">
   <div style="display:flex;align-items:center;padding:6px 10px;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;position:sticky;top:0;">
-    <span style="font-size:12px;font-weight:700;color:#ffd080;">📊 KFヒストグラム</span>
+    <span style="font-size:12px;font-weight:600;color:#ffd080;">📊 KFヒストグラム</span>
     <select id="hist-param-sel" onchange="renderHistogram()" style="flex:1;font-size:11px;background:#252525;border:1px solid #3a3a3a;color:var(--text);border-radius:3px;padding:1px 4px;"></select>
     <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button>
   </div>
@@ -1198,7 +1198,7 @@ button:focus{outline:none;}
 
 <!-- A/B Playback Panel -->
 <div id="abplay-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;z-index:165;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:8px 12px;display:none;flex-direction:row;align-items:center;gap:10px;">
-  <span style="font-size:11px;color:#80ffb0;font-weight:700;">⇄ A/B再生</span>
+  <span style="font-size:11px;color:#80ffb0;font-weight:600;">⇄ A/B再生</span>
   <span style="font-size:10px;color:var(--dim);">A:</span>
   <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:#666;">→</span>
@@ -1210,13 +1210,13 @@ button:focus{outline:none;}
   <span style="font-size:10px;color:var(--dim);">ホールド:</span>
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">s</span>
-  <span id="ab-indicator" style="font-size:11px;font-weight:700;min-width:16px;color:#ffd080;">A</span>
+  <span id="ab-indicator" style="font-size:11px;font-weight:600;min-width:16px;color:#ffd080;">A</span>
   <button onclick="stopABPlayback()" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">停止</button>
 </div>
 
 <!-- Weight Paint HUD -->
 <div id="weight-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.88);border:1px solid var(--border);border-radius:5px;padding:4px 14px;font-size:11px;color:var(--text);pointer-events:none;white-space:nowrap;">
-  <span style="color:#ff4444;font-weight:700;">ウェイトペイント</span>
+  <span style="color:#ff4444;font-weight:600;">ウェイトペイント</span>
   <span style="color:var(--dim);margin-left:8px;">ブラシ: <span id="wt-r-val">30</span>px</span>
   <span style="color:var(--dim);margin-left:8px;">値: <span id="wt-v-val">1.0</span></span>
 </div>
@@ -1224,7 +1224,7 @@ button:focus{outline:none;}
 <!-- Blink/Mouth setup modal -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;">
   <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
-    <div id="modal-title" style="font-size:14px;font-weight:700;margin-bottom:14px;color:#fff;"></div>
+    <div id="modal-title" style="font-size:14px;font-weight:600;margin-bottom:14px;color:#fff;"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button onclick="closeModal()" style="background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:5px 16px;border-radius:4px;cursor:pointer;">キャンセル</button>
@@ -4668,7 +4668,7 @@ ${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</str
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:#1e1e1e;border:1px solid #3a3a3a;border-radius:10px;padding:18px 24px;color:var(--text);font-family:monospace;font-size:11px;min-width:260px;max-width:360px;line-height:1.9;">
-    <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;border-bottom:1px solid #2e2e2e;padding-bottom:6px;">⌨ ホットキー一覧</div>
+    <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;border-bottom:1px solid #2e2e2e;padding-bottom:6px;">⌨ ホットキー一覧</div>
     <table style="border-collapse:collapse;width:100%;">
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;white-space:nowrap;">1 〜 9</td><td>表情・ポーズ切替</td></tr>
       <tr><td style="color:#ffd060;padding:1px 10px 1px 0;">0</td><td>デフォルト表情に戻す</td></tr>
@@ -22400,7 +22400,7 @@ function generateIdleLoop() {
   box.style.cssText = 'background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 18px;min-width:310px;font-size:11px;display:flex;flex-direction:column;gap:9px;';
   const hasParam = n => !!M.params[n];
   box.innerHTML = `
-<div style="font-weight:700;color:var(--text-bright);font-size:13px;">✨ アイドルループ生成</div>
+<div style="font-weight:600;color:var(--text-bright);font-size:13px;">✨ アイドルループ生成</div>
 <div style="color:var(--dim);font-size:9px;">自然なアイドルアニメーションを一括生成します（${dur.toFixed(1)}秒ループ）</div>
 <table style="border-spacing:0 4px;width:100%;">
   <tr><td colspan="2" style="color:var(--dim);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">🔧 コンポーネント選択</td></tr>
@@ -24614,7 +24614,7 @@ function mergeAnimClips() {
   const dlg = document.createElement('div');
   dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   const checks = allClips.map((c,i) => `<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;"><input type="checkbox" data-idx="${i}" style="accent-color:var(--accent);" ${i===0?'checked':''}><span>${c.name}</span><span style="color:var(--dim);font-size:9px;margin-left:auto;">${(c.animation?.duration||3).toFixed(1)}s</span></label>`).join('');
-  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
     <div id="merge-checks" style="margin-bottom:12px;">${checks}</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -25650,7 +25650,7 @@ function decimateAnimKFs(eps) {
 function smartDecimateAnim() {
   const dlg = document.createElement('div');
   dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
-  dlg.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">🗜 スマートデシメーション</div>
+  dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">🗜 スマートデシメーション</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">各トラックの値域に対する相対閾値でKFを削減します。線形補間で再現できるKFを除去します。</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
       <label style="font-size:10px;color:var(--dim);white-space:nowrap;">閾値 (%):</label>
