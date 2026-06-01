@@ -8230,8 +8230,11 @@ function _setExpr(vals){Object.assign(T,vals);for(const k of _cKeys)_cT[k]=vals[
 function _resetExpr(){for(const k of Object.keys(T))T[k]=0;for(const k of _cKeys)_cT[k]=0;}
 let tracking=false,last=0,ablink=false,ablinkT=3,ablinkP=0,breathT=0;
 const LFOS=MODEL.lfos||[];
+let _rtLFOs=[]; // runtime LFOs added via WebSocket / postMessage (not baked into model)
 let _lfoT=0;
 function _lfoWave(w,th){if(w==='triangle'){const p=((th/Math.PI)%2+2)%2;return p<1?2*p-1:3-2*p;}if(w==='sawtooth')return((th/Math.PI)%2+2)%2-1;if(w==='noise')return Math.sin(th*1.3)*.6+Math.sin(th*2.7)*.4;return Math.sin(th);}
+function _applyLFOs(vals,t){for(const lfo of [...LFOS,..._rtLFOs]){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*t+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}}
+function _setRtLFO(msg){const idx=_rtLFOs.findIndex(l=>l.param===msg.param);const lfo={param:msg.param||'headX',wave:msg.wave||'sine',freq:msg.freq??0.5,amp:msg.amp??0.3,phase:msg.phase||0,offset:msg.offset||0,enabled:true,_dur:msg.dur,_t0:_lfoT};if(idx>=0)_rtLFOs[idx]=lfo;else _rtLFOs.push(lfo);}
 // OBS/Performance settings from URL params
 // Usage: ?fps=30&obs=1&nostatus=1&smooth=0.12&perf=1&hue=30&sat=120&bri=90&con=110
 const _p=new URLSearchParams(location.search);
@@ -8305,6 +8308,8 @@ window.addEventListener('message',ev=>{
     if(n===0){curExpr=-1;_resetExpr();}
     else if(n>=1&&n<=EXPRS.length){curExpr=n-1;_setExpr(EXPRS[curExpr].values);}
   }else if(d.type==='params'){Object.assign(T,d.values);for(const k of _cKeys)if(d.values[k]!==undefined)_cT[k]=d.values[k];}
+  else if(d.type==='lfo'){if(d.action==='clear'){_rtLFOs=[];}else if(d.action==='remove'){_rtLFOs=_rtLFOs.filter(l=>l.param!==d.param);}else if(d.param){_setRtLFO(d);}}
+  else if(d.type==='lfoset'&&Array.isArray(d.lfos)){_rtLFOs=d.lfos.map(l=>({...l,_t0:_lfoT}));}
   else if(d.type==='reset'){curExpr=-1;_resetExpr();document.querySelectorAll('.expr-btn').forEach(b=>b.classList.remove('on'));}
   else if(d.type==='shake'){
     // Camera shake: brief random camera jitter
@@ -8584,10 +8589,17 @@ if(_p.has('tts')){
           if(msg.name&&typeof msg.value==='number')S[msg.name]=Math.max(-1,Math.min(1,msg.value));
           break;
         case 'speak':  if(msg.text) speak(msg.text, msg.voice||0, msg.rate||1, msg.pitch||1); break;
+        case 'lfo':
+          if(msg.action==='clear'){_rtLFOs=[];}
+          else if(msg.action==='remove'){_rtLFOs=_rtLFOs.filter(l=>l.param!==msg.param);}
+          else if(msg.param){_setRtLFO(msg);}
+          break;
+        case 'lfoset': if(Array.isArray(msg.lfos)){_rtLFOs=msg.lfos.map(l=>({...l,_t0:_lfoT}));} break;
         case 'custom':
           if(msg.shake) triggerShake(msg.shake.amp??8, msg.shake.dur??0.3);
           if(msg.flash) triggerFlash(msg.flash.color||'rgba(255,255,255,0.7)', msg.flash.dur??120);
           if(msg.speak) speak(msg.speak.text||msg.speak, msg.speak.voice||0, msg.speak.rate||1, msg.speak.pitch||1);
+          if(msg.lfo) _setRtLFO({...msg.lfo,_t0:_lfoT});
           break;
       }
     };
@@ -8859,7 +8871,8 @@ function frame(ts){
   S.breath=breathVal*.5+.5;
   const vals={...S,..._cS,eyeOpenL:tracking?S.eyeOpenL:ab,eyeOpenR:tracking?S.eyeOpenR:ab};
   _lfoT+=dt;
-  for(const lfo of LFOS){if(!lfo.enabled||!PD[lfo.param])continue;const pc=PD[lfo.param];const rmin=pc.r?.[0]??-1,rmax=pc.r?.[1]??1;const range=Math.abs(rmax-rmin)/2;const th=2*Math.PI*(lfo.freq||.5)*_lfoT+(lfo.phase||0);vals[lfo.param]=Math.max(rmin,Math.min(rmax,(vals[lfo.param]??0)+(lfo.offset||0)+_lfoWave(lfo.wave||'sine',th)*(lfo.amp||0)*range));}
+  if(_rtLFOs.length){_rtLFOs=_rtLFOs.filter(l=>!l._dur||((_lfoT-l._t0)<l._dur));}
+  _applyLFOs(vals,_lfoT);
   applyAvatarBindings(vals);
   const cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
