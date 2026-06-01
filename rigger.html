@@ -4006,7 +4006,7 @@ function showTexSwitchModal() {
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
   mo.innerHTML=`<div style="background:#252525;border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
-  <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:bold">⇄ テクスチャスイッチ設定</div>
+  <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:#707070;margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:#707070;margin-bottom:4px">切替パラメータ</div>
   <select id="tsp-param" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
@@ -4064,7 +4064,7 @@ function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
   mo.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
-  <div style="font-size:13px;color:#c0c0c0;margin-bottom:12px;font-weight:bold">∇ テクスチャ生成</div>
+  <div style="font-size:13px;color:#c0c0c0;margin-bottom:12px;font-weight:600">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:#707070;margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
     <option value="solid">ソリッド（単色）</option>
@@ -4567,7 +4567,7 @@ function showGlobalTransformModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">⊙ 全体変換</div>
+      <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">⊙ 全体変換</div>
       <div style="font-size:9px;color:#707070;margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
         <span>X 移動 (px)</span>
@@ -7066,7 +7066,7 @@ function showDeformWaveModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">〜 デフォームWave</div>
+      <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
         <span>振幅 (px)</span>
         <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
@@ -7454,13 +7454,13 @@ function showSnapshotCompare() {
   if (!_snapA && !_snapB) { setStatus('📷 A / 📷 B ボタンでスナップショットを撮影してください'); return; }
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999';
-  const header = `<div style="color:#c0c0c0;font-size:14px;font-weight:bold;margin-bottom:12px">📸 スナップショット比較</div>`;
+  const header = `<div style="color:#c0c0c0;font-size:14px;font-weight:600;margin-bottom:12px">📸 スナップショット比較</div>`;
   const imgStyle = 'max-width:46vw;max-height:70vh;border-radius:4px;object-fit:contain;';
   const aHTML = _snapA
-    ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:bold">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
+    ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #2a5040;border-radius:4px;color:#3a6050;font-size:11px">未撮影</div>`;
   const bHTML = _snapB
-    ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:bold">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
+    ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #383830;border-radius:4px;color:#505040;font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
@@ -8152,7 +8152,7 @@ function showAvatarExportDialog() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:bold">🎭 アバターHTML書き出し設定</div>
+      <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
       <div style="font-size:10px;color:#888888;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
@@ -8815,7 +8815,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #widget-overlay{position:fixed;bottom:16px;left:16px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:50}
 .wg-item{background:rgba(20,20,20,.85);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:#c0c0c0;backdrop-filter:blur(4px);white-space:nowrap}
 .wg-label{font-size:8px;color:#707070;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
-.wg-val{font-size:13px;color:#e0e0e0;font-weight:bold}
+.wg-val{font-size:13px;color:#e0e0e0;font-weight:700}
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
 #hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:31;pointer-events:none;display:none}
 #hp-bar-fill{height:100%;width:100%;transition:width .3s ease,background-color .3s ease;border-radius:0 2px 2px 0}

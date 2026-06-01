@@ -306,7 +306,7 @@ button:focus{outline:none;}
 .tl-track-label-row{position:absolute;left:0;width:90px;display:flex;align-items:center;padding:0 2px 0 3px;box-sizing:border-box;pointer-events:auto;}
 .tl-track-name{font-size:11px;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
 .tl-track-name.active{color:var(--text);}
-.tl-track-name.sync-sel{color:var(--accent);font-weight:bold;}
+.tl-track-name.sync-sel{color:var(--accent);font-weight:600;}
 .tl-track-eye{background:none;border:none;cursor:pointer;font-size:10px;padding:0 1px;line-height:1;opacity:.5;flex-shrink:0;}
 .tl-track-eye:hover{opacity:1;}
 .tl-track-eye.muted{opacity:.2;}
@@ -851,7 +851,7 @@ button:focus{outline:none;}
     <div id="auto-preset">
       <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('preset-body',this)">⚡ 自動プリセット<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="preset-body">
-      <div class="mcfg-row"><button onclick="fullAutoSetup()" style="background:#252525;border-color:#666;color:var(--text);font-weight:bold;">⚡ ワンクリック全自動セットアップ</button></div>
+      <div class="mcfg-row"><button onclick="fullAutoSetup()" style="background:#252525;border-color:#666;color:var(--text);font-weight:600;">⚡ ワンクリック全自動セットアップ</button></div>
       <div class="mcfg-row"><button onclick="applyHeadPreset()">頭 X/Y/Z（自動）</button></div>
       <div class="mcfg-row"><button onclick="showBlinkSetup()">まばたきセットアップ</button></div>
       <div class="mcfg-row"><button onclick="showBrowSetup()">眉毛セットアップ</button></div>
@@ -3219,7 +3219,7 @@ function buildParamUI() {
   if (_soloParam) {
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#3a2a00;border:1px solid #f0c040;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#f0c040;';
-    banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:bold;">解除</button>`;
+    banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:600;">解除</button>`;
     cont.appendChild(banner);
   }
   // Recent params quick-access strip
@@ -3303,7 +3303,7 @@ function renderParamRow(name, p, cont, _isFavArg) {
         <button id="lock-${name}" onclick="toggleParamLock('${name}',event)" title="ロック"
           style="background:none;border:none;color:${p.locked?'var(--kf)':'var(--dim)'};cursor:pointer;font-size:11px;padding:0 2px;margin-left:4px;">${p.locked?'🔒':'🔓'}</button>
         <button id="solo-${name}" onclick="event.stopPropagation();toggleParamSolo('${name}')" title="このパラメータだけ表示（他は0に）"
-          style="background:none;border:none;color:${_soloParam===name?'#f0c040':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:2px;font-weight:bold;">S</button>
+          style="background:none;border:none;color:${_soloParam===name?'#f0c040':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:2px;font-weight:600;">S</button>
         <button id="bounce-${name}" onclick="event.stopPropagation();toggleParamBounce('${name}')" title="min↔max バウンスプレビュー（クリックで停止）"
           style="background:none;border:none;color:${_paramBounceName===name?'#e07840':'var(--dim)'};cursor:pointer;font-size:10px;padding:0 2px;margin-left:1px;">⟳</button>
       </div>
@@ -4262,7 +4262,7 @@ function _showEmbedCode(filePath) {
   dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:14px 16px;z-index:9999;max-width:500px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:10px;';
   dlg.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <span style="color:var(--text);font-size:12px;font-weight:bold;">📋 埋め込みコード</span>
+      <span style="color:var(--text);font-size:12px;font-weight:600;">📋 埋め込みコード</span>
       <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
     </div>
     <div style="color:var(--dim);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
@@ -4466,11 +4466,11 @@ canvas{display:block;image-rendering:auto;}
 #expr-hud{display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(28,28,28,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:4px 12px;color:#ffd060;font-size:11px;font-family:monospace;pointer-events:none;z-index:99;}
 #dbg-ov{display:none;position:fixed;top:10px;left:10px;background:rgba(0,0,0,.78);color:#00e080;font-size:9.5px;font-family:monospace;padding:6px 10px;border-radius:5px;pointer-events:none;z-index:99;line-height:1.65;min-width:160px;}
 #expr-list{display:none;position:fixed;bottom:10px;left:10px;background:rgba(22,22,22,.88);border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:6px 10px;font-size:10px;font-family:monospace;pointer-events:none;z-index:99;line-height:1.7;}
-#expr-list .el{color:var(--dim);} #expr-list .el.active{color:#ffd060;font-weight:bold;}
+#expr-list .el{color:var(--dim);} #expr-list .el.active{color:#ffd060;font-weight:600;}
 #pose-bar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:90vw;z-index:99;}
 #pose-bar button{background:rgba(28,28,28,.92);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;transition:all .15s;}
 #pose-bar button:hover{border-color:rgba(224,120,64,.6);color:#fff;}
-#pose-bar button.active{background:rgba(224,120,64,.15);border-color:rgba(224,120,64,.7);color:#e0b860;font-weight:bold;}
+#pose-bar button.active{background:rgba(224,120,64,.15);border-color:rgba(224,120,64,.7);color:#e0b860;font-weight:600;}
 /* Chat overlay */
 #chat-ov{display:none;position:fixed;bottom:16px;left:14px;max-width:340px;z-index:98;pointer-events:none;font-family:'Segoe UI',sans-serif;}
 #chat-ov .cm{display:flex;flex-direction:column;gap:3px;max-height:240px;overflow:hidden;}
@@ -6851,7 +6851,7 @@ window._applyTrackPreset=function(preset){
   const panel=document.createElement('div');
   panel.id='track-settings-panel';
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px 14px;color:var(--text);font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
-  panel.innerHTML=`<div style="font-size:11px;font-weight:bold;margin-bottom:8px;color:var(--dim);">📡 顔追跡設定</div>
+  panel.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dim);">📡 顔追跡設定</div>
 <div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--dim);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
 <button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:#ff9060;border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
 <button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
