@@ -210,7 +210,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-reset:hover{color:#e07840;opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
-.ci-arr{background:#252525;border:1px solid #3a3a3a;color:#808080;font-size:14px;padding:0 6px;cursor:pointer;border-radius:4px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
+.ci-arr{background:#252525;border:1px solid #3a3a3a;color:#888;font-size:14px;padding:0 6px;cursor:pointer;border-radius:4px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
 .ci-arr:hover{color:#e07840;border-color:var(--accent)}
 .ci-num-sm{width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
 .ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -250,7 +250,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 #expr-preview-tip .ept-label{min-width:65px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:#2a2a2a;border-radius:2px;overflow:hidden}
 #expr-preview-tip .ept-bar-fill{height:100%;background:#e07840;border-radius:2px}
-#expr-preview-tip .ept-val{min-width:30px;text-align:right;color:#808080}
+#expr-preview-tip .ept-val{min-width:30px;text-align:right;color:#888}
 .expr-footer{padding:6px 10px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
 
 /* ===== STATUS BAR ===== */
@@ -1131,7 +1131,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
   <div class="mb">
     <h3>デフォーマーを作成</h3>
     <input type="text" id="defni" placeholder="例: 顔デフォーマー, 体デフォーマー">
-    <div style="display:flex;gap:12px;margin:6px 0;font-size:10px;color:#808080">
+    <div style="display:flex;gap:12px;margin:6px 0;font-size:10px;color:#888">
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
         <input type="radio" name="deftype" value="warp" checked style="accent-color:#e07840"> ⬡ ワープ変形
       </label>
@@ -4021,7 +4021,7 @@ function showTexSwitchModal() {
   <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
     <button onclick="clearTexSwitch()" style="background:#200a0a;border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
-    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:#d0c060;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
   </div>`;
@@ -4097,13 +4097,13 @@ function showGenerateTextureModal() {
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
     <div style="font-size:10px;color:#707070">不透明度</div>
     <input id="gt-alpha" type="range" min="0" max="100" value="100" oninput="document.getElementById('gt-alpha-v').textContent=this.value+'%';updateGentexPreview()" style="flex:1;accent-color:#e07840">
-    <span id="gt-alpha-v" style="font-size:10px;color:#808080;min-width:32px">100%</span>
+    <span id="gt-alpha-v" style="font-size:10px;color:#888;min-width:32px">100%</span>
   </div>
   <div style="text-align:center;margin-bottom:10px">
     <canvas id="gt-preview" width="120" height="120" style="border:1px solid #3a3a3a;border-radius:4px;image-rendering:pixelated"></canvas>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="document.getElementById('gentex-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('gentex-mo').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyGeneratedTexture()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:#c0c0c0;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">∇ 生成・適用</button>
   </div>
   </div>`;
@@ -4589,7 +4589,7 @@ function showGlobalTransformModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyGlobalTransform()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -5455,7 +5455,7 @@ function editExprValues(idx) {
     rows+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;opacity:${isDiff?1:.35}">
       <span style="min-width:80px;font-size:9px;color:${isDiff?'#c0c0c0':'#555'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${k}">${pc.l||k}</span>
       <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:#e07840;height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
-      <span data-val="${k}" style="font-size:8px;color:#808080;min-width:32px;text-align:right">${v.toFixed(2)}</span>
+      <span data-val="${k}" style="font-size:8px;color:#888;min-width:32px;text-align:right">${v.toFixed(2)}</span>
     </div>`;
   });
   ov.innerHTML=`<div class="eev-wrap" style="background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
@@ -5464,7 +5464,7 @@ function editExprValues(idx) {
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
       <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:#c0a080;border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
-      <button onclick="document.getElementById('expr-edit-overlay').remove()" style="background:rgba(60,60,60,.5);border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="document.getElementById('expr-edit-overlay').remove()" style="background:rgba(60,60,60,.5);border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
     </div>
   </div>`;
   ov.querySelector('.eev-wrap')._tmp = {..._vals};
@@ -6465,9 +6465,9 @@ ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option
 <button class="ih" onclick="removeLFO('${lfo.id}')" style="color:#707070;font-size:10px;padding:0 4px">✕</button>
 </div>
 <div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:#888">
-<span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.freq||0).toFixed(2)}</span>
-<span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw){const _l=lfos.find(l=>l.id==='${lfo.id}');if(_l)_lw.innerHTML=_lfoWaveSVG(_l.wave,_l.amp,_l.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.amp||0).toFixed(2)}</span>
-<span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw2=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw2){const _l2=lfos.find(l=>l.id==='${lfo.id}');if(_l2)_lw2.innerHTML=_lfoWaveSVG(_l2.wave,_l2.amp,_l2.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#808080;text-align:right">${(lfo.offset||0).toFixed(2)}</span>
+<span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:#888;text-align:right">${(lfo.freq||0).toFixed(2)}</span>
+<span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw){const _l=lfos.find(l=>l.id==='${lfo.id}');if(_l)_lw.innerHTML=_lfoWaveSVG(_l.wave,_l.amp,_l.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#888;text-align:right">${(lfo.amp||0).toFixed(2)}</span>
+<span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw2=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw2){const _l2=lfos.find(l=>l.id==='${lfo.id}');if(_l2)_lw2.innerHTML=_lfoWaveSVG(_l2.wave,_l2.amp,_l2.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:#888;text-align:right">${(lfo.offset||0).toFixed(2)}</span>
 </div>
 </div>`).join('');
 }
@@ -7093,7 +7093,7 @@ function showDeformWaveModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyDeformWave()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -7467,7 +7467,7 @@ function showSnapshotCompare() {
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
       <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
-      <button onclick="this.closest('[style]').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
+      <button onclick="this.closest('[style]').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
     </div>`;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
@@ -8416,7 +8416,7 @@ function showAvatarExportDialog() {
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#808080;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="doExportAvatar()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:#c0c0c0;border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px;font-weight:600">🎭 書き出し</button>
       </div>
     </div>`;
@@ -8847,7 +8847,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:9px;color:#707070;min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:#e07840;height:3px}
-.cp-val{font-size:8px;color:#808080;min-width:28px;text-align:left}
+.cp-val{font-size:8px;color:#888;min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#c0c0c0;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
 #mixer-panel h4{font-size:9px;color:#707070;text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
