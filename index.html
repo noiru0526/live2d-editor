@@ -13,7 +13,7 @@
   --accent:#e07840; --accent-light:#ffb070; --accent2:#c09040; --accent3:#c09060;
   --accent-dim:rgba(224,120,64,.15); --accent2-dim:rgba(192,144,64,.15);
   /* Status colors */
-  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
+  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --teal:#60d890; --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
   /* Text */
   --text:#c8c8c8; --text-bright:#e0e0e0; --dim:#909090; --muted:#707070;
   /* Spacing */
@@ -956,15 +956,15 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">D</td><td>デフォーマーモード切替</td></tr>
       <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">R</td><td>REC オン/オフ</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">M</td><td>メッシュ表示切替</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">X</td><td>ミラー編集切替</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">O</td><td>オニオンスキン切替</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">G</td><td>グリッドスナップ切替</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">V</td><td>変形矢印表示切替</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">B</td><td>ブラシ選択モード</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">S</td><td>スカルプト変形モード</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">L</td><td>投げ縄選択モード</td></tr>
-      <tr><td style="font-family:monospace;color:#60d890;padding:2px 16px 2px 0">F</td><td>表示リセット (フィット)</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">M</td><td>メッシュ表示切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">X</td><td>ミラー編集切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">O</td><td>オニオンスキン切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">G</td><td>グリッドスナップ切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">V</td><td>変形矢印表示切替</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">B</td><td>ブラシ選択モード</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">S</td><td>スカルプト変形モード</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">L</td><td>投げ縄選択モード</td></tr>
+      <tr><td style="font-family:monospace;color:var(--teal);padding:2px 16px 2px 0">F</td><td>表示リセット (フィット)</td></tr>
       <tr><td style="height:8px"></td></tr>
       <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">↑↓←→</td><td>選択頂点を1px移動</td></tr>
       <tr><td style="font-family:monospace;color:var(--accent);padding:2px 16px 2px 0">Shift+↑↓←→</td><td>10px移動</td></tr>
@@ -1267,7 +1267,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <input type="checkbox" id="tl-loop" checked style="accent-color:var(--accent);">ループ
     </label>
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);" title="再生時にプレイヘッドが見えるようにタイムラインを自動スクロール">
-      <input type="checkbox" id="tl-follow-ph" checked style="accent-color:#60d890;">追跡
+      <input type="checkbox" id="tl-follow-ph" checked style="accent-color:var(--teal);">追跡
     </label>
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
       <input type="checkbox" id="tl-pingpong" style="accent-color:#ff80c0;">🏓 往復
@@ -1276,7 +1276,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
       style="width:48px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
-    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:var(--bg);border:1px solid var(--border);color:#60d890;border-radius:4px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
+    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:var(--bg);border:1px solid var(--border);color:var(--teal);border-radius:4px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
       style="width:46px;background:var(--bg);border:1px solid var(--border);color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
@@ -4271,7 +4271,7 @@ function _showEmbedCode(filePath) {
     <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:var(--bg);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
-    <textarea readonly style="width:100%;height:64px;background:var(--bg);border:1px solid var(--border);color:#60d890;border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
+    <textarea readonly style="width:100%;height:64px;background:var(--bg);border:1px solid var(--border);color:var(--teal);border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
     <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:var(--dim);">
       <label><input type="checkbox" id="obsq-bg" style="margin-right:2px;"> bg=00ff00 (クロマキー)</label>
@@ -4600,7 +4600,7 @@ ${creditText ? `<div id="credit-txt" style="position:fixed;${creditPos.includes(
 <div id="st" onclick="document.getElementById('obs-tip').style.display=document.getElementById('obs-tip').style.display==='block'?'none':'block'">Camera: Loading...</div>
 ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object.keys(c.animation?.tracks||{}).length>0) ? `<div id="anim-controls" style="position:fixed;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:99;min-width:160px;">
   <div style="display:flex;gap:4px;align-items:center;">
-    <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:#60d890;font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
+    <button id="anim-btn" onclick="toggleExportAnim()" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--teal);font-size:11px;font-family:monospace;cursor:pointer;">▶ Anim</button>
     <button id="anim-loop-btn" onclick="toggleAnimLoop()" title="ループ切替" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--gold);font-size:10px;font-family:monospace;cursor:pointer;">🔁</button>
     <button onclick="animT=0;animLastNow=null;" title="先頭に戻す" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏮</button>
     <button id="anim-rev-btn" onclick="toggleReversePlay()" title="逆再生切替" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--dim);font-size:10px;font-family:monospace;cursor:pointer;">⏪</button>
@@ -4987,7 +4987,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?watermark=TEXT</td><td>透かし文字（+?watermarkpos= ?watermarkopacity=0.08 ?watermarkcolor= ?watermarksize= ?watermarkangle=）</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;">?noui=1</td><td>UI非表示</td></tr>
       ${M.poses.length>0 ? `<tr><td colspan="2" style="color:#60a080;font-size:10px;padding-top:6px;">─── ポーズ ───</td></tr>
-      ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:#60d890;padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
+      ${M.poses.slice(0,9).map((p,i)=>`<tr><td style="color:var(--teal);padding:1px 10px 1px 0;">${i+1}</td><td>${p.name}</td></tr>`).join('')}` : ''}
     </table>
     <div style="margin-top:10px;text-align:center;color:var(--dim);font-size:10px;">? または Esc キーで閉じる</div>
   </div>
@@ -5103,7 +5103,7 @@ function showClipChainDialog() {
       <button onclick="_chainAddEntry()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">＋追加</button>
     </div>
     <div style="display:flex;gap:4px;">
-      <button onclick="_chainStartPlay()" style="flex:1;background:#1a2818;border:1px solid rgba(80,200,120,.4);color:#60d890;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">▶ 連鎖再生</button>
+      <button onclick="_chainStartPlay()" style="flex:1;background:#1a2818;border:1px solid rgba(80,200,120,.4);color:var(--teal);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">▶ 連鎖再生</button>
       <button onclick="_chainStop()" style="flex:1;background:#281a1a;border:1px solid rgba(255,100,80,.4);color:#ff8060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">⏹ 停止</button>
     </div>`;
   document.body.appendChild(d);
@@ -6884,7 +6884,7 @@ window._applyTrackPreset=function(preset){
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:var(--accent);" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
 <div style="font-size:9px;color:var(--dim);margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#ff8080">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#80ff80">Y(上下)</span><input id="ts-sy" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#60d890;" oninput="curSensY=parseFloat(this.value);document.getElementById('ts-sy-val').textContent=this.value"><span id="ts-sy-val">1</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#80ff80">Y(上下)</span><input id="ts-sy" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--teal);" oninput="curSensY=parseFloat(this.value);document.getElementById('ts-sy-val').textContent=this.value"><span id="ts-sy-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--kf)">Z(傾き)</span><input id="ts-sz" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--kf);" oninput="curSensZ=parseFloat(this.value);document.getElementById('ts-sz-val').textContent=this.value"><span id="ts-sz-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:70px;accent-color:var(--accent);" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:70px;accent-color:var(--accent);" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>
@@ -17849,7 +17849,7 @@ function renderCTList() {
   M.chatTriggers.forEach((t, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 5px;background:var(--bg);border-radius:3px;font-size:10px;';
-    row.innerHTML = `<code style="color:var(--gold);background:var(--bg);padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:var(--dim);">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:#60d890;cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
+    row.innerHTML = `<code style="color:var(--gold);background:var(--bg);padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:var(--dim);">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:var(--teal);cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -20070,9 +20070,9 @@ function showModelQC() {
     `<strong style="color:#80ffcc;font-size:13px">📋 モデルQCレポート</strong>`,
     `<span style="color:#5a9a6a;font-size:10px">パーツ ${parts.length} / パラメータ ${params.length} / デフォーマー ${defs.length}</span>`,
     '',
-    ...(warns.length?['<strong style="color:var(--gold)">警告</strong>',...warns.map(w=>`<span style="color:var(--gold)">${w}</span>`),'']: ['<span style="color:#60d890">⚠️ 警告なし</span>','']),
+    ...(warns.length?['<strong style="color:var(--gold)">警告</strong>',...warns.map(w=>`<span style="color:var(--gold)">${w}</span>`),'']: ['<span style="color:var(--teal)">⚠️ 警告なし</span>','']),
     ...(infos.length?[...infos.map(i=>`<span style="color:var(--text)">${i}</span>`),'']: []),
-    ...(oks.length?['<strong style="color:#60d890">OK</strong>',...oks.map(o=>`<span style="color:#60d890">${o}</span>`)]: []),
+    ...(oks.length?['<strong style="color:var(--teal)">OK</strong>',...oks.map(o=>`<span style="color:var(--teal)">${o}</span>`)]: []),
   ];
   const ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;';
@@ -20156,7 +20156,7 @@ function renderSpringList() {
       </div>`;
     card.innerHTML=`
       <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
-        <span style="font-size:10px;font-weight:600;color:#60d890;flex:1;cursor:pointer;" onclick="selectSpringVerts(${idx})" title="頂点を選択">
+        <span style="font-size:10px;font-weight:600;color:var(--teal);flex:1;cursor:pointer;" onclick="selectSpringVerts(${idx})" title="頂点を選択">
           🌊 ${sb.name} <span style="color:var(--dim);font-weight:400">(${sb.verts.length}v)</span>
         </span>
         <span onclick="deleteSpring(${idx})" style="color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>
@@ -23911,7 +23911,7 @@ function showTimeScaleDialog() {
           <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
-          <span id="ts-preview" style="font-size:11px;color:#60d890;min-width:60px;">→ ${dur.toFixed(2)}s</span>
+          <span id="ts-preview" style="font-size:11px;color:var(--teal);min-width:60px;">→ ${dur.toFixed(2)}s</span>
         </div>
         <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);margin-top:2px;">
           <input type="checkbox" id="ts-all-clips" style="accent-color:var(--accent)"> 全クリップに適用（クリップ1のみはOFF）
@@ -24525,7 +24525,7 @@ function showAnimStats() {
           <div style="font-size:10px;color:var(--dim);">合計 KF</div>
         </div>
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
-          <div style="font-size:24px;font-weight:bold;color:#60d890;">${tracksWithKF.length}</div>
+          <div style="font-size:24px;font-weight:bold;color:var(--teal);">${tracksWithKF.length}</div>
           <div style="font-size:10px;color:var(--dim);">アクティブトラック</div>
         </div>
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
@@ -27182,7 +27182,7 @@ function applyPlayheadToParams() {
           insp.style.display='block';
           insp.style.left=(e.clientX+16)+'px';
           insp.style.top=(e.clientY-50)+'px';
-          insp.innerHTML=`<div style="color:var(--dim);font-size:10px;margin-bottom:3px;">${p?.lbl||name}</div><div>t: <span style="color:var(--gold)">${kf.t.toFixed(4)}s</span></div><div>v: <span style="color:#60d890">${kf.v.toFixed(4)}</span></div><div style="color:var(--dim);font-size:9px;">${kf.interp||'linear'}</div>`;
+          insp.innerHTML=`<div style="color:var(--dim);font-size:10px;margin-bottom:3px;">${p?.lbl||name}</div><div>t: <span style="color:var(--gold)">${kf.t.toFixed(4)}s</span></div><div>v: <span style="color:var(--teal)">${kf.v.toFixed(4)}</span></div><div style="color:var(--dim);font-size:9px;">${kf.interp||'linear'}</div>`;
           if (e.clientX+200>window.innerWidth) insp.style.left=(e.clientX-180)+'px';
         }
       }
@@ -27288,7 +27288,7 @@ function applyPlayheadToParams() {
       const p=M.params[hit.name];
       const lbl=p?.lbl||hit.name;
       const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
-      _kfTip.innerHTML=`<span style="color:var(--dim)">${lbl}</span><br>t: <span style="color:var(--gold)">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:#60d890">${hit.kf.v.toFixed(3)}</span>  <span style="color:var(--dim)">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}`;
+      _kfTip.innerHTML=`<span style="color:var(--dim)">${lbl}</span><br>t: <span style="color:var(--gold)">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:var(--teal)">${hit.kf.v.toFixed(3)}</span>  <span style="color:var(--dim)">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}`;
     } else {
       // Show interpolated track value at cursor position
       const trackHit = hitTestTrack(e);
@@ -30157,7 +30157,7 @@ function exportGIF() {
     <div id="gif-est" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;">
       <button id="gif-cancel" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
-      <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:600;">書き出し開始</button>
+      <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:var(--teal);border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:600;">書き出し開始</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
