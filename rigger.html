@@ -83,9 +83,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi.drag-over-parent{background:rgba(96,192,160,.1);border-left-color:#60c0a0;border-left-style:solid;outline:1px dashed rgba(96,192,160,.4)}
 /* Cubism status dot column */
 .pi-dots{display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0;padding:0 4px;align-self:stretch}
-.pi-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;border:1px solid var(--border);flex-shrink:0}
+.pi-dot{width:7px;height:7px;border-radius:50%;background:var(--panel);border:1px solid var(--border);flex-shrink:0}
 .pi-dot.vis{background:#e07840;border-color:var(--accent)}
-.pi-dot.lock{background:#2a2a2a;border-color:var(--border)}
+.pi-dot.lock{background:var(--panel);border-color:var(--border)}
 .pi-dot.locked{background:#a0a0a0;border-color:#a0a0a0}
 .pi-drag{display:none}
 .pv{font-size:11px;cursor:pointer;color:#707070;flex-shrink:0;width:16px;text-align:center;transition:color .1s}
@@ -161,7 +161,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 /* Params panel */
 #params-list{padding:0}
 .pg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);letter-spacing:.5px;padding:3px 8px 2px;font-weight:500;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
-.pg:hover{background:#2a2a2a;color:#aaa}
+.pg:hover{background:var(--panel);color:#aaa}
 .pg-arrow{font-size:9px;color:#707070;transition:transform .12s;display:inline-block;flex-shrink:0}
 .pg.collapsed .pg-arrow{transform:rotate(-90deg)}
 .pg-icon{font-size:11px;flex-shrink:0}
@@ -198,7 +198,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .prop-sel:focus{border-color:var(--accent)}
 .prop-row .tbtn{font-size:10px;padding:3px 8px}
 .ab{display:block;width:100%;margin-bottom:3px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;text-align:left;transition:all .1s}
-.ab:hover{background:#2a2a2a;color:var(--text);border-color:var(--border)}
+.ab:hover{background:var(--panel);color:var(--text);border-color:var(--border)}
 .ab:active{transform:translateY(1px)}
 .ab.pr{background:linear-gradient(135deg,rgba(224,120,64,.3),rgba(192,80,40,.25));border-color:var(--accent);color:#ffd090}
 .ab.pr:hover{opacity:.85}
@@ -258,7 +258,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 #expr-preview-tip .ept-title{font-size:10px;color:#c0c0c0;font-weight:600;margin-bottom:5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
 #expr-preview-tip .ept-label{min-width:65px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:#2a2a2a;border-radius:2px;overflow:hidden}
+#expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:var(--panel);border-radius:2px;overflow:hidden}
 #expr-preview-tip .ept-bar-fill{height:100%;background:#e07840;border-radius:2px}
 #expr-preview-tip .ept-val{min-width:30px;text-align:right;color:var(--dim)}
 .expr-footer{padding:3px 8px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
@@ -620,7 +620,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid var(--border);border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:var(--dim)">
       <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid #2e2e2e;color:#a0a0a0;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
