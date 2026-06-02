@@ -1344,9 +1344,9 @@ button:focus{outline:none;}
     <button onclick="exportMotionCSV()" title="CSVモーションエクスポート: 全トラックをtime,param1,param2... 形式でCSV出力" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 CSV保存</button>
     <button onclick="tlZoom=1;tlZoomOff=0;drawMultiTimeline();" title="タイムラインズームをリセット (Ctrl+ホイールでズーム)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍1x</button>
     <button onclick="fitTimelineToKFs()" title="全KFが見えるようにズームフィット" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡フィット</button>
-    <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#707070';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
-    <button id="btn-tl-fgrid" onclick="tlFrameGrid=!tlFrameGrid;this.style.color=tlFrameGrid?'#60d890':'#707070';this.style.borderColor=tlFrameGrid?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="フレームグリッド表示（スナップグリッドに合わせた縦線）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊞</button>
-    <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#707070';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
+    <button id="btn-tl-smpte" onclick="tlSmpteMode=!tlSmpteMode;this.style.color=tlSmpteMode?'#60d890':'#888';this.style.borderColor=tlSmpteMode?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="SMPTEタイムコード表示切替 (HH:MM:SS:FF / 秒表示)" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🕐</button>
+    <button id="btn-tl-fgrid" onclick="tlFrameGrid=!tlFrameGrid;this.style.color=tlFrameGrid?'#60d890':'#888';this.style.borderColor=tlFrameGrid?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="フレームグリッド表示（スナップグリッドに合わせた縦線）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊞</button>
+    <button id="btn-tl-wave" onclick="tlWaveform=!tlWaveform;this.style.color=tlWaveform?'#60d890':'#888';this.style.borderColor=tlWaveform?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="ウェーブフォーム表示（カーブ下をグラデーション塗りつぶし）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜</button>
     <button onclick="scatterSelectedKFValues()" title="選択KFをランダムにスキャッタ（値のランダム分散）" style="background:#2d2d2d;border:1px solid var(--border);color:#d0a060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎲</button>
     <button onclick="scaleSelectedKFValues()" title="選択KFの値を倍率でスケール（例: 2.0=2倍, -1.0=反転）" style="background:#2d2d2d;border:1px solid var(--border);color:#c0d090;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⨯</button>
     <button onclick="(()=>{const t=prompt('補間タイプ (linear/smooth/step/ease-in/ease-out/ease-in-out-cubic/elastic):','linear');if(t)setSelectedKFsInterp(t.trim());})()" title="選択KFの補間タイプを一括変更" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
@@ -1374,12 +1374,12 @@ button:focus{outline:none;}
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
-    <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#707070';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
-    <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#707070';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
-    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'var(--accent)':'#707070';this.style.borderColor=tlColorByGroup?'rgba(224,120,64,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
+    <button id="btn-tl-hide-empty" onclick="tlHideEmpty=!tlHideEmpty;this.style.color=tlHideEmpty?'#60d890':'#888';this.style.borderColor=tlHideEmpty?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();" title="KFなしのトラックを非表示" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🚫</button>
+    <button id="btn-tl-fav-only" onclick="tlShowOnlyFav=!tlShowOnlyFav;this.style.color=tlShowOnlyFav?'#ffd060':'#888';this.style.borderColor=tlShowOnlyFav?'rgba(255,208,96,.5)':'var(--border)';drawMultiTimeline();" title="お気に入りトラックのみ表示（⭐右クリックで登録）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⭐</button>
+    <button id="btn-tl-grp-color" onclick="tlColorByGroup=!tlColorByGroup;this.style.color=tlColorByGroup?'var(--accent)':'#888';this.style.borderColor=tlColorByGroup?'rgba(224,120,64,.5)':'var(--border)';drawMultiTimeline();" title="グループ色モード: パラメータ名の接頭辞で同色グループ化（OFFは個別ハッシュ色）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎨G</button>
     <button onclick="autoGroupByPrefix()" title="パラメータ名のプレフィックス（head/eye/mouth等）で自動グループ化" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 自動G</button>
     <button onclick="tlHiddenTracks.clear();drawMultiTimeline();" title="全トラックを表示（非表示解除・Ctrl+クリックでソロ化）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁</button>
-    <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#707070';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
+    <button id="btn-tl-pfx-collapse" onclick="(function(){const pfxSet=new Set(Object.keys(M.params).filter(n=>n.includes('_')).map(n=>n.split('_')[0]));if(tlCollapsedGroups.size>0){tlCollapsedGroups.clear();}else{pfxSet.forEach(p=>tlCollapsedGroups.add(p));}const el=document.getElementById('btn-tl-pfx-collapse');el.style.color=tlCollapsedGroups.size>0?'#60d890':'#888';el.style.borderColor=tlCollapsedGroups.size>0?'rgba(96,216,144,.5)':'var(--border)';drawMultiTimeline();})()" title="プレフィックスグループ折りたたみ（eye_/mouth_等のプレフィックスでグループ化）&#10;ラベルをクリックして個別展開/折りたたみ" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗂 折</button>
     <select id="tl-sort-mode" title="タイムライントラックのソート順" onchange="tlSortMode=this.value;drawMultiTimeline();" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 3px;font-size:9px;cursor:pointer;">
       <option value="default">↕ デフォルト</option>
       <option value="alpha">🔤 アルファベット順</option>
@@ -3619,7 +3619,7 @@ function updateKFList() {
     row.innerHTML=`<span style="color:${hasD?'#ffd060':'#888'}">●</span>
       <span class="kfv">${kfv.toFixed(2)}</span>
       <span style="flex:1;font-size:10px;color:var(--dim);padding-left:6px">${hasD?'データあり':''}</span>
-      <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#c8c8c8':'#707070'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
+      <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#c8c8c8':'#888'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
       <span class="kfd-btn" onclick="event.stopPropagation();doDelKFVal('${name}',${kfv})">×</span>`;
     item.appendChild(row);
     if (cmt) {
@@ -4623,7 +4623,7 @@ ${includeCtrlPanel ? `
     <input type="range" min="${p.min}" max="${p.max}" step="${p.step||0.01}" value="${p.val||0}"
       oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2);params['${k}'].val=parseFloat(this.value);">
     <span>${(p.val||0).toFixed(2)}</span>
-    <button title="リセット(${dflt.toFixed(2)})" onclick="(()=>{const sp=this.previousElementSibling;const inp=sp.previousElementSibling;const v=${dflt};inp.value=v;sp.textContent=v.toFixed(2);params['${k}'].val=v;})()" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;padding:0 2px;line-height:1;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='#707070'">↺</button>
+    <button title="リセット(${dflt.toFixed(2)})" onclick="(()=>{const sp=this.previousElementSibling;const inp=sp.previousElementSibling;const v=${dflt};inp.value=v;sp.textContent=v.toFixed(2);params['${k}'].val=v;})()" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;padding:0 2px;line-height:1;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='#888'">↺</button>
   </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:var(--dim);font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
@@ -5163,7 +5163,7 @@ function toggleReversePlay() {
   animSpeedMult = Math.abs(animSpeedMult) * (_reversePlay ? -1 : 1);
   const btn = document.getElementById('anim-rev-btn');
   if (btn) {
-    btn.style.color = _reversePlay ? '#ff8080' : '#707070';
+    btn.style.color = _reversePlay ? '#ff8080' : '#888';
     btn.style.borderColor = _reversePlay ? 'rgba(255,100,80,.6)' : 'rgba(255,255,255,.12)';
   }
 }
@@ -5286,7 +5286,7 @@ let _bgmAudio = null;
 function toggleBGMSync() {
   _bgmSyncEnabled = !_bgmSyncEnabled;
   const btn = document.getElementById('btn-bgm-sync');
-  if (btn) { btn.style.color = _bgmSyncEnabled ? '#e07840' : '#707070'; btn.style.borderColor = _bgmSyncEnabled ? 'rgba(224,120,64,.9)' : 'rgba(255,255,255,.1)'; btn.textContent = _bgmSyncEnabled ? '🔊 同期ON' : '🔊 同期'; }
+  if (btn) { btn.style.color = _bgmSyncEnabled ? '#e07840' : '#888'; btn.style.borderColor = _bgmSyncEnabled ? 'rgba(224,120,64,.9)' : 'rgba(255,255,255,.1)'; btn.textContent = _bgmSyncEnabled ? '🔊 同期ON' : '🔊 同期'; }
   if (!_bgmSyncEnabled && _bgmAudio) _bgmAudio.pause();
 }
 function toggleExportAnim(){
@@ -5919,7 +5919,7 @@ function _dbgUpdate(){
     `<div>眉 L:${f(S.bwl)} R:${f(S.bwr)}</div>`+
     `<div>視線 X:${f(S.ex)} Y:${f(S.ey)}</div>`+
     (S.ck>0.05?`<div>頬: ${f(S.ck)}</div>`:'')+
-    `<div style="color:#707070;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
+    `<div style="color:#888;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
 }
 function _setDbgMode(on){
   _dbgMode=on;
@@ -5976,7 +5976,7 @@ function _setPose(idx){
     _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
     _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
     _pbtn.onclick=window.openAvatarPiP;
-    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#707070';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
+    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#888';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
     document.body.appendChild(_pbtn);
   }
   if(_usp2.get('pip')==='1') document.addEventListener('click',()=>window.openAvatarPiP(),{once:true});
@@ -5987,7 +5987,7 @@ let _speedVary=false, _speedVaryT=0;
   const btn=document.createElement('button');
   btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
   btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
-  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#707070';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
+  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#888';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
   if(typeof animPlaying!=='undefined') btn.style.display='';
   document.body.appendChild(btn);
 })();
@@ -6775,7 +6775,7 @@ window.addEventListener('message',e=>{
   _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _gpBtn.onclick = () => {
     _gpActive = !_gpActive;
-    _gpBtn.style.color = _gpActive ? '#60d890' : '#707070';
+    _gpBtn.style.color = _gpActive ? '#60d890' : '#888';
     _gpBtn.style.borderColor = _gpActive ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
     _gpBtn.textContent = _gpActive ? '🎮 ON' : '🎮 Pad';
     if (_gpActive) { _gpRaf = requestAnimationFrame(_gpTick); } else if (_gpRaf) { cancelAnimationFrame(_gpRaf); _gpRaf = null; }
@@ -6789,7 +6789,7 @@ let _idleRandTimer = null;
 function toggleIdleRandom() {
   _idleRandActive = !_idleRandActive;
   const btn = document.getElementById('idle-rand-btn');
-  if (btn) { btn.textContent = _idleRandActive ? '🎲 ON' : '🎲 Auto'; btn.style.color = _idleRandActive ? '#ffd060' : '#707070'; }
+  if (btn) { btn.textContent = _idleRandActive ? '🎲 ON' : '🎲 Auto'; btn.style.color = _idleRandActive ? '#ffd060' : '#888'; }
   if (_idleRandActive) scheduleIdleRand(); else if (_idleRandTimer) { clearTimeout(_idleRandTimer); _idleRandTimer = null; }
 }
 function scheduleIdleRand() {
@@ -6820,7 +6820,7 @@ _mtBtn.textContent = '🖱 マウス追従';
 _mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
 _mtBtn.onclick = () => {
   _mouseTracking = !_mouseTracking;
-  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#707070';
+  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#888';
   _mtBtn.style.borderColor = _mouseTracking ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
   _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
 };
@@ -6895,7 +6895,7 @@ window._applyTrackPreset=function(preset){
   settBtn.onclick=()=>{
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
-    settBtn.style.color=v?'#60d890':'#707070';
+    settBtn.style.color=v?'#60d890':'#888';
     if(v) _syncAllSliders();
   };
   document.body.appendChild(settBtn);
@@ -6913,7 +6913,7 @@ window._applyTrackPreset=function(preset){
   _srBtn.onclick = () => {
     if (_srActive) {
       _sr?.stop(); _srActive = false;
-      _srBtn.style.color = '#707070'; _srBtn.style.borderColor = 'rgba(255,255,255,.12)';
+      _srBtn.style.color = '#888'; _srBtn.style.borderColor = 'rgba(255,255,255,.12)';
       _srBtn.textContent = '🎙 音声';
     } else {
       try {
@@ -12602,7 +12602,7 @@ window.addEventListener('message',ev=>{
   });
   _ov.innerHTML=`<div style="font-size:60px;margin-bottom:16px;">⏸️</div>
     <div style="color:#fff;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(200,200,200,0.6);">${_msg}</div>
-    <div style="color:#707070;font-size:14px;margin-top:12px;">（${_key}で戻る）</div>`;
+    <div style="color:#888;font-size:14px;margin-top:12px;">（${_key}で戻る）</div>`;
   document.body.appendChild(_ov);
   let _brb=false;
   function _toggle(){
@@ -18576,7 +18576,7 @@ function drawFc2d() {
   ctx2.beginPath(); ctx2.moveTo(W/2, 0); ctx2.lineTo(W/2, H); ctx2.stroke();
   ctx2.beginPath(); ctx2.moveTo(0, H/2); ctx2.lineTo(W, H/2); ctx2.stroke();
   if (!active) {
-    ctx2.fillStyle = '#707070'; ctx2.font = '9px sans-serif';
+    ctx2.fillStyle = '#888'; ctx2.font = '9px sans-serif';
     ctx2.textAlign = 'center'; ctx2.textBaseline = 'middle';
     ctx2.fillText('手動制御 OFF', W/2, H/2);
     return;
@@ -18677,7 +18677,7 @@ function renderWcExprBtns() {
     const btn = document.createElement('button');
     btn.textContent = pr.name;
     btn.title = `保存プリセット「${pr.name}」を適用`;
-    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:#707070;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:#252525;border:1px solid #3a3a3a;color:#888;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.oncontextmenu = (e) => {
       e.preventDefault();
       showCtxMenu(e.clientX, e.clientY, [
@@ -19361,7 +19361,7 @@ function _gpadLoop() {
         ctx.fillStyle=Math.abs(v)>0.1?'#60e090':'#383838';
         const h=(cv.height-8)*Math.abs(v)/2;
         ctx.fillRect(bx+1, v>0?cy2:cy2-h, bw-2, h||1);
-        ctx.fillStyle='#707070'; ctx.font='7px monospace'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.font='7px monospace'; ctx.textAlign='center';
         ctx.fillText(`A${i}`, bx+bw/2, cv.height-2);
         // Learn mode detection
         if (_gpadLearnMode && Math.abs(v) > 0.5) {
@@ -22196,7 +22196,7 @@ function toggleAnimMode() {
   } else {
     tl.style.height=''; tl.style.overflow=''; tl.style.border='';
     tlm.style.height='0'; tlm.style.borderTop='none';
-    if (btn) { btn.classList.remove('on'); btn.style.color='#707070'; }
+    if (btn) { btn.classList.remove('on'); btn.style.color='#888'; }
     resizeTimeline();
     // Hide KF nav buttons
     document.querySelectorAll('[id^="kfnav-"]').forEach(el => el.style.display = 'none');
@@ -23492,8 +23492,8 @@ function showPoseSequencer() {
         <span style="color:#80d8c0;min-width:12px;">${i+1}.</span>
         <span style="flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${poses[item.poseIdx]?.name||'?'}</span>
         <span style="color:var(--dim);min-width:32px;text-align:right;">${item.holdSec.toFixed(2)}s</span>
-        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:#707070;cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
-        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#707070;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
+        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:#888;cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
+        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:#888;cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
         <button onclick="seqRemove(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
       </div>`).join('')
     : '<div style="font-size:9px;color:#888;padding:4px 0;">シーケンスが空です</div>';
@@ -23950,7 +23950,7 @@ function quantizeKFTimes() {
 function toggleAutoKF() {
   tlAutoKF = !tlAutoKF;
   const btn = document.getElementById('btn-auto-kf');
-  if (btn) { btn.style.background = tlAutoKF ? '#3a1010' : '#2d2d2d'; btn.style.color = tlAutoKF ? '#ff6060' : '#707070'; btn.style.borderColor = tlAutoKF ? 'rgba(255,60,60,.6)' : 'var(--border)'; btn.textContent = tlAutoKF ? '⊕ ON' : '⊕ KF'; }
+  if (btn) { btn.style.background = tlAutoKF ? '#3a1010' : '#2d2d2d'; btn.style.color = tlAutoKF ? '#ff6060' : '#888'; btn.style.borderColor = tlAutoKF ? 'rgba(255,60,60,.6)' : 'var(--border)'; btn.textContent = tlAutoKF ? '⊕ ON' : '⊕ KF'; }
 }
 
 // ==================== PARAM RECORDING ====================
@@ -27435,7 +27435,7 @@ function togglePhysSim() {
   if (btn) {
     btn.textContent = _physSimActive ? '■ シミュ停止' : '▶ シミュ';
     btn.style.background = _physSimActive ? 'rgba(224,120,64,.15)' : '#282828';
-    btn.style.color = _physSimActive ? 'var(--accent)' : '#707070';
+    btn.style.color = _physSimActive ? 'var(--accent)' : '#888';
     btn.style.borderColor = _physSimActive ? 'rgba(224,120,64,.5)' : 'rgba(100,100,100,.4)';
   }
   if (_physSimActive) {
@@ -28156,7 +28156,7 @@ function showEasingPicker(callback, currentEasing) {
     cv.width=90;cv.height=50;cv.style.cssText='width:100%;display:block;border-radius:3px;';
     card.appendChild(cv);
     const lbl = document.createElement('div');
-    lbl.style.cssText=`font-size:8px;color:${isCur?'#e07840':'#707070'};text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+    lbl.style.cssText=`font-size:8px;color:${isCur?'#e07840':'#888'};text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
     lbl.textContent=ease.label;
     card.appendChild(lbl);
     grid.appendChild(card);
@@ -28840,7 +28840,7 @@ function geRender() {
     const v = GE.viewMinV + (i / hLines) * vRange;
     const y = vToY(v);
     ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
-    ctx.fillStyle = '#707070';
+    ctx.fillStyle = '#888';
     ctx.font = `${9*dpr}px monospace`;
     ctx.textAlign = 'right';
     ctx.fillText(v.toFixed(1), PAD_L - 4*dpr, y + 3*dpr);
@@ -29428,7 +29428,7 @@ function geShowOverlayPicker() {
     const isOn = GE.overlayParams.includes(p);
     const col = GE_OVERLAY_COLORS[i % GE_OVERLAY_COLORS.length];
     const row = document.createElement('div');
-    row.style.cssText = `padding:4px 8px;cursor:pointer;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:6px;color:${isOn?col:'#707070'};`;
+    row.style.cssText = `padding:4px 8px;cursor:pointer;border-radius:4px;font-size:11px;display:flex;align-items:center;gap:6px;color:${isOn?col:'#888'};`;
     row.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:${isOn?col:'#404040'};display:inline-block;flex-shrink:0;"></span>${p}`;
     row.onmouseenter = () => row.style.background = 'rgba(255,255,255,.05)';
     row.onmouseleave = () => row.style.background = '';
