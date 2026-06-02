@@ -8116,6 +8116,13 @@ function showWsTestPanel() {
         <button onclick="(function(){const i=+document.getElementById('wt-expr-sel').value;const dur=+document.getElementById('wt-expr-dur').value;const msg=i<0?{type:'expr',index:-1}:{type:'expr',name:expressions[i].name,dur:dur||undefined};document.getElementById('wt-input').value=JSON.stringify(msg);})()" style="background:rgba(96,200,140,.15);border:1px solid rgba(96,200,140,.4);color:var(--multi-sel);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px">→ JSON</button>
       </div>
     </div>` : ''}
+    <div style="margin-bottom:8px">
+      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">📸 現在のポーズをキャプチャ</div>
+      <div style="display:flex;gap:3px">
+        <button onclick="(function(){const v={};Object.entries(pv).forEach(([k,val])=>{if(Math.abs(val)>0.001)v[k]=+(+val).toFixed(3);});document.getElementById('wt-input').value=JSON.stringify({type:'params',values:v});})()" style="flex:1;background:rgba(96,200,140,.1);border:1px solid rgba(96,200,140,.3);color:var(--multi-sel);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px" title="0以外のpv値をparams JSONにまとめる">← 非ゼロpv</button>
+        <button onclick="(function(){const v={};Object.entries(pv).forEach(([k,val])=>{v[k]=+(+val).toFixed(3);});document.getElementById('wt-input').value=JSON.stringify({type:'params',values:v});})()" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px" title="全pv値をparams JSONにまとめる（0含む）">← 全pv</button>
+      </div>
+    </div>
     <div style="margin-bottom:10px">
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">JSON メッセージ</div>
       <textarea id="wt-input" rows="3" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
