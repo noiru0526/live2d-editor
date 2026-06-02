@@ -124,8 +124,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;}
 #cw{flex:1;background:#1e1e1e;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #c{image-rendering:pixelated;cursor:crosshair;box-shadow:0 0 0 1px #3a3a3a,0 4px 24px rgba(0,0,0,.6)}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid #3a3a3a;color:#707070;font-size:9px;padding:3px 12px;border-radius:12px;pointer-events:none;display:none}
-#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:#505050;pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
-#coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:#505050;pointer-events:none;font-family:monospace}
+#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:#888;pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
+#coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:#888;pointer-events:none;font-family:monospace}
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid #e07840;border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
@@ -1071,7 +1071,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span style="font-size:9px;color:#707070;text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
             <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
-            <button onclick="clearPoseBlend()" style="background:none;border:none;color:#2a4040;cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
+            <button onclick="clearPoseBlend()" style="background:none;border:none;color:#707070;cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
           </div>
         </div>
         <div id="blend-sliders" style="max-height:120px;overflow-y:auto"></div>
@@ -5894,7 +5894,7 @@ function buildDeformerTree() {
     // Collapse toggle
     const tog = document.createElement('span');
     tog.textContent = hasChildren ? (isCollapsed?'▶':'▼') : ' ';
-    tog.style.cssText = `font-size:7px;width:10px;flex-shrink:0;color:${hasChildren?'#505050':'transparent'};cursor:${hasChildren?'pointer':'default'}`;
+    tog.style.cssText = `font-size:7px;width:10px;flex-shrink:0;color:${hasChildren?'#707070':'transparent'};cursor:${hasChildren?'pointer':'default'}`;
     if (hasChildren) tog.onclick = (e) => { e.stopPropagation(); _defTreeCollapsed.has(d.id)?_defTreeCollapsed.delete(d.id):_defTreeCollapsed.add(d.id); buildDeformerTree(); };
     // Icon + name
     const label = document.createElement('span');
@@ -6688,7 +6688,7 @@ function drawXYGrid() {
   if (!px || !py) return;
 
   // Background
-  ctx2.fillStyle = '#07101a';
+  ctx2.fillStyle = '#0d0d0d';
   ctx2.fillRect(0, 0, W, H);
 
   // Minor grid lines
@@ -6747,7 +6747,7 @@ function drawXYGrid() {
   ctx2.stroke();
 
   // Axis labels
-  ctx2.fillStyle = '#505050';
+  ctx2.fillStyle = '#707070';
   ctx2.font = '8px sans-serif';
   ctx2.textAlign = 'left';  ctx2.textBaseline = 'top';
   ctx2.fillText(pair.lx, 3, 3);
@@ -7459,10 +7459,10 @@ function showSnapshotCompare() {
   const imgStyle = 'max-width:46vw;max-height:70vh;border-radius:4px;object-fit:contain;';
   const aHTML = _snapA
     ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #2a5040;border-radius:4px;color:#3a6050;font-size:11px">未撮影</div>`;
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #3d7060;border-radius:4px;color:#6ab090;font-size:11px">未撮影</div>`;
   const bHTML = _snapB
     ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #383830;border-radius:4px;color:#505040;font-size:11px">未撮影</div>`;
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:#888870;font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
