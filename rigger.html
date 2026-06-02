@@ -10,7 +10,7 @@
   --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
   --accent:#e07840;--accent2:#c09040;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
-  --green:#60c060;--rec:#e04040;--warn:#e09040;--error:#e05050;--danger:#f08080;
+  --green:#60c060;--rec:#e04040;--gold:#ffd060;--warn:#e09040;--error:#e05050;--danger:#f08080;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Noto Sans JP',system-ui,sans-serif;font-size:11px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
@@ -531,7 +531,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--text);border-color:var(--border)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
-          <button id="btn-param-sweep" class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ffd060;border-color:rgba(255,200,60,.4)" onclick="toggleParamSweep()" title="パラメータを自動スイープ: KF全範囲を往復再生してデフォームを確認">▷ スイープ</button>
+          <button id="btn-param-sweep" class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--gold);border-color:rgba(255,200,60,.4)" onclick="toggleParamSweep()" title="パラメータを自動スイープ: KF全範囲を往復再生してデフォームを確認">▷ スイープ</button>
           <select id="sweep-speed-sel" style="flex:0 0 auto;background:var(--bg);border:1px solid rgba(255,200,60,.3);color:#c0a050;border-radius:3px;padding:1px 3px;font-size:8px;" title="スイープ速度（サイクル/秒）">
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
@@ -847,8 +847,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div class="prop-row">
             <span class="prop-lbl" title="輝度 (0〜200%)">Bri</span>
-            <input type="range" id="pp-bri" min="0" max="200" value="100" oninput="applyPartHSB()" style="flex:1;accent-color:#ffd060">
-            <span id="pp-bri-v" style="font-size:9px;color:#ffd060;font-family:monospace;min-width:28px;text-align:right">100%</span>
+            <input type="range" id="pp-bri" min="0" max="200" value="100" oninput="applyPartHSB()" style="flex:1;accent-color:var(--gold)">
+            <span id="pp-bri-v" style="font-size:9px;color:var(--gold);font-family:monospace;min-width:28px;text-align:right">100%</span>
           </div>
           <div id="pp-hsbkf-row" style="display:none;background:rgba(224,120,64,.06);border:1px solid rgba(224,120,64,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
@@ -8011,7 +8011,7 @@ function showShortcutsOverlay() {
     ['Ctrl+S','自動保存（2分ごと・手動でも可）'],
   ];
   const rows = shortcuts.map(([k, v])=> v ?
-    `<tr><td style="padding:3px 8px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--dim);font-size:11px;">${v}</td></tr>` :
+    `<tr><td style="padding:3px 8px;font-family:monospace;color:var(--gold);font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--dim);font-size:11px;">${v}</td></tr>` :
     `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
   ).join('');
   d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
@@ -8830,7 +8830,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #st{position:fixed;top:8px;right:8px;background:rgba(0,0,0,.65);color:#aaa;font-size:10px;font-family:monospace;padding:3px 8px;border-radius:4px;pointer-events:none;transition:opacity .5s}
 #obs-badge{position:fixed;bottom:8px;right:8px;background:rgba(255,0,0,.15);color:rgba(255,80,80,.6);font-size:8px;font-family:monospace;padding:2px 6px;border-radius:3px;pointer-events:none;border:1px solid rgba(255,80,80,.2)}
 #expr-bar{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;pointer-events:none;opacity:.7}
-.expr-btn{background:rgba(0,0,0,.6);color:#ccc;font-size:10px;padding:3px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.15);font-family:monospace}
+.expr-btn{background:rgba(0,0,0,.6);color:var(--text);font-size:10px;padding:3px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.15);font-family:monospace}
 .expr-btn.on{background:rgba(224,120,64,.4);border-color:var(--accent);color:#ffe0c0}
 #hotkey-panel{position:fixed;top:12px;left:12px;background:rgba(20,20,20,.88);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:10px;font-family:monospace;color:var(--text);pointer-events:none;line-height:1.7;backdrop-filter:blur(4px);transition:opacity .3s}
 #hotkey-panel kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:0 4px;color:var(--text-bright);font-size:9px;margin-right:4px}
