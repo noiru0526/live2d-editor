@@ -6540,9 +6540,10 @@ function buildParamsUI() {
       const isCustom=!!customParams[pn];
       // KF indicator dot
       const hasKF = selPart>=0 && selPart<parts.length && parts[selPart].deforms?.[pn]?.[curKF] !== undefined;
+      const anyKF = !hasKF && selPart>=0 && selPart<parts.length && parts[selPart].deforms?.[pn] && Object.keys(parts[selPart].deforms[pn]).length>0;
       const dot = document.createElement('span');
-      dot.className = 'pkf-dot' + (hasKF?' has-kf':'');
-      dot.title = hasKF ? 'このパラメータ位置にKFあり' : 'KFなし';
+      dot.className = 'pkf-dot' + (hasKF?' has-kf':anyKF?' near-kf':'');
+      dot.title = hasKF ? 'このパラメータ位置にKFあり' : anyKF ? '別位置にKFあり（現在位置にはなし）' : 'KFなし';
       item.appendChild(dot);
       const lbl = document.createElement('div');
       lbl.className = 'plbl';
