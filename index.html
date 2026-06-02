@@ -427,7 +427,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     </div>
     <div style="padding:3px 6px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
-        style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
+        style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
       <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
       <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
       <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
@@ -469,7 +469,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
         <div style="display:flex;align-items:center;gap:4px;">
           <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">合成:</label>
           <select id="part-blend-select" onchange="setActivePartBlend(this.value)"
-            style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="source-over">通常</option>
             <option value="multiply">乗算</option>
             <option value="screen">スクリーン</option>
@@ -482,7 +482,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
         <div style="display:flex;align-items:center;gap:4px;margin-top:3px;">
           <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">クリップ:</label>
           <select id="part-clip-select" onchange="setActivePartClip(this.value)"
-            style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="">なし</option>
           </select>
         </div>
@@ -516,7 +516,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
         <span style="font-size:9px;color:var(--dim)">🔍</span>
         <input id="pose-filter" type="text" placeholder="ポーズ名フィルター…"
           oninput="renderPoseList()"
-          style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 5px;border-radius:2px;outline:none">
+          style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 5px;border-radius:2px;outline:none">
       </div>
       <div id="pose-list" style="display:flex;flex-direction:column;gap:2px;"></div>
     </div>
@@ -533,7 +533,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
         <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid #2e2e2e;display:none;">
           <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="">(全パラメータ積算)</option>
           </select>
         </div>
@@ -552,7 +552,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <!-- Blender-style mode indicator badge -->
     <div id="mode-badge" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(60,60,60,.5);border:1px solid #3a3a3a;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:600;color:#c0c0c0;pointer-events:none;letter-spacing:1.5px;text-transform:uppercase;backdrop-filter:blur(2px);">EDIT MODE</div>
     <div id="brush-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.8);border:1px solid var(--border);border-radius:4px;padding:3px 10px;font-size:10px;color:var(--dim);pointer-events:none;">ブラシ: <span id="brush-r-val">40</span>px [スクロールで変更]</div>
-    <div id="mini-preview" style="display:none;position:absolute;top:8px;right:8px;background:#1e1e1e;border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="hideMiniPreview()" title="クリックで閉じる">
+    <div id="mini-preview" style="display:none;position:absolute;top:8px;right:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="hideMiniPreview()" title="クリックで閉じる">
       <canvas id="mini-canvas" width="120" height="150" style="display:block;"></canvas>
       <div style="font-size:9px;color:var(--dim);text-align:center;padding:2px;background:#1e1e1e;">プレビュー (クリックで閉じる)</div>
     </div>
@@ -663,7 +663,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </label>
       <div class="mcfg-row">
         <label>解像度:</label>
-        <select id="export-size" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <select id="export-size" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="360x405">360×405 (軽量)</option>
           <option value="480x540" selected>480×540</option>
           <option value="720x810">720×810</option>
@@ -689,7 +689,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row">
         <label>追跡スムース:</label>
-        <select id="export-smooth" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <select id="export-smooth" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="soft">ソフト (推奨)</option>
           <option value="medium">ミディアム</option>
           <option value="fast">レスポンシブ</option>
@@ -697,7 +697,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row">
         <label>アイドル動作:</label>
-        <select id="export-idle" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <select id="export-idle" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="full">フル（頭・目・口）</option>
           <option value="minimal">最小限（頭のみ）</option>
           <option value="none">なし</option>
@@ -705,7 +705,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
-        <input id="export-html-title" type="text" placeholder="Live2D Viewer" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <input id="export-html-title" type="text" placeholder="Live2D Viewer" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
@@ -727,14 +727,14 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ポーズトランジション:</label>
-        <select id="export-pose-transition" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+        <select id="export-pose-transition" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="0">即時（トランジションなし）</option>
           <option value="150">高速 (150ms)</option>
           <option value="300" selected>標準 (300ms)</option>
           <option value="500">ゆっくり (500ms)</option>
           <option value="800">なめらか (800ms)</option>
         </select>
-        <select id="export-pose-easing" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+        <select id="export-pose-easing" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="ease">ease</option>
           <option value="linear">linear</option>
           <option value="easeOut" selected>easeOut</option>
@@ -744,7 +744,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row">
         <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
-        <select id="export-loop-count" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <select id="export-loop-count" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="-1" selected>∞ 無限ループ</option>
           <option value="1">1回のみ</option>
           <option value="2">2回</option>
@@ -758,13 +758,13 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
-        <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
         <label style="font-size:10px;color:var(--dim);margin-top:4px">背景動画URL（MP4/WebM・空欄でなし）</label>
-        <input id="export-bgvideo" type="text" placeholder="https://example.com/bg.mp4" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <input id="export-bgvideo" type="text" placeholder="https://example.com/bg.mp4" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row">
         <label>背景グラデーション:</label>
-        <select id="export-bg-gradient" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <select id="export-bg-gradient" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="">なし（単色）</option>
           <option value="linear-gradient(180deg,#0a0a1a 0%,#1a1a2e 60%,#16213e 100%)">夜空 (デフォルト)</option>
           <option value="linear-gradient(135deg,#1a0a2e 0%,#2e1a4e 50%,#0a1a3e 100%)">パープルナイト</option>
@@ -776,7 +776,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">BGM URL（MP3/OGG・空欄でなし）</label>
-        <input id="export-bgm" type="text" placeholder="https://example.com/bgm.mp3" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <input id="export-bgm" type="text" placeholder="https://example.com/bgm.mp3" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
         <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;margin-top:2px;">
           <input type="checkbox" id="export-bgm-loop" checked style="accent-color:var(--accent);">
           <span>BGMをループ</span>
@@ -787,9 +787,9 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">カスタムCSS（エクスポートHTMLに追加）</label>
-        <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
+        <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
         <label style="font-size:10px;color:var(--dim);margin-top:4px">カスタムJS（エクスポートHTMLに追加）</label>
-        <textarea id="export-custom-js" rows="3" placeholder="// 例: document.getElementById('canvas').onclick = () => alert('clicked!');" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
+        <textarea id="export-custom-js" rows="3" placeholder="// 例: document.getElementById('canvas').onclick = () => alert('clicked!');" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
       <div class="mcfg-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
         <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;">
@@ -804,7 +804,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
         <label style="font-size:10px;color:var(--dim)">パーティクル演出:</label>
-        <select id="export-particle" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+        <select id="export-particle" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="">なし</option>
           <option value="hearts">💗 ハート</option>
           <option value="stars">✨ 星</option>
@@ -821,7 +821,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
           <input type="checkbox" id="export-click-effect" style="accent-color:var(--accent);">
           クリックエフェクト（絵文字スポーン）
         </label>
-        <select id="export-click-effect-type" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+        <select id="export-click-effect-type" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="hearts">💗 ハート</option>
           <option value="stars">✨ 星</option>
           <option value="sparkles">🌟 スパークル</option>
@@ -838,10 +838,10 @@ input::placeholder,textarea::placeholder{color:#707070;}
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
         <label style="font-size:10px;color:var(--dim)">クレジット表示テキスト（空=非表示）</label>
-        <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
+        <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
         <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:4px;margin-top:2px;">
           位置:
-          <select id="export-credit-pos" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:9px;">
+          <select id="export-credit-pos" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:9px;">
             <option value="br">右下</option><option value="bl">左下</option><option value="tr">右上</option><option value="tl">左上</option>
           </select>
           <input id="export-credit-color" type="color" value="#ffffff40" style="width:22px;height:18px;border:none;border-radius:2px;cursor:pointer;" title="クレジットテキスト色">
@@ -900,13 +900,13 @@ input::placeholder,textarea::placeholder{color:#707070;}
       <div id="profile-body" style="display:none;">
         <div style="display:flex;flex-direction:column;gap:4px;">
           <input type="text" id="prof-name" placeholder="キャラクター名" oninput="updateProfile('name',this.value)"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
           <input type="text" id="prof-author" placeholder="作者名" oninput="updateProfile('author',this.value)"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
           <textarea id="prof-desc" placeholder="説明・備考" rows="2" oninput="updateProfile('description',this.value)"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;resize:vertical;"></textarea>
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;resize:vertical;"></textarea>
           <input type="text" id="prof-tags" placeholder="タグ（カンマ区切り）" oninput="updateProfile('tags',this.value.split(',').map(t=>t.trim()).filter(Boolean))"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);padding:3px 6px;border-radius:3px;font-size:11px;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);padding:3px 6px;border-radius:3px;font-size:11px;">
         </div>
       </div>
     </div>
@@ -1025,7 +1025,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 </div>
 
 <!-- Webcam test panel -->
-<div id="webcam-panel" style="display:none;position:fixed;bottom:40px;right:12px;background:#1e1e1e;border:1px solid var(--border);border-radius:8px;padding:8px;z-index:150;box-shadow:0 4px 16px rgba(0,0,0,.5);width:220px;">
+<div id="webcam-panel" style="display:none;position:fixed;bottom:40px;right:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:150;box-shadow:0 4px 16px rgba(0,0,0,.5);width:220px;">
   <div style="display:flex;align-items:center;margin-bottom:6px;gap:8px;">
     <span style="font-size:11px;font-weight:600;color:var(--accent)">📷 顔追跡</span>
     <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:3px;margin-left:auto;">
@@ -1201,15 +1201,15 @@ input::placeholder,textarea::placeholder{color:#707070;}
 <div id="abplay-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;z-index:165;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:8px 12px;display:none;flex-direction:row;align-items:center;gap:10px;">
   <span style="font-size:11px;color:#80ffb0;font-weight:600;">⇄ A/B再生</span>
   <span style="font-size:10px;color:var(--dim);">A:</span>
-  <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
+  <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:#707070;">→</span>
-  <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
+  <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">B:</span>
-  <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
+  <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:#707070;">→</span>
-  <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
+  <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">ホールド:</span>
-  <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
+  <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">s</span>
   <span id="ab-indicator" style="font-size:11px;font-weight:600;min-width:16px;color:#ffd080;">A</span>
   <button onclick="stopABPlayback()" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">停止</button>
@@ -1254,7 +1254,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
     <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:#1e1e1e;border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
     <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:#1e1e1e;border:1px solid rgba(150,150,150,.3);color:#888;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
-    <select id="tl-speed" title="再生速度" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 2px;font-size:10px;cursor:pointer;">
+    <select id="tl-speed" title="再生速度" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 2px;font-size:10px;cursor:pointer;">
       <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
       <option value="0.5">0.5x</option>
@@ -1273,9 +1273,9 @@ input::placeholder,textarea::placeholder{color:#707070;}
     </label>
     <span style="font-size:10px;color:var(--dim)">尺:</span>
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
-      style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
+      style="width:48px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:3px;font-size:10px;"
       onchange="M.animation.duration=parseFloat(this.value)||3;drawMultiTimeline();">
-    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:#1e1e1e;border:1px solid var(--border);color:#60d890;border-radius:4px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
+    <button onclick="autoCalcDuration()" title="最後のKF時刻+余白で自動設定" style="background:var(--bg);border:1px solid var(--border);color:#60d890;border-radius:4px;padding:1px 4px;cursor:pointer;font-size:9px;">自動</button>
     <span style="font-size:10px;color:var(--dim)">秒</span>
     <input id="tl-playhead-time" type="text" value="0.000" title="時刻を入力してEnter（例: 1.5）"
       style="width:46px;background:#1e1e1e;border:1px solid #3a3a3a;color:var(--accent);font-family:monospace;font-size:10px;padding:1px 3px;border-radius:3px;text-align:right;margin-left:4px;"
@@ -1283,12 +1283,12 @@ input::placeholder,textarea::placeholder{color:#707070;}
       onfocus="this.select()"></input>
     <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ開始点（秒）">イン:
       <input type="number" id="tl-loop-in" value="0" min="0" step="0.1"
-        style="width:36px;background:#1e1e1e;border:1px solid var(--border);color:#80ffa0;padding:1px 3px;border-radius:3px;font-size:10px;"
+        style="width:36px;background:var(--bg);border:1px solid var(--border);color:#80ffa0;padding:1px 3px;border-radius:3px;font-size:10px;"
         onchange="M.animation.loopIn=parseFloat(this.value)||0;">
     </label>
     <label style="display:flex;align-items:center;gap:2px;font-size:10px;color:var(--dim);" title="ループ終了点（秒・空欄=尺全体）">アウト:
       <input type="number" id="tl-loop-out" placeholder="末" min="0" step="0.1"
-        style="width:36px;background:#1e1e1e;border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
+        style="width:36px;background:var(--bg);border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
         onchange="M.animation.loopOut=this.value===''?null:(parseFloat(this.value)||null);">
     </label>
     <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
@@ -1331,8 +1331,8 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <button onclick="repeatLoopRegion()" title="ループ区間を指定回数繰り返して展開（アニメーションを伸長）" style="background:#2d2d2d;border:1px solid rgba(100,200,80,.4);color:#a0f0c0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔁 区間繰り返し</button>
     <button onclick="showClipBlend()" title="2つのクリップをウェイト比率でブレンドして新規クリップを生成" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ クリップブレンド</button>
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
-    <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
-    <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
+    <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
+    <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:#2d2d2d;border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
     <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:#2d2d2d;border:1px solid var(--border);color:#c0e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
@@ -1404,7 +1404,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
   <div id="tl-search-bar" style="display:none;flex-shrink:0;background:#1e1e1e;border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:6px;">
     <span style="font-size:10px;color:var(--dim);">🔍</span>
     <input id="tl-track-search" type="text" placeholder="トラック検索..." oninput="tlTrackFilter=this.value.toLowerCase();drawMultiTimeline();"
-      style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 6px;font-size:10px;outline:none;">
+      style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 6px;font-size:10px;outline:none;">
     <button onclick="document.getElementById('tl-track-search').value='';tlTrackFilter='';drawMultiTimeline();" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 2px;">×</button>
   </div>
   <!-- Animation Clips bar -->
@@ -3319,7 +3319,7 @@ function renderParamRow(name, p, cont, _isFavArg) {
           <span id="kfnav-cur-${name}" style="display:none;font-size:9px;color:var(--dim);font-family:monospace;min-width:28px;text-align:center;"></span>
           <button onclick="event.stopPropagation();navParamKF('${name}',1)" title="次のKFへ" style="display:none;background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-next-${name}">▶</button>
         </div>
-        <select id="interp-${name}" style="background:#1e1e1e;border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;" onclick="event.stopPropagation()">
+        <select id="interp-${name}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;" onclick="event.stopPropagation()">
           ${interpModes.map(m=>`<option value="${m}"${(p.interp??'linear')===m?' selected':''}>${interpLabels[m]}</option>`).join('')}
         </select>
       </div>`;
@@ -4113,19 +4113,19 @@ function showExportHotkeyDialog() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);border-radius:8px;padding:16px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
+  box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
   let rows = '';
   rows += `<div style="margin-bottom:8px;padding:4px 8px;background:#1e1e1e;border-radius:4px;font-size:10px;color:var(--dim);">デフォルト: ポーズ1〜9が数字キー1〜9、デフォルト(無表情)が0</div>`;
   rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid var(--border);">`;
   rows += `<span style="flex:1;font-size:11px;color:var(--text);">😐 デフォルト</span>`;
-  rows += `<input data-pose="__default__" value="${_exportHotkeys['__default__']||'0'}" maxlength="1" style="width:36px;text-align:center;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
+  rows += `<input data-pose="__default__" value="${_exportHotkeys['__default__']||'0'}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
   rows += `</div>`;
   M.poses.slice(0, 12).forEach((p, i) => {
     const defKey = i < 9 ? String(i + 1) : '';
     const curKey = _exportHotkeys[p.name] ?? defKey;
     rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">`;
     rows += `<span style="flex:1;font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</span>`;
-    rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
+    rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
   box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
@@ -5096,7 +5096,7 @@ function showClipChainDialog() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">再生するクリップを順番に並べて連続再生します。</div>
     <div id="chain-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:180px;overflow-y:auto;"></div>
     <div style="display:flex;gap:4px;margin-bottom:8px;">
-      <select id="chain-add-sel" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
+      <select id="chain-add-sel" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
         ${clips.map((ci,i)=>`<option value="${ci}">${names[i]}</option>`).join('')}
       </select>
       <button onclick="_chainAddEntry()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">＋追加</button>
@@ -17327,14 +17327,14 @@ function addCustomParam() {
   showModal('パラメータを追加', `
     <div style="display:grid;gap:8px;">
       <div><label style="font-size:11px;color:var(--dim)">ID（英数字）</label><br>
-        <input id="cp-id" type="text" placeholder="earWag" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+        <input id="cp-id" type="text" placeholder="earWag" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       <div><label style="font-size:11px;color:var(--dim)">表示名</label><br>
-        <input id="cp-lbl" type="text" placeholder="耳 ぴこぴこ" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+        <input id="cp-lbl" type="text" placeholder="耳 ぴこぴこ" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">最小値</label><br>
-          <input id="cp-min" type="number" value="-1" step="0.5" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+          <input id="cp-min" type="number" value="-1" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">最大値</label><br>
-          <input id="cp-max" type="number" value="1" step="0.5" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+          <input id="cp-max" type="number" value="1" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
     </div>`, ()=>{
     const id=document.getElementById('cp-id').value.trim().replace(/[^a-zA-Z0-9_]/g,'');
@@ -17452,15 +17452,15 @@ function gradientDeform() {
   showModal('グラデーション変形', `
     <div style="display:grid;gap:8px;font-size:12px;">
       <div><label style="color:var(--dim);font-size:11px">方向</label><br>
-        <select id="gd-dir" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;">
+        <select id="gd-dir" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;">
           <option value="x">左→右 (X方向)</option>
           <option value="y">上→下 (Y方向)</option>
         </select></div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1"><label style="color:var(--dim);font-size:11px">始点スケール</label><br>
-          <input id="gd-s0" type="number" value="0" step="0.1" min="0" max="2" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+          <input id="gd-s0" type="number" value="0" step="0.1" min="0" max="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
         <div style="flex:1"><label style="color:var(--dim);font-size:11px">終点スケール</label><br>
-          <input id="gd-s1" type="number" value="1" step="0.1" min="0" max="2" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+          <input id="gd-s1" type="number" value="1" step="0.1" min="0" max="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
       <div style="color:var(--dim);font-size:10px;">選択 ${vArr.length}頂点の変形にグラデーションをかけます</div>
     </div>
@@ -17812,16 +17812,16 @@ function showChatTriggerPanel() {
     <div style="background:#1e1e1e;border:1px solid rgba(255,200,80,.3);border-radius:5px;padding:8px;">
       <div style="font-size:9px;color:#ffd060;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;">新規追加</div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <input id="ct-kw" placeholder="キーワード (例: gg, !happy)" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;outline:none;" />
-        <select id="ct-type" onchange="renderCTTargetOptions()" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;">
+        <input id="ct-kw" placeholder="キーワード (例: gg, !happy)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;outline:none;" />
+        <select id="ct-type" onchange="renderCTTargetOptions()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;">
           <option value="pose">ポーズ適用</option>
           <option value="clip">クリップ再生</option>
           <option value="param">パラメータ設定</option>
         </select>
-        <select id="ct-target" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;"></select>
+        <select id="ct-target" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;"></select>
         <div id="ct-value-row" style="display:none;display:flex;align-items:center;gap:4px;">
           <span style="font-size:9px;color:var(--dim);white-space:nowrap;">値:</span>
-          <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
+          <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
         </div>
         <button onclick="addChatTrigger()" style="background:#282828;border:1px solid rgba(255,200,80,.35);color:#ffd060;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
       </div>
@@ -17917,7 +17917,7 @@ function renderPosePresets() {
     const btn = document.createElement('button');
     btn.textContent = preset.name;
     btn.title = `クリックで適用 / 右クリックで削除 (${Object.keys(preset.vals).length}パラメータ)`;
-    btn.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 6px;cursor:pointer;font-size:10px;height:18px;';
+    btn.style.cssText = 'background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 6px;cursor:pointer;font-size:10px;height:18px;';
     btn.onclick = () => loadPosePreset(i);
     btn.oncontextmenu = e => { e.preventDefault(); if (confirm(`プリセット「${preset.name}」を削除しますか？`)) { M.posePresets.splice(i,1); renderPosePresets(); } };
     list.appendChild(btn);
@@ -17933,8 +17933,8 @@ function showPoseMorphPanel() {
   panel.style.cssText = 'position:fixed;right:16px;top:80px;background:#252525;border:1px solid #3a3a3a;border-radius:8px;padding:10px 12px;z-index:900;min-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.6);font-size:11px;color:var(--text);cursor:move;';
   const opts = M.poses.map((p,i) => `<option value="${i}">${p.name}</option>`).join('');
   panel.innerHTML = `<div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;">⚗ ポーズモーフ<button onclick="document.getElementById('pose-morph-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;">×</button></div>
-<div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
-<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--dim);">ポーズ B</label><br><select id="pm-b" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
+<div style="margin-bottom:6px;"><label style="font-size:10px;color:var(--dim);">ポーズ A</label><br><select id="pm-a" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
+<div style="margin-bottom:8px;"><label style="font-size:10px;color:var(--dim);">ポーズ B</label><br><select id="pm-b" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">${opts}</select></div>
 <div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;"><label style="font-size:10px;color:var(--dim);white-space:nowrap;">A ←→ B</label><input type="range" id="pm-blend" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:var(--accent);"><span id="pm-blend-val" style="font-size:10px;color:var(--text);width:28px;text-align:right;">50%</span></div>
 <div style="display:flex;gap:6px;margin-top:8px;"><button id="pm-apply" style="flex:1;background:#2a2a2a;border:1px solid #3a3a3a;color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;">現在値をポーズ保存</button></div>`;
   document.body.appendChild(panel);
@@ -18144,17 +18144,17 @@ function showPoseTweenDialog() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">2つのポーズ間を補間するKFを自動生成します。</div>
     <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin-bottom:8px;">
       <span style="font-size:9px;color:var(--dim)">開始ポーズ</span>
-      <select id="pt-from" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
+      <select id="pt-from" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
       <span style="font-size:9px;color:var(--dim)">終了ポーズ</span>
-      <select id="pt-to" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
+      <select id="pt-to" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
       <span style="font-size:9px;color:var(--dim)">開始時刻 (s)</span>
-      <input id="pt-t0" type="number" value="${ST.animPlayhead.toFixed(2)}" step="0.1" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <input id="pt-t0" type="number" value="${ST.animPlayhead.toFixed(2)}" step="0.1" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
       <span style="font-size:9px;color:var(--dim)">継続時間 (s)</span>
-      <input id="pt-dur" type="number" value="0.5" min="0.05" step="0.05" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <input id="pt-dur" type="number" value="0.5" min="0.05" step="0.05" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
       <span style="font-size:9px;color:var(--dim)">ステップ数</span>
-      <input id="pt-steps" type="number" value="1" min="1" max="20" step="1" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
+      <input id="pt-steps" type="number" value="1" min="1" max="20" step="1" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
       <span style="font-size:9px;color:var(--dim)">イージング</span>
-      <select id="pt-ease" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
+      <select id="pt-ease" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
     </div>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
     <button onclick="applyPoseTween()" style="width:100%;background:#252525;border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
@@ -18954,7 +18954,7 @@ function toggleOscilloscope() {
   _oscPanel.innerHTML = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span style="font-size:10px;color:#80e090;font-weight:600;">📈 波形モニター</span>
-      <select id="osc-param-sel" style="font-size:9px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;max-width:100px;" onchange="_oscUpdateWatch()">
+      <select id="osc-param-sel" style="font-size:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;max-width:100px;" onchange="_oscUpdateWatch()">
         <option value="__active">アクティブのみ</option>
         <option value="__all">全パラメータ</option>
       </select>
@@ -19093,8 +19093,8 @@ function _buildMidiPanel() {
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px;font-weight:600;">CC → パラメータ</div>
       <div id="midi-cc-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
-        <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
-        <select id="midi-cc-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="midi-cc-param" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
         <button onclick="_midiAddCCMap()" style="background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>
@@ -19103,8 +19103,8 @@ function _buildMidiPanel() {
       <div style="font-size:9px;color:#ff80c0;margin-bottom:4px;font-weight:600;">ノート → ポーズ/表情</div>
       <div id="midi-note-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
-        <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
-        <select id="midi-note-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="midi-note-target" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
         <button onclick="_midiAddNoteMap()" style="background:#252525;border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
@@ -19261,9 +19261,9 @@ function toggleGamepadPanel() {
       <div style="font-size:9px;color:#60e090;margin-bottom:4px;font-weight:600;">軸 → パラメータ</div>
       <div id="gpad-axis-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:100px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
-        <input id="gpad-axis-num" type="number" min="0" max="15" placeholder="軸#" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
-        <select id="gpad-axis-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
+        <input id="gpad-axis-num" type="number" min="0" max="15" placeholder="軸#" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="gpad-axis-param" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
         <button onclick="_gpadAddAxisMap()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
       <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
@@ -19273,8 +19273,8 @@ function toggleGamepadPanel() {
       <div style="font-size:9px;color:#ffa060;margin-bottom:4px;font-weight:600;">ボタン → ポーズ/表情</div>
       <div id="gpad-btn-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:100px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
-        <input id="gpad-btn-num" type="number" min="0" max="31" placeholder="B#" style="width:40px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
-        <select id="gpad-btn-target" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
+        <input id="gpad-btn-num" type="number" min="0" max="31" placeholder="B#" style="width:40px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+        <select id="gpad-btn-target" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
         <button onclick="_gpadAddBtnMap()" style="background:#252525;border:1px solid rgba(255,160,60,.4);color:#ffa060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
@@ -19527,7 +19527,7 @@ function showEyeLookSetup() {
     <div style="margin-top:8px;">
       <label style="font-size:11px;color:var(--dim)">移動量（px）</label>
       <input id="el-amount" type="number" value="8" min="2" max="30" step="1"
-        style="width:80px;margin-left:8px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:12px;">
+        style="width:80px;margin-left:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:12px;">
     </div>
   `;
   showModal('目線セットアップ', html, ()=>{
@@ -19618,7 +19618,7 @@ function saveVertGroup() {
   if (ST.selVerts.size===0) { document.getElementById('lbl-status').textContent='頂点を選択してください'; return; }
   showModal('頂点グループを保存', `
     <input id="vg-name" type="text" placeholder="グループ名" value="グループ${Object.keys(VG).length+1}"
-      style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
+      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
   `, ()=>{
     const nm=document.getElementById('vg-name').value.trim()||`グループ${Object.keys(VG).length+1}`;
     VG[nm]=new Set(ST.selVerts);
@@ -19662,22 +19662,22 @@ function addSpringBone() {
     <div style="display:grid;gap:8px;">
       <div><label style="font-size:11px;color:var(--dim)">名前</label><br>
         <input id="sb-nm" type="text" value="バネ${M.springs.length+1}"
-          style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">硬さ(0-1)</label><br>
           <input id="sb-stiff" type="number" value="0.25" min="0.01" max="1" step="0.05"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">減衰(0-1)</label><br>
           <input id="sb-damp" type="number" value="0.82" min="0.1" max="0.99" step="0.05"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">揺れ X(0-0.5)</label><br>
           <input id="sb-scx" type="number" value="0.08" min="0" max="0.5" step="0.01"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
         <div style="flex:1"><label style="font-size:11px;color:var(--dim)">揺れ Y(0-0.5)</label><br>
           <input id="sb-scy" type="number" value="0.08" min="0" max="0.5" step="0.01"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
     </div>`, ()=>{
     const nm=document.getElementById('sb-nm').value.trim()||`バネ${M.springs.length+1}`;
@@ -20212,7 +20212,7 @@ function savePose() {
   const thumbnail = _capturePoseThumbnail();
   showModal('ポーズを保存', `
     <input id="pose-nm" type="text" placeholder="ポーズ名" value="ポーズ${M.poses.length+1}"
-      style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
+      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
   `, ()=>{
     const nm=document.getElementById('pose-nm').value.trim()||`ポーズ${M.poses.length+1}`;
     M.poses.push({name:nm, values, thumbnail});
@@ -20242,7 +20242,7 @@ function savePoseAtPlayhead() {
   const fmtT = t.toFixed(3) + 's';
   showModal(`再生ヘッド位置のポーズを保存 (t=${fmtT})`, `
     <input id="pose-nm" type="text" placeholder="ポーズ名" value="t=${fmtT}"
-      style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
+      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:4px;font-size:13px;">
   `, ()=>{
     const nm = document.getElementById('pose-nm').value.trim() || `t=${fmtT}`;
     M.poses.push({name: nm, values, thumbnail});
@@ -22045,10 +22045,10 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
         <div style="font-size:12px;display:grid;gap:8px;">
           <div>コピー元: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
           <div><label style="font-size:11px;color:var(--dim)">コピー先パラメータ</label><br>
-            <select id="track-copy-dst" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">${opts}</select></div>
+            <select id="track-copy-dst" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">${opts}</select></div>
           <div><label style="font-size:11px;color:var(--dim)">値スケール (1.0=そのまま, -1.0=反転)</label><br>
             <input id="track-copy-scale" type="number" value="1" step="0.1"
-              style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
+              style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
         </div>
       `, ()=>{
         const dstName = document.getElementById('track-copy-dst').value;
@@ -22319,7 +22319,7 @@ function generateWaveKFs(paramName) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div>
           <label style="font-size:10px;color:var(--dim)">波形</label>
-          <select id="wg-shape" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;">
+          <select id="wg-shape" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;">
             <option value="sin">サイン波 (sin)</option>
             <option value="cos">コサイン波 (cos)</option>
             <option value="triangle">三角波</option>
@@ -22331,42 +22331,42 @@ function generateWaveKFs(paramName) {
         <div>
           <label style="font-size:10px;color:var(--dim)">周期 (秒)</label>
           <input id="wg-period" type="number" value="${Math.min(dur, 2).toFixed(2)}" min="0.05" max="60" step="0.05"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">振幅 (パラメータ値)</label>
           <input id="wg-amp" type="number" value="${(pRange * 0.4).toFixed(3)}" min="0" max="${pRange}" step="${(pRange*0.01).toFixed(3)}"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">中心値</label>
           <input id="wg-center" type="number" value="${pMid.toFixed(3)}" min="${p.min}" max="${p.max}" step="${(pRange*0.01).toFixed(3)}"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">位相オフセット (度)</label>
           <input id="wg-phase" type="number" value="0" min="-360" max="360" step="15"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">KF密度 (個/秒)</label>
           <input id="wg-density" type="number" value="12" min="1" max="60" step="1"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">開始時刻 (秒)</label>
           <input id="wg-start" type="number" value="0" min="0" max="${dur}" step="0.01"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
           <label style="font-size:10px;color:var(--dim)">終了時刻 (秒)</label>
           <input id="wg-end" type="number" value="${dur.toFixed(2)}" min="0" max="${dur}" step="0.01"
-            style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
       </div>
       <div>
         <label style="font-size:10px;color:var(--dim)">既存KFを</label>
-        <select id="wg-merge" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-left:6px;font-size:11px;">
+        <select id="wg-merge" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-left:6px;font-size:11px;">
           <option value="replace">上書き</option>
           <option value="add">追加（マージ）</option>
         </select>
@@ -23152,10 +23152,10 @@ function showKFRangeDelete() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">指定した時刻範囲内の全トラックKFを削除します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:24px;">開始</span>
-      <input id="dr-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="dr-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim);min-width:12px;">〜</span>
       <span style="font-size:9px;color:var(--dim);min-width:24px;">終了</span>
-      <input id="dr-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="dr-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="margin-bottom:8px;">
       <label style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);cursor:pointer;">
@@ -23306,16 +23306,16 @@ function showRangeCopyPaste() {
     <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:24px;">開始</span>
-      <input id="rc-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="rc-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim);min-width:12px;">〜</span>
       <span style="font-size:9px;color:var(--dim);min-width:24px;">終了</span>
-      <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <button id="rc-copy-btn" style="width:100%;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
     <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
     <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:60px;">挿入開始</span>
-      <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
+      <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
     </div>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
     <div style="display:flex;gap:6px">
@@ -23376,27 +23376,27 @@ function showKFRamp() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">区間内に等間隔KFのグラデーションを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">パラメータ</span>
-      <select id="ramp-param" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+      <select id="ramp-param" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         ${Object.entries(M.params).map(([k,v])=>`<option value="${k}" ${k===name?'selected':''}>${v.lbl||k}</option>`).join('')}
       </select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">開始時刻</span>
-      <input id="ramp-t0" type="number" value="${t.toFixed(3)}" step="0.1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="ramp-t0" type="number" value="${t.toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">終了時刻</span>
-      <input id="ramp-t1" type="number" value="${Math.min(dur,t+1).toFixed(3)}" step="0.1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="ramp-t1" type="number" value="${Math.min(dur,t+1).toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">開始値</span>
-      <input id="ramp-v0" type="number" value="${cur.toFixed(3)}" step="0.01" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="ramp-v0" type="number" value="${cur.toFixed(3)}" step="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">終了値</span>
-      <input id="ramp-v1" type="number" value="0" step="0.01" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="ramp-v1" type="number" value="0" step="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">KF数</span>
-      <input id="ramp-n" type="number" value="10" min="2" max="200" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="ramp-n" type="number" value="10" min="2" max="200" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">補間</span>
-      <select id="ramp-interp" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+      <select id="ramp-interp" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         <option value="linear">linear</option><option value="smooth">smooth</option><option value="easeIn">easeIn</option><option value="easeOut">easeOut</option>
       </select>
     </div>
@@ -23439,12 +23439,12 @@ function showAnimMerge() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">別のアニメーションJSONを読み込み、現在のトラックにマージします。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:60px;">時刻オフセット</span>
-      <input id="merge-offset" type="number" value="${(M.animation.duration||3).toFixed(3)}" step="0.1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="merge-offset" type="number" value="${(M.animation.duration||3).toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim)">秒</span>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:60px;">競合時</span>
-      <select id="merge-mode" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+      <select id="merge-mode" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         <option value="add">追記（既存KFを保持）</option><option value="replace">上書き（同時刻を置換）</option>
       </select>
     </div>
@@ -23530,8 +23530,8 @@ function showPoseSequencer() {
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">🔀 ポーズシーケンサー</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">ポーズを順番に並べてアニメーションKFを自動生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <select id="seq-pose" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${poses.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}</select>
-      <input id="seq-hold" type="number" value="0.5" step="0.1" min="0.05" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <select id="seq-pose" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${poses.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}</select>
+      <input id="seq-hold" type="number" value="0.5" step="0.1" min="0.05" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim)">s</span>
       <button onclick="seqAdd()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">追加</button>
     </div>
@@ -23539,12 +23539,12 @@ function showPoseSequencer() {
     <div id="seq-total" style="font-size:9px;color:var(--dim);margin-bottom:8px;">合計: 0s</div>
     <div style="display:flex;gap:4px;margin-bottom:8px;align-items:center;">
       <label style="font-size:9px;color:var(--dim);white-space:nowrap;">開始時刻</label>
-      <input id="seq-start-t" type="number" value="0" step="0.1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+      <input id="seq-start-t" type="number" value="0" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim)">s</span>
       <label style="font-size:9px;color:var(--dim);white-space:nowrap;">ループ</label>
       <input type="checkbox" id="seq-loop" style="accent-color:#80d8c0;">
       <label style="font-size:9px;color:var(--dim);white-space:nowrap;">×</label>
-      <input id="seq-reps" type="number" value="1" min="1" max="20" style="width:32px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
+      <input id="seq-reps" type="number" value="1" min="1" max="20" style="width:32px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
     </div>
     <div style="display:flex;gap:6px;">
       <button id="seq-gen" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
@@ -23614,7 +23614,7 @@ function showAnimTemplates() {
     <div style="font-size:12px;display:grid;gap:8px;">
       <div style="color:var(--dim);font-size:10px;">テンプレートは現在のアニメーションに追加されます（既存KFは保持）</div>
       ${templates.map(t=>`
-        <div style="display:flex;align-items:center;gap:8px;padding:6px;background:#1e1e1e;border:1px solid var(--border);border-radius:4px;cursor:pointer;"
+        <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;"
           onclick="applyAnimTemplate('${t.id}');document.getElementById('modal-ok').click()">
           <div style="flex:1"><div style="color:var(--text)">${t.name}</div><div style="color:var(--dim);font-size:10px;">${t.desc}</div></div>
           <span style="color:var(--accent);font-size:11px;">適用 →</span>
@@ -23908,7 +23908,7 @@ function showTimeScaleDialog() {
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
           <span style="font-size:10px;color:#a0a0a0;white-space:nowrap">倍率:</span>
           <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
-            style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
           <span id="ts-preview" style="font-size:11px;color:#60d890;min-width:60px;">→ ${dur.toFixed(2)}s</span>
         </div>
@@ -24275,7 +24275,7 @@ function showOverlayClipDialog() {
   showModal('⊞ クリップオーバーレイ', `
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">2つのクリップを同時再生してブレンドします。<br>オーバーレイクリップは独立してループ再生されます。</div>
-      <label>オーバーレイクリップ<br><select id="ov-clip" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">${opts}</select></label>
+      <label>オーバーレイクリップ<br><select id="ov-clip" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">${opts}</select></label>
       <label>ブレンド重み <span id="ov-w-v">${(_overlayWeight*100).toFixed(0)}%</span><br>
         <input type="range" id="ov-w" min="0" max="100" value="${Math.round(_overlayWeight*100)}" style="width:100%;margin-top:4px" oninput="document.getElementById('ov-w-v').textContent=this.value+'%'">
       </label>
@@ -24519,24 +24519,24 @@ function showAnimStats() {
   showModal('アニメーション統計', `
     <div style="font-size:12px;display:grid;gap:10px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
           <div style="font-size:24px;font-weight:bold;color:var(--accent);">${totalKF}</div>
           <div style="font-size:10px;color:var(--dim);">合計 KF</div>
         </div>
-        <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
           <div style="font-size:24px;font-weight:bold;color:#60d890;">${tracksWithKF.length}</div>
           <div style="font-size:10px;color:var(--dim);">アクティブトラック</div>
         </div>
-        <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
           <div style="font-size:24px;font-weight:bold;color:#ffd060;">${dur.toFixed(2)}s</div>
           <div style="font-size:10px;color:var(--dim);">デュレーション</div>
         </div>
-        <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
           <div style="font-size:24px;font-weight:bold;color:#ff80c0;">${kfPerSec}</div>
           <div style="font-size:10px;color:var(--dim);">KF/秒</div>
         </div>
       </div>
-      <div style="background:#1e1e1e;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:11px;">
         <div style="color:var(--dim);margin-bottom:4px;">最もKFが多いトラック</div>
         <div style="color:var(--text);">${maxLbl} <span style="color:#ffd060;">(${maxKFs} KF)</span></div>
       </div>
@@ -24641,7 +24641,7 @@ function mergeAnimClips() {
     <div id="merge-checks" style="margin-bottom:12px;">${checks}</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
       <label style="font-size:10px;color:var(--dim);">新クリップ名:</label>
-      <input id="merge-name" type="text" value="連結クリップ" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="merge-name" type="text" value="連結クリップ" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button onclick="this.closest('div[style]').remove()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
@@ -24766,11 +24766,11 @@ function showAIPoseInterpDialog() {
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">2つの時刻のポーズを指定すると、Gemini AIが<br>自然な中間ポーズを推定してKFを挿入します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <label>開始時刻（秒）<br><input id="ai-t0" type="number" min="0" max="${dur}" step="0.01" value="${loopIn.toFixed(2)}" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
-        <label>終了時刻（秒）<br><input id="ai-t1" type="number" min="0" max="${dur}" step="0.01" value="${loopOut.toFixed(2)}" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+        <label>開始時刻（秒）<br><input id="ai-t0" type="number" min="0" max="${dur}" step="0.01" value="${loopIn.toFixed(2)}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+        <label>終了時刻（秒）<br><input id="ai-t1" type="number" min="0" max="${dur}" step="0.01" value="${loopOut.toFixed(2)}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
       </div>
       <label>補間ポイント数<br>
-        <input id="ai-count" type="number" min="1" max="8" value="1" style="width:80px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">
+        <input id="ai-count" type="number" min="1" max="8" value="1" style="width:80px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">
         <span style="font-size:10px;color:var(--dim);margin-left:6px">（1=中点のみ、2=1/3・2/3など）</span>
       </label>
       <label style="font-size:10px;display:flex;align-items:center;gap:6px;cursor:pointer">
@@ -24852,11 +24852,11 @@ async function showAIDanceMotionDialog() {
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">BPMとダンスタイプを指定すると、Gemini AIが<br>リズムに合ったキャラクターモーションKFを自動生成します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <label>BPM<br><input id="ai-dance-bpm" type="number" min="60" max="200" value="128" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
-        <label>小節数<br><input id="ai-dance-bars" type="number" min="1" max="8" value="2" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+        <label>BPM<br><input id="ai-dance-bpm" type="number" min="60" max="200" value="128" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
+        <label>小節数<br><input id="ai-dance-bars" type="number" min="1" max="8" value="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
       </div>
       <label>ダンスタイプ<br>
-        <select id="ai-dance-style" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">
+        <select id="ai-dance-style" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">
           <option value="pop">ポップ（軽快・弾む）</option>
           <option value="anison">アニソン（元気・大げさ）</option>
           <option value="edm">EDM（反復・シンコペ）</option>
@@ -24949,7 +24949,7 @@ async function showAIAnimCritiqueDialog() {
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
       <div id="ai-crit-status" style="font-size:11px;color:var(--dim);min-height:20px">準備中...</div>
-      <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:#1e1e1e;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
+      <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
     </div>
   `, null, null);
   const statusEl = document.getElementById('ai-crit-status');
@@ -25368,13 +25368,13 @@ function showParamBatchEdit() {
     return `<tr data-name="${name}" style="border-bottom:1px solid rgba(255,255,255,.04);">
       <td style="padding:2px 4px;font-size:9px;color:#888;font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
       <td style="padding:2px 4px;"><input class="pbe-lbl" type="text" value="${lbl}" data-name="${name}"
-        style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+        style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
       <td style="padding:2px 4px;"><input class="pbe-min" type="number" value="${p.min}" data-name="${name}" step="0.1"
-        style="width:60px;background:#1e1e1e;border:1px solid var(--border);color:#90d090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+        style="width:60px;background:var(--bg);border:1px solid var(--border);color:#90d090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
       <td style="padding:2px 4px;"><input class="pbe-max" type="number" value="${p.max}" data-name="${name}" step="0.1"
-        style="width:60px;background:#1e1e1e;border:1px solid var(--border);color:#d09090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+        style="width:60px;background:var(--bg);border:1px solid var(--border);color:#d09090;font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
       <td style="padding:2px 4px;"><input class="pbe-step" type="number" value="${p.step||0.01}" data-name="${name}" step="0.01" min="0.001"
-        style="width:50px;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
+        style="width:50px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
     </tr>`;
   }).join('');
   const mo = document.createElement('div');
@@ -25550,8 +25550,8 @@ function showParamCorrelation() {
   const W=280,H=280,PAD=30;
   const bodyHTML = `<div>
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
-      <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
-      <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
       <button onclick="drawCorrPlot()" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
     </div>
     <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0a0a;border-radius:4px;border:1px solid var(--border);"></canvas>
@@ -25812,9 +25812,9 @@ function renderMASlots() {
       <span style="font-size:9px;color:var(--dim);white-space:nowrap;min-width:16px;">${i+1}.</span>
       <input type="text" placeholder="URL (avatar.html) または↓でファイル" value="${slot.url||''}"
         oninput="_maSlots[${i}].url=this.value;_maSlots[${i}].dataURL=null;"
-        style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:2px 5px;font-size:9px;outline:none;">
+        style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;padding:2px 5px;font-size:9px;outline:none;">
       <button title="ファイルを開く" onclick="(()=>{const inp=document.createElement('input');inp.type='file';inp.accept='.html';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{_maSlots[${i}].dataURL=ev.target.result;_maSlots[${i}].url=f.name;renderMASlots();};r.readAsDataURL(f);};inp.click();})()"
-        style="background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;flex-shrink:0;">📂</button>
+        style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;flex-shrink:0;">📂</button>
       <button onclick="_maSlots.splice(${i},1);renderMASlots()"
         style="background:none;border:none;color:#f08080;cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
     if (slot.dataURL) row.querySelector('input').style.color = '#80c080';
@@ -25939,7 +25939,7 @@ function importMotionCSV() {
         rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
           <span style="min-width:100px;font-size:10px;color:var(--dim);">${headers[ci]}</span>
           <span style="color:var(--dim)">→</span>
-          <select data-col="${ci}" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">
+          <select data-col="${ci}" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px;">
             <option value="">（スキップ）</option>
             ${paramNames.map(n=>`<option value="${n}" ${n===bestMatch?'selected':''}>${M.params[n].lbl||n}</option>`).join('')}
           </select></div>`;
@@ -25951,7 +25951,7 @@ function importMotionCSV() {
           <input type="checkbox" id="csv-merge" checked> 既存KFとマージ（チェックなし=上書き）
         </label>
         <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;">
-          FPS (0=timeをそのまま使用): <input type="number" id="csv-fps" value="0" min="0" max="120" step="1" style="width:60px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
+          FPS (0=timeをそのまま使用): <input type="number" id="csv-fps" value="0" min="0" max="120" step="1" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:11px;">
         </label>
       `, () => {
         const merge = document.getElementById('csv-merge').checked;
@@ -26145,7 +26145,7 @@ function blendAnimations() {
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">現在のアニメーションに別クリップのKFをブレンドします</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
       <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ブレンド元:</label>
-      <select id="blend-src" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">${opts}</select>
+      <select id="blend-src" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">${opts}</select>
     </div>
     <div style="margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -26564,11 +26564,11 @@ function showClipBlend() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">2つのクリップを時間軸ごとにブレンドして新規クリップを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップA</span>
-      <select id="cb-a" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
+      <select id="cb-a" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップB</span>
-      <select id="cb-b" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
+      <select id="cb-b" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:32px;">A比率</span>
@@ -26577,7 +26577,7 @@ function showClipBlend() {
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップ名</span>
-      <input id="cb-name" type="text" value="ブレンド1" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
+      <input id="cb-name" type="text" value="ブレンド1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px">
       <button id="cb-ok" style="flex:1;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
@@ -28090,10 +28090,10 @@ function selectAllAnimKF() {
     <div style="display:grid;gap:8px;font-size:12px;">
       <div><label style="color:var(--dim);font-size:11px">タイムスケール (1.0=変更なし)</label><br>
         <input id="tl-scale" type="number" value="1.0" step="0.1" min="0.1" max="10"
-          style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
       <div><label style="color:var(--dim);font-size:11px">タイムオフセット (秒)</label><br>
         <input id="tl-offset" type="number" value="0" step="0.1" min="-60" max="60"
-          style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
       <div style="color:var(--dim);font-size:10px;">全トラックのKFに一括適用します</div>
     </div>
   `, () => {
@@ -28163,7 +28163,7 @@ function showEasingPicker(callback, currentEasing) {
   overlay.id = '_ease-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(2px);';
   const box = document.createElement('div');
-  box.style.cssText = 'background:#1e1e1e;border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:560px;max-width:96vw;box-shadow:0 16px 48px rgba(0,0,0,.7);';
+  box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:560px;max-width:96vw;box-shadow:0 16px 48px rgba(0,0,0,.7);';
   box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
@@ -28198,7 +28198,7 @@ function showAnimEasing() {
       <div style="display:grid;gap:8px;font-size:12px;">
         <div style="color:var(--accent);font-size:13px;font-weight:600;">「${EASING_CATALOG.find(e=>e.id===easing)?.label||easing}」を適用</div>
         <div><label style="color:var(--dim);font-size:11px">適用対象パラメータ</label><br>
-          <select id="anim-easing-param" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
+          <select id="anim-easing-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
             <option value="*">すべてのパラメータ</option>
             ${Object.entries(M.params).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('')}
           </select></div>
@@ -28713,7 +28713,7 @@ function renderSnapPanel() {
   SNAPSHOTS.forEach((snap, i) => {
     const ts = new Date(snap.timestamp).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     const card = document.createElement('div');
-    card.style.cssText = 'flex-shrink:0;background:#1e1e1e;border:1px solid var(--border);border-radius:6px;overflow:hidden;width:160px;';
+    card.style.cssText = 'flex-shrink:0;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;width:160px;';
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 6px;background:var(--panel);';
     header.innerHTML = `<span style="font-size:10px;color:var(--dim);">#${i+1} ${ts}</span>`;
@@ -28727,7 +28727,7 @@ function renderSnapPanel() {
     img.title = 'クリックでパラメータを復元'; img.onclick = () => restoreSnapshotParams(i);
     const footer = document.createElement('div'); footer.style.cssText='padding:3px 6px;';
     const restoreBtn = document.createElement('button');
-    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;';
+    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;';
     restoreBtn.onclick = () => restoreSnapshotParams(i);
     footer.appendChild(restoreBtn); card.appendChild(header); card.appendChild(img); card.appendChild(footer); grid.appendChild(card);
   });
@@ -29590,15 +29590,15 @@ function showPNGSequenceDialog() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">開始 (s)</label>
-        <input id="ps-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+        <input id="ps-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">終了 (s)</label>
-        <input id="ps-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+        <input id="ps-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">FPS</label>
-        <select id="ps-fps" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
+        <select id="ps-fps" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="12">12 fps</option>
           <option value="24" selected>24 fps</option>
           <option value="30">30 fps</option>
@@ -29607,7 +29607,7 @@ function showPNGSequenceDialog() {
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">ファイル名プレフィックス</label>
-        <input id="ps-prefix" type="text" value="frame" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+        <input id="ps-prefix" type="text" value="frame" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
     </div>
     <div style="margin-bottom:8px;">
@@ -29831,15 +29831,15 @@ function showGIFExportDialog() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">開始 (s)</label>
-        <input id="gf-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+        <input id="gf-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">終了 (s)</label>
-        <input id="gf-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
+        <input id="gf-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">FPS</label>
-        <select id="gf-fps" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
+        <select id="gf-fps" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="5">5 fps</option>
           <option value="8">8 fps</option>
           <option value="10">10 fps</option>
@@ -29849,7 +29849,7 @@ function showGIFExportDialog() {
       </div>
       <div>
         <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">最大幅 (px)</label>
-        <select id="gf-w" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
+        <select id="gf-w" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="240">240</option>
           <option value="320">320</option>
           <option value="480" selected>480</option>

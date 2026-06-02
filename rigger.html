@@ -3213,13 +3213,13 @@ function showGuideManager() {
   const COLORS = ['rgba(255,200,80,0.7)','rgba(80,200,160,0.7)','rgba(200,160,80,0.7)','rgba(100,255,150,0.7)','rgba(255,100,100,0.7)'];
   const renderRows = () => _customGuides.map((g,i)=>`
     <div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
-      <select id="gg-axis-${i}" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
+      <select id="gg-axis-${i}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
         <option value="x" ${g.axis==='x'?'selected':''}>X (縦線)</option>
         <option value="y" ${g.axis==='y'?'selected':''}>Y (横線)</option>
       </select>
       <input id="gg-pos-${i}" type="number" value="${g.pos}" step="10"
-        style="width:70px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;font-family:monospace;">
-      <select id="gg-clr-${i}" style="background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
+        style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;font-family:monospace;">
+      <select id="gg-clr-${i}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
         ${COLORS.map((c,ci)=>`<option value="${c}" ${g.color===c?'selected':''} style="background:${c}">色${ci+1}</option>`).join('')}
       </select>
       <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:#f08080;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
@@ -4334,16 +4334,16 @@ function scalePartMesh() {
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点座標とデフォームデルタに倍率を適用します。<br><small style="font-size:9px;color:#888;">元の原点(0,0)からの距離がスケールされます。</small></div>
     <div style="display:flex;gap:8px;align-items:center;">
       <label style="font-size:11px;color:var(--dim);min-width:60px;">X 倍率</label>
-      <input id="sc-x" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
+      <input id="sc-x" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
       <label style="font-size:11px;color:var(--dim);min-width:60px;">Y 倍率</label>
-      <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
+      <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
     </div>`;
   showModal(`メッシュスケール: ${pt.name}`, body, () => {
     const sx = parseFloat(document.getElementById('sc-x').value);
@@ -4372,11 +4372,11 @@ function rotatePartMesh() {
       <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:#e07840" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
       <span id="rot-angv" style="font-size:10px;color:#f59e0b;font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
-    <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
+    <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
     <div style="display:flex;gap:6px;margin-top:4px;">
-      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
-      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
-      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
+      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
+      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
+      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
     </div>`;
   showModal(`メッシュ回転: ${pt.name}`, body, () => {
     const deg = parseFloat(document.getElementById('rot-ang-num').value) || parseFloat(document.getElementById('rot-ang').value) || 0;
@@ -4453,7 +4453,7 @@ function generateColorVariants() {
     <div style="display:flex;flex-direction:column;gap:7px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">バリ数:</span>
-        <input id="cv-count" type="number" min="2" max="12" value="4" style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <input id="cv-count" type="number" min="2" max="12" value="4" style="width:48px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
         <span style="font-size:9px;color:var(--dim);">個（元パーツ含まず）</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
@@ -4468,7 +4468,7 @@ function generateColorVariants() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">配置オフセ:</span>
-        <input id="cv-off" type="number" value="30" style="width:48px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
+        <input id="cv-off" type="number" value="30" style="width:48px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;">
         <span style="font-size:9px;color:var(--dim);">px (X方向)</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -4892,25 +4892,25 @@ function batchRenameParts() {
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#909090;">プレフィックス追加:</span>
-          <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#909090;">サフィックス追加:</span>
-          <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#909090;">検索:</span>
-          <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:#909090;">置換:</span>
-          <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
+          <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <label style="font-size:10px;color:#909090;display:flex;align-items:center;gap:4px;">
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
-          <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
+          <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
           <span style="font-size:9px;color:#888;">から開始 (例: _01, _02...)</span>
         </div>
         <div id="brn-preview" style="font-size:9px;color:#888;background:#1a1a1a;border-radius:3px;padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
@@ -5235,25 +5235,25 @@ function batchEditPartProps() {
         <input type="checkbox" id="bp-opacity-on">
         <label for="bp-opacity-on" style="font-size:11px;color:var(--dim);width:80px;">不透明度</label>
         <input id="bp-opacity" type="number" value="${Math.round((sample?.opacity||1)*100)}" min="0" max="100" step="5"
-          style="width:70px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;font-family:monospace;">
+          style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;font-family:monospace;">
         <span style="color:var(--dim);font-size:10px;">%</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-blend-on">
         <label for="bp-blend-on" style="font-size:11px;color:var(--dim);width:80px;">ブレンドモード</label>
-        <select id="bp-blend" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">${blendOptions}</select>
+        <select id="bp-blend" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">${blendOptions}</select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-visible-on">
         <label for="bp-visible-on" style="font-size:11px;color:var(--dim);width:80px;">表示状態</label>
-        <select id="bp-visible" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
+        <select id="bp-visible" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
           <option value="1">表示</option><option value="0">非表示</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-locked-on">
         <label for="bp-locked-on" style="font-size:11px;color:var(--dim);width:80px;">ロック</label>
-        <select id="bp-locked" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
+        <select id="bp-locked" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
           <option value="0">解除</option><option value="1">ロック</option>
         </select>
       </div>
@@ -7380,11 +7380,11 @@ function showKFBlendTool() {
     <div style="display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">KF A:</span>
-        <select id="kfb-kfa" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.min(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+        <select id="kfb-kfa" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.min(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">KF B:</span>
-        <select id="kfb-kfb" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.max(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
+        <select id="kfb-kfb" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px;font-size:10px;">${kfKeys.map(k=>`<option value="${k}" ${k===Math.max(...kfKeys)?'selected':''}>${k}</option>`).join('')}</select>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">比率 t:</span>
@@ -7393,7 +7393,7 @@ function showKFBlendTool() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">保存先:</span>
-        <input id="kfb-dst" type="number" step="0.1" value="0.5" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;" placeholder="新KF値（例: 0.5）">
+        <input id="kfb-dst" type="number" step="0.1" value="0.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;" placeholder="新KF値（例: 0.5）">
         <span style="font-size:9px;color:var(--dim);">KF値</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
@@ -8338,28 +8338,28 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
-        <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
-        <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>明度（0〜200）<br><input id="av-cg-bri" type="number" min="0" max="200" value="100" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
+        <label>コントラスト（0〜200）<br><input id="av-cg-con" type="number" min="0" max="200" value="100" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">ビネット（0〜1）:</span>
-        <input id="av-cg-vig" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <input id="av-cg-vig" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">グロー(px):</span>
-        <input id="av-cg-glow" type="number" min="0" max="60" step="2" value="0" placeholder="0=なし" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <input id="av-cg-glow" type="number" min="0" max="60" step="2" value="0" placeholder="0=なし" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">色:</span>
-        <input id="av-cg-glow-color" type="color" value="#e07840" style="width:28px;height:22px;background:#1e1e1e;border:1px solid var(--border);border-radius:3px;cursor:pointer;padding:1px">
+        <input id="av-cg-glow-color" type="color" value="#e07840" style="width:28px;height:22px;background:var(--bg);border:1px solid var(--border);border-radius:3px;cursor:pointer;padding:1px">
       </div>
       <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">背景色:</span>
-        <input id="av-bg-color" type="text" placeholder="透明（例: #00ff00 ）" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;font-size:10px">
+        <input id="av-bg-color" type="text" placeholder="透明（例: #00ff00 ）" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;font-size:10px">
       </div>
       <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;font-size:11px;flex-wrap:wrap">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">スキャンライン(0-1):</span>
-        <input id="av-scanlines" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <input id="av-scanlines" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">フィルムグレイン(0-1):</span>
-        <input id="av-grain" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
+        <input id="av-grain" type="number" min="0" max="1" step="0.05" value="0" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px">
       </div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
