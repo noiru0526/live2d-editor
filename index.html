@@ -13,7 +13,7 @@
   --accent:#e07840; --accent-light:#ffb070; --accent2:#c09040; --accent3:#c09060;
   --accent-dim:rgba(224,120,64,.15); --accent2-dim:rgba(192,144,64,.15);
   /* Status colors */
-  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --warn:#e09040; --error:#e05050; --danger:#f08080;
+  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
   /* Text */
   --text:#c8c8c8; --text-bright:#e0e0e0; --dim:#909090; --muted:#707070;
   /* Spacing */
@@ -1128,7 +1128,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
-      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
+      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
 </div>
@@ -1372,7 +1372,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
     <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
-    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
+    <button onclick="toggleParamRecord()" id="btn-param-rec" title="パラメータ録音 — スライダー操作・顔追跡をリアルタイムでKF記録&#10;右クリックで録音モードを変更" oncontextmenu="event.preventDefault();showRecModeMenu(event)" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:#ff6060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏺ 録音</button>
     <button onclick="showAnimClips()" title="アニメーションクリップ: 複数のアニメーションを名前付きで管理" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎬 クリップ</button>
     <button onclick="showClipChainDialog()" title="クリップ連鎖再生: 複数クリップを順番に自動再生（プレイリスト）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔗 チェイン</button>
     <button onclick="toggleTLSearch()" title="トラック検索" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔍</button>
@@ -4129,7 +4129,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:#2e1a1a;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -23166,7 +23166,7 @@ function showKFRangeDelete() {
     </div>
     <div id="dr-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px">
-      <button id="dr-ok" style="flex:1;background:#2e1a1a;border:1px solid rgba(255,80,80,.5);color:#ff8080;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
+      <button id="dr-ok" style="flex:1;background:var(--danger-bg);border:1px solid rgba(255,80,80,.5);color:#ff8080;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
