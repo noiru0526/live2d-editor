@@ -79,7 +79,7 @@ button:focus:not(:focus-visible){outline:none;}
 .ltab{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;
   color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
   transition:color .12s,border-color .12s,background .12s;letter-spacing:.5px;text-transform:uppercase;}
-.ltab:hover{color:#d0d0d0;background:rgba(255,255,255,.05);}
+.ltab:hover{color:var(--text);background:rgba(255,255,255,.05);}
 .ltab.on{color:var(--accent);border-bottom-color:var(--accent);background:rgba(224,120,64,.1);}
 .lpanel{display:flex;flex-direction:column;flex:1;overflow-y:auto;min-height:0;}
 .lpanel.hidden{display:none;}
@@ -27246,7 +27246,7 @@ function applyPlayheadToParams() {
   // KF hover tooltip
   const _kfTip = (() => {
     const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;pointer-events:none;background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e8e8e8;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
+    el.style.cssText = 'position:fixed;pointer-events:none;background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:var(--text-bright);z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
     document.body.appendChild(el);
     return el;
   })();
