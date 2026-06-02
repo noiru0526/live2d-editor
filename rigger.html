@@ -395,7 +395,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
         <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
         <div class="tb-more-sep"></div>
-        <span style="padding:3px 12px;font-size:9px;color:#888">グリッドサイズ: </span>
+        <span style="padding:3px 8px;font-size:9px;color:#888">グリッドサイズ: </span>
         <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5"
           style="margin:2px 12px 4px;width:56px;background:var(--bg);border:1px solid #3a3a3a;color:#888;border-radius:3px;padding:2px 4px;font-size:10px;text-align:center"
           onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
@@ -618,7 +618,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="coord-hud">0, 0</div>
     <div id="mode-badge">PARTS</div>
     <!-- Reference Image Panel -->
-    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 10px;width:180px;z-index:180;font-size:9px;color:#888">
+    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:#888">
       <div style="font-weight:600;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
       <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
@@ -634,7 +634,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#f08080;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
-    <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#888;z-index:200">
+    <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 8px;gap:10px;align-items:center;font-size:9px;color:#888;z-index:200">
       <span style="color:#c8c8c8;font-weight:600;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#e07840" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
       <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#e07840" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
@@ -8010,8 +8010,8 @@ function showShortcutsOverlay() {
     ['Ctrl+S','自動保存（2分ごと・手動でも可）'],
   ];
   const rows = shortcuts.map(([k, v])=> v ?
-    `<tr><td style="padding:3px 12px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 12px;color:#a0a0a0;font-size:11px;">${v}</td></tr>` :
-    `<tr><td colspan="2" style="padding:6px 12px 3px;font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #3a3a3a;">${k}</td></tr>`
+    `<tr><td style="padding:3px 8px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 8px;color:#a0a0a0;font-size:11px;">${v}</td></tr>` :
+    `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #3a3a3a;">${k}</td></tr>`
   ).join('');
   d.innerHTML = `<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
@@ -8124,8 +8124,8 @@ function showWsApiRef() {
     ['pose','ポーズロック ON/OFF / リセット','{type:"pose",lock:true} / {type:"pose",reset:true}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
-    `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#888;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
-    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 10px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 10px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 10px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
+    `<tr>${r.map(c=>`<th style="padding:4px 8px;text-align:left;font-size:9px;color:#888;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
+    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 8px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 8px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 8px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
   ).join('');
   d.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
