@@ -4806,7 +4806,7 @@ ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;ins
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?glitchscan=1</td><td>グリッチスキャンライン・?glitchfreq=2（0.5〜10）・postMessage glitchscan</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?marquee=TEXT</td><td>流れるテロップ・?marqueespeed=2・?marqueebg・?marqueecolor・?marqueepos=bottom/top</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?subgoal=TARGET</td><td>サブスク目標ゲージ・?subcurrent=N・?subgoaltitle=・?subgoalpos=tr/tl/br/bl</td></tr>
-      <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?healthbar=MAX</td><td>HPゲージ・?hpcurrent=N・?hpname=・?hpcolor=・API: setHP/damageHP/healHP</td></tr>
+      <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?healthbar=MAX</td><td>HPゲージ・?hpcurrent=N・?hpname=・?hpcolor=RRGGBB（ラベル+バー固定色）・?hppos=tl/tr/bl/br・API: setHP/damageHP/healHP</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?heartfall=1</td><td>ハート落下エフェクト・?heartcount=20・?heartsize=20・API: triggerHeartfall(n)</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?streamtitle=TEXT</td><td>配信タイトル常時表示・?streamtitlepos=top/bottom・?titlefont=22・?streamtitlecolor</td></tr>
       <tr><td style="color:var(--text);padding:1px 10px 1px 0;white-space:nowrap;">?emoteroulette=1</td><td>エモートルーレット（チャット絵文字をプールしてrouletteコマンドでBIG表示）</td></tr>
@@ -15473,12 +15473,14 @@ window.addEventListener('message',ev=>{
 })();
 // Q-179: ?healthbar=100 HPゲージ（キャラクターのHP表示・ダメージアニメーション）
 // 例: ?healthbar=100&hpname=noiru&hpcolor=ff4466
+// ?hpcolor=hex: 名前ラベルとバー塗りを指定色で固定（省略時: HP割合で緑→赤グラデ）
 (()=>{
   const _usp=new URLSearchParams(location.search);
   const _maxHp=parseInt(_usp.get('healthbar')); if(!_maxHp||isNaN(_maxHp)) return;
   let _hp=Math.min(_maxHp,Math.max(0,parseInt(_usp.get('hpcurrent'))||_maxHp));
   const _name=_usp.get('hpname')||'HP';
   const _col=_usp.get('hpcolor')||'ff4466';
+  const _fixedFill=_usp.get('hpcolor')?`#${_col}`:null;
   const _pos=_usp.get('hppos')||'tl';
   const _wrap=document.createElement('div');
   _wrap.id='healthbar-ov';
@@ -15499,8 +15501,8 @@ window.addEventListener('message',ev=>{
   function _render(){
     const pct=Math.max(0,Math.min(1,_hp/_maxHp));
     _fill.style.width=(pct*100).toFixed(1)+'%';
-    const hue=pct>0.5?120*(pct-0.5)*2:(pct*240|0);
-    _fill.style.background=`hsl(${hue},90%,45%)`;
+    if(_fixedFill){_fill.style.background=_fixedFill;}
+    else{const hue=pct>0.5?120*(pct-0.5)*2:(pct*240|0);_fill.style.background=`hsl(${hue},90%,45%)`;}
     _label.innerHTML=`<span style="color:#${_col};">${_name}</span><span>${_hp}/${_maxHp}</span>`;
     if(_hp<=0) { _wrap.style.opacity='0.5'; }
     else _wrap.style.opacity='1';
