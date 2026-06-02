@@ -5333,6 +5333,9 @@ function updatePhysicsUI() {
     hdr.appendChild(chk); hdr.appendChild(nm); wrap.appendChild(hdr);
     const sl = document.createElement('div'); sl.className='phys-sliders'+(ph.enabled?' on':'');
     sl.innerHTML=`
+      <div style="display:flex;gap:2px;margin-bottom:3px">
+        ${['髪','布','耳','硬め','ふわ'].map((lb,pi)=>`<button onclick="setPhysPreset(${i},${pi})" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 0;cursor:pointer;font-size:8px" title="${['hair','cloth','ear','rigid','floaty'][pi]}">${lb}</button>`).join('')}
+      </div>
       <div class="phys-row"><label>剛性</label><input type="range" min="1" max="100" value="${Math.round(ph.stiffness*100)}" oninput="setPartPhysics(${i},'stiffness',this.value/100);this.nextSibling.textContent=this.value"><span class="phys-val">${Math.round(ph.stiffness*100)}</span></div>
       <div class="phys-row"><label>減衰</label><input type="range" min="50" max="99" value="${Math.round(ph.damping*100)}" oninput="setPartPhysics(${i},'damping',this.value/100);this.nextSibling.textContent=this.value"><span class="phys-val">${Math.round(ph.damping*100)}</span></div>
       <div class="phys-row"><label>横揺れ</label><input type="range" min="0" max="200" value="${Math.round((ph.reactX||1)*100)}" oninput="setPartPhysics(${i},'reactX',this.value/100);this.nextSibling.textContent=(this.value/100).toFixed(1)"><span class="phys-val">${(ph.reactX||1).toFixed(1)}</span></div>
@@ -5341,6 +5344,19 @@ function updatePhysicsUI() {
   });
 }
 function setPartPhysics(i, key, v) { if (parts[i]?.physics) parts[i].physics[key]=parseFloat(v); }
+const _PHYS_PRESETS = [
+  {stiffness:0.3,  damping:0.85, reactX:1.2, reactY:0.8},  // 髪 hair
+  {stiffness:0.15, damping:0.90, reactX:0.8, reactY:1.0},  // 布 cloth
+  {stiffness:0.40, damping:0.82, reactX:1.0, reactY:0.5},  // 耳 ear
+  {stiffness:0.70, damping:0.95, reactX:0.5, reactY:0.3},  // 硬め rigid
+  {stiffness:0.10, damping:0.88, reactX:1.5, reactY:1.2},  // ふわ floaty
+];
+function setPhysPreset(i, preset) {
+  if (!parts[i]?.physics) return;
+  const p = _PHYS_PRESETS[preset]; if (!p) return;
+  Object.assign(parts[i].physics, p);
+  updatePhysicsUI();
+}
 function clearAllPhysics() {
   parts.forEach(p=>{ p.physics.enabled=false; physState.delete(p.id); });
   updatePhysicsUI(); updatePartsUI(); render();
