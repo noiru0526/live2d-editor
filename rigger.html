@@ -5489,8 +5489,8 @@ function editExprValues(idx) {
     </div>`;
   });
   const _prevPV = {...pv};
-  function _eevCancel() { Object.assign(pv, _prevPV); render(); document.getElementById('expr-edit-overlay')?.remove(); }
-  ov.onclick=(e)=>{if(e.target===ov)_eevCancel();};
+  window._eevCancel = () => { Object.assign(pv, _prevPV); render(); document.getElementById('expr-edit-overlay')?.remove(); delete window._eevCancel; };
+  ov.onclick=(e)=>{if(e.target===ov)window._eevCancel?.();};
   ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
     <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
     <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
