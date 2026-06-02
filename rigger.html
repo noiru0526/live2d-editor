@@ -8,8 +8,8 @@
   --bg:#222222;--panel:#2a2a2a;--surface:#252525;--surface2:#303030;
   --bg-deep:#1e1e1e;--header:#2c2c2c;
   --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
-  --accent:#e07840;--accent2:#c09040;
-  --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
+  --accent:#e07840;--accent2:#c09040;--accent3:#c09060;
+  --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;--muted:#707070;
   --green:#60c060;--rec:#e04040;--gold:#ffd060;--warn:#e09040;--error:#e05050;--danger:#f08080;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -101,7 +101,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi-caret:hover{color:var(--dim)}
 .pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:var(--header);border:1px solid var(--border)}
 .pi-clip-badge{font-size:8px;color:var(--dim);flex-shrink:0}
-.pi-phys-badge{font-size:8px;color:#c09060;flex-shrink:0}
+.pi-phys-badge{font-size:8px;color:var(--accent3);flex-shrink:0}
 .pi-zidx{font-size:9px;color:var(--dim);flex-shrink:0;cursor:pointer;min-width:24px;text-align:right;font-family:monospace;user-select:none;padding-right:6px}
 .pi-zidx:hover{color:var(--accent)}
 .pi-clr{width:9px;height:9px;border-radius:50%;border:1px solid #666;flex-shrink:0;cursor:pointer;transition:transform .1s}
@@ -860,7 +860,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
               <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
-          <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:#c09060;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
+          <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:var(--accent3);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
         </div>
         <!-- Scale KF -->
         <div id="pp-scalekf-row" style="display:none;background:rgba(96,200,140,.05);border:1px solid rgba(96,200,140,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
@@ -8876,11 +8876,11 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 .mx-lbl{font-size:9px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
 .mx-sl{flex:1;accent-color:var(--accent);height:3px}
 .mx-v{font-size:8px;color:var(--dim);min-width:22px;text-align:right}
-#calib-panel h4{font-size:9px;color:#c09060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
+#calib-panel h4{font-size:9px;color:var(--accent3);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
 .cb-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .cb-lbl{font-size:9px;color:#b09070;min-width:70px;text-align:right}
 .cb-sl{flex:1;accent-color:#d08040}
-.cb-val{font-size:8px;color:#c09060;min-width:32px;text-align:left}
+.cb-val{font-size:8px;color:var(--accent3);min-width:32px;text-align:left}
 #dbg{position:fixed;top:8px;left:8px;background:rgba(0,0,0,.82);color:#80c8ff;font-size:9px;font-family:monospace;padding:6px 9px;border-radius:4px;pointer-events:none;line-height:1.6;white-space:pre;z-index:500;display:none;max-height:85vh;overflow-y:auto;border:1px solid rgba(255,255,255,.08)}
 </style>
 </head><body><canvas id="c"></canvas><div id="st">Loading...</div><div id="dbg"></div><div id="expr-bar"></div><div id="hp-bar-wrap"><div id="hp-bar-fill"></div></div><div id="hud-msg"></div><div id="chat-overlay"></div><div id="marquee-bar"><span id="marquee-inner"></span></div><div id="brb-overlay"><div class="brb-txt">BRB</div><div class="brb-sub">Be Right Back</div></div><div id="chat-bubble"></div><div id="nameplate" style="display:none"></div><div id="pulse-ring" style="display:none"></div><div id="corner-wm" style="display:none"></div><div id="obs-badge" style="display:none">OBS</div><div id="hotkey-panel" style="display:none"></div><div id="widget-overlay"></div><div id="ctrl-panel"><h4>🎛 コントロール</h4></div><div id="calib-panel"><h4>⚙ 顔追跡キャリブレーション</h4></div><div id="mixer-panel"><h4>🎚 表情ミキサー</h4></div><div id="fx-flash" style="position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:9999"></div>
