@@ -8,7 +8,7 @@
   --bg:#1e1e1e;--panel:#252525;--surface:#232323;--surface2:#2d2d2d;
   --border:#3a3a3a;--border-strong:#4a4a4a;
   --accent:#e07840;--accent2:#c09040;
-  --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#888;
+  --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
   --green:#60c060;--rec:#e04040;--warn:#e09040;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -619,7 +619,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
         <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
-      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#a06060;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
+      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#f08080;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid #3a3a3a;border-radius:6px;padding:6px 12px;gap:12px;align-items:center;font-size:9px;color:#888;z-index:200">
@@ -3676,7 +3676,7 @@ function updatePartPropsUI() {
         row.appendChild(lbl);
         if (idx >= 0) {
           const del = document.createElement('button');
-          del.textContent='✕'; del.style.cssText='background:none;border:none;color:#804050;cursor:pointer;font-size:8px;padding:0 2px;flex-shrink:0';
+          del.textContent='✕'; del.style.cssText='background:none;border:none;color:#f08080;cursor:pointer;font-size:8px;padding:0 2px;flex-shrink:0';
           del.onclick=()=>removeAltTexture(idx);
           row.appendChild(del);
         }
@@ -3794,7 +3794,7 @@ function toggleGlobalCoordMode() {
     lx.textContent='cX'; ly.textContent='cY';
     lx.title='グローバル座標モード ON（中心基準）';
   } else {
-    btn.textContent = 'LC'; btn.style.color='#646464'; btn.style.borderColor='#3a3a3a';
+    btn.textContent = 'LC'; btn.style.color='#888'; btn.style.borderColor='#3a3a3a';
     lx.textContent='X'; ly.textContent='Y';
     lx.title='クリックでグローバル座標に切替';
   }
@@ -4003,7 +4003,7 @@ function showTexSwitchModal() {
       <input type="number" value="${r.min}" step="0.1" placeholder="min" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'min',+this.value)">
       <input type="number" value="${r.max}" step="0.1" placeholder="max" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'max',+this.value)">
       <select style="background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:2px;font-size:10px" onchange="updateTexSwitchRule(${i},'texIdx',+this.value)">${toTexOpt(r.texIdx)}</select>
-      <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#804050;cursor:pointer;font-size:10px;padding:0">✕</button>
+      <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#f08080;cursor:pointer;font-size:10px;padding:0">✕</button>
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
   mo.innerHTML=`<div style="background:#252525;border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
@@ -4723,7 +4723,7 @@ let _kfLoopActive = false, _kfLoopRAF = null, _kfLoopT = 0, _kfLoopDir = 1, _kfL
 function toggleKFLoopPreview() {
   _kfLoopActive = !_kfLoopActive;
   const btn = document.getElementById('btn-kf-loop');
-  if (btn) { btn.textContent = _kfLoopActive ? '⏹ 停止' : '▶ 再生'; btn.style.color = _kfLoopActive ? '#60d890' : '#646464'; }
+  if (btn) { btn.textContent = _kfLoopActive ? '⏹ 停止' : '▶ 再生'; btn.style.color = _kfLoopActive ? '#60d890' : '#888'; }
   document.getElementById('kf-loop-speed')?.addEventListener('input', function(){ document.getElementById('kf-loop-speed-v').textContent = parseFloat(this.value).toFixed(1); });
   if (_kfLoopActive) {
     _kfLoopLastNow = null;
@@ -4879,23 +4879,23 @@ function batchRenameParts() {
       <div style="font-size:13px;font-weight:600;color:#c0c0c0;margin-bottom:10px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#888888;">プレフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:#909090;">プレフィックス追加:</span>
           <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#888888;">サフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:#909090;">サフィックス追加:</span>
           <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#888888;">検索:</span>
+          <span style="font-size:10px;width:80px;color:#909090;">検索:</span>
           <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#888888;">置換:</span>
+          <span style="font-size:10px;width:80px;color:#909090;">置換:</span>
           <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <label style="font-size:10px;color:#888888;display:flex;align-items:center;gap:4px;">
+          <label style="font-size:10px;color:#909090;display:flex;align-items:center;gap:4px;">
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
           <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
@@ -7462,7 +7462,7 @@ function showSnapshotCompare() {
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #3d7060;border-radius:4px;color:#6ab090;font-size:11px">未撮影</div>`;
   const bHTML = _snapB
     ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:#888870;font-size:11px">未撮影</div>`;
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:#909090;font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
@@ -8105,7 +8105,7 @@ function showWsApiRef() {
   ];
   const rows=apiRows.map((r,i)=>i===0?
     `<tr>${r.map(c=>`<th style="padding:4px 10px;text-align:left;font-size:9px;color:#888;text-transform:uppercase;border-bottom:1px solid #3a3a3a">${c}</th>`).join('')}</tr>`:
-    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 10px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 10px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 10px;font-family:monospace;font-size:9px;color:#607090">${r[2]}</td></tr>`
+    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 10px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 10px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 10px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
   ).join('');
   d.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
@@ -8155,7 +8155,7 @@ function showAvatarExportDialog() {
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:#e07840"> OBSモード（バッジ表示）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
@@ -8166,7 +8166,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-gamepad"> ゲームパッド自動ON</label>
       </div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
       <select id="av-fps" style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;margin-bottom:12px">
         <option value="">制限なし（デバイス最大）</option>
         <option value="60">60 fps</option>
@@ -8175,7 +8175,7 @@ function showAvatarExportDialog() {
         <option value="15">15 fps</option>
       </select>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:#e07840"> 🕐 現在時刻</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#e07840"> ⏱ 配信タイマー</label>
@@ -8188,7 +8188,7 @@ function showAvatarExportDialog() {
         <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
       </div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#e07840"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px">🔄 表情サイクル間隔(秒): <input id="av-exprcycle" type="number" min="0" max="3600" step="1" value="0" placeholder="0=無効" style="width:52px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"></label>
@@ -8208,7 +8208,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
       </div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:#e07840"> 話中頭揺れ</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
@@ -8279,7 +8279,7 @@ function showAvatarExportDialog() {
         </select>
       </div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🪪 ネームプレート</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🪪 ネームプレート</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">名前:</span>
         <input id="av-nameplate" type="text" placeholder="配信者名（空白=非表示）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
@@ -8287,7 +8287,7 @@ function showAvatarExportDialog() {
         <input id="av-npsub" type="text" placeholder="サブタイトル（任意）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
       <div style="font-size:9px;color:#888;margin-bottom:8px">画面下部中央に半透明の名前カード表示。URLパラメータ: ?nameplate=名前&npsub=サブタイトル</div>
-      <div style="font-size:10px;color:#888888;margin-bottom:4px;font-weight:600;letter-spacing:.5px">🏷 コーナー透かし</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:4px;font-weight:600;letter-spacing:.5px">🏷 コーナー透かし</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">テキスト:</span>
         <input id="av-corner" type="text" placeholder="例: © noiru（空白=非表示）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
@@ -8300,7 +8300,7 @@ function showAvatarExportDialog() {
         </select>
       </div>
       <div style="font-size:9px;color:#888;margin-bottom:12px">?corneropacity=0.4 ?cornersize=11 ?cornertc=#fff ?cornerbg=で色指定可。</div>
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">種類:</span>
         <select id="av-particle" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
@@ -8316,7 +8316,7 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:#888;margin-bottom:12px">キャンバス上にパーティクルをオーバーレイ表示。密度10〜200（デフォルト60）。</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
         <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
         <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
@@ -8343,7 +8343,7 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:#888;margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;font-size:10px;white-space:nowrap">チャンネル名:</span>
         <input id="av-sync-ch" type="text" placeholder="avatar1（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -8355,7 +8355,7 @@ function showAvatarExportDialog() {
       <div style="font-size:9px;color:#70a070;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="font-size:10px;color:#888888;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
+        <div style="font-size:10px;color:#909090;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
         <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:4px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
@@ -8386,7 +8386,7 @@ function showAvatarExportDialog() {
         <input id="av-ev-hit-dur" type="number" value="1.5" min="0.5" max="30" step="0.5" title="継続時間(秒)" style="background:#1e1e1e;border:1px solid #3a3a3a;color:#a0a0a0;border-radius:3px;padding:2px 4px;font-size:9px;width:100%">
       </div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">OBS WS:</span>
         <input id="av-obs-ws" type="text" placeholder="ws://localhost:4455（空白=無効）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -8397,13 +8397,13 @@ function showAvatarExportDialog() {
       <textarea id="av-obs-map" rows="3" placeholder='{"ゲーム": 0, "雑談": 1, "BRB": 2}' style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:#888;margin-bottom:12px">OBS WebSocket v5（obs-websocket 5.x）に対応。シーン切替で自動表情発動。</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
       <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-bottom:6px;"><input type="checkbox" id="av-discord" style="accent-color:#e07840"> Discordプレイ中ゲームで表情切替</label>
       <div style="font-size:9px;color:#888;margin-bottom:4px">ゲーム名↔表情インデックスのマッピング（JSON形式）「__idle」でアイドル時の表情を指定</div>
       <textarea id="av-discord-map" rows="2" placeholder='{"Valorant": 3, "Minecraft": 0, "__idle": 1}' style="width:100%;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:#888;margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
 
-      <div style="font-size:10px;color:#888888;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名 / タイトル</div>
+      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名 / タイトル</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center">
         <input id="av-filename" type="text" value="avatar-live2d" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box">
         <input id="av-title" type="text" placeholder="OBSタイトル（任意）" style="flex:1;background:#1e1e1e;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;box-sizing:border-box">
@@ -9208,7 +9208,7 @@ _calibDefs.forEach(cd=>{
   });
 });
 const cbReset=document.createElement('button');
-cbReset.style.cssText='width:100%;margin-top:6px;background:rgba(60,30,10,.4);border:1px solid rgba(160,80,40,.3);color:#a07050;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;pointer-events:auto;';
+cbReset.style.cssText='width:100%;margin-top:6px;background:rgba(60,30,10,.4);border:1px solid rgba(160,80,40,.3);color:#c09070;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;pointer-events:auto;';
 cbReset.textContent='リセット';
 cbReset.onclick=()=>{localStorage.removeItem(_CALIB_KEY);location.reload();};
 _calibEl.appendChild(cbReset);
