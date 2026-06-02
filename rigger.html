@@ -554,7 +554,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <h3>MESH</h3>
       </div>
       <div class="lsec-body" id="mesh-body">
-        <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:#1a1a1a;border-radius:3px;margin-bottom:4px">頂点: — / 三角形: —</div>
+        <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:4px">頂点: — / 三角形: —</div>
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成（グリッド）</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:#c0c0a0" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
@@ -704,7 +704,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl">半径</span><input class="prop-in" id="rp-r" type="number" min="10" max="500" oninput="applyRotRadius()">
           </div>
           <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
-            <span class="prop-lbl" style="color:#f59e0b">角度°</span>
+            <span class="prop-lbl" style="color:var(--amber)">角度°</span>
             <input class="prop-in" id="rp-angle" type="number" min="-180" max="180" step="0.5" oninput="applyRotAngle()" style="border-color:rgba(245,158,11,.4)">
           </div>
           <div class="prop-row">
@@ -747,7 +747,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <div class="prop-section" id="part-props" style="display:none">
         <!-- Cubism-style inspector header (Cubism 5.2.03 field order) -->
-        <div style="border-bottom:1px solid #252525;margin:-8px -10px 8px;padding:0">
+        <div style="border-bottom:1px solid var(--surface);margin:-8px -10px 8px;padding:0">
           <div class="ci-row"><span class="ci-lbl">名前</span><input type="text" id="pp-name" class="ci-inp" onblur="applyPartName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" placeholder="パーツ名"></div>
           <div class="ci-row"><span class="ci-lbl">ID</span><span id="pp-id" class="ci-ro" title="自動生成ID"></span></div>
           <div class="ci-row"><span class="ci-lbl">親パーツ</span><select class="ci-sel" id="ci-parent" onchange="applyPartParent(this.value)"><option value="">なし（ルート）</option></select></div>
@@ -866,23 +866,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:var(--accent3);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
         </div>
         <!-- Scale KF -->
-        <div id="pp-scalekf-row" style="display:none;background:rgba(96,200,140,.05);border:1px solid rgba(96,200,140,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
+        <div id="pp-scalekf-row" style="display:none;background:rgba(96,200,140,.05);border:1px solid rgba(96,200,140,.2);border-radius:var(--r-sm);padding:3px 6px;margin-top:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-            <span style="font-size:9px;color:#60c888;letter-spacing:.5px;text-transform:uppercase">KF スケール</span>
-            <span id="pp-scalekf-label" style="font-size:8px;color:#60c888;font-family:monospace"></span>
+            <span style="font-size:9px;color:var(--multi-sel);letter-spacing:.5px;text-transform:uppercase">KF スケール</span>
+            <span id="pp-scalekf-label" style="font-size:8px;color:var(--multi-sel);font-family:monospace"></span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
-            <span style="font-size:8px;color:#60c888">sX</span>
-            <input type="range" id="pp-scalex" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:#60c888">
-            <span id="pp-scalex-v" style="font-size:9px;color:#60c888;font-family:monospace;min-width:34px;text-align:right">100%</span>
+            <span style="font-size:8px;color:var(--multi-sel)">sX</span>
+            <input type="range" id="pp-scalex" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:var(--multi-sel)">
+            <span id="pp-scalex-v" style="font-size:9px;color:var(--multi-sel);font-family:monospace;min-width:34px;text-align:right">100%</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
-            <span style="font-size:8px;color:#60c888">sY</span>
-            <input type="range" id="pp-scaley" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:#60c888">
-            <span id="pp-scaley-v" style="font-size:9px;color:#60c888;font-family:monospace;min-width:34px;text-align:right">100%</span>
+            <span style="font-size:8px;color:var(--multi-sel)">sY</span>
+            <input type="range" id="pp-scaley" min="0" max="3" step="0.01" value="1" oninput="applyScaleKF()" style="flex:1;accent-color:var(--multi-sel)">
+            <span id="pp-scaley-v" style="font-size:9px;color:var(--multi-sel);font-family:monospace;min-width:34px;text-align:right">100%</span>
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
-            <button onclick="setScaleKFHere()" style="flex:1;background:#0e1e10;border:1px solid rgba(96,200,140,.4);color:#60c888;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
+            <button onclick="setScaleKFHere()" style="flex:1;background:#0e1e10;border:1px solid rgba(96,200,140,.4);color:var(--multi-sel);border-radius:var(--r-xs);padding:1px;cursor:pointer;font-size:8px">KF設定</button>
             <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
@@ -965,7 +965,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="rp-params" class="rpanel">
       <!-- Cubism-style parameter toolbar -->
       <div style="padding:3px 8px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--bg)">
-        <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
+        <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:var(--kf-fill);border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
         <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid var(--border);color:var(--dim);font-size:9px;border-radius:4px;padding:2px 5px;cursor:pointer">↺</button>
         <span style="flex:1"></span>
         <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:1px solid var(--border);color:var(--dim);font-size:8px;border-radius:4px;padding:2px 4px;cursor:pointer">▶▶</button>
@@ -4374,7 +4374,7 @@ function rotatePartMesh() {
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
       <label style="font-size:11px;color:var(--dim);min-width:60px;">角度 (°)</label>
       <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
-      <span id="rot-angv" style="font-size:10px;color:#f59e0b;font-family:monospace;min-width:36px;text-align:right">0°</span>
+      <span id="rot-angv" style="font-size:10px;color:var(--amber);font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
     <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
     <div style="display:flex;gap:6px;margin-top:4px;">
@@ -4477,7 +4477,7 @@ function generateColorVariants() {
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button id="cv-ok" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
-        <button onclick="this.closest('[style]').remove()" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
+        <button onclick="this.closest('[style]').remove()" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
   modal.appendChild(inner);
@@ -4833,7 +4833,7 @@ async function aiAutoNameParts() {
     <div id="ainm-status" style="font-size:10px;color:var(--dim);">分析中...</div>
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-      <button id="ainm-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button id="ainm-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
       <button id="ainm-apply" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
     </div>
   </div>`;
@@ -4917,10 +4917,10 @@ function batchRenameParts() {
           <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
           <span style="font-size:9px;color:var(--dim);">から開始 (例: _01, _02...)</span>
         </div>
-        <div id="brn-preview" style="font-size:9px;color:var(--dim);background:#1a1a1a;border-radius:3px;padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
+        <div id="brn-preview" style="font-size:9px;color:var(--dim);background:var(--bg-deep);border-radius:var(--r-sm);padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-        <button id="brn-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
+        <button id="brn-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
         <button id="brn-preview-btn" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
         <button id="brn-ok" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
       </div>
@@ -7403,7 +7403,7 @@ function showKFBlendTool() {
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button id="kfb-preview" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
         <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:#80d890;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
-        <button id="kfb-cancel" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
+        <button id="kfb-cancel" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
   modal.appendChild(inner);
