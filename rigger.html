@@ -260,7 +260,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 #expr-preview-tip .ept-label{min-width:65px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:#2a2a2a;border-radius:2px;overflow:hidden}
 #expr-preview-tip .ept-bar-fill{height:100%;background:#e07840;border-radius:2px}
-#expr-preview-tip .ept-val{min-width:30px;text-align:right;color:#888}
+#expr-preview-tip .ept-val{min-width:30px;text-align:right;color:var(--dim)}
 .expr-footer{padding:3px 8px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
 
 /* ===== STATUS BAR ===== */
@@ -395,7 +395,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
         <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
         <div class="tb-more-sep"></div>
-        <span style="padding:3px 8px;font-size:9px;color:#888">グリッドサイズ: </span>
+        <span style="padding:3px 8px;font-size:9px;color:var(--dim)">グリッドサイズ: </span>
         <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5"
           style="margin:2px 12px 4px;width:56px;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:3px;padding:2px 4px;font-size:10px;text-align:center"
           onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
@@ -486,7 +486,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <div id="deformer-list">
         <div style="padding:3px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:4px">
-          <span style="font-size:9px;color:#888">🔍</span>
+          <span style="font-size:9px;color:var(--dim)">🔍</span>
           <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
             oninput="buildLPDeformerTree()"
             style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
@@ -618,7 +618,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="coord-hud">0, 0</div>
     <div id="mode-badge">PARTS</div>
     <!-- Reference Image Panel -->
-    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:#888">
+    <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid #3a3a3a;border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:var(--dim)">
       <div style="font-weight:600;color:#c8c8c8;letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
       <button onclick="loadRefImage()" style="width:100%;background:#2a2a2a;border:1px solid #2e2e2e;color:#a0a0a0;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
@@ -752,7 +752,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">描画順</span><div class="ci-num-wrap"><button class="ci-arr" onclick="ciZOrderStep(-1)">‹</button><input type="number" id="pp-zorder" class="ci-num-sm" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"><button class="ci-arr" onclick="ciZOrderStep(1)">›</button></div></div>
           <div class="ci-row"><span class="ci-lbl">不透明度</span><div class="ci-num-wrap"><input type="number" id="ci-op" class="ci-num-sm" min="0" max="100" value="100" onchange="applyPartOpacity(this.value)"><span style="font-size:10px;color:var(--dim);margin-left:2px">%</span></div></div>
-          <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:#e07840"><span style="font-size:10px;color:#888">色を反転</span></label></div>
+          <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:#e07840"><span style="font-size:10px;color:var(--dim)">色を反転</span></label></div>
           <div class="ci-row"><span class="ci-lbl">表面色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-mul-swatch" onclick="document.getElementById('ci-mul-color').click()" style="background:#ffffff"></span><input type="color" id="ci-mul-color" value="#ffffff" oninput="applyPartMultiplyColor(this.value)" style="display:none"><span id="ci-mul-hex" class="ci-hex">#FFFFFF</span><button class="ci-reset" onclick="applyPartMultiplyColor('#ffffff')" title="白にリセット">↺</button></div></div>
           <div class="ci-row"><span class="ci-lbl">スクリーン色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-scr-swatch" onclick="document.getElementById('ci-scr-color').click()" style="background:#000000"></span><input type="color" id="ci-scr-color" value="#000000" oninput="applyPartScreenColor(this.value)" style="display:none"><span id="ci-scr-hex" class="ci-hex">#000000</span><button class="ci-reset" onclick="applyPartScreenColor('#000000')" title="黒にリセット">↺</button></div></div>
         </div>
@@ -947,7 +947,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
 
       <div class="prop-section" id="no-sel-msg" style="padding:16px 8px;text-align:center;color:var(--dim);font-size:10px;line-height:2">
-        パーツを選択してください<br><span style="font-size:9px;color:#888">クリックで選択 / Shiftで複数選択</span>
+        パーツを選択してください<br><span style="font-size:9px;color:var(--dim)">クリックで選択 / Shiftで複数選択</span>
       </div>
     </div>
 
@@ -987,7 +987,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
-          <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:#888">▶ 再生</button>
+          <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:var(--dim)">▶ 再生</button>
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           <span style="font-size:8px;color:#909090;white-space:nowrap;">速度</span>
@@ -996,7 +996,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
       <div style="padding:2px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:3px">
-        <span style="font-size:10px;color:#888">🔍</span>
+        <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:#a0a0a0;font-size:10px;outline:none;padding:2px 0">
         <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
@@ -1015,7 +1015,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
           <span style="display:flex;gap:4px;align-items:center">
             <span style="font-size:9px;color:var(--dim)">ドラッグで親子変更</span>
-            <span id="def-tree-arrow" style="font-size:8px;color:#888">▼</span>
+            <span id="def-tree-arrow" style="font-size:8px;color:var(--dim)">▼</span>
           </span>
         </div>
         <div id="def-tree-body" style="display:block;max-height:180px;overflow-y:auto;background:var(--bg);border-radius:4px;padding:2px 0"></div>
@@ -3337,7 +3337,7 @@ function toggleColorFilter(color) {
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   if (parts.length === 0) {
-    list.innerHTML = '<div style="padding:28px 16px;text-align:center;color:var(--dim);font-size:9px;line-height:2;user-select:none">パーツがありません<br><span style="color:#888">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
+    list.innerHTML = '<div style="padding:28px 16px;text-align:center;color:var(--dim);font-size:9px;line-height:2;user-select:none">パーツがありません<br><span style="color:var(--dim)">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
     return;
   }
   const seenGroups = new Set();
@@ -5318,7 +5318,7 @@ function applyPhysPreset(name) {
 // ===== PHYSICS UI =====
 function updatePhysicsUI() {
   const c = document.getElementById('phys-list'); c.innerHTML = '';
-  if (!parts.length) { c.innerHTML='<div style="padding:16px 8px;text-align:center;font-size:9px;color:#888">パーツを追加してください</div>'; return; }
+  if (!parts.length) { c.innerHTML='<div style="padding:16px 8px;text-align:center;font-size:9px;color:var(--dim)">パーツを追加してください</div>'; return; }
   parts.forEach((pt,i) => {
     const ph = pt.physics;
     const wrap = document.createElement('div'); wrap.className='phys-part-item';
@@ -5385,7 +5385,7 @@ function resetAllParams() {
 function updateExpressionsUI() {
   const c=document.getElementById('expr-list'); c.innerHTML='';
   if (!expressions.length) {
-    c.innerHTML='<div class="ex-empty">表情が登録されていません<br>「＋」ボタンで保存できます<br><span style="font-size:8px;color:#888">アバター起動後 1〜9 キーで切替</span></div>';
+    c.innerHTML='<div class="ex-empty">表情が登録されていません<br>「＋」ボタンで保存できます<br><span style="font-size:8px;color:var(--dim)">アバター起動後 1〜9 キーで切替</span></div>';
     const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
     return;
   }
@@ -5716,7 +5716,7 @@ function buildLPDeformerTree() {
   const body = document.getElementById('lp-def-tree');
   if (!body) return;
   if (deformers.length === 0) {
-    body.innerHTML = '<div style="padding:16px 8px;text-align:center;color:var(--dim);font-size:9px;line-height:2">デフォーマがありません<br><span style="color:#888">「＋」で追加</span></div>';
+    body.innerHTML = '<div style="padding:16px 8px;text-align:center;color:var(--dim);font-size:9px;line-height:2">デフォーマがありません<br><span style="color:var(--dim)">「＋」で追加</span></div>';
     return;
   }
   const filter = (document.getElementById('deformer-search')?.value || '').toLowerCase();
@@ -5847,7 +5847,7 @@ function buildLPDeformerTree() {
 
   body.innerHTML = '';
   if (deformers.length === 0) {
-    body.innerHTML = '<div style="font-size:8px;color:var(--dim);padding:8px 12px">デフォーマーなし<br><span style="color:#888">「＋ 追加」で作成</span></div>';
+    body.innerHTML = '<div style="font-size:8px;color:var(--dim);padding:8px 12px">デフォーマーなし<br><span style="color:var(--dim)">「＋ 追加」で作成</span></div>';
     return;
   }
   topLevel.forEach(i => renderNode(i, 0));
@@ -6476,7 +6476,7 @@ ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option
 <span class="lfo-wave-svg">${_lfoWaveSVG(lfo.wave, lfo.amp, lfo.offset)}</span>
 <button class="ih" onclick="removeLFO('${lfo.id}')" style="color:var(--dim);font-size:10px;padding:0 4px">✕</button>
 </div>
-<div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:#888">
+<div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:var(--dim)">
 <span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.freq||0).toFixed(2)}</span>
 <span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw){const _l=lfos.find(l=>l.id==='${lfo.id}');if(_l)_lw.innerHTML=_lfoWaveSVG(_l.wave,_l.amp,_l.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.amp||0).toFixed(2)}</span>
 <span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw2=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw2){const _l2=lfos.find(l=>l.id==='${lfo.id}');if(_l2)_lw2.innerHTML=_lfoWaveSVG(_l2.wave,_l2.amp,_l2.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.offset||0).toFixed(2)}</span>
@@ -6570,10 +6570,10 @@ function deleteCustomParam(key) {
 function buildBindingsUI() {
   const list = document.getElementById('bindings-list');
   if (!list) return;
-  if (!selParam) { list.innerHTML = '<span style="color:#888">パラメータを選択</span>'; return; }
+  if (!selParam) { list.innerHTML = '<span style="color:var(--dim)">パラメータを選択</span>'; return; }
   const bindings = paramBindings[selParam] || [];
   if (bindings.length === 0) {
-    list.innerHTML = `<span style="color:#888">バインドなし</span>`;
+    list.innerHTML = `<span style="color:var(--dim)">バインドなし</span>`;
     return;
   }
   list.innerHTML = bindings.map((b, i) => {
