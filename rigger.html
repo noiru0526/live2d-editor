@@ -964,8 +964,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:#888;background:none;border:1px solid #3a3a3a;padding:2px 5px;border-radius:4px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
-      <div style="padding:5px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">XY グリッド</span>
           <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:#1e1e1e;border:1px solid #3a3a3a;color:#909090;padding:1px 4px;border-radius:3px;cursor:pointer">
             <option value="0">頭 X / Y</option>
@@ -975,12 +975,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </select>
         </div>
         <div style="display:flex;justify-content:center">
-          <canvas id="xy-canvas" width="148" height="148" style="cursor:crosshair;border-radius:4px;border:1px solid #3a3a3a;display:block"></canvas>
+          <canvas id="xy-canvas" width="128" height="128" style="cursor:crosshair;border-radius:4px;border:1px solid #3a3a3a;display:block"></canvas>
         </div>
       </div>
       <!-- KF Loop Preview -->
-      <div style="padding:4px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
           <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:#888">▶ 再生</button>
         </div>
@@ -997,16 +997,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <div id="params-list"></div>
       <!-- PARAM BINDINGS -->
-      <div style="padding:4px 6px;border-top:1px solid #2e2e2e;flex-shrink:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">バインド</span>
           <button class="ih" onclick="showAddBindingModal()" title="選択パラメータにバインドを追加" style="font-size:9px;color:var(--dim)">＋</button>
         </div>
         <div id="bindings-list" style="font-size:9px;color:var(--dim);min-height:12px"></div>
       </div>
       <!-- DEFORMER TREE -->
-      <div style="padding:4px 6px;border-top:1px solid #2e2e2e;flex-shrink:0">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;cursor:pointer" onclick="toggleDeformerTree()">
+      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;cursor:pointer" onclick="toggleDeformerTree()">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
           <span style="display:flex;gap:4px;align-items:center">
             <span style="font-size:9px;color:var(--dim)">ドラッグで親子変更</span>
@@ -1023,12 +1023,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <span class="rsec-ttl">物理シミュレーション</span>
     </div>
     <div id="rp-physics" class="rpanel rp-collapsed">
-      <div style="padding:4px 10px;border-bottom:1px solid #2e2e2e;display:flex;justify-content:flex-end;flex-shrink:0">
+      <div style="padding:2px 8px;border-bottom:1px solid #2e2e2e;display:flex;justify-content:flex-end;flex-shrink:0">
         <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:#a0a0a0">✕ 全OFF</button>
       </div>
       <!-- Physics presets -->
-      <div style="padding:4px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">プリセット → 選択パーツに適用</div>
+      <div style="padding:3px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット → 選択パーツに適用</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
           <button class="tbtn" onclick="applyPhysPreset('hair')"   style="font-size:8px;padding:2px 0" title="剛性:0.18 減衰:0.84 X:1.0 Y:0.3">💇 前髪</button>
           <button class="tbtn" onclick="applyPhysPreset('longhair')" style="font-size:8px;padding:2px 0" title="剛性:0.10 減衰:0.88 X:0.9 Y:0.5">💈 長髪</button>
@@ -1052,12 +1052,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:var(--dim)">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
-      <div style="padding:4px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">プリセット</div>
+      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット</div>
         <div id="lfo-presets" style="display:flex;flex-wrap:wrap;gap:2px"></div>
       </div>
-      <div id="lfo-list" style="flex:1;overflow-y:auto;padding:4px 6px"></div>
-      <div style="padding:4px 6px;border-top:1px solid #2e2e2e;font-size:9px;color:var(--dim);line-height:1.5;flex-shrink:0">
+      <div id="lfo-list" style="flex:1;overflow-y:auto;padding:3px 5px"></div>
+      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;font-size:9px;color:var(--dim);line-height:1.5;flex-shrink:0">
         ⓘ プレビューモードで動作します。パラメータをサイン波等で自動変調します。
       </div>
     </div>
@@ -1073,8 +1073,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div class="ex-empty">表情が登録されていません<br>「＋」ボタンで現在のパラメータを<br>表情として保存できます</div>
       </div>
       <!-- Pose Blend Panel -->
-      <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid #2e2e2e;padding:4px 6px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid #2e2e2e;padding:3px 5px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
             <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
@@ -1092,8 +1092,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
   </div>
   <!-- Utility footer — always visible at bottom of right panel -->
-  <div id="rp-footer" style="padding:4px 8px;border-top:1px solid #3a3a3a;flex-shrink:0;background:#1e1e1e">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px">
+  <div id="rp-footer" style="padding:3px 6px;border-top:1px solid #3a3a3a;flex-shrink:0;background:#1e1e1e">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:2px">
       <button class="ab" onclick="undo()" style="font-size:9px;margin:0;padding:4px 6px">↩ 元に戻す</button>
       <button class="ab" onclick="redo()" style="font-size:9px;margin:0;padding:4px 6px">↪ やり直す</button>
       <button class="ab" onclick="resetKF()" style="font-size:9px;margin:0;padding:4px 6px">現KFリセット</button>
