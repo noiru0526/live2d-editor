@@ -70,7 +70,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .dl-row.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
 .dl-caret{font-size:7px;width:10px;flex-shrink:0;color:#707070;cursor:pointer;text-align:center}
 .dl-icon{font-size:9px;flex-shrink:0;margin-right:2px}
-.dl-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#909090}
+.dl-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--dim)}
 .dl-row.sel .dl-name{color:#e8e8e8;font-weight:600}
 .dl-parts{font-size:9px;color:var(--dim);margin-left:3px;flex-shrink:0}
 /* Parts list — Cubism style */
@@ -90,7 +90,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi-drag{display:none}
 .pv{font-size:11px;cursor:pointer;color:#707070;flex-shrink:0;width:16px;text-align:center;transition:color .1s}
 .pv:hover{color:#c0c0c0}
-.pv.on{color:#909090}
+.pv.on{color:var(--dim)}
 .pi-lock{font-size:10px;cursor:pointer;color:#f59e0b;flex-shrink:0;transition:opacity .1s}
 .pi-lock:not(.on){display:none}
 .pn{flex:1;font-size:11px;color:#a8a8a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -215,7 +215,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-color-wrap{display:flex;align-items:center;gap:5px;flex:1}
 .ci-swatch{width:18px;height:14px;border:1px solid #4a4a4a;border-radius:2px;cursor:pointer;flex-shrink:0;transition:border-color .1s;background:#ffffff}
 .ci-swatch:hover{border-color:var(--accent);outline:1px solid rgba(224,120,64,.3)}
-.ci-hex{font-size:10px;color:#909090;font-family:monospace;flex:1;letter-spacing:.3px}
+.ci-hex{font-size:10px;color:var(--dim);font-family:monospace;flex:1;letter-spacing:.3px}
 .ci-reset{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
 .ci-reset:hover{color:#e07840;opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
@@ -454,7 +454,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="font-size:10px;color:#707070">🔍</span>
         <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
           oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
-          style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+          style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
         <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
       <!-- Color label filter -->
@@ -489,7 +489,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span style="font-size:9px;color:var(--dim)">🔍</span>
           <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
             oninput="buildLPDeformerTree()"
-            style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+            style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
           <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
@@ -583,9 +583,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('right')" title="右→左にミラー">→←</button>
         </div>
         <div style="margin-top:4px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
-          <span style="font-size:8px;color:#909090;flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
+          <span style="font-size:8px;color:var(--dim);flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
           <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:#e07840;" oninput="setBrushRadius(this.value)">
-          <span id="brush-radius-val" style="font-size:8px;color:#909090;flex:0 0 auto;min-width:24px;text-align:right">60</span>
+          <span id="brush-radius-val" style="font-size:8px;color:var(--dim);flex:0 0 auto;min-width:24px;text-align:right">60</span>
         </div>
       </div>
     </div>
@@ -628,8 +628,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#e07840" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
       </label>
       <div style="display:flex;gap:4px;margin-bottom:3px">
-        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
-        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
+        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
+        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
       <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#f08080;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
@@ -761,7 +761,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <input class="prop-in" id="pp-x" type="number" oninput="applyPartXY()">
           <span id="pp-coord-lbl-y" class="prop-lbl" style="margin-left:2px">Y</span>
           <input class="prop-in" id="pp-y" type="number" oninput="applyPartXY()">
-          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:#252525;border:1px solid #3a3a3a;color:#909090;border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
+          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
         </div>
         <div class="prop-row">
           <span class="prop-lbl">W/H</span>
@@ -811,7 +811,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <!-- Shadow/Glow Effect -->
         <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
+            <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
             <button onclick="resetPartShadow()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="影をリセット">↺</button>
           </div>
           <div class="prop-row" style="gap:3px">
@@ -831,7 +831,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <!-- Color adjustment (HSB) -->
         <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
+            <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
             <button onclick="resetPartHSB()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="リセット">↺</button>
           </div>
           <div class="prop-row">
@@ -901,17 +901,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <!-- Texture swap panel -->
         <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <span style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
+            <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
               <button onclick="showGenerateTextureModal()" style="background:#252525;border:1px solid #2e2e2e;color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
-              <button onclick="addAltTexture()" style="background:#252525;border:1px solid #2e2e2e;color:#909090;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+              <button onclick="addAltTexture()" style="background:#252525;border:1px solid #2e2e2e;color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
           <!-- Texture switch by parameter -->
           <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:3px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-              <span style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
+              <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
               <button onclick="showTexSwitchModal()" style="background:#282828;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
             </div>
             <div id="texswitch-info" style="font-size:9px;color:var(--dim)">未設定</div>
@@ -919,15 +919,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <!-- Part note/memo -->
         <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
-          <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
+          <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
           <textarea id="pp-note" rows="2"
-            style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#909090;font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
+            style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
             placeholder="任意のメモを記録…"
             oninput="if(selPart>=0&&selPart<parts.length)parts[selPart].note=this.value"></textarea>
         </div>
         <!-- Alignment tools (multi-select) -->
         <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
-          <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
+          <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-bottom:2px">
             <button class="tbtn" onclick="alignParts('left')"   style="font-size:8px;padding:2px 0" title="左端揃え">⊢ 左</button>
             <button class="tbtn" onclick="alignParts('hcenter')" style="font-size:8px;padding:2px 0" title="水平中央揃え">↔ 中</button>
@@ -971,8 +971,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
       <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">XY グリッド</span>
-          <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:var(--bg);border:1px solid #3a3a3a;color:#909090;padding:1px 4px;border-radius:3px;cursor:pointer">
+          <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">XY グリッド</span>
+          <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);padding:1px 4px;border-radius:3px;cursor:pointer">
             <option value="0">頭 X / Y</option>
             <option value="1">視線 X / Y</option>
             <option value="2">口 開 / 形</option>
@@ -986,11 +986,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- KF Loop Preview -->
       <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
+          <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
           <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:var(--dim)">▶ 再生</button>
         </div>
         <div style="display:flex;gap:4px;align-items:center">
-          <span style="font-size:8px;color:#909090;white-space:nowrap;">速度</span>
+          <span style="font-size:8px;color:var(--dim);white-space:nowrap;">速度</span>
           <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:#e07840;">
           <span id="kf-loop-speed-v" style="font-size:8px;color:#e07840;min-width:20px;">1.0</span>
         </div>
@@ -1004,7 +1004,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- PARAM BINDINGS -->
       <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">バインド</span>
+          <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">バインド</span>
           <button class="ih" onclick="showAddBindingModal()" title="選択パラメータにバインドを追加" style="font-size:9px;color:var(--dim)">＋</button>
         </div>
         <div id="bindings-list" style="font-size:9px;color:var(--dim);min-height:12px"></div>
@@ -1012,7 +1012,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- DEFORMER TREE -->
       <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;cursor:pointer" onclick="toggleDeformerTree()">
-          <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
+          <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
           <span style="display:flex;gap:4px;align-items:center">
             <span style="font-size:9px;color:var(--dim)">ドラッグで親子変更</span>
             <span id="def-tree-arrow" style="font-size:8px;color:var(--dim)">▼</span>
@@ -1033,7 +1033,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <!-- Physics presets -->
       <div style="padding:3px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット → 選択パーツに適用</div>
+        <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット → 選択パーツに適用</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
           <button class="tbtn" onclick="applyPhysPreset('hair')"   style="font-size:8px;padding:2px 0" title="剛性:0.18 減衰:0.84 X:1.0 Y:0.3">💇 前髪</button>
           <button class="tbtn" onclick="applyPhysPreset('longhair')" style="font-size:8px;padding:2px 0" title="剛性:0.10 減衰:0.88 X:0.9 Y:0.5">💈 長髪</button>
@@ -1058,7 +1058,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
       <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
-        <div style="font-size:9px;color:#909090;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット</div>
+        <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット</div>
         <div id="lfo-presets" style="display:flex;flex-wrap:wrap;gap:2px"></div>
       </div>
       <div id="lfo-list" style="flex:1;overflow-y:auto;padding:3px 5px"></div>
@@ -1080,7 +1080,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- Pose Blend Panel -->
       <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid #2e2e2e;padding:3px 5px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-          <span style="font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
+          <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
             <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
             <button onclick="clearPoseBlend()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
@@ -3229,7 +3229,7 @@ function showGuideManager() {
       <div style="color:var(--dim);font-size:10px;">キャンバスに参照線を追加（保存時にJSONに含まれません）</div>
       <div id="gg-list">${renderRows()}</div>
       <button onclick="javascript:_customGuides.push({axis:'x',pos:0,color:'rgba(255,200,80,0.7)'});render();document.getElementById('gg-list').innerHTML=document.getElementById('gg-list').innerHTML;"
-        style="background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
+        style="background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
     </div>
   `, () => {
     _customGuides.forEach((g, i) => {
@@ -4581,8 +4581,8 @@ function showGlobalTransformModal() {
   overlay.innerHTML = `
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">⊙ 全体変換</div>
-      <div style="font-size:9px;color:#909090;margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
-      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
+      <div style="font-size:9px;color:var(--dim);margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>X 移動 (px)</span>
         <input id="gtf-dx" type="number" value="0" style="background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>Y 移動 (px)</span>
@@ -4826,11 +4826,11 @@ async function aiAutoNameParts() {
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center;';
   modal.innerHTML = `<div style="background:var(--bg);border:1px solid #3a3a3a;border-radius:8px;padding:16px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;color:#c8c8c8;font-size:12px;">
     <div style="font-size:13px;font-weight:600;color:#c0c0c0;">🤖 AIパーツ自動命名（${targetIdxs.length}件）</div>
-    <div id="ainm-status" style="font-size:10px;color:#909090;">分析中...</div>
+    <div id="ainm-status" style="font-size:10px;color:var(--dim);">分析中...</div>
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
       <button id="ainm-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
-      <button id="ainm-apply" style="background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
+      <button id="ainm-apply" style="background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -4891,23 +4891,23 @@ function batchRenameParts() {
       <div style="font-size:13px;font-weight:600;color:#c0c0c0;margin-bottom:10px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#909090;">プレフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:var(--dim);">プレフィックス追加:</span>
           <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#909090;">サフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:var(--dim);">サフィックス追加:</span>
           <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#909090;">検索:</span>
+          <span style="font-size:10px;width:80px;color:var(--dim);">検索:</span>
           <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:#909090;">置換:</span>
+          <span style="font-size:10px;width:80px;color:var(--dim);">置換:</span>
           <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <label style="font-size:10px;color:#909090;display:flex;align-items:center;gap:4px;">
+          <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
           <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
@@ -4918,7 +4918,7 @@ function batchRenameParts() {
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
         <button id="brn-cancel" style="background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
         <button id="brn-preview-btn" style="background:var(--bg);border:1px solid #3a3a3a;color:#a0a0a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
-        <button id="brn-ok" style="background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
+        <button id="brn-ok" style="background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -7080,7 +7080,7 @@ function showDeformWaveModal() {
   overlay.innerHTML = `
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">〜 デフォームWave</div>
-      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:#909090">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>振幅 (px)</span>
         <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:3px 8px;width:80px">
         <span>周波数</span>
@@ -7397,7 +7397,7 @@ function showKFBlendTool() {
         <span style="font-size:9px;color:var(--dim);">KF値</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button id="kfb-preview" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
+        <button id="kfb-preview" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
         <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:#80d890;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
         <button id="kfb-cancel" style="flex:1;background:#2e1a1a;border:1px solid rgba(180,60,60,.4);color:#ff8080;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
@@ -7474,7 +7474,7 @@ function showSnapshotCompare() {
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #3d7060;border-radius:4px;color:#6ab090;font-size:11px">未撮影</div>`;
   const bHTML = _snapB
     ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:#909090;font-size:11px">未撮影</div>`;
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:var(--dim);font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
@@ -8057,7 +8057,7 @@ function showWsTestPanel() {
     {label:'pose reset',json:'{"type":"pose","reset":true}'},
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
-  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid #3a3a3a;color:#909090;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
+  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
   ov.innerHTML=`<div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:#c8c8c8">🔌 WebSocket 送信テスト</span>
@@ -8175,7 +8175,7 @@ function showAvatarExportDialog() {
     <div style="background:#252525;border:1px solid #3a3a3a;border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:#e07840"> OBSモード（バッジ表示）</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
@@ -8186,7 +8186,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-gamepad"> ゲームパッド自動ON</label>
       </div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">フレームレート</div>
       <select id="av-fps" style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;margin-bottom:12px">
         <option value="">制限なし（デバイス最大）</option>
         <option value="60">60 fps</option>
@@ -8195,7 +8195,7 @@ function showAvatarExportDialog() {
         <option value="15">15 fps</option>
       </select>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:#e07840"> 🕐 現在時刻</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#e07840"> ⏱ 配信タイマー</label>
@@ -8208,7 +8208,7 @@ function showAvatarExportDialog() {
         <input id="av-wg-game" type="text" placeholder="VALORANT（空白=非表示）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px">
       </div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#e07840"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;font-size:10px">🔄 表情サイクル間隔(秒): <input id="av-exprcycle" type="number" min="0" max="3600" step="1" value="0" placeholder="0=無効" style="width:52px;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"></label>
@@ -8228,7 +8228,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
       </div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:#e07840"> 話中頭揺れ</label>
         <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
@@ -8299,7 +8299,7 @@ function showAvatarExportDialog() {
         </select>
       </div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🪪 ネームプレート</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🪪 ネームプレート</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">名前:</span>
         <input id="av-nameplate" type="text" placeholder="配信者名（空白=非表示）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
@@ -8307,7 +8307,7 @@ function showAvatarExportDialog() {
         <input id="av-npsub" type="text" placeholder="サブタイトル（任意）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
       </div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:8px">画面下部中央に半透明の名前カード表示。URLパラメータ: ?nameplate=名前&npsub=サブタイトル</div>
-      <div style="font-size:10px;color:#909090;margin-bottom:4px;font-weight:600;letter-spacing:.5px">🏷 コーナー透かし</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:4px;font-weight:600;letter-spacing:.5px">🏷 コーナー透かし</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">テキスト:</span>
         <input id="av-corner" type="text" placeholder="例: © noiru（空白=非表示）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:10px">
@@ -8320,7 +8320,7 @@ function showAvatarExportDialog() {
         </select>
       </div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">?corneropacity=0.4 ?cornersize=11 ?cornertc=#fff ?cornerbg=で色指定可。</div>
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">✨ パーティクルエフェクト</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">種類:</span>
         <select id="av-particle" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:3px 6px;font-size:11px">
@@ -8336,7 +8336,7 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">キャンバス上にパーティクルをオーバーレイ表示。密度10〜200（デフォルト60）。</div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎨 カラーグレーディング</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;font-size:11px">
         <label>色相（-180〜180）<br><input id="av-cg-hue" type="number" min="-180" max="180" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
         <label>彩度（0〜200）<br><input id="av-cg-sat" type="number" min="0" max="200" value="100" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px;border-radius:3px;margin-top:2px"></label>
@@ -8363,7 +8363,7 @@ function showAvatarExportDialog() {
       </div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">全体にCSSフィルターを適用。OBSでシーンのムードに合わせた色調整に。</div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🔄 マルチタブ同期（BroadcastChannel）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;font-size:10px;white-space:nowrap">チャンネル名:</span>
         <input id="av-sync-ch" type="text" placeholder="avatar1（空白=無効）" style="flex:1;background:var(--bg);border:1px solid #2a3a2a;color:#80e0a0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -8375,7 +8375,7 @@ function showAvatarExportDialog() {
       <div style="font-size:9px;color:#70a070;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="font-size:10px;color:#909090;font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
+        <div style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
         <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:4px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
@@ -8406,7 +8406,7 @@ function showAvatarExportDialog() {
         <input id="av-ev-hit-dur" type="number" value="1.5" min="0.5" max="30" step="0.5" title="継続時間(秒)" style="background:var(--bg);border:1px solid #3a3a3a;color:#a0a0a0;border-radius:3px;padding:2px 4px;font-size:9px;width:100%">
       </div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">📺 OBSシーン連携（自動表情切替）</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <span style="color:#a0a0a0;white-space:nowrap;font-size:10px">OBS WS:</span>
         <input id="av-obs-ws" type="text" placeholder="ws://localhost:4455（空白=無効）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
@@ -8417,13 +8417,13 @@ function showAvatarExportDialog() {
       <textarea id="av-obs-map" rows="3" placeholder='{"ゲーム": 0, "雑談": 1, "BRB": 2}' style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">OBS WebSocket v5（obs-websocket 5.x）に対応。シーン切替で自動表情発動。</div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
       <label style="display:flex;align-items:center;gap:6px;color:#a0a0a0;cursor:pointer;margin-bottom:6px;"><input type="checkbox" id="av-discord" style="accent-color:#e07840"> Discordプレイ中ゲームで表情切替</label>
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">ゲーム名↔表情インデックスのマッピング（JSON形式）「__idle」でアイドル時の表情を指定</div>
       <textarea id="av-discord-map" rows="2" placeholder='{"Valorant": 3, "Minecraft": 0, "__idle": 1}' style="width:100%;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
 
-      <div style="font-size:10px;color:#909090;margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名 / タイトル</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">ファイル名 / タイトル</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center">
         <input id="av-filename" type="text" value="avatar-live2d" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:11px;box-sizing:border-box">
         <input id="av-title" type="text" placeholder="OBSタイトル（任意）" style="flex:1;background:var(--bg);border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:4px 8px;font-size:10px;box-sizing:border-box">
@@ -8863,14 +8863,14 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 @keyframes pulseRing{0%,100%{box-shadow:inset 0 0 0 0 var(--pr,rgba(224,120,64,0))}50%{box-shadow:inset 0 0 22px 6px var(--pr,rgba(224,120,64,0.28))}}
 @keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,-1%)}50%{transform:translate(-1%,2%)}70%{transform:translate(2%,3%)}90%{transform:translate(-3%,1%)}}
 @keyframes wobblecam{0%,100%{transform:rotate(0deg) scale(1)}20%{transform:rotate(0.15deg) scale(1.002)}40%{transform:rotate(-0.1deg) scale(0.999)}60%{transform:rotate(0.08deg) scale(1.001)}80%{transform:rotate(-0.12deg) scale(1.002)}}
-#ctrl-panel h4{font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid #2e2e2e;padding-bottom:4px}
+#ctrl-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid #2e2e2e;padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:9px;color:var(--dim);min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:#e07840;height:3px}
 .cp-val{font-size:8px;color:var(--dim);min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#c0c0c0;backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
-#mixer-panel h4{font-size:9px;color:#909090;text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
+#mixer-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
 .mx-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
 .mx-lbl{font-size:9px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
 .mx-sl{flex:1;accent-color:#e07840;height:3px}
