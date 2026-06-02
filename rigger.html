@@ -10,7 +10,8 @@
   --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
   --accent:#e07840;--accent-light:#ffb070;--accent2:#c09040;--accent3:#c09060;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;--muted:#707070;
-  --green:#60c060;--rec:#e04040;--gold:#ffd060;--warn:#e09040;--error:#e05050;--danger:#f08080;--danger-bg:#2e1a1a;
+  --green:#60c060;--rec:#e04040;--gold:#ffd060;--warn:#e09040;--error:#e05050;--danger:#f08080;--danger-bg:#2e1a1a;--danger-bg-deep:#200a0a;--kf-bg:#2a1a0a;
+  --hover:#333333;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Noto Sans JP',system-ui,sans-serif;font-size:11px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
@@ -51,7 +52,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .ph h3{color:var(--text);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
-.ih:hover{color:var(--text-bright);background:#333333}
+.ih:hover{color:var(--text-bright);background:var(--hover)}
 
 /* Left panel tabs — hidden (Cubism-style split replaces tabs) */
 #lp-tabs{display:none}
@@ -113,7 +114,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* Section panels in left panel */
 .lsec{border-top:1px solid var(--border);flex-shrink:0}
 .lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:3px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);transition:background .08s}
-.lsec-hd:hover{background:#333333}
+.lsec-hd:hover{background:var(--hover)}
 .lsec-hd h3{color:var(--dim);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .lsec-body{padding:2px 6px;display:flex;flex-direction:column;gap:2px}
 .mrow{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
@@ -143,7 +144,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
 .rsec-hd{display:flex;align-items:center;padding:3px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
-.rsec-hd:hover{background:#333333}
+.rsec-hd:hover{background:var(--hover)}
 .rsec-caret{font-size:9px;color:var(--muted);transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
 .rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--dim);text-transform:uppercase;flex:1}
@@ -632,7 +633,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
         <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
-      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:var(--danger);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
+      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:var(--danger-bg-deep);border:1px solid rgba(200,60,60,.3);color:var(--danger);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid var(--border);border-radius:6px;padding:6px 8px;gap:10px;align-items:center;font-size:9px;color:var(--dim);z-index:200">
@@ -784,7 +785,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span id="pp-opkf-v" style="font-size:9px;color:var(--accent-light);font-family:monospace;min-width:28px;text-align:right">100%</span>
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
-            <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
+            <button onclick="setOpacityKFHere()" style="flex:1;background:var(--kf-bg);border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
             <button onclick="clearOpacityKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
@@ -856,7 +857,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
               <span id="pp-hsbkf-label" style="font-size:8px;color:var(--accent);font-family:monospace"></span>
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
-              <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
+              <button onclick="setHSBKFHere()" style="flex:1;background:var(--kf-bg);border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
               <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
@@ -4033,7 +4034,7 @@ function showTexSwitchModal() {
   <div id="tsr-list">${existingRules}</div>
   <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-    <button onclick="clearTexSwitch()" style="background:#200a0a;border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
+    <button onclick="clearTexSwitch()" style="background:var(--danger-bg-deep);border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
     <button onclick="document.getElementById('texswitch-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:#d0c060;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
