@@ -4652,7 +4652,7 @@ ${includeCtrlPanel ? `
 <div id="roulette-ov"><div id="roulette-slot">？</div><div id="roulette-result"></div></div>
 <div id="countdown-ov"><div class="cd-lbl">STREAM STARTING</div><div class="cd-time" id="cd-time">--:--</div></div>
 <div id="expr-list">${M.poses.length>0?`<div style="color:var(--accent);margin-bottom:2px;font-size:9px;">表情 (数字キー)</div>${M.poses.slice(0,9).map((p,i)=>`<div class="el" id="el${i+1}"><span style="color:var(--accent)">${i+1}</span>: ${p.name}</div>`).join('')}<div class="el" id="el0">0: デフォルト</div>`:''}${M.poses.length>0?'':''}</div>
-${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
+${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)" onmouseenter="_hoverPreviewPose(-1)" onmouseleave="_hoverPreviewPose(-99)" title="デフォルト (0キー)">😐 デフォルト</button>${M.poses.slice(0,12).map((p,i)=>`<button id="pbtn-${i+1}" onclick="_setPose(${i})" onmouseenter="_hoverPreviewPose(${i})" onmouseleave="_hoverPreviewPose(-99)" title="${i+1}キー">${p.name}</button>`).join('')}</div>`:''}
 
 <div id="obs-tip">
 <strong style="color:var(--accent)">OBS 設定手順</strong><br>
@@ -5884,6 +5884,7 @@ const _POSE_EASING=${JSON.stringify(poseEasing)};
 let _poseTransMs=_POSE_TRANS_MS;
 let activePose=null, poseBlend=0;
 let _posePrev=null, _posePrevT=0; // for smooth transition tracking
+let _hoverPreviewActive=false, _hoverPreviewSaved=null;
 // Auto-expression trigger: BlendShape → named pose blending
 let _autoExprPose=null,_autoExprW=0,_autoExprCool=0,_autoExprManualUntil=0;
 let curSens=SENS;
@@ -5951,6 +5952,25 @@ function _setPose(idx){
   // Suppress auto-expression for 6s after manual pose change
   _autoExprManualUntil=performance.now()+6000;
   if(exprHUD){exprHUD.style.display='block';exprHUD.textContent='表情: '+(activePose?activePose.name:'デフォルト');setTimeout(()=>exprHUD.style.display='none',1500);}
+}
+function _hoverPreviewPose(idx){
+  if(idx===-99){
+    _hoverPreviewActive=false;
+    if(_hoverPreviewSaved){
+      activePose=_hoverPreviewSaved.pose;
+      _posePrev=null;_posePrevT=0;
+      for(const[k,v]of Object.entries(_hoverPreviewSaved.params)){if(params[k])params[k].val=v;}
+      _hoverPreviewSaved=null;
+    }
+    return;
+  }
+  if(!_hoverPreviewSaved){
+    _hoverPreviewSaved={pose:activePose,params:Object.fromEntries(Object.entries(params).map(([k,p])=>[k,p.val]))};
+  }
+  _hoverPreviewActive=true;
+  for(const k of Object.keys(params))params[k].val=0;
+  const tp=idx>=0&&idx<EXPR_POSES.length?EXPR_POSES[idx]:null;
+  if(tp){for(const[k,v]of Object.entries(tp.values)){if(params[k])params[k].val=v;}}
 }
 // Q-090: Picture-in-Picture mode (?pip=1 auto-opens on first click; button always shown unless ?noui=1)
 (()=>{
@@ -6320,6 +6340,7 @@ function _poseEase(t){
   return 1-Math.pow(1-t,2); // easeOut default
 }
 function applyPoseBlend(dt){
+  if(_hoverPreviewActive) return;
   if(!activePose&&!_posePrev) return;
   if(_poseTransMs<=0){
     // instant
