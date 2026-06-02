@@ -76,7 +76,7 @@ button:focus:not(:focus-visible){outline:none;}
 /* ===== Left panel Cubism-style tab strip ===== */
 #left-tabs{display:flex;height:24px;flex-shrink:0;background:var(--bg);border-bottom:1px solid #3a3a3a;}
 .ltab{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;
-  color:#888;cursor:pointer;border-bottom:2px solid transparent;
+  color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
   transition:color .12s,border-color .12s,background .12s;letter-spacing:.5px;text-transform:uppercase;}
 .ltab:hover{color:#d0d0d0;background:rgba(255,255,255,.05);}
 .ltab.on{color:var(--accent);border-bottom-color:var(--accent);background:rgba(224,120,64,.1);}
@@ -162,11 +162,11 @@ button:focus:not(:focus-visible){outline:none;}
 #tl-canvas{position:absolute;inset:0;}
 
 /* Status bar — Cubism-style compact info bar */
-#sb{display:flex;align-items:center;gap:0;padding:0 8px;background:var(--bg);border-top:1px solid #3a3a3a;font-size:10px;color:#888;flex-shrink:0;height:20px;}
+#sb{display:flex;align-items:center;gap:0;padding:0 8px;background:var(--bg);border-top:1px solid #3a3a3a;font-size:10px;color:var(--dim);flex-shrink:0;height:20px;}
 #sb > span{padding:0 8px;border-right:1px solid #2e2e2e;white-space:nowrap;line-height:20px;}
 #sb > span:last-child{border-right:none;}
 #sb-mode{background:rgba(224,120,64,.15);color:rgba(224,160,100,.9);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;font-size:9px;}
-#sb-sel{color:#888;}
+#sb-sel{color:var(--dim);}
 #sb-rec{margin-left:auto;border-right:none!important;border-left:1px solid #2e2e2e;}
 #sb-rec.on{color:var(--rec);}
 #sb-dirty{color:#ffd060;display:none;}
@@ -1253,7 +1253,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <button onclick="animMultiStop()" style="background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
     <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
     <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:var(--bg);border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
-    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:var(--bg);border:1px solid rgba(150,150,150,.3);color:#888;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
+    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:var(--bg);border:1px solid rgba(150,150,150,.3);color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
     <select id="tl-speed" title="再生速度" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 2px;font-size:10px;cursor:pointer;">
       <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
@@ -2882,7 +2882,7 @@ function updateUndoHistoryPanel() {
   items.forEach((s,i) => {
     const d = document.createElement('div');
     d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid #2e2e2e;';
-    d.innerHTML=`<span style="color:#888;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
+    d.innerHTML=`<span style="color:var(--dim);font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
     d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
     d.onmouseover = () => d.style.background='rgba(255,255,255,.05)';
     d.onmouseout = () => d.style.background='';
@@ -3625,7 +3625,7 @@ function updateKFList() {
     item.appendChild(row);
     if (cmt) {
       const cmtEl=document.createElement('div');
-      cmtEl.style.cssText='font-size:9px;color:#888;padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
+      cmtEl.style.cssText='font-size:9px;color:var(--dim);padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
       cmtEl.textContent=cmt;
       item.appendChild(cmtEl);
     }
@@ -4563,7 +4563,7 @@ canvas.mirrored{transform:scaleX(-1);}
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
 .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.1);border-top-color:rgba(224,120,64,.8);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px;}
-.load-txt{color:#888;font-size:11px;font-family:monospace;}
+.load-txt{color:var(--dim);font-size:11px;font-family:monospace;}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Control panel */
 #cp-btn{position:fixed;top:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid #3a3a3a;border-radius:5px;padding:4px 10px;color:var(--text);font-size:12px;cursor:pointer;z-index:100;font-family:monospace;}
@@ -5113,7 +5113,7 @@ function _renderChainList() {
   const list = document.getElementById('chain-list'); if (!list) return;
   list.innerHTML = '';
   if (!_clipChain.length) {
-    list.innerHTML = '<div style="font-size:9px;color:#888;padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
+    list.innerHTML = '<div style="font-size:9px;color:var(--dim);padding:4px;">チェインが空です。クリップを追加してください。</div>'; return;
   }
   const names = ['現在', ...(MD.animClips||[]).map(c=>c.name)];
   _clipChain.forEach((e, i) => {
@@ -5921,7 +5921,7 @@ function _dbgUpdate(){
     `<div>眉 L:${f(S.bwl)} R:${f(S.bwr)}</div>`+
     `<div>視線 X:${f(S.ex)} Y:${f(S.ey)}</div>`+
     (S.ck>0.05?`<div>頬: ${f(S.ck)}</div>`:'')+
-    `<div style="color:#888;margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
+    `<div style="color:var(--dim);margin-top:2px;font-size:8.5px;">Dキーで非表示</div>`;
 }
 function _setDbgMode(on){
   _dbgMode=on;
@@ -8473,7 +8473,7 @@ window.addEventListener('message',ev=>{
   const _emojiRe=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}]/gu;
   function _render(){
     const top5=Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,_max);
-    if(!top5.length){_ov.innerHTML='<div style="font-size:10px;color:#888;">絵文字なし</div>';return;}
+    if(!top5.length){_ov.innerHTML='<div style="font-size:10px;color:var(--dim);">絵文字なし</div>';return;}
     _ov.innerHTML=top5.map(([e,c])=>
       `<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;"><span>${e}</span><span style="color:#8cf;font-size:11px;">${c}</span></div>`
     ).join('');
@@ -10603,7 +10603,7 @@ window.addEventListener('message',ev=>{
 <input type="color" id="cp-bg" value="#000000" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px"><br>
 <div style="font-size:9px;color:#999;margin:6px 0 4px;text-align:center">OVERLAY</div>
 <input type="color" id="cp-ov" value="#ffffff" style="width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:4px">
-<div style="margin-top:8px;font-size:9px;color:#888;text-align:center">drag</div>`;
+<div style="margin-top:8px;font-size:9px;color:var(--dim);text-align:center">drag</div>`;
   document.body.appendChild(_d);
   document.getElementById('cp-bg').addEventListener('input',e=>{ document.body.style.background=e.target.value; });
   document.getElementById('cp-ov').addEventListener('input',e=>{
@@ -11958,7 +11958,7 @@ window.addEventListener('message',ev=>{
   document.body.appendChild(_wrap);
   let _params=[];
   function _render(){
-    if(typeof M==='undefined'||!M||!M.params){ _wrap.innerHTML='<div style="color:#888;">No model</div>'; return; }
+    if(typeof M==='undefined'||!M||!M.params){ _wrap.innerHTML='<div style="color:var(--dim);">No model</div>'; return; }
     const keys=Object.keys(M.params).slice(0,_max);
     _wrap.innerHTML=keys.map(k=>{
       const p=M.params[k];
@@ -12624,7 +12624,7 @@ window.addEventListener('message',ev=>{
   });
   _ov.innerHTML=`<div style="font-size:60px;margin-bottom:16px;">⏸️</div>
     <div style="color:#fff;font-size:28px;font-weight:bold;text-shadow:0 0 20px rgba(200,200,200,0.6);">${_msg}</div>
-    <div style="color:#888;font-size:14px;margin-top:12px;">（${_key}で戻る）</div>`;
+    <div style="color:var(--dim);font-size:14px;margin-top:12px;">（${_key}で戻る）</div>`;
   document.body.appendChild(_ov);
   let _brb=false;
   function _toggle(){
@@ -13144,7 +13144,7 @@ window.addEventListener('message',ev=>{
       <div style="color:#ffd700;font-size:28px;font-weight:bold;margin-bottom:8px;">${currency}${amount}</div>
       <div style="color:#fff;font-size:18px;margin-bottom:6px;">${user||'Anonymous'} さん</div>
       ${msg?`<div style="color:#ccc;font-size:14px;margin-top:8px;max-width:260px;">"${msg}"</div>`:''}
-      <div style="color:#888;font-size:12px;margin-top:8px;">ありがとうございます！</div>`;
+      <div style="color:var(--dim);font-size:12px;margin-top:8px;">ありがとうございます！</div>`;
     _ov.style.transform='translateX(-50%) scale(1)';
     if(typeof window.triggerConfetti==='function') window.triggerConfetti();
     clearTimeout(_hideTimer);
@@ -13289,7 +13289,7 @@ window.addEventListener('message',ev=>{
     _wrap.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;">👆 連打チャレンジ！</div>
       <div style="color:#fff;font-size:48px;font-weight:bold;margin:8px 0;">${_count}</div>
       <div style="color:#aaf;font-size:14px;">${_cmd} で連打！</div>
-      <div style="color:#888;font-size:14px;">残り ${_timeleft}秒</div>`;
+      <div style="color:var(--dim);font-size:14px;">残り ${_timeleft}秒</div>`;
   }
   window.startClicker=function(){
     _count=0; _timeleft=_dur; _running=true; _wrap.style.display='block'; _render();
@@ -13757,7 +13757,7 @@ window.addEventListener('message',ev=>{
     if(_events.length>_maxLines) _events.pop();
     _wrap.innerHTML=_events.map(ev=>
       `<div style="color:#ccc;border-bottom:1px solid rgba(255,255,255,0.08);padding:2px 0;">
-        <span style="color:#888;">${ev.time}</span> ${ev.icon} ${ev.text}
+        <span style="color:var(--dim);">${ev.time}</span> ${ev.icon} ${ev.text}
       </div>`
     ).join('');
   }
@@ -14643,7 +14643,7 @@ window.addEventListener('message',ev=>{
   function _renderWin(winners){
     _ov.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;margin-bottom:10px;">🎉 当選者！</div>`+
       winners.map(w=>`<div style="color:#fff;font-size:16px;padding:4px 0;">${w}</div>`).join('')+
-      `<div style="color:#888;font-size:12px;margin-top:8px;">参加 ${_entries.size}名</div>`;
+      `<div style="color:var(--dim);font-size:12px;margin-top:8px;">参加 ${_entries.size}名</div>`;
     _ov.style.display='block';
     setTimeout(()=>{ _ov.style.display='none'; },8000);
   }
@@ -14694,7 +14694,7 @@ window.addEventListener('message',ev=>{
     const q=_qs[_qi%_qs.length]; _active=true;
     _ov.innerHTML=`<div style="color:#adf;font-size:12px;">Q${_qi+1}</div>
       <div style="color:#fff;font-size:20px;font-weight:bold;">${q.hint}</div>
-      <div style="color:#888;font-size:12px;margin-top:6px;">チャットで回答してね</div>`;
+      <div style="color:var(--dim);font-size:12px;margin-top:6px;">チャットで回答してね</div>`;
     _ov.style.display='block';
     _timer=setTimeout(()=>{ _timeUp(q); },30000);
   }
@@ -14745,7 +14745,7 @@ window.addEventListener('message',ev=>{
     const pctB=(_scoreB/total*100).toFixed(0);
     _wrap.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;">
       <span style="color:#f88;font-weight:bold;">${_nameA} ${_scoreA}</span>
-      <span style="color:#888;font-size:12px;">チャットバトル</span>
+      <span style="color:var(--dim);font-size:12px;">チャットバトル</span>
       <span style="color:#88f;font-weight:bold;">${_scoreB} ${_nameB}</span></div>
       <div style="height:12px;background:#3a3a3a;border-radius:6px;overflow:hidden;display:flex;">
         <div style="width:${pctA}%;background:#f66;transition:width 0.3s;"></div>
@@ -14963,7 +14963,7 @@ window.addEventListener('message',ev=>{
     const rate=_times.length;
     _wrap.innerHTML=`<div style="color:#aaf;font-size:11px;">${_win}秒チャット</div>
       <div style="color:#fff;font-size:26px;font-weight:bold;">${rate}</div>
-      <div style="color:#888;font-size:11px;">累計 ${_total}</div>`;
+      <div style="color:var(--dim);font-size:11px;">累計 ${_total}</div>`;
   }
   document.body.appendChild(_wrap); _render();
   window.addEventListener('message',e=>{
@@ -25366,7 +25366,7 @@ function showParamBatchEdit() {
     const isCustom = p.custom ? ' title="カスタムパラメータ"' : '';
     const mark = p.custom ? '<span style="color:var(--accent);font-size:8px;margin-left:2px;">✦</span>' : '';
     return `<tr data-name="${name}" style="border-bottom:1px solid rgba(255,255,255,.04);">
-      <td style="padding:2px 4px;font-size:9px;color:#888;font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
+      <td style="padding:2px 4px;font-size:9px;color:var(--dim);font-family:monospace;white-space:nowrap;"${isCustom}>${name}${mark}</td>
       <td style="padding:2px 4px;"><input class="pbe-lbl" type="text" value="${lbl}" data-name="${name}"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;box-sizing:border-box;"></td>
       <td style="padding:2px 4px;"><input class="pbe-min" type="number" value="${p.min}" data-name="${name}" step="0.1"
