@@ -1863,7 +1863,7 @@ function screenshotCanvas(transparent) {
     const cs=20;
     for(let y=0;y<canvasH;y+=cs)for(let x=0;x<canvasW;x+=cs){octx.fillStyle=((x/cs+y/cs)%2===0)?'#cccccc':'#ffffff';octx.fillRect(x,y,cs,cs);}
   } else {
-    octx.fillStyle='#0c0f18'; octx.fillRect(0,0,canvasW,canvasH);
+    octx.fillStyle='#0d0d0d'; octx.fillRect(0,0,canvasW,canvasH);
   }
   // Draw sorted parts
   const vals = getParamVals();
@@ -1962,7 +1962,7 @@ function drawTriTexCtx(tc, x0,y0, x1,y1, x2,y2, u0,v0, u1,v1, u2,v2, img) {
 
 function renderPartToCtx(pt, tc, sz, vals) {
   tc.clearRect(0, 0, sz, sz);
-  tc.fillStyle = '#0c0f18'; tc.fillRect(0, 0, sz, sz);
+  tc.fillStyle = '#0d0d0d'; tc.fillRect(0, 0, sz, sz);
   if (!pt || !pt.activeImg || !pt.mesh.tris.length) return;
   const wv = pt.getWorldVerts(vals);
   if (pt.deformerId) {
@@ -2042,7 +2042,7 @@ function render() {
         ctx.fillRect(cx, cy, Math.min(cs, br.x-cx), Math.min(cs, br.y-cy));
       }
   } else {
-    ctx.fillStyle = '#0c0f18';
+    ctx.fillStyle = '#0d0d0d';
     ctx.fillRect(tl.x, tl.y, br.x-tl.x, br.y-tl.y);
   }
   ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 1;
