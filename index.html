@@ -92,7 +92,7 @@ button:focus:not(:focus-visible){outline:none;}
 #sr{width:270px;border-left:1px solid var(--border);}
 .ptitle{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--text);
   padding:3px 8px;text-transform:uppercase;
-  border-bottom:1px solid var(--border);border-left:2px solid #e07840;
+  border-bottom:1px solid var(--border);border-left:2px solid var(--accent);
   background:#2c2c2c;
   flex-shrink:0;}
 
@@ -128,7 +128,7 @@ button:focus:not(:focus-visible){outline:none;}
 #kf-btns button{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;text-align:left;transition:background .1s,border-color .1s;}
 #kf-btns button:hover{background:var(--surface2);}
 /* KF button categories — match Live2D Cubism inspector palette */
-#kf-btns .kfb-add{color:#e07840;border-color:rgba(224,120,64,.3);}
+#kf-btns .kfb-add{color:var(--accent);border-color:rgba(224,120,64,.3);}
 #kf-btns .kfb-add:hover{background:rgba(224,120,64,.1);border-color:rgba(224,120,64,.6);}
 #kf-btns .kfb-del{color:#d08080;border-color:rgba(208,128,128,.25);}
 #kf-btns .kfb-del:hover{background:rgba(180,60,60,.1);border-color:rgba(192,100,100,.5);}
@@ -1392,7 +1392,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button id="btn-tl-bgm" onclick="loadBGMWaveform()" title="BGM音声ファイルを読み込んでタイムラインに波形表示（リファレンス用）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎵 BGM波形</button>
     <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
-    <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1508;border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
+    <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1508;border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
     <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
     <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
@@ -4528,7 +4528,7 @@ canvas.mirrored{transform:scaleX(-1);}
 #chatpoll-title{font-size:10px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:.05em;}
 .poll-opt{margin:3px 0;font-size:10px;color:var(--text);}
 .poll-bar-wrap{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:2px;}
-.poll-bar-fill{height:100%;background:#e07840;border-radius:3px;transition:width .5s ease;}
+.poll-bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .5s ease;}
 /* Goal bar (?twitchgoal=TEXT:CURRENT:MAX) */
 #goal-bar-ov{display:none;position:fixed;pointer-events:none;z-index:62;background:rgba(20,20,20,.92);border:1px solid rgba(224,120,64,.4);border-radius:6px;padding:6px 14px;min-width:200px;max-width:340px;}
 #goal-bar-ov.show{display:block;}
@@ -24689,7 +24689,7 @@ function showKFList() {
       <td style="padding:3px 8px;color:#ffd060;font-family:monospace;">${fmtT}</td>
       <td style="padding:3px 8px;color:var(--text);font-family:monospace;">${kf.v.toFixed(4)}</td>
       <td style="padding:3px 8px;color:var(--dim);font-size:9px;">${kf.interp||'linear'}</td>
-      ${kf.note ? `<td style="padding:3px 8px;color:#e07840;font-size:9px;" title="${kf.note}">📝</td>` : '<td></td>'}
+      ${kf.note ? `<td style="padding:3px 8px;color:var(--accent);font-size:9px;" title="${kf.note}">📝</td>` : '<td></td>'}
     </tr>`;
   }).join('');
   const p = M.params[name];
@@ -24724,7 +24724,7 @@ function showAllKfNotes() {
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;" onclick="ST.ap='${trackName}';ST.animPlayhead=${kf.t};applyPlayheadToParams();drawMultiTimeline();renderParamPanel();document.getElementById('modal-overlay').style.display='none';">
       <td style="padding:4px 8px;color:#ffd060;font-family:monospace;white-space:nowrap;">${fmtT}</td>
       <td style="padding:4px 8px;color:var(--text);font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${trackName}">${colDot}${lbl}</td>
-      <td style="padding:4px 8px;color:#e07840;font-size:10px;">${kf.note}</td>
+      <td style="padding:4px 8px;color:var(--accent);font-size:10px;">${kf.note}</td>
       <td style="padding:4px 8px;color:var(--dim);font-size:9px;">${kf.v.toFixed(3)}</td>
     </tr>`;
   }).join('');
@@ -28383,7 +28383,7 @@ function buildTrackOverlay() {
   // Sync scrub count badge
   if (tlSyncScrubTracks.size > 0) {
     const badge = document.createElement('div');
-    badge.style.cssText = 'position:absolute;top:0;left:0;right:0;background:rgba(224,120,64,.12);border-bottom:1px solid rgba(224,120,64,.3);padding:1px 4px;font-size:8px;color:#e07840;z-index:1;pointer-events:none;';
+    badge.style.cssText = 'position:absolute;top:0;left:0;right:0;background:rgba(224,120,64,.12);border-bottom:1px solid rgba(224,120,64,.3);padding:1px 4px;font-size:8px;color:var(--accent);z-index:1;pointer-events:none;';
     badge.textContent = `⟷ ${tlSyncScrubTracks.size}トラック同期`;
     overlay.appendChild(badge);
   }
@@ -29861,7 +29861,7 @@ function showGIFExportDialog() {
     <div id="gf-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div id="gf-progress" style="display:none;margin-bottom:6px;">
       <div style="font-size:9px;color:#ffd060;margin-bottom:3px;" id="gf-prog-text">フレームキャプチャ中...</div>
-      <div style="height:4px;background:var(--bg);border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:#e07840;width:0%;transition:width .1s;"></div></div>
+      <div style="height:4px;background:var(--bg);border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:var(--accent);width:0%;transition:width .1s;"></div></div>
     </div>
     <div style="display:flex;gap:6px;">
       <button id="gf-start-btn" style="flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.15);color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
@@ -30755,7 +30755,7 @@ function renderHistogram() {
     const std = Math.sqrt(allVals.reduce((s,v)=>s+(v-mean)*(v-mean),0)/allVals.length);
     statsEl.innerHTML = `
       <span>KF数: <b style="color:var(--text)">${allVals.length}</b></span>
-      <span>最小: <b style="color:#e07840">${globalMin.toFixed(3)}</b></span>
+      <span>最小: <b style="color:var(--accent)">${globalMin.toFixed(3)}</b></span>
       <span>最大: <b style="color:#ff8888">${globalMax.toFixed(3)}</b></span>
       <span>平均: <b style="color:#ffd080">${mean.toFixed(3)}</b></span>
       <span>σ: <b style="color:#80ffb0">${std.toFixed(3)}</b></span>

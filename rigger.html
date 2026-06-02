@@ -46,7 +46,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* ===== LEFT PANEL ===== */
 #lp{width:270px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-.ph{padding:3px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid #e07840;flex-shrink:0;background:#2c2c2c}
+.ph{padding:3px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid var(--accent);flex-shrink:0;background:#2c2c2c}
 .ph h3{color:var(--text);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #lp-deformer-section.lp-def-collapsed #deformer-list{display:none}
 .dl-row{display:flex;align-items:center;cursor:pointer;font-size:11px;padding:2px 4px;transition:background .08s;min-height:22px;border-left:2px solid transparent}
 .dl-row:hover{background:rgba(255,255,255,.05)}
-.dl-row.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
+.dl-row.sel{background:rgba(224,120,64,.12);border-left-color:var(--accent)}
 .dl-caret{font-size:7px;width:10px;flex-shrink:0;color:var(--muted);cursor:pointer;text-align:center}
 .dl-icon{font-size:9px;flex-shrink:0;margin-right:2px}
 .dl-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--dim)}
@@ -77,14 +77,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #parts-list{flex:1;overflow-y:auto;padding:0;min-height:40px}
 .pi{display:flex;align-items:center;padding:2px 6px 2px 0;cursor:pointer;margin-bottom:0;border:none;border-left:3px solid transparent;gap:4px;transition:background .08s;min-height:22px;height:22px}
 .pi:hover{background:rgba(255,255,255,.05)}
-.pi.sel{background:rgba(224,120,64,.12);border-left-color:#e07840}
+.pi.sel{background:rgba(224,120,64,.12);border-left-color:var(--accent)}
 .pi.multi-sel{background:rgba(96,200,140,.1);border-left-color:#60c888}
-.pi.drag-over{background:rgba(224,120,64,.08);border-left-color:#e07840;border-left-style:dashed}
+.pi.drag-over{background:rgba(224,120,64,.08);border-left-color:var(--accent);border-left-style:dashed}
 .pi.drag-over-parent{background:rgba(96,192,160,.1);border-left-color:#60c0a0;border-left-style:solid;outline:1px dashed rgba(96,192,160,.4)}
 /* Cubism status dot column */
 .pi-dots{display:flex;flex-direction:column;justify-content:center;gap:2px;flex-shrink:0;padding:0 4px;align-self:stretch}
 .pi-dot{width:7px;height:7px;border-radius:50%;background:var(--panel);border:1px solid var(--border);flex-shrink:0}
-.pi-dot.vis{background:#e07840;border-color:var(--accent)}
+.pi-dot.vis{background:var(--accent);border-color:var(--accent)}
 .pi-dot.lock{background:var(--panel);border-color:var(--border)}
 .pi-dot.locked{background:#a0a0a0;border-color:var(--dim)}
 .pi-drag{display:none}
@@ -102,7 +102,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi-clip-badge{font-size:8px;color:var(--dim);flex-shrink:0}
 .pi-phys-badge{font-size:8px;color:#c09060;flex-shrink:0}
 .pi-zidx{font-size:9px;color:var(--dim);flex-shrink:0;cursor:pointer;min-width:24px;text-align:right;font-family:monospace;user-select:none;padding-right:6px}
-.pi-zidx:hover{color:#e07840}
+.pi-zidx:hover{color:var(--accent)}
 .pi-clr{width:9px;height:9px;border-radius:50%;border:1px solid #666;flex-shrink:0;cursor:pointer;transition:transform .1s}
 .pi-clr:hover{transform:scale(1.4)}
 .pi-clr-menu{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px;display:flex;flex-wrap:wrap;gap:4px;width:88px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.7)}
@@ -135,7 +135,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 8px;border-radius:12px;pointer-events:none;display:none}
 #zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
 #coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
-#mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid #e07840;border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
+#mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid var(--accent);border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
 #rp{width:270px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
@@ -175,15 +175,15 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .plbl .pname{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
 .plbl .pname:hover{color:#d8d8d8}
 .pitem.spa{background:rgba(224,120,64,.07)}
-.pitem.spa .plbl .pname{color:#e07840}
+.pitem.spa .plbl .pname{color:var(--accent)}
 .pv2{font-size:10px;color:var(--dim);font-family:monospace;min-width:32px;text-align:right;flex-shrink:0}
-.pitem.spa .pv2{color:#e07840}
+.pitem.spa .pv2{color:var(--accent)}
 .pkf-dot{width:7px;height:7px;border-radius:50%;border:1px solid var(--border);background:transparent;flex-shrink:0;cursor:default}
 .pkf-dot.has-kf{background:#c83020;border-color:#e04030}
 .pkf-dot.near-kf{background:rgba(200,48,32,.4);border-color:#a02010}
 /* Cubism-style parameter sliders — inline in pitem */
-input[type=range]{flex:1;min-width:40px;height:4px;accent-color:#e07840;cursor:pointer;display:block;margin-top:0;-webkit-appearance:none;background:linear-gradient(to right,rgba(224,120,64,.5) var(--fill,50%),#2a2a2a var(--fill,50%));border-radius:2px;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:#e07840;border:2px solid #fff;cursor:pointer;box-shadow:0 0 0 1px #e07840;}
+input[type=range]{flex:1;min-width:40px;height:4px;accent-color:var(--accent);cursor:pointer;display:block;margin-top:0;-webkit-appearance:none;background:linear-gradient(to right,rgba(224,120,64,.5) var(--fill,50%),#2a2a2a var(--fill,50%));border-radius:2px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff;cursor:pointer;box-shadow:0 0 0 1px var(--accent);}
 
 /* Props panel */
 #rp-props{gap:0}
@@ -217,11 +217,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-swatch:hover{border-color:var(--accent);outline:1px solid rgba(224,120,64,.3)}
 .ci-hex{font-size:10px;color:var(--dim);font-family:monospace;flex:1;letter-spacing:.3px}
 .ci-reset{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
-.ci-reset:hover{color:#e07840;opacity:1}
+.ci-reset:hover{color:var(--accent);opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
 .ci-arr{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-size:14px;padding:0 6px;cursor:pointer;border-radius:4px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
-.ci-arr:hover{color:#e07840;border-color:var(--accent)}
+.ci-arr:hover{color:var(--accent);border-color:var(--accent)}
 .ci-num-sm{width:52px;background:var(--bg);border:1px solid var(--border);color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
 .ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .ci-num-sm:focus{border-color:var(--accent)}
@@ -234,7 +234,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .phys-part-item{padding:3px 8px;border-bottom:1px solid #2e2e2e;font-size:11px}
 .phys-part-header{display:flex;align-items:center;gap:5px;margin-bottom:3px}
 .phys-part-name{flex:1;color:#989898;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
-.phys-toggle{width:14px;height:14px;accent-color:#e07840;cursor:pointer;flex-shrink:0}
+.phys-toggle{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
 .phys-sliders{display:none;padding-left:20px;gap:4px;flex-direction:column}
 .phys-sliders.on{display:flex}
 .phys-row{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim)}
@@ -250,7 +250,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-item.active{background:rgba(224,120,64,.12)}
 .ex-num{font-size:10px;color:var(--dim);font-family:monospace;min-width:18px}
 .ex-name{flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ex-item.active .ex-name{color:#e07840}
+.ex-item.active .ex-name{color:var(--accent)}
 .ex-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1}
 .ex-del:hover{color:#f87171}
 .ex-empty{padding:10px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
@@ -259,7 +259,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
 #expr-preview-tip .ept-label{min-width:65px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:var(--panel);border-radius:2px;overflow:hidden}
-#expr-preview-tip .ept-bar-fill{height:100%;background:#e07840;border-radius:2px}
+#expr-preview-tip .ept-bar-fill{height:100%;background:var(--accent);border-radius:2px}
 #expr-preview-tip .ept-val{min-width:30px;text-align:right;color:var(--dim)}
 .expr-footer{padding:3px 8px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
 
@@ -269,7 +269,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 /* ===== MODALS ===== */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px)}
 .mb{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-.mb h3{color:#e07840;font-size:14px;margin-bottom:12px;font-weight:600}
+.mb h3{color:var(--accent);font-size:14px;margin-bottom:12px;font-weight:600}
 .mb input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 9px;border-radius:3px;width:100%;margin-bottom:10px;outline:none}
 .mb input:focus{border-color:var(--accent)}
 .mb p{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
@@ -291,11 +291,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pdef-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;transition:color .1s}
 .pdef-del:hover{color:#f87171}
 .pdef.rotation .pdef-name{color:#c09040}
-.pdef.rotation.sel .pdef-name{color:#e07840}
+.pdef.rotation.sel .pdef-name{color:var(--accent)}
 .pdef.rotation .pdef-caret{color:#c09040}
 .pdef.rotation .pdef-count{color:#c09040}
 .pdef.bone .pdef-name{color:#d07840}
-.pdef.bone.sel .pdef-name{color:#e07840}
+.pdef.bone.sel .pdef-name{color:var(--accent)}
 .pdef.bone .pdef-caret{color:#d07840}
 .pdef.bone .pdef-count{color:#d07840}
 
@@ -504,7 +504,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="lsec" id="kf-section">
       <div class="lsec-hd" onclick="toggleSec('kf-body')">
         <h3>KEYFRAME</h3>
-        <span id="kf-param-label" style="font-size:8px;color:#e07840"></span>
+        <span id="kf-param-label" style="font-size:8px;color:var(--accent)"></span>
       </div>
       <div class="lsec-body" id="kf-body">
         <div id="kf-list"></div>
@@ -538,7 +538,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:#d0d0c0;border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
         <div style="display:flex;gap:3px;margin-top:3px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
           <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:#60d8a0;border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
-          <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:#e07840;border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
+          <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:var(--accent);border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
         </div>
       </div>
@@ -584,7 +584,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div style="margin-top:4px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
           <span style="font-size:8px;color:var(--dim);flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
-          <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:#e07840;" oninput="setBrushRadius(this.value)">
+          <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:var(--accent);" oninput="setBrushRadius(this.value)">
           <span id="brush-radius-val" style="font-size:8px;color:var(--dim);flex:0 0 auto;min-width:24px;text-align:right">60</span>
         </div>
       </div>
@@ -622,10 +622,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
       <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid #2e2e2e;color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
-        <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:#e07840" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
+        <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:var(--accent)" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
       <label style="display:block;margin-bottom:3px">スケール <span id="ref-scl-v">1.00</span><br>
-        <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:#e07840" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
+        <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:var(--accent)" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
       </label>
       <div style="display:flex;gap:4px;margin-bottom:3px">
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
@@ -636,12 +636,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid var(--border);border-radius:6px;padding:6px 8px;gap:10px;align-items:center;font-size:9px;color:var(--dim);z-index:200">
       <span style="color:var(--text);font-weight:600;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
-      <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:#e07840" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
-      <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:#e07840" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
+      <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:var(--accent)" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
+      <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:var(--accent)" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
       <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
       <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
       <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:4px;padding:1px 6px;cursor:pointer">全0</button>
-      <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:#e07840;border-radius:4px;padding:1px 6px;cursor:pointer">自動計算</button>
+      <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:1px 6px;cursor:pointer">自動計算</button>
     </div>
   </div>
 
@@ -726,7 +726,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl" style="margin-left:2px">静止角°</span><input class="prop-in" id="bp-ang" type="number" min="-180" max="180" step="1" oninput="applyBoneRestAngle()">
           </div>
           <div class="prop-row" style="border-top:1px solid #2e2e2e;margin-top:4px;padding-top:4px">
-            <span class="prop-lbl" style="color:#e07840">KF角°</span>
+            <span class="prop-lbl" style="color:var(--accent)">KF角°</span>
             <input class="prop-in" id="bp-kf" type="number" min="-180" max="180" step="0.5" oninput="applyBoneKF()" style="border-color:rgba(224,120,64,.4)">
           </div>
           <div class="prop-row">
@@ -752,7 +752,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="ci-row"><span class="ci-lbl">クリッピング</span><select class="ci-sel" id="ci-clip" onchange="applyPartClip(this.value)"><option value="">なし</option></select></div>
           <div class="ci-row"><span class="ci-lbl">描画順</span><div class="ci-num-wrap"><button class="ci-arr" onclick="ciZOrderStep(-1)">‹</button><input type="number" id="pp-zorder" class="ci-num-sm" min="0" step="1" onchange="applyPartZOrder(parseInt(this.value)||0)" title="大きいほど前面"><button class="ci-arr" onclick="ciZOrderStep(1)">›</button></div></div>
           <div class="ci-row"><span class="ci-lbl">不透明度</span><div class="ci-num-wrap"><input type="number" id="ci-op" class="ci-num-sm" min="0" max="100" value="100" onchange="applyPartOpacity(this.value)"><span style="font-size:10px;color:var(--dim);margin-left:2px">%</span></div></div>
-          <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:#e07840"><span style="font-size:10px;color:var(--dim)">色を反転</span></label></div>
+          <div class="ci-row"><span class="ci-lbl">マスタ反転</span><label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="ci-invert" onchange="applyPartMasterInvert(this.checked)" style="accent-color:var(--accent)"><span style="font-size:10px;color:var(--dim)">色を反転</span></label></div>
           <div class="ci-row"><span class="ci-lbl">表面色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-mul-swatch" onclick="document.getElementById('ci-mul-color').click()" style="background:#ffffff"></span><input type="color" id="ci-mul-color" value="#ffffff" oninput="applyPartMultiplyColor(this.value)" style="display:none"><span id="ci-mul-hex" class="ci-hex">#FFFFFF</span><button class="ci-reset" onclick="applyPartMultiplyColor('#ffffff')" title="白にリセット">↺</button></div></div>
           <div class="ci-row"><span class="ci-lbl">スクリーン色</span><div class="ci-color-wrap"><span class="ci-swatch" id="ci-scr-swatch" onclick="document.getElementById('ci-scr-color').click()" style="background:#000000"></span><input type="color" id="ci-scr-color" value="#000000" oninput="applyPartScreenColor(this.value)" style="display:none"><span id="ci-scr-hex" class="ci-hex">#000000</span><button class="ci-reset" onclick="applyPartScreenColor('#000000')" title="黒にリセット">↺</button></div></div>
         </div>
@@ -770,16 +770,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div class="prop-row">
           <span class="prop-lbl">不透明</span>
           <input type="range" id="pp-op" min="0" max="100" value="100" oninput="applyPartOpacity(this.value)" style="flex:1;accent-color:var(--accent)">
-          <span id="pp-op-v" style="font-size:9px;color:#e07840;font-family:monospace;min-width:28px;text-align:right">100%</span>
+          <span id="pp-op-v" style="font-size:9px;color:var(--accent);font-family:monospace;min-width:28px;text-align:right">100%</span>
         </div>
         <!-- Opacity KF (shown in deform mode) -->
         <div id="pp-opkf-row" style="display:none;background:rgba(224,120,64,.06);border:1px solid rgba(224,120,64,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-            <span style="font-size:9px;color:#e07840;letter-spacing:.5px;text-transform:uppercase">KF 透明度</span>
-            <span id="pp-opkf-label" style="font-size:8px;color:#e07840;font-family:monospace"></span>
+            <span style="font-size:9px;color:var(--accent);letter-spacing:.5px;text-transform:uppercase">KF 透明度</span>
+            <span id="pp-opkf-label" style="font-size:8px;color:var(--accent);font-family:monospace"></span>
           </div>
           <div style="display:flex;align-items:center;gap:4px">
-            <input type="range" id="pp-opkf" min="0" max="100" value="100" oninput="applyOpacityKF(this.value)" style="flex:1;accent-color:#e07840">
+            <input type="range" id="pp-opkf" min="0" max="100" value="100" oninput="applyOpacityKF(this.value)" style="flex:1;accent-color:var(--accent)">
             <span id="pp-opkf-v" style="font-size:9px;color:#ffb070;font-family:monospace;min-width:28px;text-align:right">100%</span>
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
@@ -816,8 +816,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div class="prop-row" style="gap:3px">
             <span class="prop-lbl" title="ぼかし強度 (0=なし, 大=グロー)">ぼかし</span>
-            <input type="range" id="pp-shblur" min="0" max="80" value="0" step="1" oninput="applyPartShadow()" style="flex:1;accent-color:#e07840">
-            <span id="pp-shblur-v" style="font-size:9px;color:#e07840;font-family:monospace;min-width:20px;text-align:right">0</span>
+            <input type="range" id="pp-shblur" min="0" max="80" value="0" step="1" oninput="applyPartShadow()" style="flex:1;accent-color:var(--accent)">
+            <span id="pp-shblur-v" style="font-size:9px;color:var(--accent);font-family:monospace;min-width:20px;text-align:right">0</span>
           </div>
           <div class="prop-row" style="gap:3px">
             <span class="prop-lbl">色</span>
@@ -836,8 +836,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div class="prop-row">
             <span class="prop-lbl" title="色相回転 (-180〜+180°)">H°</span>
-            <input type="range" id="pp-hue" min="-180" max="180" value="0" oninput="applyPartHSB()" style="flex:1;accent-color:#e07840">
-            <span id="pp-hue-v" style="font-size:9px;color:#e07840;font-family:monospace;min-width:28px;text-align:right">0°</span>
+            <input type="range" id="pp-hue" min="-180" max="180" value="0" oninput="applyPartHSB()" style="flex:1;accent-color:var(--accent)">
+            <span id="pp-hue-v" style="font-size:9px;color:var(--accent);font-family:monospace;min-width:28px;text-align:right">0°</span>
           </div>
           <div class="prop-row">
             <span class="prop-lbl" title="彩度 (0〜200%)">Sat</span>
@@ -851,8 +851,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div id="pp-hsbkf-row" style="display:none;background:rgba(224,120,64,.06);border:1px solid rgba(224,120,64,.2);border-radius:3px;padding:3px 6px;margin-top:2px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-              <span style="font-size:9px;color:#e07840;letter-spacing:.5px;text-transform:uppercase">KF 色調整</span>
-              <span id="pp-hsbkf-label" style="font-size:8px;color:#e07840;font-family:monospace"></span>
+              <span style="font-size:9px;color:var(--accent);letter-spacing:.5px;text-transform:uppercase">KF 色調整</span>
+              <span id="pp-hsbkf-label" style="font-size:8px;color:var(--accent);font-family:monospace"></span>
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
               <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
@@ -991,8 +991,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           <span style="font-size:8px;color:var(--dim);white-space:nowrap;">速度</span>
-          <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:#e07840;">
-          <span id="kf-loop-speed-v" style="font-size:8px;color:#e07840;min-width:20px;">1.0</span>
+          <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:var(--accent);">
+          <span id="kf-loop-speed-v" style="font-size:8px;color:var(--accent);min-width:20px;">1.0</span>
         </div>
       </div>
       <div style="padding:2px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:3px">
@@ -1145,13 +1145,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <input type="text" id="defni" placeholder="例: 顔デフォーマー, 体デフォーマー">
     <div style="display:flex;gap:12px;margin:6px 0;font-size:10px;color:var(--dim)">
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="radio" name="deftype" value="warp" checked style="accent-color:#e07840"> ⬡ ワープ変形
+        <input type="radio" name="deftype" value="warp" checked style="accent-color:var(--accent)"> ⬡ ワープ変形
       </label>
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="radio" name="deftype" value="rotation" style="accent-color:#e07840"> ⟳ 回転
+        <input type="radio" name="deftype" value="rotation" style="accent-color:var(--accent)"> ⟳ 回転
       </label>
       <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-        <input type="radio" name="deftype" value="bone" style="accent-color:#e07840"> 🦴 ボーン(FK)
+        <input type="radio" name="deftype" value="bone" style="accent-color:var(--accent)"> 🦴 ボーン(FK)
       </label>
     </div>
     <p>選択したパーツをこのデフォーマーに割り当てます。</p>
@@ -3423,7 +3423,7 @@ function updatePartsUI() {
       e.stopPropagation();
       const inp=document.createElement('input');
       inp.type='number'; inp.value=i; inp.min=0; inp.max=parts.length-1;
-      inp.style.cssText='width:28px;background:var(--bg);border:1px solid #e07840;color:var(--text);font-size:8px;padding:0 2px;border-radius:2px;outline:none;';
+      inp.style.cssText='width:28px;background:var(--bg);border:1px solid var(--accent);color:var(--text);font-size:8px;padding:0 2px;border-radius:2px;outline:none;';
       zidxSpan.replaceWith(inp); inp.focus(); inp.select();
       const commit=()=>{
         const target=Math.max(0,Math.min(parts.length-1,parseInt(inp.value)||0));
@@ -3453,7 +3453,7 @@ function updatePartsUI() {
       e.stopPropagation();
       const inp=document.createElement('input');
       inp.value=pt.name;
-      inp.style.cssText='background:var(--bg);border:1px solid #e07840;color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;width:100%;outline:none;';
+      inp.style.cssText='background:var(--bg);border:1px solid var(--accent);color:var(--text);font-size:9px;padding:1px 4px;border-radius:2px;width:100%;outline:none;';
       nameSpan.replaceWith(inp); inp.focus(); inp.select();
       const commit=()=>{const v=inp.value.trim();if(v){saveState();pt.name=v;}updatePartsUI();};
       inp.onblur=commit;
@@ -4108,7 +4108,7 @@ function showGenerateTextureModal() {
   </div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
     <div style="font-size:10px;color:var(--dim)">不透明度</div>
-    <input id="gt-alpha" type="range" min="0" max="100" value="100" oninput="document.getElementById('gt-alpha-v').textContent=this.value+'%';updateGentexPreview()" style="flex:1;accent-color:#e07840">
+    <input id="gt-alpha" type="range" min="0" max="100" value="100" oninput="document.getElementById('gt-alpha-v').textContent=this.value+'%';updateGentexPreview()" style="flex:1;accent-color:var(--accent)">
     <span id="gt-alpha-v" style="font-size:10px;color:var(--dim);min-width:32px">100%</span>
   </div>
   <div style="text-align:center;margin-bottom:10px">
@@ -4369,7 +4369,7 @@ function rotatePartMesh() {
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点をパーツ中心周りに回転します。<br><small style="font-size:9px;color:var(--dim);">デフォームデルタも同じ角度で回転されます。</small></div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
       <label style="font-size:11px;color:var(--dim);min-width:60px;">角度 (°)</label>
-      <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:#e07840" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
+      <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
       <span id="rot-angv" style="font-size:10px;color:#f59e0b;font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
     <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
@@ -4458,8 +4458,8 @@ function generateColorVariants() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">色相範囲:</span>
-        <input id="cv-range" type="range" min="30" max="360" step="30" value="360" style="flex:1;accent-color:#e07840;">
-        <span id="cv-range-v" style="font-size:9px;color:#e07840;width:28px;">360°</span>
+        <input id="cv-range" type="range" min="30" max="360" step="30" value="360" style="flex:1;accent-color:var(--accent);">
+        <span id="cv-range-v" style="font-size:9px;color:var(--accent);width:28px;">360°</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:64px;">彩度:</span>
@@ -5466,7 +5466,7 @@ function editExprValues(idx) {
     const isDiff=Math.abs(v-(_baseline[k]??0))>0.01;
     rows+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;opacity:${isDiff?1:.35}">
       <span style="min-width:80px;font-size:9px;color:${isDiff?'#c0c0c0':'#555'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${k}">${pc.l||k}</span>
-      <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:#e07840;height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
+      <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:var(--accent);height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
       <span data-val="${k}" style="font-size:8px;color:var(--dim);min-width:32px;text-align:right">${v.toFixed(2)}</span>
     </div>`;
   });
@@ -5940,7 +5940,7 @@ function buildDeformerTree() {
       e.preventDefault();
       if(_defDragSrc===null||_defDragSrc===idx) return;
       if(dropEl&&dropEl!==row){dropEl.style.outline='';}
-      row.style.outline='1px solid #e07840'; dropEl=row;
+      row.style.outline='1px solid var(--accent)'; dropEl=row;
     };
     row.ondragleave = () => { row.style.outline=''; if(dropEl===row)dropEl=null; };
     row.ondrop = (e) => {
@@ -6531,7 +6531,7 @@ function buildParamsUI() {
       lbl.onclick = () => selPrm(pn);
       const nameSpan = document.createElement('span');
       nameSpan.className = 'pname';
-      nameSpan.innerHTML = pc.l + (isCustom?'<span style="font-size:7px;color:#e07840;margin-left:3px">★</span>':'');
+      nameSpan.innerHTML = pc.l + (isCustom?'<span style="font-size:7px;color:var(--accent);margin-left:3px">★</span>':'');
       lbl.appendChild(nameSpan);
       item.appendChild(lbl);
       const slider = document.createElement('input');
@@ -7388,8 +7388,8 @@ function showKFBlendTool() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">比率 t:</span>
-        <input id="kfb-t" type="range" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:#e07840;" oninput="document.getElementById('kfb-tv').textContent=parseFloat(this.value).toFixed(2);">
-        <span id="kfb-tv" style="font-size:10px;color:#e07840;width:28px;">0.50</span>
+        <input id="kfb-t" type="range" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('kfb-tv').textContent=parseFloat(this.value).toFixed(2);">
+        <span id="kfb-tv" style="font-size:10px;color:var(--accent);width:28px;">0.50</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:10px;width:36px;">保存先:</span>
@@ -7473,7 +7473,7 @@ function showSnapshotCompare() {
     ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #3d7060;border-radius:4px;color:#6ab090;font-size:11px">未撮影</div>`;
   const bHTML = _snapB
-    ? `<div style="text-align:center"><div style="font-size:10px;color:#e07840;margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid #e07840;"></div>`
+    ? `<div style="text-align:center"><div style="font-size:10px;color:var(--accent);margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid var(--accent);"></div>`
     : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:var(--dim);font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
@@ -7898,9 +7898,9 @@ function showVertexCoordHUD(vi, clientX, clientY) {
   const hud = document.createElement('div');
   hud.id = 'vert-coord-hud';
   hud.style.cssText = `position:fixed;left:${Math.min(clientX+8,window.innerWidth-160)}px;top:${Math.min(clientY-28,window.innerHeight-60)}px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 6px;z-index:500;display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.5);`;
-  hud.innerHTML = `<span style="color:#e07840;">${isDef?'Δ':'V'}${vi}</span>
-    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
-    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:#e07840;border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+  hud.innerHTML = `<span style="color:var(--accent);">${isDef?'Δ':'V'}${vi}</span>
+    <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--accent);border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
+    <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--accent);border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
     <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
     <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
   document.body.appendChild(hud);
@@ -8177,7 +8177,7 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:#e07840"> OBSモード（バッジ表示）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:var(--accent)"> OBSモード（バッジ表示）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
@@ -8197,11 +8197,11 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">配信ウィジェット（左下に表示）</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:#e07840"> 🕐 現在時刻</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:#e07840"> ⏱ 配信タイマー</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-kda" style="accent-color:#e07840"> 🎯 K/D/A トラッカー</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px"><input type="checkbox" id="av-wg-countdown" style="accent-color:#e07840"> ⏳ カウントダウン (<input id="av-wg-countdown-secs" type="number" min="10" max="86400" value="300" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px">秒)</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-score" style="accent-color:#e07840"> 🏆 スコアカウンター</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-clock" style="accent-color:var(--accent)"> 🕐 現在時刻</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-timer" style="accent-color:var(--accent)"> ⏱ 配信タイマー</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-kda" style="accent-color:var(--accent)"> 🎯 K/D/A トラッカー</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px"><input type="checkbox" id="av-wg-countdown" style="accent-color:var(--accent)"> ⏳ カウントダウン (<input id="av-wg-countdown-secs" type="number" min="10" max="86400" value="300" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px">秒)</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wg-score" style="accent-color:var(--accent)"> 🏆 スコアカウンター</label>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;font-size:11px">
         <span style="color:var(--dim);white-space:nowrap">🎮 ゲーム名:</span>
@@ -8210,12 +8210,12 @@ function showAvatarExportDialog() {
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">インタラクション</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:#e07840"> 🎭 自動表情ランダム</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:var(--accent)"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px">🔄 表情サイクル間隔(秒): <input id="av-exprcycle" type="number" min="0" max="3600" step="1" value="0" placeholder="0=無効" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px"></label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px"><input type="checkbox" id="av-afk" style="accent-color:#e07840"> 😴 離席AFK検出 (秒: <input id="av-afk-secs" type="number" min="30" max="3600" value="300" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px">)</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px"><input type="checkbox" id="av-afk" style="accent-color:var(--accent)"> 😴 離席AFK検出 (秒: <input id="av-afk-secs" type="number" min="30" max="3600" value="300" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px">)</label>
       </div>
       <div id="av-chat-opts" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
         <div style="color:var(--dim);font-size:9px;margin-bottom:4px">チャンネル名（例: noiru0526）</div>
@@ -8223,14 +8223,14 @@ function showAvatarExportDialog() {
         <div style="color:var(--dim);font-size:9px;margin-top:4px;margin-bottom:2px">コマンドプレフィックス（任意・例: !ex）</div>
         <input id="av-chat-cmd" type="text" placeholder="空白=全メッセージで反応..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;box-sizing:border-box">
         <div style="color:var(--dim);font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:#e07840"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chatbubble" style="accent-color:#e07840"> 💬 チャット吹き出し（右上ポップアップ）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:var(--accent)"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chatbubble" style="accent-color:var(--accent)"> 💬 チャット吹き出し（右上ポップアップ）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
       </div>
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;font-size:11px">
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:#e07840"> 話中頭揺れ</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-talkbob" style="accent-color:var(--accent)"> 話中頭揺れ</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-lowenergy"> 疲れ目モード</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-nosaccade"> 目の揺れ無効</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-noface"> 📷 顔追跡スキップ</label>
@@ -8382,10 +8382,10 @@ function showAvatarExportDialog() {
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:var(--bg);border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
       </div>
       <div style="display:flex;gap:10px;margin-bottom:5px;align-items:center;font-size:11px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-hpbar" style="accent-color:#e07840"> ❤ HPバー表示（画面下部）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-emotes" style="accent-color:#e07840"> 😀 リアクション絵文字</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-pulse" style="accent-color:#e07840"> 💓 パルスリング（枠発光）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wobblecam" style="accent-color:#e07840"> 🎥 カメラ揺れエフェクト</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-hpbar" style="accent-color:var(--accent)"> ❤ HPバー表示（画面下部）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-emotes" style="accent-color:var(--accent)"> 😀 リアクション絵文字</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-pulse" style="accent-color:var(--accent)"> 💓 パルスリング（枠発光）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wobblecam" style="accent-color:var(--accent)"> 🎥 カメラ揺れエフェクト</label>
       </div>
       <div style="font-size:9px;color:#8aaab4;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
@@ -8418,7 +8418,7 @@ function showAvatarExportDialog() {
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">OBS WebSocket v5（obs-websocket 5.x）に対応。シーン切替で自動表情発動。</div>
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎮 Discordステータス連携（表情自動切替）</div>
-      <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-bottom:6px;"><input type="checkbox" id="av-discord" style="accent-color:#e07840"> Discordプレイ中ゲームで表情切替</label>
+      <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-bottom:6px;"><input type="checkbox" id="av-discord" style="accent-color:var(--accent)"> Discordプレイ中ゲームで表情切替</label>
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">ゲーム名↔表情インデックスのマッピング（JSON形式）「__idle」でアイドル時の表情を指定</div>
       <textarea id="av-discord-map" rows="2" placeholder='{"Valorant": 3, "Minecraft": 0, "__idle": 1}' style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box;resize:vertical;margin-bottom:4px"></textarea>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px">※ ws://localhost:6463 のローカルDiscord IPCブリッジプロキシが必要（richpresence-bridge等）</div>
@@ -8866,14 +8866,14 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #ctrl-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid #2e2e2e;padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:9px;color:var(--dim);min-width:52px;text-align:right}
-.cp-sl{flex:1;accent-color:#e07840;height:3px}
+.cp-sl{flex:1;accent-color:var(--accent);height:3px}
 .cp-val{font-size:8px;color:var(--dim);min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:var(--text);backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
 #mixer-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
 .mx-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
 .mx-lbl{font-size:9px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
-.mx-sl{flex:1;accent-color:#e07840;height:3px}
+.mx-sl{flex:1;accent-color:var(--accent);height:3px}
 .mx-v{font-size:8px;color:var(--dim);min-width:22px;text-align:right}
 #calib-panel h4{font-size:9px;color:#c09060;text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
 .cb-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
