@@ -51,7 +51,7 @@ button:focus:not(:focus-visible){outline:none;}
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 #toolbar::-webkit-scrollbar{height:3px;}
 #toolbar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.tbtn{background:transparent;border:1px solid transparent;color:#c0c0c0;
+.tbtn{background:transparent;border:1px solid transparent;color:var(--text);
   border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;
   transition:background .1s,border-color .1s,color .1s;flex-shrink:0;white-space:nowrap;
   height:22px;display:flex;align-items:center;gap:3px;}
@@ -90,7 +90,7 @@ button:focus:not(:focus-visible){outline:none;}
 .sidebar{flex-shrink:0;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;}
 #sl{width:270px;border-right:1px solid var(--border);}
 #sr{width:270px;border-left:1px solid var(--border);}
-.ptitle{font-size:11px;font-weight:500;letter-spacing:0.4px;color:#c0c0c0;
+.ptitle{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--text);
   padding:3px 8px;text-transform:uppercase;
   border-bottom:1px solid var(--border);border-left:2px solid #e07840;
   background:#2c2c2c;
@@ -102,7 +102,7 @@ button:focus:not(:focus-visible){outline:none;}
 .prow.active{background:rgba(224,120,64,.1);border-left:2px solid var(--accent);padding-left:6px;}
 .prow.active .plabel{color:var(--text-bright);}
 .phead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1px;}
-.plabel{font-size:11px;color:#c0c0c0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.plabel{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pval{font-size:10px;font-family:'Consolas','Monaco',monospace;color:var(--accent);min-width:36px;text-align:right;flex-shrink:0;padding-left:6px;}
 .kfdots{display:flex;gap:2px;align-items:center;margin-left:4px;}
 .kfd{width:5px;height:5px;border-radius:50%;background:var(--kf);opacity:.25;cursor:pointer;flex-shrink:0;}
@@ -266,7 +266,7 @@ button:focus:not(:focus-visible){outline:none;}
 .pgroup-header{display:flex;align-items:center;padding:3px 8px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--surface);transition:background .08s;}
 .pgroup-header:hover{background:var(--panel);}
 .pgroup-icon{font-size:10px;margin-right:4px;color:var(--accent2);}
-.pgroup-label{font-size:10px;font-weight:500;color:#9a9a9a;flex:1;letter-spacing:.5px;}
+.pgroup-label{font-size:10px;font-weight:500;color:var(--dim);flex:1;letter-spacing:.5px;}
 .pgroup-count{font-size:9px;color:#707070;font-family:monospace;}
 .pgroup-toggle{font-size:9px;color:var(--dim);margin-left:6px;}
 .pgroup-body{border-bottom:1px solid #2e2e2e;}
@@ -290,7 +290,7 @@ button:focus:not(:focus-visible){outline:none;}
 .ctx-info-name{font-size:11px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ctx-info-type{font-size:10px;color:var(--accent);background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.35);border-radius:4px;padding:1px 6px;flex-shrink:0;}
 .ctx-section{border-bottom:1px solid #2e2e2e;}
-.ctx-section>summary{display:flex;align-items:center;padding:3px 8px;cursor:pointer;font-size:11px;color:#9a9a9a;font-weight:500;letter-spacing:0.4px;text-transform:uppercase;list-style:none;user-select:none;background:#2c2c2c;border-bottom:1px solid var(--border);transition:background .08s;}
+.ctx-section>summary{display:flex;align-items:center;padding:3px 8px;cursor:pointer;font-size:11px;color:var(--dim);font-weight:500;letter-spacing:0.4px;text-transform:uppercase;list-style:none;user-select:none;background:#2c2c2c;border-bottom:1px solid var(--border);transition:background .08s;}
 .ctx-section>summary::-webkit-details-marker{display:none;}
 .ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent);transition:transform .12s;display:inline-block;}
 .ctx-section[open]>summary::before{transform:rotate(90deg);}
@@ -315,7 +315,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 /* ===== Enhancing existing #sb status bar ===== */
 #sb-frame-section{display:flex;align-items:center;gap:0;font-family:'Consolas','Monaco',monospace;}
 #sb-time-display{color:#999;font-family:'Consolas','Monaco',monospace;}
-#sb-zoom-display{color:#c0c0c0;}
+#sb-zoom-display{color:var(--text);}
 #sb-param-display{color:var(--accent);font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
 </head>
@@ -550,7 +550,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <div id="zoom-hud">100%</div>
     <div id="fps-hud">-- fps</div>
     <!-- Blender-style mode indicator badge -->
-    <div id="mode-badge" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(60,60,60,.5);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;color:#c0c0c0;pointer-events:none;letter-spacing:1.5px;text-transform:uppercase;backdrop-filter:blur(2px);">EDIT MODE</div>
+    <div id="mode-badge" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(60,60,60,.5);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--text);pointer-events:none;letter-spacing:1.5px;text-transform:uppercase;backdrop-filter:blur(2px);">EDIT MODE</div>
     <div id="brush-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.8);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:10px;color:var(--dim);pointer-events:none;">ブラシ: <span id="brush-r-val">40</span>px [スクロールで変更]</div>
     <div id="mini-preview" style="display:none;position:absolute;top:8px;right:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="hideMiniPreview()" title="クリックで閉じる">
       <canvas id="mini-canvas" width="120" height="150" style="display:block;"></canvas>
@@ -1107,7 +1107,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
     <div style="display:flex;justify-content:space-between;margin-top:2px;">
       <span id="fc2d-hx" style="font-size:8px;color:var(--text);">X: 0.00</span>
       <button onclick="fc2dReset()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:8px;">↺ リセット</button>
-      <span id="fc2d-hy" style="font-size:8px;color:#c0c0c0;">Y: 0.00</span>
+      <span id="fc2d-hy" style="font-size:8px;color:var(--text);">Y: 0.00</span>
     </div>
   </div>
   <!-- Expression presets panel -->
@@ -22722,7 +22722,7 @@ function showLipSyncDialog() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">BGM波形から mouthOpen のKFを生成します</div>
     <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
       <label>パラメータ
-        <select id="ls-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#c0c0c0;border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
+        <select id="ls-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
           <option value="mouthOpen">mouthOpen（口 開き）</option>
           <option value="mouthShape">mouthShape（口 形）</option>
         </select>
