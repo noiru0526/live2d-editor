@@ -8,7 +8,7 @@
   --bg:#222222;--panel:#2a2a2a;--surface:#252525;--surface2:#303030;
   --bg-deep:#1e1e1e;--header:#2c2c2c;
   --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
-  --accent:#e07840;--accent2:#c09040;--accent3:#c09060;
+  --accent:#e07840;--accent-light:#ffb070;--accent2:#c09040;--accent3:#c09060;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;--muted:#707070;
   --green:#60c060;--rec:#e04040;--gold:#ffd060;--warn:#e09040;--error:#e05050;--danger:#f08080;
 }
@@ -28,7 +28,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tbtn{background:transparent;border:1px solid transparent;color:var(--text);font-size:11px;padding:1px 7px;border-radius:2px;cursor:pointer;transition:all .1s;flex-shrink:0;white-space:nowrap;height:22px;display:inline-flex;align-items:center;}
 .tbtn:hover{background:rgba(255,255,255,.1);color:var(--text-bright);border-color:rgba(255,255,255,.18)}
 .tbtn:active{transform:translateY(1px)}
-.tbtn.active{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:#ffb070}
+.tbtn.active{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:var(--accent-light)}
 .tbtn.ok{background:rgba(48,140,48,.4);border-color:#48a048;color:#80d080}
 .tbtn.ok:hover{background:rgba(6,78,59,.6)}
 .tbtn.danger{background:rgba(160,48,48,.3);border-color:#c04040;color:var(--danger)}
@@ -128,7 +128,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .kb{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .kb:hover{background:var(--header);color:var(--text)}
 .kb:active{transform:translateY(1px)}
-.kb.on{background:rgba(224,120,64,.2);border-color:rgba(224,120,64,.6);color:#ffb070}
+.kb.on{background:rgba(224,120,64,.2);border-color:rgba(224,120,64,.6);color:var(--accent-light)}
 
 /* ===== CANVAS AREA ===== */
 #cw{flex:1;background:#282828;background-image:linear-gradient(45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(-45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(255,255,255,.04) 75%),linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.04) 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
@@ -136,7 +136,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 8px;border-radius:12px;pointer-events:none;display:none}
 #zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
 #coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
-#mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid var(--accent);border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
+#mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid var(--accent);border-radius:3px;padding:2px 8px;font-size:9px;color:var(--accent-light);pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
 #rp{width:270px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
@@ -276,7 +276,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .mb p{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
 .ma{display:flex;gap:7px;justify-content:flex-end}
 .mbn{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:4px 8px;border-radius:4px;cursor:pointer;transition:background .1s,color .1s,border-color .1s}
-.mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:#ffb070}
+.mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:var(--accent-light)}
 .mbn:hover{background:var(--header);color:var(--text)}
 .mbn:active{transform:translateY(1px)}
 .mbn.ok:hover{background:rgba(224,120,64,.4)}
@@ -781,10 +781,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;align-items:center;gap:4px">
             <input type="range" id="pp-opkf" min="0" max="100" value="100" oninput="applyOpacityKF(this.value)" style="flex:1;accent-color:var(--accent)">
-            <span id="pp-opkf-v" style="font-size:9px;color:#ffb070;font-family:monospace;min-width:28px;text-align:right">100%</span>
+            <span id="pp-opkf-v" style="font-size:9px;color:var(--accent-light);font-family:monospace;min-width:28px;text-align:right">100%</span>
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
-            <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
+            <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
             <button onclick="clearOpacityKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
@@ -856,7 +856,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
               <span id="pp-hsbkf-label" style="font-size:8px;color:var(--accent);font-family:monospace"></span>
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
-              <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
+              <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
               <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
