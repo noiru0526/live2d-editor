@@ -6838,7 +6838,8 @@ function buildKFUI() {
   });
   if (!pc.k.includes(curKF)) curKF=pc.k[0];
   document.getElementById('kf-param-label').textContent=P[selParam]?.l||selParam;
-  document.getElementById('kf-cur').textContent=selParam+' = '+curKF;
+  const partsWithKF = parts.filter(p=>p.deforms?.[selParam]&&Object.keys(p.deforms[selParam]).length>0).length;
+  document.getElementById('kf-cur').textContent=selParam+' = '+curKF+(partsWithKF?` (${partsWithKF}P)`:'');
   updateOpacityKFUI(); updateHSBKFUI(); updateScaleKFUI();
 }
 
