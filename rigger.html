@@ -1274,7 +1274,7 @@ let dragging = false, dragMode = '', dragVI = -1;
 let dragSX = 0, dragSY = 0, panOX = 0, panOY = 0;
 let dragPartOX = 0, dragPartOY = 0, dragMultiOrigins = new Map();
 let pendingImg = null, pendingDataURL = null;
-let expressions = [], activeExprIdx = -1;
+let expressions = [], activeExprIdx = -1, _exprPreviewSaved = null;
 let groups = [], customParams = {};
 let lfos = [];
 let _lfoIdCounter = 0;
@@ -5371,6 +5371,7 @@ function confirmExpr() {
 function cancelExpr() { document.getElementById('exmod').style.display='none'; pendingExprValues=null; }
 function applyExpr(idx) {
   if (idx<0||idx>=expressions.length) return;
+  _exprPreviewSaved = null;
   activeExprIdx=idx; Object.assign(pv, expressions[idx].values);
   buildParamsUI(); render(); updateExpressionsUI();
   setStatus(`表情「${expressions[idx].name}」を適用`);
@@ -5387,6 +5388,7 @@ function resetAllParams() {
   setStatus('パラメータをリセット');
 }
 function updateExpressionsUI() {
+  _exprPreviewSaved = null;
   const c=document.getElementById('expr-list'); c.innerHTML='';
   if (!expressions.length) {
     c.innerHTML='<div class="ex-empty">表情が登録されていません<br>「＋」ボタンで保存できます<br><span style="font-size:8px;color:var(--dim)">アバター起動後 1〜9 キーで切替</span></div>';
@@ -5404,11 +5406,23 @@ function updateExpressionsUI() {
       <button class="ex-del" onclick="event.stopPropagation();editExprValues(${i})" title="値を編集" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">✏</button>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
       <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
-    d.addEventListener('mouseenter', (ev) => _showExprPreview(ex, _exBaseline, ev));
-    d.addEventListener('mouseleave', _hideExprPreview);
+    d.addEventListener('mouseenter', (ev) => { _previewExprLive(ex); _showExprPreview(ex, _exBaseline, ev); });
+    d.addEventListener('mouseleave', () => { _unpreviewExprLive(); _hideExprPreview(); });
     c.appendChild(d);
   });
   const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
+}
+function _previewExprLive(ex) {
+  if (_exprPreviewSaved !== null) return;
+  _exprPreviewSaved = {...pv};
+  Object.assign(pv, ex.values);
+  render();
+}
+function _unpreviewExprLive() {
+  if (_exprPreviewSaved === null) return;
+  Object.assign(pv, _exprPreviewSaved);
+  _exprPreviewSaved = null;
+  render();
 }
 function _showExprPreview(ex, baseline, ev) {
   const tip = document.getElementById('expr-preview-tip'); if (!tip) return;
