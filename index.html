@@ -25559,7 +25559,7 @@ function showParamCorrelation() {
     // Plot points with time-based color gradient
     pts.forEach((p,i)=>{const norm=i/(pts.length-1||1);const r=Math.round(norm*220);const b=Math.round((1-norm)*220);ctx2.fillStyle=`rgb(${r},80,${b})`;ctx2.beginPath();ctx2.arc(mapX(p.x),mapY(p.y),2.5,0,Math.PI*2);ctx2.fill();});
     // Axis labels
-    ctx2.fillStyle='#606060'; ctx2.font='9px monospace'; ctx2.textAlign='center';
+    ctx2.fillStyle='#888'; ctx2.font='9px monospace'; ctx2.textAlign='center';
     ctx2.fillText(pA.lbl||an,W/2,H-5);
     ctx2.save(); ctx2.translate(10,H/2); ctx2.rotate(-Math.PI/2); ctx2.fillText(pB.lbl||bn,0,0); ctx2.restore();
     // Correlation coefficient

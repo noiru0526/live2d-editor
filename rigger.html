@@ -178,9 +178,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Props panel */
 #rp-props{gap:0}
-.prop-section{padding:6px 8px;border-bottom:1px solid #2e2e2e;background:#1e1e1e}
-.prop-section h4{color:#707070;font-size:10px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:4px}
-.prop-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11px;color:#707070}
+.prop-section{padding:4px 8px;border-bottom:1px solid #2e2e2e;background:#1e1e1e}
+.prop-section h4{color:#707070;font-size:10px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:3px}
+.prop-row{display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:11px;color:#707070}
 .prop-lbl{min-width:36px;color:#707070;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
 .prop-in{background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;font-size:11px;padding:3px 6px;border-radius:3px;width:60px;outline:none;font-family:monospace}
 .prop-in:focus{border-color:var(--accent)}
@@ -776,7 +776,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:5px 8px;cursor:pointer;background:#1e1e1e;border-top:1px solid #3a3a3a;border-bottom:1px solid #2e2e2e;margin-top:4px;font-size:9px;color:#707070;user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:#1e1e1e;border-top:1px solid #3a3a3a;border-bottom:1px solid #2e2e2e;margin-top:4px;font-size:9px;color:#707070;user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -5709,7 +5709,7 @@ function buildLPDeformerTree() {
   }
   const filter = (document.getElementById('deformer-search')?.value || '').toLowerCase();
   const typeIcon = {warp:'⬡', rotation:'⟳', bone:'🦴'};
-  const typeColor = {warp:'#5a8a4a', rotation:'#b08040', bone:'#8a7050'};
+  const typeColor = {warp:'#70aa5a', rotation:'#c09050', bone:'#a89060'};
 
   const defParts = {};
   deformers.forEach(d => defParts[d.id] = []);
@@ -5739,7 +5739,7 @@ function buildLPDeformerTree() {
     const d = deformers[idx];
     if (filter && !subtreeHasMatch(idx)) return;
     const icon = typeIcon[d.type] || '?';
-    const col = typeColor[d.type] || '#606060';
+    const col = typeColor[d.type] || '#888';
     const isSel = selDeformer === idx;
     const hasChildren = !!(childrenOf[d.id]?.length);
     const isCollapsed = _defLPTreeCollapsed.has(d.id);
@@ -5857,7 +5857,7 @@ function buildDeformerTree() {
   const body = document.getElementById('def-tree-body');
   if (!body || !_defTreeOpen) return;
   const typeIcon = {warp:'⬡', rotation:'⟳', bone:'🦴'};
-  const typeColor = {warp:'#5a8a4a', rotation:'#b08040', bone:'#8a7050'};
+  const typeColor = {warp:'#70aa5a', rotation:'#c09050', bone:'#a89060'};
   // Build part→deformer map
   const defParts = {};
   deformers.forEach(d => defParts[d.id] = []);
@@ -5882,7 +5882,7 @@ function buildDeformerTree() {
   function renderNode(idx, depth, isLast) {
     const d = deformers[idx];
     const icon = typeIcon[d.type] || '?';
-    const col = typeColor[d.type] || '#606060';
+    const col = typeColor[d.type] || '#888';
     const isSel = selDeformer === idx;
     const hasChildren = !!(childrenOf[d.id]?.length);
     const isCollapsed = _defTreeCollapsed.has(d.id);
