@@ -6,7 +6,8 @@
 <style>
 :root{
   --bg:#222222;--panel:#2a2a2a;--surface:#252525;--surface2:#303030;
-  --border:#3a3a3a;--border-strong:#4a4a4a;
+  --bg-deep:#1e1e1e;--header:#2c2c2c;
+  --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
   --accent:#e07840;--accent2:#c09040;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
   --green:#60c060;--rec:#e04040;--warn:#e09040;
@@ -22,7 +23,7 @@ button:focus:not(:focus-visible){outline:none;}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:1px solid var(--accent);outline-offset:1px;}
 
 /* ===== TOOLBAR ===== */
-#toolbar{background:#2e2e2e;border-bottom:1px solid var(--border);padding:0 8px;display:flex;align-items:center;gap:3px;flex-shrink:0;height:28px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+#toolbar{background:var(--divider);border-bottom:1px solid var(--border);padding:0 8px;display:flex;align-items:center;gap:3px;flex-shrink:0;height:28px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 #toolbar h1{color:var(--dim);font-size:11px;letter-spacing:2px;margin-right:10px;flex-shrink:0;font-weight:600}
 .tbtn{background:transparent;border:1px solid transparent;color:var(--text);font-size:11px;padding:1px 7px;border-radius:2px;cursor:pointer;transition:all .1s;flex-shrink:0;white-space:nowrap;height:22px;display:inline-flex;align-items:center;}
 .tbtn:hover{background:rgba(255,255,255,.1);color:#e8e8e8;border-color:rgba(255,255,255,.18)}
@@ -36,7 +37,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tb-more-menu.open{display:block}
 .tb-more-item{display:block;width:100%;text-align:left;padding:3px 8px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .08s,color .1s}
 .tb-more-item:hover{background:rgba(255,255,255,.06);color:#d0d0d0}
-.tb-more-sep{height:1px;background:#2e2e2e;margin:3px 0}
+.tb-more-sep{height:1px;background:var(--divider);margin:3px 0}
 .sep{width:1px;height:26px;background:var(--border);margin:0 3px;flex-shrink:0}
 .tgrp{display:flex;align-items:center;gap:3px;flex-shrink:0}
 .tgrp-label{font-size:9px;color:var(--dim);letter-spacing:1px;margin-right:3px;text-transform:uppercase}
@@ -46,7 +47,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* ===== LEFT PANEL ===== */
 #lp{width:270px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-.ph{padding:3px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid var(--accent);flex-shrink:0;background:#2c2c2c}
+.ph{padding:3px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--divider);border-left:2px solid var(--accent);flex-shrink:0;background:var(--header)}
 .ph h3{color:var(--text);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:1px 4px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
@@ -98,7 +99,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi.in-group .pn{padding-left:12px}
 .pi-caret{font-size:9px;color:var(--muted);width:13px;text-align:center;flex-shrink:0;cursor:pointer;user-select:none;transition:color .1s;line-height:1;margin-right:1px}
 .pi-caret:hover{color:var(--dim)}
-.pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:#2c2c2c;border:1px solid var(--border)}
+.pthumbs{width:20px;height:20px;border-radius:2px;object-fit:cover;flex-shrink:0;background:var(--header);border:1px solid var(--border)}
 .pi-clip-badge{font-size:8px;color:var(--dim);flex-shrink:0}
 .pi-phys-badge{font-size:8px;color:#c09060;flex-shrink:0}
 .pi-zidx{font-size:9px;color:var(--dim);flex-shrink:0;cursor:pointer;min-width:24px;text-align:right;font-family:monospace;user-select:none;padding-right:6px}
@@ -111,7 +112,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid var(--border);flex-shrink:0}
-.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:3px 8px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid var(--border);transition:background .08s}
+.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:3px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);transition:background .08s}
 .lsec-hd:hover{background:#333333}
 .lsec-hd h3{color:var(--dim);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .lsec-body{padding:2px 6px;display:flex;flex-direction:column;gap:2px}
@@ -125,7 +126,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 /* KF section */
 #kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
 .kb{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:3px 8px;border-radius:2px;cursor:pointer;transition:background .1s,color .1s,border-color .1s}
-.kb:hover{background:#2c2c2c;color:var(--text)}
+.kb:hover{background:var(--header);color:var(--text)}
 .kb:active{transform:translateY(1px)}
 .kb.on{background:rgba(224,120,64,.2);border-color:rgba(224,120,64,.6);color:#ffb070}
 
@@ -133,22 +134,22 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 #cw{flex:1;background:#282828;background-image:linear-gradient(45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(-45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(255,255,255,.04) 75%),linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.04) 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #c{image-rendering:pixelated;cursor:crosshair;box-shadow:0 0 0 1px #606060,0 4px 24px rgba(0,0,0,.5)}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 8px;border-radius:12px;pointer-events:none;display:none}
-#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
-#coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
+#zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
+#coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid var(--accent);border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
 #rp{width:270px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
-.rsec-hd{display:flex;align-items:center;padding:3px 8px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid var(--border);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
+.rsec-hd{display:flex;align-items:center;padding:3px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
 .rsec-hd:hover{background:#333333}
 .rsec-caret{font-size:9px;color:var(--muted);transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
 .rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--dim);text-transform:uppercase;flex:1}
 .rsec-sub{font-size:9px;color:var(--dim)}
 /* Inspector selection banner */
-#rp-sel-banner{padding:3px 8px;border-bottom:1px solid #2e2e2e;background:var(--bg);display:none}
+#rp-sel-banner{padding:3px 8px;border-bottom:1px solid var(--divider);background:var(--bg);display:none}
 #rp-sel-name{font-size:11px;color:#d0d0d0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 #rp-sel-id{font-size:9px;color:var(--dim);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-top:1px}
 /* Panels always visible, collapsible */
@@ -169,7 +170,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .pg-count{font-size:9px;color:var(--muted);font-family:monospace}
 .pg + .pg-body{overflow:hidden}
 .pg.collapsed + .pg-body{display:none}
-.pitem{margin-bottom:0;padding:0 8px;border-bottom:1px solid #2e2e2e;display:flex;flex-direction:row;align-items:center;gap:4px;min-height:22px}
+.pitem{margin-bottom:0;padding:0 8px;border-bottom:1px solid var(--divider);display:flex;flex-direction:row;align-items:center;gap:4px;min-height:22px}
 .pitem:hover{background:rgba(255,255,255,.05)}
 .plbl{display:flex;align-items:center;cursor:pointer;gap:4px;flex:0 0 96px;overflow:hidden}
 .plbl .pname{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
@@ -187,7 +188,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Props panel */
 #rp-props{gap:0}
-.prop-section{padding:2px 6px;border-bottom:1px solid #2e2e2e;background:var(--bg)}
+.prop-section{padding:2px 6px;border-bottom:1px solid var(--divider);background:var(--bg)}
 .prop-section h4{color:var(--dim);font-size:10px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:3px}
 .prop-row{display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:11px;color:var(--dim)}
 .prop-lbl{min-width:36px;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
@@ -203,7 +204,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ab.pr{background:linear-gradient(135deg,rgba(224,120,64,.3),rgba(192,80,40,.25));border-color:var(--accent);color:#ffd090}
 .ab.pr:hover{opacity:.85}
 /* Cubism-style inspector rows */
-.ci-row{display:flex;align-items:center;padding:2px 8px;border-bottom:1px solid #2e2e2e;min-height:22px}
+.ci-row{display:flex;align-items:center;padding:2px 8px;border-bottom:1px solid var(--divider);min-height:22px}
 .ci-row:hover{background:rgba(255,255,255,.05)}
 .ci-lbl{color:var(--dim);font-size:10px;min-width:72px;flex-shrink:0;letter-spacing:.3px}
 .ci-inp{flex:1;background:var(--bg);border:1px solid var(--border);color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;min-width:0;font-family:inherit}
@@ -231,7 +232,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Physics panel */
 #rp-physics{gap:0}
-.phys-part-item{padding:3px 8px;border-bottom:1px solid #2e2e2e;font-size:11px}
+.phys-part-item{padding:3px 8px;border-bottom:1px solid var(--divider);font-size:11px}
 .phys-part-header{display:flex;align-items:center;gap:5px;margin-bottom:3px}
 .phys-part-name{flex:1;color:#989898;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 .phys-toggle{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
@@ -241,11 +242,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .phys-row label{min-width:32px}
 .phys-row input[type=range]{flex:1;height:4px;accent-color:var(--accent)}
 .phys-val{font-size:10px;color:var(--accent);font-family:monospace;min-width:32px;text-align:right}
-.phys-info{padding:4px 8px;font-size:10px;color:var(--dim);line-height:1.6;border-top:1px solid #2e2e2e;flex-shrink:0}
+.phys-info{padding:4px 8px;font-size:10px;color:var(--dim);line-height:1.6;border-top:1px solid var(--divider);flex-shrink:0}
 
 /* Expressions panel */
 #rp-expr{gap:0}
-.ex-item{display:flex;align-items:center;padding:3px 8px;font-size:11px;gap:5px;cursor:pointer;border-bottom:1px solid #2e2e2e;transition:background .08s}
+.ex-item{display:flex;align-items:center;padding:3px 8px;font-size:11px;gap:5px;cursor:pointer;border-bottom:1px solid var(--divider);transition:background .08s}
 .ex-item:hover{background:var(--surface)}
 .ex-item.active{background:rgba(224,120,64,.12)}
 .ex-num{font-size:10px;color:var(--dim);font-family:monospace;min-width:18px}
@@ -255,13 +256,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-del:hover{color:#f87171}
 .ex-empty{padding:10px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
 #expr-preview-tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:7px 9px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
-#expr-preview-tip .ept-title{font-size:10px;color:var(--text);font-weight:600;margin-bottom:5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
+#expr-preview-tip .ept-title{font-size:10px;color:var(--text);font-weight:600;margin-bottom:5px;border-bottom:1px solid var(--divider);padding-bottom:3px}
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
 #expr-preview-tip .ept-label{min-width:65px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:var(--panel);border-radius:2px;overflow:hidden}
 #expr-preview-tip .ept-bar-fill{height:100%;background:var(--accent);border-radius:2px}
 #expr-preview-tip .ept-val{min-width:30px;text-align:right;color:var(--dim)}
-.expr-footer{padding:3px 8px;border-top:1px solid #2e2e2e;flex-shrink:0;display:flex;gap:5px}
+.expr-footer{padding:3px 8px;border-top:1px solid var(--divider);flex-shrink:0;display:flex;gap:5px}
 
 /* ===== STATUS BAR ===== */
 #sb{background:var(--bg);border-top:1px solid var(--border);padding:2px 8px;font-size:11px;color:var(--dim);flex-shrink:0;height:20px;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -276,12 +277,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ma{display:flex;gap:7px;justify-content:flex-end}
 .mbn{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:4px 8px;border-radius:4px;cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:#ffb070}
-.mbn:hover{background:#2c2c2c;color:var(--text)}
+.mbn:hover{background:var(--header);color:var(--text)}
 .mbn:active{transform:translateY(1px)}
 .mbn.ok:hover{background:rgba(224,120,64,.4)}
 
 /* Deformer headers */
-.pdef{background:var(--bg);border-bottom:1px solid #2e2e2e;padding:3px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
+.pdef{background:var(--bg);border-bottom:1px solid var(--divider);padding:3px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
 .pdef:hover{background:var(--surface)}
 .pdef.sel{background:rgba(224,120,64,.12);border-color:rgba(224,120,64,.5);border-bottom-color:rgba(224,120,64,.5)}
 .pdef-caret{font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0}
@@ -303,7 +304,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 #deformer-props{gap:0}
 
 /* Group headers */
-.pgroup{background:var(--bg);border-bottom:1px solid #2e2e2e;padding:3px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
+.pgroup{background:var(--bg);border-bottom:1px solid var(--divider);padding:3px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
 .pgroup:hover{background:#272727}
 .pgroup-caret{font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0}
 .pgroup-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -320,12 +321,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .mb-field input:focus{border-color:var(--accent)}
 
 /* Scrollbars */
-*{scrollbar-width:thin;scrollbar-color:var(--border) #1e1e1e;}
+*{scrollbar-width:thin;scrollbar-color:var(--border) var(--bg-deep);}
 ::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:#1e1e1e}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:#4a4a4a}
-::-webkit-scrollbar-corner{background:#1e1e1e}
+::-webkit-scrollbar-corner{background:var(--bg-deep)}
 </style>
 </head>
 <body>
@@ -450,7 +451,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
       <!-- Parts search filter -->
-      <div id="parts-search-bar" style="padding:3px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:4px">
+      <div id="parts-search-bar" style="padding:3px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:4px">
         <span style="font-size:10px;color:var(--muted)">🔍</span>
         <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
           oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
@@ -458,7 +459,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
       <!-- Color label filter -->
-      <div style="padding:3px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
+      <div style="padding:3px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
         <span style="font-size:9px;color:var(--dim);flex-shrink:0">🏷</span>
         <div class="pi-clr-swatch" id="cf-f87171" onclick="toggleColorFilter('#f87171')" style="width:11px;height:11px;background:#f87171;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f87171でフィルター"></div><div class="pi-clr-swatch" id="cf-fb923c" onclick="toggleColorFilter('#fb923c')" style="width:11px;height:11px;background:#fb923c;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#fb923cでフィルター"></div><div class="pi-clr-swatch" id="cf-facc15" onclick="toggleColorFilter('#facc15')" style="width:11px;height:11px;background:#facc15;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#facc15でフィルター"></div><div class="pi-clr-swatch" id="cf-4ade80" onclick="toggleColorFilter('#4ade80')" style="width:11px;height:11px;background:#4ade80;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#4ade80でフィルター"></div><div class="pi-clr-swatch" id="cf-22d3ee" onclick="toggleColorFilter('#22d3ee')" style="width:11px;height:11px;background:#22d3ee;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#22d3eeでフィルター"></div><div class="pi-clr-swatch" id="cf-60a5fa" onclick="toggleColorFilter('#60a5fa')" style="width:11px;height:11px;background:#60a5fa;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#60a5faでフィルター"></div><div class="pi-clr-swatch" id="cf-c084fc" onclick="toggleColorFilter('#c084fc')" style="width:11px;height:11px;background:#c084fc;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#c084fcでフィルター"></div><div class="pi-clr-swatch" id="cf-f9a8d4" onclick="toggleColorFilter('#f9a8d4')" style="width:11px;height:11px;background:#f9a8d4;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f9a8d4でフィルター"></div>
         <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:var(--dim);" title="ラベルなしのみ表示">∅</div>
@@ -467,7 +468,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div id="parts-list"></div>
       <!-- Live part preview -->
       <div id="part-preview-wrap" style="padding:4px;display:none;">
-        <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(255,255,255,.12);border-radius:3px;display:block;margin:0 auto;background:#1e1e1e;"></canvas>
+        <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(255,255,255,.12);border-radius:3px;display:block;margin:0 auto;background:var(--bg-deep);"></canvas>
         <div id="part-preview-label" style="font-size:8px;color:var(--dim);text-align:center;margin-top:2px;"></div>
       </div>
     </div>
@@ -485,7 +486,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
       <div id="deformer-list">
-        <div style="padding:3px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:4px">
+        <div style="padding:3px 8px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:4px">
           <span style="font-size:9px;color:var(--dim)">🔍</span>
           <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
             oninput="buildLPDeformerTree()"
@@ -493,7 +494,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
-        <div style="padding:3px 6px;border-top:1px solid #2e2e2e;display:flex;gap:3px;flex-shrink:0">
+        <div style="padding:3px 6px;border-top:1px solid var(--divider);display:flex;gap:3px;flex-shrink:0">
           <button class="tbtn" style="flex:1;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
           <button class="tbtn" style="flex:1;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
         </div>
@@ -620,7 +621,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid var(--border);border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:var(--dim)">
       <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid #2e2e2e;color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:var(--accent)" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
@@ -678,7 +679,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span style="font-size:9px;color:var(--muted);margin:0 2px">×</span>
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
           </div>
-          <div class="prop-row" style="border-top:1px solid #2e2e2e;margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
             <span class="prop-lbl" style="color:#a0a080">輪郭</span>
             <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px;accent-color:var(--accent)" oninput="applyDeformerFalloff(this.value)">
             <span id="dp-falloff-val" style="font-size:9px;color:#a0a080;min-width:24px">0%</span>
@@ -699,7 +700,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="prop-row">
             <span class="prop-lbl">半径</span><input class="prop-in" id="rp-r" type="number" min="10" max="500" oninput="applyRotRadius()">
           </div>
-          <div class="prop-row" style="border-top:1px solid #2e2e2e;margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
             <span class="prop-lbl" style="color:#f59e0b">角度°</span>
             <input class="prop-in" id="rp-angle" type="number" min="-180" max="180" step="0.5" oninput="applyRotAngle()" style="border-color:rgba(245,158,11,.4)">
           </div>
@@ -725,7 +726,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl">長さ</span><input class="prop-in" id="bp-len" type="number" min="10" max="1000" oninput="applyBoneLength()">
             <span class="prop-lbl" style="margin-left:2px">静止角°</span><input class="prop-in" id="bp-ang" type="number" min="-180" max="180" step="1" oninput="applyBoneRestAngle()">
           </div>
-          <div class="prop-row" style="border-top:1px solid #2e2e2e;margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
             <span class="prop-lbl" style="color:var(--accent)">KF角°</span>
             <input class="prop-in" id="bp-kf" type="number" min="-180" max="180" step="0.5" oninput="applyBoneKF()" style="border-color:rgba(224,120,64,.4)">
           </div>
@@ -788,7 +789,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid #2e2e2e;margin-top:4px;font-size:9px;color:var(--dim);user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:4px;font-size:9px;color:var(--dim);user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -809,7 +810,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </select>
         </div>
         <!-- Shadow/Glow Effect -->
-        <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
+        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
             <button onclick="resetPartShadow()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="影をリセット">↺</button>
@@ -829,7 +830,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Color adjustment (HSB) -->
-        <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
+        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
             <button onclick="resetPartHSB()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="リセット">↺</button>
@@ -899,17 +900,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" onclick="rotatePartMesh()" style="flex:1;font-size:8px" title="メッシュ頂点をパーツ中心周りに回転">↻ 回転</button>
         </div>
         <!-- Texture swap panel -->
-        <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
+        <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
-              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid #2e2e2e;color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
-              <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid #2e2e2e;color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid var(--divider);color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
           <!-- Texture switch by parameter -->
-          <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:3px">
+          <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid var(--divider);padding-top:3px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
               <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
               <button onclick="showTexSwitchModal()" style="background:#282828;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
@@ -918,7 +919,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Part note/memo -->
-        <div style="margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
+        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
           <textarea id="pp-note" rows="2"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
@@ -926,7 +927,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             oninput="if(selPart>=0&&selPart<parts.length)parts[selPart].note=this.value"></textarea>
         </div>
         <!-- Alignment tools (multi-select) -->
-        <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid #2e2e2e;padding-top:4px">
+        <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-bottom:2px">
             <button class="tbtn" onclick="alignParts('left')"   style="font-size:8px;padding:2px 0" title="左端揃え">⊢ 左</button>
@@ -960,7 +961,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <div id="rp-params" class="rpanel">
       <!-- Cubism-style parameter toolbar -->
-      <div style="padding:3px 8px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--bg)">
+      <div style="padding:3px 8px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--bg)">
         <button onclick="addKFHere()" title="現在位置にKFを追加（⊕ KF）" style="width:20px;height:20px;border-radius:50%;background:#c83020;border:1px solid #e04030;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0">●</button>
         <button onclick="resetAllParams()" title="全パラメータをリセット" style="background:none;border:1px solid var(--border);color:var(--dim);font-size:9px;border-radius:4px;padding:2px 5px;cursor:pointer">↺</button>
         <span style="flex:1"></span>
@@ -969,7 +970,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="ih" onclick="showCustomParamModal()" title="カスタムパラメータを追加" style="font-size:11px;color:var(--dim);background:none;border:1px solid var(--border);padding:2px 5px;border-radius:4px">＋</button>
       </div>
       <!-- 2D XY Grid (Cubism Editor signature feature) -->
-      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 5px;border-bottom:1px solid var(--divider);flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">XY グリッド</span>
           <select id="xy-pair-sel" onchange="updateXYPair()" style="font-size:8px;background:var(--bg);border:1px solid var(--border);color:var(--dim);padding:1px 4px;border-radius:3px;cursor:pointer">
@@ -984,7 +985,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
       <!-- KF Loop Preview -->
-      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 5px;border-bottom:1px solid var(--divider);flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">KFループプレビュー</span>
           <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:var(--dim)">▶ 再生</button>
@@ -995,14 +996,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span id="kf-loop-speed-v" style="font-size:8px;color:var(--accent);min-width:20px;">1.0</span>
         </div>
       </div>
-      <div style="padding:2px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0;display:flex;align-items:center;gap:3px">
+      <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
         <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--dim);font-size:10px;outline:none;padding:2px 0">
         <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
       <div id="params-list"></div>
       <!-- PARAM BINDINGS -->
-      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 5px;border-top:1px solid var(--divider);flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">バインド</span>
           <button class="ih" onclick="showAddBindingModal()" title="選択パラメータにバインドを追加" style="font-size:9px;color:var(--dim)">＋</button>
@@ -1010,7 +1011,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div id="bindings-list" style="font-size:9px;color:var(--dim);min-height:12px"></div>
       </div>
       <!-- DEFORMER TREE -->
-      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 5px;border-top:1px solid var(--divider);flex-shrink:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;cursor:pointer" onclick="toggleDeformerTree()">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">デフォーマー階層</span>
           <span style="display:flex;gap:4px;align-items:center">
@@ -1028,11 +1029,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <span class="rsec-ttl">物理シミュレーション</span>
     </div>
     <div id="rp-physics" class="rpanel rp-collapsed">
-      <div style="padding:2px 8px;border-bottom:1px solid #2e2e2e;display:flex;justify-content:flex-end;flex-shrink:0">
+      <div style="padding:2px 8px;border-bottom:1px solid var(--divider);display:flex;justify-content:flex-end;flex-shrink:0">
         <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:var(--dim)">✕ 全OFF</button>
       </div>
       <!-- Physics presets -->
-      <div style="padding:3px 6px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 6px;border-bottom:1px solid var(--divider);flex-shrink:0">
         <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット → 選択パーツに適用</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
           <button class="tbtn" onclick="applyPhysPreset('hair')"   style="font-size:8px;padding:2px 0" title="剛性:0.18 減衰:0.84 X:1.0 Y:0.3">💇 前髪</button>
@@ -1057,12 +1058,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:var(--dim)">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
-      <div style="padding:3px 5px;border-bottom:1px solid #2e2e2e;flex-shrink:0">
+      <div style="padding:3px 5px;border-bottom:1px solid var(--divider);flex-shrink:0">
         <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">プリセット</div>
         <div id="lfo-presets" style="display:flex;flex-wrap:wrap;gap:2px"></div>
       </div>
       <div id="lfo-list" style="flex:1;overflow-y:auto;padding:3px 5px"></div>
-      <div style="padding:3px 5px;border-top:1px solid #2e2e2e;font-size:9px;color:var(--dim);line-height:1.5;flex-shrink:0">
+      <div style="padding:3px 5px;border-top:1px solid var(--divider);font-size:9px;color:var(--dim);line-height:1.5;flex-shrink:0">
         ⓘ プレビューモードで動作します。パラメータをサイン波等で自動変調します。
       </div>
     </div>
@@ -1078,7 +1079,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div class="ex-empty">表情が登録されていません<br>「＋」ボタンで現在のパラメータを<br>表情として保存できます</div>
       </div>
       <!-- Pose Blend Panel -->
-      <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid #2e2e2e;padding:3px 5px">
+      <div id="pose-blend-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--divider);padding:3px 5px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
@@ -5204,7 +5205,7 @@ function showPartNoteList() {
   const rows = noted.map(({pt, i}) => {
     const clrDot = pt.colorLabel ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${pt.colorLabel};margin-right:3px;flex-shrink:0"></span>` : '';
     const note = pt.note.replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    return `<tr style="border-bottom:1px solid #2e2e2e;cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
+    return `<tr style="border-bottom:1px solid var(--divider);cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
       <td style="padding:4px 6px;font-size:9px;color:var(--dim);font-family:monospace;">${i}</td>
       <td style="padding:4px 6px;font-size:10px;color:var(--text);white-space:nowrap;">${clrDot}${pt.name.replace(/</g,'&lt;')}</td>
       <td style="padding:4px 6px;font-size:10px;color:#a0c080;">${note}</td>
@@ -5214,7 +5215,7 @@ function showPartNoteList() {
   m.innerHTML=`<div class="modal-box" style="width:460px;max-height:80vh;display:flex;flex-direction:column;"><div class="modal-header"><span>パーツメモ一覧 (${noted.length}件)</span><button onclick="document.getElementById('rig-modal-overlay').remove()" class="modal-close">×</button></div>
     <div style="overflow-y:auto;flex:1;font-size:11px;">
       <table style="width:100%;border-collapse:collapse;">
-        <thead style="position:sticky;top:0;background:#1e1e1e;"><tr style="font-size:9px;color:var(--dim);text-transform:uppercase;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">パーツ名</th><th style="padding:4px 6px;text-align:left;">メモ</th></tr></thead>
+        <thead style="position:sticky;top:0;background:var(--bg-deep);"><tr style="font-size:9px;color:var(--dim);text-transform:uppercase;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">パーツ名</th><th style="padding:4px 6px;text-align:left;">メモ</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
       <div style="padding:6px 8px;color:var(--dim);font-size:8px;">行クリックでパーツを選択</div>
@@ -6461,7 +6462,7 @@ function renderLFOPanel() {
     el.innerHTML = '<div style="color:var(--dim);font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
   }
   const pkeys = Object.keys(P);
-  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:4px;padding:3px 5px;margin-bottom:2px;background:var(--bg)">
+  el.innerHTML = lfos.map(lfo => `<div style="border:1px solid var(--divider);border-radius:4px;padding:3px 5px;margin-bottom:2px;background:var(--bg)">
 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
 <input type="checkbox" ${lfo.enabled?'checked':''} onchange="updateLFOField('${lfo.id}','enabled',this.checked)" style="accent-color:var(--accent);flex-shrink:0">
 <select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 2px;border-radius:2px">
@@ -6578,7 +6579,7 @@ function buildBindingsUI() {
   }
   list.innerHTML = bindings.map((b, i) => {
     const tl = P[b.target]?.l || b.target;
-    return `<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;padding:2px 4px;background:var(--bg);border-radius:3px;border:1px solid #2e2e2e;">
+    return `<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;padding:2px 4px;background:var(--bg);border-radius:3px;border:1px solid var(--divider);">
       <span style="flex:1;font-size:8px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${tl}">→ ${tl}</span>
       <span style="font-size:7px;color:var(--dim);white-space:nowrap;">[${b.srcMin.toFixed(1)},${b.srcMax.toFixed(1)}]→[${b.dstMin.toFixed(1)},${b.dstMax.toFixed(1)}]</span>
       <button onclick="removeBinding('${selParam}',${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px;flex-shrink:0;" title="削除">✕</button>
@@ -7901,7 +7902,7 @@ function showVertexCoordHUD(vi, clientX, clientY) {
   hud.innerHTML = `<span style="color:var(--accent);">${isDef?'Δ':'V'}${vi}</span>
     <span>${isDef?'dx':'x'}</span><input id="vhud-x" type="number" value="${vx.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--accent);border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
     <span>${isDef?'dy':'y'}</span><input id="vhud-y" type="number" value="${vy.toFixed(2)}" step="0.5" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--accent);border-radius:2px;padding:1px 3px;font-size:9px;outline:none;">
-    <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:#2e2e2e;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
+    <button onclick="applyVertexCoordHUD(${vi},${isDef})" style="background:var(--divider);border:1px solid var(--border);color:var(--text);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px;">適用</button>
     <button onclick="document.getElementById('vert-coord-hud')?.remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;">×</button>`;
   document.body.appendChild(hud);
   document.getElementById('vhud-x').addEventListener('keydown', e => { if(e.key==='Enter') applyVertexCoordHUD(vi,isDef); if(e.key==='Escape') hud.remove(); });
@@ -8863,14 +8864,14 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 @keyframes pulseRing{0%,100%{box-shadow:inset 0 0 0 0 var(--pr,rgba(224,120,64,0))}50%{box-shadow:inset 0 0 22px 6px var(--pr,rgba(224,120,64,0.28))}}
 @keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,-1%)}50%{transform:translate(-1%,2%)}70%{transform:translate(2%,3%)}90%{transform:translate(-3%,1%)}}
 @keyframes wobblecam{0%,100%{transform:rotate(0deg) scale(1)}20%{transform:rotate(0.15deg) scale(1.002)}40%{transform:rotate(-0.1deg) scale(0.999)}60%{transform:rotate(0.08deg) scale(1.001)}80%{transform:rotate(-0.12deg) scale(1.002)}}
-#ctrl-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid #2e2e2e;padding-bottom:4px}
+#ctrl-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid var(--divider);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .cp-lbl{font-size:9px;color:var(--dim);min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:var(--accent);height:3px}
 .cp-val{font-size:8px;color:var(--dim);min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:var(--text);backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
-#mixer-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid #2e2e2e;padding-bottom:3px}
+#mixer-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid var(--divider);padding-bottom:3px}
 .mx-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
 .mx-lbl{font-size:9px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
 .mx-sl{flex:1;accent-color:var(--accent);height:3px}
