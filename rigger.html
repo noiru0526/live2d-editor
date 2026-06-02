@@ -5,7 +5,7 @@
 <title>Live2D Rigger — noiru</title>
 <style>
 :root{
-  --bg:#1e1e1e;--panel:#252525;--surface:#232323;--surface2:#2d2d2d;
+  --bg:#222222;--panel:#2a2a2a;--surface:#252525;--surface2:#303030;
   --border:#3a3a3a;--border-strong:#4a4a4a;
   --accent:#e07840;--accent2:#c09040;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
@@ -18,9 +18,9 @@ button:focus:not(:focus-visible){outline:none;}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:1px solid var(--accent);outline-offset:1px;}
 
 /* ===== TOOLBAR ===== */
-#toolbar{background:#2e2e2e;border-bottom:1px solid #3a3a3a;padding:0 8px;display:flex;align-items:center;gap:3px;flex-shrink:0;height:36px;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+#toolbar{background:#2e2e2e;border-bottom:1px solid #3a3a3a;padding:0 8px;display:flex;align-items:center;gap:3px;flex-shrink:0;height:28px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 #toolbar h1{color:#a0a0a0;font-size:11px;letter-spacing:2px;margin-right:10px;flex-shrink:0;font-weight:600}
-.tbtn{background:transparent;border:1px solid transparent;color:#c0c0c0;font-size:11px;padding:2px 8px;border-radius:2px;cursor:pointer;transition:all .1s;flex-shrink:0;white-space:nowrap;height:26px;display:inline-flex;align-items:center;}
+.tbtn{background:transparent;border:1px solid transparent;color:#c0c0c0;font-size:11px;padding:1px 7px;border-radius:2px;cursor:pointer;transition:all .1s;flex-shrink:0;white-space:nowrap;height:22px;display:inline-flex;align-items:center;}
 .tbtn:hover{background:rgba(255,255,255,.1);color:#e8e8e8;border-color:rgba(255,255,255,.18)}
 .tbtn:active{transform:translateY(1px)}
 .tbtn.active{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:#ffb070}
@@ -42,8 +42,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* ===== LEFT PANEL ===== */
 #lp{width:270px;background:#252525;border-right:1px solid #3a3a3a;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
-.ph{padding:3px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid #e07840;flex-shrink:0;background:#2c2c2c}
-.ph h3{color:#c0c0c0;font-size:11px;letter-spacing:1.2px;font-weight:500;text-transform:uppercase}
+.ph{padding:3px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid #e07840;flex-shrink:0;background:#323232}
+.ph h3{color:#c0c0c0;font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
 .ih{background:none;border:none;color:#a0a0a0;cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;line-height:1;transition:color .1s,background .1s}
 .ih:hover{color:#d8d8d8;background:#333333}
@@ -107,9 +107,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid #3a3a3a;flex-shrink:0}
-.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:3px 10px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid #3a3a3a;transition:background .08s}
+.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:3px 10px;cursor:pointer;background:#323232;border-bottom:1px solid #3a3a3a;transition:background .08s}
 .lsec-hd:hover{background:#303030}
-.lsec-hd h3{color:#9a9a9a;font-size:11px;letter-spacing:1.2px;font-weight:500;text-transform:uppercase}
+.lsec-hd h3{color:#9a9a9a;font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .lsec-body{padding:4px 8px;display:flex;flex-direction:column;gap:3px}
 .mrow{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
 .mi{background:#1e1e1e;border:1px solid #3a3a3a;color:#c8c8c8;font-size:11px;padding:3px 5px;border-radius:3px;width:50px;outline:none}
@@ -126,8 +126,8 @@ input::placeholder,textarea::placeholder{color:#606060;}
 .kb.on{background:rgba(224,120,64,.2);border-color:rgba(224,120,64,.6);color:#ffb070}
 
 /* ===== CANVAS AREA ===== */
-#cw{flex:1;background:#1e1e1e;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-#c{image-rendering:pixelated;cursor:crosshair;box-shadow:0 0 0 1px #3a3a3a,0 4px 24px rgba(0,0,0,.6)}
+#cw{flex:1;background:#282828;background-image:linear-gradient(45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(-45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(255,255,255,.04) 75%),linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.04) 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#c{image-rendering:pixelated;cursor:crosshair;box-shadow:0 0 0 1px #606060,0 4px 24px rgba(0,0,0,.5)}
 #hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid #3a3a3a;color:var(--dim);font-size:9px;padding:3px 12px;border-radius:12px;pointer-events:none;display:none}
 #zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
 #coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid #2e2e2e;border-radius:3px;padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
@@ -137,11 +137,11 @@ input::placeholder,textarea::placeholder{color:#606060;}
 #rp{width:270px;background:#252525;border-left:1px solid #3a3a3a;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
-.rsec-hd{display:flex;align-items:center;padding:3px 10px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
+.rsec-hd{display:flex;align-items:center;padding:3px 10px;cursor:pointer;background:#323232;border-bottom:1px solid #3a3a3a;gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
 .rsec-hd:hover{background:#303030}
 .rsec-caret{font-size:9px;color:#707070;transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
-.rsec-ttl{font-size:11px;font-weight:500;letter-spacing:1.2px;color:#9a9a9a;text-transform:uppercase;flex:1}
+.rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:#9a9a9a;text-transform:uppercase;flex:1}
 .rsec-sub{font-size:9px;color:#a0a0a0}
 /* Inspector selection banner */
 #rp-sel-banner{padding:3px 10px 3px;border-bottom:1px solid #2e2e2e;background:#1e1e1e;display:none}
