@@ -45,7 +45,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #main{display:flex;flex:1;overflow:hidden}
 
 /* ===== LEFT PANEL ===== */
-#lp{width:270px;background:#252525;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+#lp{width:270px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
 .ph{padding:3px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e2e2e;border-left:2px solid #e07840;flex-shrink:0;background:#2c2c2c}
 .ph h3{color:#c0c0c0;font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .ph-actions{display:flex;gap:3px}
@@ -59,7 +59,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #lp-parts-section{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 #lp-deformer-section{flex-shrink:0;border-top:2px solid var(--border);display:flex;flex-direction:column}
 #lp-deformer-section .ph{cursor:pointer;user-select:none}
-#lp-deformer-section .ph:hover{background:#252525}
+#lp-deformer-section .ph:hover{background:var(--surface)}
 #lp-def-caret{font-size:9px;color:#707070;margin-left:4px;transition:transform .15s;display:inline-block}
 #lp-deformer-section.lp-def-collapsed #lp-def-caret{transform:rotate(-90deg)}
 /* Deformer list */
@@ -138,7 +138,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid #e07840;border-radius:3px;padding:2px 8px;font-size:9px;color:#ffb070;pointer-events:none;font-family:monospace;letter-spacing:1px}
 
 /* ===== RIGHT PANEL — Cubism stacked sections ===== */
-#rp{width:270px;background:#252525;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+#rp{width:270px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
 .rsec-hd{display:flex;align-items:center;padding:3px 8px;cursor:pointer;background:#2c2c2c;border-bottom:1px solid var(--border);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
@@ -160,7 +160,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 
 /* Params panel */
 #params-list{padding:0}
-.pg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);letter-spacing:.5px;padding:3px 8px 2px;font-weight:500;background:#252525;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.pg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);letter-spacing:.5px;padding:3px 8px 2px;font-weight:500;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
 .pg:hover{background:#2a2a2a;color:#aaa}
 .pg-arrow{font-size:9px;color:#707070;transition:transform .12s;display:inline-block;flex-shrink:0}
 .pg.collapsed .pg-arrow{transform:rotate(-90deg)}
@@ -220,7 +220,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-reset:hover{color:#e07840;opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
-.ci-arr{background:#252525;border:1px solid var(--border);color:var(--dim);font-size:14px;padding:0 6px;cursor:pointer;border-radius:4px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
+.ci-arr{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-size:14px;padding:0 6px;cursor:pointer;border-radius:4px;line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
 .ci-arr:hover{color:#e07840;border-color:var(--accent)}
 .ci-num-sm{width:52px;background:var(--bg);border:1px solid var(--border);color:#d0d0d0;font-size:11px;padding:2px 6px;border-radius:2px;outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
 .ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -246,7 +246,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 /* Expressions panel */
 #rp-expr{gap:0}
 .ex-item{display:flex;align-items:center;padding:3px 8px;font-size:11px;gap:5px;cursor:pointer;border-bottom:1px solid #2e2e2e;transition:background .08s}
-.ex-item:hover{background:#252525}
+.ex-item:hover{background:var(--surface)}
 .ex-item.active{background:rgba(224,120,64,.12)}
 .ex-num{font-size:10px;color:var(--dim);font-family:monospace;min-width:18px}
 .ex-name{flex:1;color:#a0a0a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -268,7 +268,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* ===== MODALS ===== */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px)}
-.mb{background:#252525;border:1px solid var(--border);border-radius:6px;padding:20px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.mb{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .mb h3{color:#e07840;font-size:14px;margin-bottom:12px;font-weight:600}
 .mb input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 9px;border-radius:3px;width:100%;margin-bottom:10px;outline:none}
 .mb input:focus{border-color:var(--accent)}
@@ -282,7 +282,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* Deformer headers */
 .pdef{background:var(--bg);border-bottom:1px solid #2e2e2e;padding:3px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
-.pdef:hover{background:#252525}
+.pdef:hover{background:var(--surface)}
 .pdef.sel{background:rgba(224,120,64,.12);border-color:rgba(224,120,64,.5);border-bottom-color:rgba(224,120,64,.5)}
 .pdef-caret{font-size:10px;color:#707070;width:12px;text-align:center;flex-shrink:0}
 .pdef-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -761,7 +761,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <input class="prop-in" id="pp-x" type="number" oninput="applyPartXY()">
           <span id="pp-coord-lbl-y" class="prop-lbl" style="margin-left:2px">Y</span>
           <input class="prop-in" id="pp-y" type="number" oninput="applyPartXY()">
-          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:#252525;border:1px solid var(--border);color:var(--dim);border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
+          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
         </div>
         <div class="prop-row">
           <span class="prop-lbl">W/H</span>
@@ -784,7 +784,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
-            <button onclick="clearOpacityKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearOpacityKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <!-- Extended settings collapsible section -->
@@ -856,7 +856,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
               <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-              <button onclick="clearHSBKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+              <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
           <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:#c09060;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
@@ -879,7 +879,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setScaleKFHere()" style="flex:1;background:#0e1e10;border:1px solid rgba(96,200,140,.4);color:#60c888;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-            <button onclick="clearScaleKF()" style="background:#252525;border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:#50a870;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
@@ -903,8 +903,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
-              <button onclick="showGenerateTextureModal()" style="background:#252525;border:1px solid #2e2e2e;color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
-              <button onclick="addAltTexture()" style="background:#252525;border:1px solid #2e2e2e;color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid #2e2e2e;color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid #2e2e2e;color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
@@ -4018,7 +4018,7 @@ function showTexSwitchModal() {
       <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#f08080;cursor:pointer;font-size:10px;padding:0">✕</button>
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
-  mo.innerHTML=`<div style="background:#252525;border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
   <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">切替パラメータ</div>
@@ -4076,7 +4076,7 @@ function applyTexSwitch(){
 function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
-  mo.innerHTML=`<div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
   <div style="font-size:13px;color:#c0c0c0;margin-bottom:12px;font-weight:600">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#c0c0c0;border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
@@ -4579,7 +4579,7 @@ function showGlobalTransformModal() {
   overlay.id = 'gtf-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">⊙ 全体変換</div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
@@ -5470,7 +5470,7 @@ function editExprValues(idx) {
       <span data-val="${k}" style="font-size:8px;color:var(--dim);min-width:32px;text-align:right">${v.toFixed(2)}</span>
     </div>`;
   });
-  ov.innerHTML=`<div class="eev-wrap" style="background:#252525;border:1px solid var(--border);border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
+  ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
     <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="document.getElementById('expr-edit-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
     <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示</div>
     ${rows}
@@ -6464,10 +6464,10 @@ function renderLFOPanel() {
   el.innerHTML = lfos.map(lfo => `<div style="border:1px solid #2e2e2e;border-radius:4px;padding:3px 5px;margin-bottom:2px;background:var(--bg)">
 <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
 <input type="checkbox" ${lfo.enabled?'checked':''} onchange="updateLFOField('${lfo.id}','enabled',this.checked)" style="accent-color:var(--accent);flex-shrink:0">
-<select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:#252525;border:1px solid var(--border);color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
+<select onchange="updateLFOField('${lfo.id}','param',this.value)" style="flex:1;background:var(--surface);border:1px solid var(--border);color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px">
 ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option>`).join('')}
 </select>
-<select onchange="updateLFOField('${lfo.id}','wave',this.value);this.closest('div').querySelector('.lfo-wave-svg').innerHTML=_lfoWaveSVG(this.value,lfos.find(l=>l.id==='${lfo.id}')?.amp,lfos.find(l=>l.id==='${lfo.id}')?.offset)" style="background:#252525;border:1px solid var(--border);color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px;width:50px">
+<select onchange="updateLFOField('${lfo.id}','wave',this.value);this.closest('div').querySelector('.lfo-wave-svg').innerHTML=_lfoWaveSVG(this.value,lfos.find(l=>l.id==='${lfo.id}')?.amp,lfos.find(l=>l.id==='${lfo.id}')?.offset)" style="background:var(--surface);border:1px solid var(--border);color:#c0c0c0;font-size:9px;padding:1px 2px;border-radius:2px;width:50px">
 <option value="sine"${lfo.wave==='sine'?' selected':''}>sine</option>
 <option value="triangle"${lfo.wave==='triangle'?' selected':''}>tri</option>
 <option value="sawtooth"${lfo.wave==='sawtooth'?' selected':''}>saw</option>
@@ -7078,7 +7078,7 @@ function showDeformWaveModal() {
   overlay.id = 'wave-modal-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:13px;color:#c0c0c0;margin-bottom:14px;font-weight:600">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>振幅 (px)</span>
@@ -8013,7 +8013,7 @@ function showShortcutsOverlay() {
     `<tr><td style="padding:3px 8px;font-family:monospace;color:#ffd060;font-size:11px;">${k}</td><td style="padding:3px 8px;color:#a0a0a0;font-size:11px;">${v}</td></tr>` :
     `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
   ).join('');
-  d.innerHTML = `<div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
       <span style="font-size:13px;font-weight:600;color:var(--text);">⌨ キーボードショートカット</span>
       <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;">×</button>
@@ -8058,7 +8058,7 @@ function showWsTestPanel() {
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
   const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
-  ov.innerHTML=`<div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
+  ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:var(--text)">🔌 WebSocket 送信テスト</span>
       <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button>
@@ -8127,7 +8127,7 @@ function showWsApiRef() {
     `<tr>${r.map(c=>`<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border)">${c}</th>`).join('')}</tr>`:
     `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 8px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 8px;color:#a0a0a0;font-size:10px">${r[1]}</td><td style="padding:3px 8px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
   ).join('');
-  d.innerHTML=`<div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+  d.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
       <span style="font-size:13px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
       <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px">×</button>
@@ -8172,7 +8172,7 @@ function showAvatarExportDialog() {
   overlay.id = 'av-export-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#252525;border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:14px;color:#c0c0c0;margin-bottom:14px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
