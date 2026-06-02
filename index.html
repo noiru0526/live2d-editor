@@ -3624,7 +3624,7 @@ function updateKFList() {
     item.appendChild(row);
     if (cmt) {
       const cmtEl=document.createElement('div');
-      cmtEl.style.cssText='font-size:9px;color:#707070;padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
+      cmtEl.style.cssText='font-size:9px;color:#888;padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
       cmtEl.textContent=cmt;
       item.appendChild(cmtEl);
     }
@@ -8451,7 +8451,7 @@ window.addEventListener('message',ev=>{
   const _emojiRe=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}]/gu;
   function _render(){
     const top5=Object.entries(_counts).sort((a,b)=>b[1]-a[1]).slice(0,_max);
-    if(!top5.length){_ov.innerHTML='<div style="font-size:10px;color:#707070;">絵文字なし</div>';return;}
+    if(!top5.length){_ov.innerHTML='<div style="font-size:10px;color:#888;">絵文字なし</div>';return;}
     _ov.innerHTML=top5.map(([e,c])=>
       `<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;"><span>${e}</span><span style="color:#8cf;font-size:11px;">${c}</span></div>`
     ).join('');
@@ -24926,7 +24926,7 @@ async function showAIAnimCritiqueDialog() {
   showModal('🔬 AIアニメーション批評', `
     <div style="font-size:12px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--dim)">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
-      <div id="ai-crit-status" style="font-size:11px;color:#707070;min-height:20px">準備中...</div>
+      <div id="ai-crit-status" style="font-size:11px;color:#888;min-height:20px">準備中...</div>
       <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:#1e1e1e;border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
     </div>
   `, null, null);
@@ -30131,7 +30131,7 @@ function exportGIF() {
         <option value="loop">ループ区間のみ</option>
       </select></label>
     </div>
-    <div id="gif-est" style="font-size:9px;color:#707070;margin-bottom:8px;"></div>
+    <div id="gif-est" style="font-size:9px;color:#888;margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;">
       <button id="gif-cancel" style="background:#252525;border:1px solid #3a3a3a;color:var(--dim);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:11px;">キャンセル</button>
       <button id="gif-start" style="background:#1a3a20;border:1px solid rgba(80,200,80,.5);color:#60d890;border-radius:4px;padding:3px 14px;cursor:pointer;font-size:11px;font-weight:600;">書き出し開始</button>
