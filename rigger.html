@@ -2802,7 +2802,7 @@ function render() {
 
   // Ruler overlay
   if (showRuler) {
-    const rulerW = 14, rulerCol = 'rgba(20,20,20,.85)', tickCol = '#3a3a3a', lblCol = '#707070';
+    const rulerW = 14, rulerCol = '#141414', tickCol = '#3a3a3a', lblCol = '#707070';
     const step = gridSize, cW = canvas.width, cH = canvas.height;
     ctx.save();
     // Top ruler
@@ -5510,7 +5510,7 @@ function buildBlendSliders() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:3px;';
     row.innerHTML = `<span style="flex:1;font-size:8px;color:#60a880;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ex.name}">${ex.name}</span>
-      <input type="range" min="0" max="100" value="${(w*100).toFixed(0)}" style="width:60px;accent-color:#30a070;" oninput="onBlendSlider(${i}, this.value)" title="ウェイト">
+      <input type="range" min="0" max="100" value="${(w*100).toFixed(0)}" style="width:60px;accent-color:#50b090;" oninput="onBlendSlider(${i}, this.value)" title="ウェイト">
       <span id="bw-${i}" style="font-size:7px;color:#60a890;min-width:24px;text-align:right;">${(w*100).toFixed(0)}%</span>`;
     cont.appendChild(row);
   });
