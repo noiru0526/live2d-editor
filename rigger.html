@@ -10,7 +10,7 @@
   --border:#3a3a3a;--border-strong:#4a4a4a;--divider:#2e2e2e;
   --accent:#e07840;--accent2:#c09040;
   --text:#c8c8c8;--text-bright:#e0e0e0;--dim:#909090;
-  --green:#60c060;--rec:#e04040;--warn:#e09040;
+  --green:#60c060;--rec:#e04040;--warn:#e09040;--error:#e05050;--danger:#f08080;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Noto Sans JP',system-ui,sans-serif;font-size:11px;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
@@ -31,7 +31,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tbtn.active{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:#ffb070}
 .tbtn.ok{background:rgba(48,140,48,.4);border-color:#48a048;color:#80d080}
 .tbtn.ok:hover{background:rgba(6,78,59,.6)}
-.tbtn.danger{background:rgba(160,48,48,.3);border-color:#c04040;color:#f08080}
+.tbtn.danger{background:rgba(160,48,48,.3);border-color:#c04040;color:var(--danger)}
 .tb-more{position:relative;flex-shrink:0}
 .tb-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 0;z-index:1000;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.8)}
 .tb-more-menu.open{display:block}
@@ -291,10 +291,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pi.in-deformer{padding-left:24px}
 .pdef-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;transition:color .1s}
 .pdef-del:hover{color:#f87171}
-.pdef.rotation .pdef-name{color:#c09040}
+.pdef.rotation .pdef-name{color:var(--accent2)}
 .pdef.rotation.sel .pdef-name{color:var(--accent)}
-.pdef.rotation .pdef-caret{color:#c09040}
-.pdef.rotation .pdef-count{color:#c09040}
+.pdef.rotation .pdef-caret{color:var(--accent2)}
+.pdef.rotation .pdef-count{color:var(--accent2)}
 .pdef.bone .pdef-name{color:#d07840}
 .pdef.bone.sel .pdef-name{color:var(--accent)}
 .pdef.bone .pdef-caret{color:#d07840}
@@ -496,7 +496,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
         <div style="padding:3px 6px;border-top:1px solid var(--divider);display:flex;gap:3px;flex-shrink:0">
           <button class="tbtn" style="flex:1;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
-          <button class="tbtn" style="flex:1;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
+          <button class="tbtn" style="flex:1;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
         </div>
       </div>
     </div>
@@ -520,7 +520,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#f08080;border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ff8060;border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
@@ -632,7 +632,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
         <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
-      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:#f08080;border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
+      <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:#200a0a;border:1px solid rgba(200,60,60,.3);color:var(--danger);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
     <!-- Weight Paint Control Panel -->
     <div id="wp-panel" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.95);border:1px solid var(--border);border-radius:6px;padding:6px 8px;gap:10px;align-items:center;font-size:9px;color:var(--dim);z-index:200">
@@ -785,7 +785,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setOpacityKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">キー設定</button>
-            <button onclick="clearOpacityKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearOpacityKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <!-- Extended settings collapsible section -->
@@ -857,7 +857,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             </div>
             <div style="display:flex;gap:3px;margin-top:2px">
               <button onclick="setHSBKFHere()" style="flex:1;background:#2a1a0a;border:1px solid rgba(224,120,64,.4);color:#ffb070;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-              <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+              <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
           <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:#c09060;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
@@ -880,7 +880,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="display:flex;gap:3px;margin-top:2px">
             <button onclick="setScaleKFHere()" style="flex:1;background:#0e1e10;border:1px solid rgba(96,200,140,.4);color:#60c888;border-radius:2px;padding:1px;cursor:pointer;font-size:8px">KF設定</button>
-            <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:#f08080;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
+            <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
         <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:#50a870;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
@@ -3223,7 +3223,7 @@ function showGuideManager() {
       <select id="gg-clr-${i}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
         ${COLORS.map((c,ci)=>`<option value="${c}" ${g.color===c?'selected':''} style="background:${c}">色${ci+1}</option>`).join('')}
       </select>
-      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:#f08080;border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
+      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:var(--danger);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
     </div>`).join('');
   showModal('カスタムガイドライン管理', `
     <div style="font-size:12px;min-width:280px;display:grid;gap:6px;">
@@ -3689,7 +3689,7 @@ function updatePartPropsUI() {
         row.appendChild(lbl);
         if (idx >= 0) {
           const del = document.createElement('button');
-          del.textContent='✕'; del.style.cssText='background:none;border:none;color:#f08080;cursor:pointer;font-size:8px;padding:0 2px;flex-shrink:0';
+          del.textContent='✕'; del.style.cssText='background:none;border:none;color:var(--danger);cursor:pointer;font-size:8px;padding:0 2px;flex-shrink:0';
           del.onclick=()=>removeAltTexture(idx);
           row.appendChild(del);
         }
@@ -4016,7 +4016,7 @@ function showTexSwitchModal() {
       <input type="number" value="${r.min}" step="0.1" placeholder="min" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'min',+this.value)">
       <input type="number" value="${r.max}" step="0.1" placeholder="max" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px" oninput="updateTexSwitchRule(${i},'max',+this.value)">
       <select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:10px" onchange="updateTexSwitchRule(${i},'texIdx',+this.value)">${toTexOpt(r.texIdx)}</select>
-      <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:#f08080;cursor:pointer;font-size:10px;padding:0">✕</button>
+      <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0">✕</button>
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
