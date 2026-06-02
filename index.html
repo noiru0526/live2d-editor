@@ -71,7 +71,7 @@ button:focus:not(:focus-visible){outline:none;}
   transition:background .1s,color .1s;height:22px;display:flex;align-items:center;border:none;}
 .mpill:hover{color:#fff;background:rgba(255,255,255,.12);}
 .mpill.on{background:rgba(224,120,64,.28);color:var(--accent);}
-#lbl-status{color:#a0a0a0;font-size:10px;margin-left:6px;white-space:nowrap;flex-shrink:0;}
+#lbl-status{color:var(--dim);font-size:10px;margin-left:6px;white-space:nowrap;flex-shrink:0;}
 
 /* ===== Left panel Cubism-style tab strip ===== */
 #left-tabs{display:flex;height:24px;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);}
@@ -238,7 +238,7 @@ button:focus:not(:focus-visible){outline:none;}
 .deformer-row.active-def .deformer-name{color:var(--text-bright);}
 .deformer-icon{font-size:11px;flex-shrink:0;width:16px;text-align:center;color:var(--dim);}
 .deformer-name{font-size:11px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
-.deformer-badge{font-size:9px;color:#a0a0a0;background:#2c2c2c;border-radius:2px;padding:1px 4px;}
+.deformer-badge{font-size:9px;color:var(--dim);background:#2c2c2c;border-radius:2px;padding:1px 4px;}
 .deformer-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;opacity:0;transition:color .1s,opacity .1s;}
 .deformer-row:hover .deformer-del{opacity:1;}
 .deformer-del:hover{color:#ff6060;}
@@ -391,7 +391,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
   <button class="tbtn" id="btn-param-scan"   onclick="toggleParamScan()"   title="パラメータスキャン">🔍</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="openRigger()" title="リギングエディタ (Ctrl+R)" style="color:var(--text);">🔧 リガー</button>
-  <button class="tbtn" onclick="autoScreenshot()" title="スクリーンショット (Ctrl+Shift+C)" style="color:#a0a0a0;">📸 SS</button>
+  <button class="tbtn" onclick="autoScreenshot()" title="スクリーンショット (Ctrl+Shift+C)" style="color:var(--dim);">📸 SS</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="showShortcutHelp()" title="ショートカット一覧 (?)">?</button>
   <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="テーマ切替">🎨</button>
@@ -8436,7 +8436,7 @@ window.addEventListener('message',ev=>{
     if(_log.length>_max) _log.pop();
     _ov.innerHTML=_log.map(e=>
       `<div style="background:rgba(20,20,20,.7);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--text-bright);display:flex;gap:5px;align-items:center;backdrop-filter:blur(3px);">
-        <span>${e.icon}</span><span style="color:#a0a0a0;">${e.t}</span><span>${e.text.slice(0,40)}</span></div>`
+        <span>${e.icon}</span><span style="color:var(--dim);">${e.t}</span><span>${e.text.slice(0,40)}</span></div>`
     ).join('');
   }
   // Hook effects
@@ -23899,14 +23899,14 @@ function showTimeScaleDialog() {
       <div style="font-size:10px;color:var(--dim)">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
       <div style="font-size:10px;color:var(--dim)">現在の長さ: <b style="color:var(--text)">${dur.toFixed(2)}s</b></div>
       <div style="display:grid;gap:6px;">
-        <div style="font-size:10px;color:#a0a0a0;margin-bottom:2px">プリセット:</div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:2px">プリセット:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${[['0.25x', 0.25], ['0.5x', 0.5], ['0.75x', 0.75], ['2x', 2], ['3x', 3], ['4x', 4]].map(([lbl, v]) =>
             `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
           ).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-          <span style="font-size:10px;color:#a0a0a0;white-space:nowrap">倍率:</span>
+          <span style="font-size:10px;color:var(--dim);white-space:nowrap">倍率:</span>
           <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
