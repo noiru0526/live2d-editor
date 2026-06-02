@@ -3616,10 +3616,10 @@ function updateKFList() {
     item.style.flexDirection='column'; item.style.alignItems='stretch';
     const row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;width:100%';
-    row.innerHTML=`<span style="color:${hasD?'#ffd060':'#686868'}">●</span>
+    row.innerHTML=`<span style="color:${hasD?'#ffd060':'#888'}">●</span>
       <span class="kfv">${kfv.toFixed(2)}</span>
       <span style="flex:1;font-size:10px;color:var(--dim);padding-left:6px">${hasD?'データあり':''}</span>
-      <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#c8c8c8':'#4a4a4a'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
+      <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#c8c8c8':'#707070'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
       <span class="kfd-btn" onclick="event.stopPropagation();doDelKFVal('${name}',${kfv})">×</span>`;
     item.appendChild(row);
     if (cmt) {
@@ -4662,8 +4662,8 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 3. 幅: <strong style="color:#ffd060">${EW}</strong> / 高さ: <strong style="color:#ffd060">${EH}</strong>
 <button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
 ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
-<span style="color:#686868">カメラへのアクセスを許可してください</span>
-${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#686868">0キー = デフォルトに戻す</span>`:''}
+<span style="color:#888">カメラへのアクセスを許可してください</span>
+${M.poses.length>0?`<br><strong style="color:#ffd060">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:#ffd060">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:#888">0キー = デフォルトに戻す</span>`:''}
 </div>
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
@@ -20624,7 +20624,7 @@ function drawTimeline() {
     tlCtx.fillStyle=hasD?'rgba(255,208,96,.15)':'rgba(160,160,160,.05)';
     tlCtx.fillRect(x-1,0,2,H);
     // KF value label
-    tlCtx.fillStyle=hasD?'#ffd060':'#686868';
+    tlCtx.fillStyle=hasD?'#ffd060':'#888';
     tlCtx.font='9px monospace'; tlCtx.textAlign='center';
     tlCtx.fillText(kfv.toFixed(2),x,H-2);
   }
@@ -21579,7 +21579,7 @@ function drawMultiTimeline() {
       const isLocked = tlLockedTracks.has(name);
       const isMuted = tlMutedTracks.has(name);
       const isSoloed = tlSoloTrack === name;
-      tlLabelCtx.fillStyle = isMuted ? '#3a3a3a' : isHidden ? '#3a3a3a' : (name===ST.ap ? '#c8c8c8' : '#686868');
+      tlLabelCtx.fillStyle = isMuted ? '#3a3a3a' : isHidden ? '#3a3a3a' : (name===ST.ap ? '#c8c8c8' : '#888');
       tlLabelCtx.font = '9px Segoe UI';
       const lbl = p.lbl||name;
       const shortLbl = (isHidden?'○ ':'') + (isMuted?'🔇':'') + (isSoloed?'🔊':'') + (isLocked?'🔒':'') + (lbl.length>10 ? lbl.slice(0,9)+'…' : lbl);
@@ -27223,7 +27223,7 @@ function applyPlayheadToParams() {
   // KF hover tooltip
   const _kfTip = (() => {
     const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;pointer-events:none;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e0e8ff;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
+    el.style.cssText = 'position:fixed;pointer-events:none;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:10px;font-family:monospace;color:#e8e8e8;z-index:9990;display:none;line-height:1.6;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5);';
     document.body.appendChild(el);
     return el;
   })();
@@ -27272,7 +27272,7 @@ function applyPlayheadToParams() {
       if (trackHit) {
         const {name, p, t, frames} = trackHit;
         const v = evalAnimTrack(frames, p || {min:-1,max:1,val:0}, t);
-        _kfTip.innerHTML=`<span style="color:#686868">${p?.lbl||name}</span>  @${t.toFixed(3)}s<br>v: <span style="color:#80c080">${v.toFixed(3)}</span>`;
+        _kfTip.innerHTML=`<span style="color:var(--dim)">${p?.lbl||name}</span>  @${t.toFixed(3)}s<br>v: <span style="color:#80c080">${v.toFixed(3)}</span>`;
       } else {
         _kfTip.style.display='none'; return;
       }
