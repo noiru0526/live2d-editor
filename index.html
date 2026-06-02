@@ -1139,10 +1139,10 @@ input::placeholder,textarea::placeholder{color:#707070;}
 
 <!-- Snapshot Compare Overlay -->
 <div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:#0e0e0e;z-index:180;flex-direction:column;">
-  <div style="display:flex;align-items:center;padding:6px 12px;background:var(--bg);border-bottom:1px solid #3a3a3a;gap:8px;flex-shrink:0;">
+  <div style="display:flex;align-items:center;padding:6px 8px;background:var(--bg);border-bottom:1px solid #3a3a3a;gap:8px;flex-shrink:0;">
     <span style="font-size:13px;font-weight:600;color:#fff;">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
-    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:3px 12px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
+    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:#2d2d2d;border:1px solid #3a3a3a;color:var(--dim);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
   </div>
   <div style="flex:1;display:flex;overflow:hidden;">
     <div style="flex:1;display:flex;flex-direction:column;border-right:2px solid #3a3a3a;">
@@ -1179,7 +1179,7 @@ input::placeholder,textarea::placeholder{color:#707070;}
 
 <!-- Parameter Histogram Panel -->
 <div id="histogram-panel" style="display:none;position:fixed;right:16px;top:48px;width:340px;max-height:70vh;overflow-y:auto;background:#252525;border:1px solid #3a3a3a;border-radius:8px;z-index:160;box-shadow:0 4px 20px rgba(0,0,0,.6);">
-  <div style="display:flex;align-items:center;padding:6px 10px;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;position:sticky;top:0;">
+  <div style="display:flex;align-items:center;padding:6px 8px;background:#2c2c2c;border-bottom:1px solid #3a3a3a;gap:6px;position:sticky;top:0;">
     <span style="font-size:12px;font-weight:600;color:#ffd080;">📊 KFヒストグラム</span>
     <select id="hist-param-sel" onchange="renderHistogram()" style="flex:1;font-size:11px;background:#252525;border:1px solid #3a3a3a;color:var(--text);border-radius:3px;padding:1px 4px;"></select>
     <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:#2d2d2d;border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button>
@@ -2881,7 +2881,7 @@ function updateUndoHistoryPanel() {
   if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>'; return; }
   items.forEach((s,i) => {
     const d = document.createElement('div');
-    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px;font-size:10px;cursor:pointer;border-bottom:1px solid #2e2e2e;';
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid #2e2e2e;';
     d.innerHTML=`<span style="color:#888;font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
     d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
     d.onmouseover = () => d.style.background='rgba(255,255,255,.05)';
@@ -2890,7 +2890,7 @@ function updateUndoHistoryPanel() {
   });
   if (ST.redo.length) {
     const sep=document.createElement('div');
-    sep.style.cssText='padding:3px 10px;font-size:9px;color:#707070;border-top:1px solid #2e2e2e;background:transparent';
+    sep.style.cssText='padding:3px 8px;font-size:9px;color:#707070;border-top:1px solid #2e2e2e;background:transparent';
     sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
     el.appendChild(sep);
   }
@@ -16943,7 +16943,7 @@ function showCtxMenu(x, y, items) {
     } else if (item.action === null && !item.disabled) {
       // Section header (non-clickable label)
       const el=document.createElement('div');
-      el.style.cssText='padding:3px 10px;font-size:9px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;user-select:none;';
+      el.style.cssText='padding:3px 8px;font-size:9px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;user-select:none;';
       el.textContent=(item.icon||'')+' '+(item.label||'');
       ctxMenu.appendChild(el);
     } else {
