@@ -8067,6 +8067,14 @@ function showWsTestPanel() {
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">プリセット</div>
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${presetsHtml}</div>
     </div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">⚡ パラメータ送信</div>
+      <div style="display:flex;gap:4px;align-items:center">
+        <select id="wt-param-sel" style="flex:1;background:#1a1a1a;border:1px solid #3a3a3a;color:#c0c0c0;border-radius:4px;padding:2px 5px;font-size:9px;font-family:monospace">${Object.entries(P).map(([k,v])=>`<option value="${k}">${k} — ${v.l}</option>`).join('')}</select>
+        <input id="wt-param-val" type="number" step="0.1" value="0" min="-1" max="1" style="width:56px;background:#1a1a1a;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:4px;padding:2px 5px;font-size:10px;text-align:center;font-family:monospace">
+        <button onclick="document.getElementById('wt-input').value=JSON.stringify({type:'param',name:document.getElementById('wt-param-sel').value,value:+(parseFloat(document.getElementById('wt-param-val').value).toFixed(3))||0})" style="background:rgba(80,120,200,.25);border:1px solid rgba(80,120,200,.5);color:#80a8f0;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px">→ JSON</button>
+      </div>
+    </div>
     <div style="margin-bottom:10px">
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">JSON メッセージ</div>
       <textarea id="wt-input" rows="3" style="width:100%;background:#1a1a1a;border:1px solid #3a3a3a;color:#c8c8c8;border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
