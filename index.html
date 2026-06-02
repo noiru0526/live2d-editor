@@ -148,7 +148,7 @@ button:focus:not(:focus-visible){outline:none;}
 /* Mesh settings */
 #mesh-cfg{padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;}
 .mcfg-title{font-size:11px;color:var(--dim);margin-bottom:4px;}
-.mcfg-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.mcfg-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .mcfg-row label{font-size:11px;width:44px;}
 .mcfg-row input{width:54px;background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;}
 .mcfg-row button{flex:1;background:#2d2d2d;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;cursor:pointer;font-size:11px;}
@@ -295,7 +295,7 @@ button:focus:not(:focus-visible){outline:none;}
 .ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent);transition:transform .12s;display:inline-block;}
 .ctx-section[open]>summary::before{transform:rotate(90deg);}
 .ctx-section>summary:hover{background:#303030;}
-.ctx-row{display:flex;align-items:center;padding:2px 8px 2px 20px;gap:6px;font-size:11px;}
+.ctx-row{display:flex;align-items:center;padding:2px 8px 2px 14px;gap:6px;font-size:11px;}
 .ctx-label{color:var(--dim);width:48px;flex-shrink:0;font-size:10px;}
 .ctx-val{color:var(--accent);font-family:monospace;font-size:11px;flex:1;}
 .ctx-val-input{background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:3px;font-size:11px;font-family:monospace;width:60px;text-align:right;}
@@ -650,14 +650,14 @@ input::placeholder,textarea::placeholder{color:#606060;}
       <div class="mcfg-row"><button onclick="rebuildMesh()">メッシュ再構築</button></div>
       </div><!-- mesh-cfg-body -->
     </div>
-    <div id="embed-cfg" style="padding:4px 10px;border-top:1px solid var(--border);flex-shrink:0;">
+    <div id="embed-cfg" style="padding:3px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
         <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
         <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
         <span style="color:var(--dim)">▾</span>
       </span></div>
       <div id="embed-cfg-body">
-      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:5px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:3px;">
         <input type="checkbox" id="embed-img" style="accent-color:var(--accent);">
         <span>保存時に画像を埋め込む</span>
       </label>
