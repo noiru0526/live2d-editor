@@ -5484,17 +5484,20 @@ function editExprValues(idx) {
     const isDiff=Math.abs(v-(_baseline[k]??0))>0.01;
     rows+=`<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;opacity:${isDiff?1:.35}">
       <span style="min-width:80px;font-size:9px;color:${isDiff?'#c0c0c0':'#555'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${k}">${pc.l||k}</span>
-      <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:var(--accent);height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
+      <input type="range" min="0" max="100" step="0.1" value="${sv}" data-key="${k}" data-rmin="${rmin}" data-rmax="${rmax}" style="flex:1;accent-color:var(--accent);height:3px;" oninput="(function(sl){const k=sl.dataset.key,rmin=+sl.dataset.rmin,rmax=+sl.dataset.rmax,v=rmin+(rmax-rmin)*(sl.value/100);sl.closest('.eev-wrap').querySelectorAll('[data-val='+k+']').forEach(e=>e.textContent=v.toFixed(2));sl.closest('.eev-wrap')._tmp[k]=v;pv[k]=v;render();sl.closest('div').style.opacity=Math.abs(v-(_baseline[k]??0))>0.01?1:.35;})(this)">
       <span data-val="${k}" style="font-size:8px;color:var(--dim);min-width:32px;text-align:right">${v.toFixed(2)}</span>
     </div>`;
   });
+  const _prevPV = {...pv};
+  function _eevCancel() { Object.assign(pv, _prevPV); render(); document.getElementById('expr-edit-overlay')?.remove(); }
+  ov.onclick=(e)=>{if(e.target===ov)_eevCancel();};
   ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
-    <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="document.getElementById('expr-edit-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
-    <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示</div>
+    <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
+    <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
       <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:#c0a080;border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
-      <button onclick="document.getElementById('expr-edit-overlay').remove()" style="background:rgba(60,60,60,.5);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="_eevCancel()" style="background:rgba(60,60,60,.5);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
     </div>
   </div>`;
   ov.querySelector('.eev-wrap')._tmp = {..._vals};
