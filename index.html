@@ -1141,7 +1141,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 </div>
 
 <!-- Snapshot Compare Overlay -->
-<div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:#0e0e0e;z-index:180;flex-direction:column;">
+<div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:var(--bg-deep);z-index:180;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);gap:8px;flex-shrink:0;">
     <span style="font-size:13px;font-weight:600;color:#fff;">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
@@ -1183,7 +1183,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- Parameter Histogram Panel -->
 <div id="histogram-panel" style="display:none;position:fixed;right:16px;top:48px;width:340px;max-height:70vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;z-index:160;box-shadow:0 4px 20px rgba(0,0,0,.6);">
   <div style="display:flex;align-items:center;padding:6px 8px;background:var(--header);border-bottom:1px solid var(--border);gap:6px;position:sticky;top:0;">
-    <span style="font-size:12px;font-weight:600;color:#ffd080;">📊 KFヒストグラム</span>
+    <span style="font-size:12px;font-weight:600;color:var(--gold);">📊 KFヒストグラム</span>
     <select id="hist-param-sel" onchange="renderHistogram()" style="flex:1;font-size:11px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;"></select>
     <button onclick="document.getElementById('histogram-panel').style.display='none';document.getElementById('btn-histogram').classList.remove('active');" style="background:var(--btn);border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✕</button>
   </div>
@@ -1192,7 +1192,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="hist-stats" style="margin-top:6px;font-size:10px;color:var(--dim);display:flex;gap:12px;flex-wrap:wrap;"></div>
     <div style="margin-top:8px;">
       <label style="font-size:10px;color:var(--dim);">ビン数: <span id="hist-bin-lbl">20</span></label>
-      <input type="range" id="hist-bins" min="5" max="60" value="20" oninput="document.getElementById('hist-bin-lbl').textContent=this.value;renderHistogram();" style="width:100%;margin-top:2px;accent-color:#ffd080;">
+      <input type="range" id="hist-bins" min="5" max="60" value="20" oninput="document.getElementById('hist-bin-lbl').textContent=this.value;renderHistogram();" style="width:100%;margin-top:2px;accent-color:var(--gold);">
     </div>
     <div style="margin-top:6px;display:flex;gap:6px;">
       <label style="font-size:10px;color:var(--dim);"><input type="checkbox" id="hist-all-tracks" onchange="renderHistogram()" style="margin-right:3px;">全トラック重ねて表示</label>
@@ -1214,7 +1214,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <span style="font-size:10px;color:var(--dim);">ホールド:</span>
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--dim);">s</span>
-  <span id="ab-indicator" style="font-size:11px;font-weight:600;min-width:16px;color:#ffd080;">A</span>
+  <span id="ab-indicator" style="font-size:11px;font-weight:600;min-width:16px;color:var(--gold);">A</span>
   <button onclick="stopABPlayback()" style="background:var(--btn);border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">停止</button>
 </div>
 
@@ -1325,8 +1325,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="normalizeSelectedKFValues()" title="選択KFの値を指定範囲に正規化" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊡ 正規化</button>
     <button onclick="retimeAnimation()" title="全KFの時間軸を新しいデュレーションに比例スケール（リタイム）" style="background:var(--btn);border:1px solid var(--border);color:#d0c080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⏱ リタイム</button>
     <button onclick="showAnimStats()" title="アニメーション統計情報を表示（KF数・トラック数・密度等）" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
-    <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:var(--btn);border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
-    <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:var(--btn);border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
+    <button onclick="copyAnimTimeRange()" title="アニメーション区間コピー: 指定時間範囲のKFを別の時刻にコピー" style="background:var(--btn);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⎘ 区間コピー</button>
+    <button onclick="checkLoopConsistency()" title="先頭・末尾のKF値が一致するかチェック（ループ整合性）" style="background:var(--btn);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔄 ループ確認</button>
     <button onclick="optimizeLoopPoints()" title="ループイン/アウト点を自動最適化（先頭・末尾の値差が最小になる区間を探索）" style="background:var(--btn);border:1px solid rgba(100,200,80,.4);color:#a0e060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 ループ最適化</button>
     <button onclick="normalizeToLoopRegion()" title="ループ区間を正規化: ループIN→0秒にシフト・ループ外KFを削除・継続時間をループ長に設定" style="background:var(--btn);border:1px solid rgba(100,200,80,.4);color:#80e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📐 ループ正規化</button>
     <button onclick="rescaleAnimationDuration()" title="アニメーション全体の長さをリスケール（全KFを比率で伸縮・ループ区間・マーカーも追従）" style="background:var(--btn);border:1px solid rgba(200,160,60,.4);color:var(--kf);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇔ 時間リスケール</button>
@@ -1336,7 +1336,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="bakeAnimationToFPS()" title="アニメーションをFPSベイク（全KFを均等FPSでリサンプル）" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔲 ベイク</button>
     <span title="ループ境界フェードイン（秒）: ループ先頭から指定秒かけてフェードイン。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌅イン<input type="number" id="tl-fade-in" value="0" min="0" max="60" step="0.1" oninput="_loopFadeIn=parseFloat(this.value)||0;" style="width:38px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
     <span title="ループ境界フェードアウト（秒）: ループ末尾から指定秒かけてフェードアウト。0=オフ" style="font-size:10px;color:var(--dim);white-space:nowrap;">🌇アウト<input type="number" id="tl-fade-out" value="0" min="0" max="60" step="0.1" oninput="_loopFadeOut=parseFloat(this.value)||0;" style="width:38px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;"></span>
-    <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:var(--btn);border:1px solid var(--border);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
+    <button onclick="showKFList()" title="選択パラメータの全KFタイムスタンプ・値一覧を表示（行クリックでプレイヘッド移動）" style="background:var(--btn);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📋 KFリスト</button>
     <button onclick="showParamStats()" title="選択パラメータのKF値の統計情報（最小・最大・平均・標準偏差など）" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📊 統計</button>
     <button onclick="showParamHistogram()" title="選択パラメータのKF値分布ヒストグラム" style="background:var(--btn);border:1px solid var(--border);color:#c0e0a0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📶 ヒストグラム</button>
     <button onclick="showAllParamsHeatmap()" title="全パラメータのKF値密度ヒートマップ（どのパラメータがどの値域を多く使っているか）" style="background:var(--btn);border:1px solid rgba(255,180,80,.4);color:#ffc060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🌡 値域マップ</button>
@@ -1370,7 +1370,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button id="btn-auto-kf" onclick="toggleAutoKF()" title="オートKF: スライダー操作時に自動でKFを挿入（アニメモード時）" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊕ KF</button>
     <button onclick="showCameraTrackMenu()" title="カメラアニメーション: ズーム・パンをトラックで制御" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📷</button>
     <button onclick="showProceduralAnimDialog()" title="プロシージャルアニメーション: サイン波・ノイズ・呼吸などを自動生成" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🌊 揺らぎ</button>
-    <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:var(--btn);border:1px solid rgba(255,200,80,.4);color:#ffd080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
+    <button onclick="addTimelineMarker()" title="タイムラインマーカー追加 (M): プレイヘッド位置にカラーマーカーを追加&#10;右クリックで全削除" oncontextmenu="event.preventDefault();if(confirm('全マーカーを削除しますか？')){M.animation.markers=[];drawMultiTimeline();}" style="background:var(--btn);border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔖 マーカー</button>
     <button onclick="generateBlinkAnim()" title="まばたきアニメーション自動生成（ランダム/均等分布）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👁 まばたき</button>
     <button onclick="generateIdleLoop()" title="自然なアイドルループを一括生成: まばたき・呼吸・頭揺れを同時に配置" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✨ アイドル</button>
     <button onclick="toggleGraphEditor()" id="btn-ge-toggle" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="アニメーションカーブエディタ">📈 カーブ</button>
@@ -4612,7 +4612,7 @@ ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object
     </select>
   </div>
   <div id="anim-progress-wrap" onclick="seekAnimProgress(event,this)" style="width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;cursor:pointer;position:relative;">
-    <div id="anim-progress-bar" style="width:0%;height:100%;background:#60d890;border-radius:2px;pointer-events:none;transition:none;"></div>
+    <div id="anim-progress-bar" style="width:0%;height:100%;background:var(--teal);border-radius:2px;pointer-events:none;transition:none;"></div>
   </div>
   ${(M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).length > 0 ? `<div id="clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;">${['現在'].concat((M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).map(c=>c.name)).map((n,i)=>`<button onclick="switchClip(${i-1})" id="clip-tab-${i}" style="background:${i===0?'rgba(20,50,30,.9)':'rgba(28,28,28,.88)'};border:1px solid ${i===0?'#2a7050':'rgba(255,255,255,.12)'};border-radius:4px;padding:2px 8px;color:${i===0?'#60d890':'#aaa'};font-size:9px;font-family:monospace;cursor:pointer;">${n}</button>`).join('')}</div>` : ''}
 </div>` : ''}
@@ -6892,7 +6892,7 @@ window._applyTrackPreset=function(preset){
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:70px;accent-color:var(--accent);" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--text)">👁 視線</span><input id="ts-eye" type="range" min="0.2" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--accent);" oninput="const _ev=Math.max(0.2,Math.min(3,parseFloat(this.value)));curSensEye=_ev;document.getElementById('ts-eye-val').textContent=_ev.toFixed(2);_saveTS({eye:_ev});"><span id="ts-eye-val">1.00</span></label>
 <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">表情トランジション</div>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:#ffd080">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:var(--gold);" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--gold)">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:var(--gold);" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
 <button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
   document.body.appendChild(panel);
   // Sync sliders to persisted values on DOM creation (all settings)
@@ -30762,7 +30762,7 @@ function renderHistogram() {
       <span>KF数: <b style="color:var(--text)">${allVals.length}</b></span>
       <span>最小: <b style="color:var(--accent)">${globalMin.toFixed(3)}</b></span>
       <span>最大: <b style="color:#ff8888">${globalMax.toFixed(3)}</b></span>
-      <span>平均: <b style="color:#ffd080">${mean.toFixed(3)}</b></span>
+      <span>平均: <b style="color:var(--gold)">${mean.toFixed(3)}</b></span>
       <span>σ: <b style="color:var(--teal)">${std.toFixed(3)}</b></span>
     `;
   }
