@@ -1003,6 +1003,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--dim);font-size:10px;outline:none;padding:2px 0">
         <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px">▲▲</button>
+        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px">▼▼</button>
       </div>
       <div id="params-list"></div>
       <!-- PARAM BINDINGS -->
@@ -5466,7 +5468,7 @@ function updateExpressionsUI() {
     };
     // Diff badge: count params changed from baseline (center KF value)
     const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(_exBaseline[k]??0))>0.01).length;
-    const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:#383838;color:var(--muted);border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
+    const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:var(--surface2);color:var(--muted);border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
     d.innerHTML=`<span class="ex-num" style="cursor:grab;color:var(--dim)" title="ドラッグして並び替え">⠿</span><span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name} — ダブルクリックで名前変更" ondblclick="event.stopPropagation();renameExpr(${i})">${ex.name}${diffBadge}</span>
       <button class="ex-del" onclick="event.stopPropagation();editExprValues(${i})" title="値を編集" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">✏</button>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
@@ -5479,6 +5481,8 @@ function updateExpressionsUI() {
 }
 function _previewExprLive(ex) {
   if (_exprPreviewSaved !== null) return;
+  // Cancel any in-progress expression animation before saving snapshot
+  if (_exprApplyRaf) { cancelAnimationFrame(_exprApplyRaf); _exprApplyRaf = null; }
   _exprPreviewSaved = {...pv};
   Object.assign(pv, ex.values);
   render();
@@ -6540,7 +6544,7 @@ function _lfoWaveSVG(wave, amp=0.6, offset=0) {
     v = Math.max(-1.1, Math.min(1.1, v));
     pts.push(`${(t * 76 + 2).toFixed(1)},${(10 - v * 8.5).toFixed(1)}`);
   }
-  return `<svg width="80" height="20" viewBox="0 0 80 20" style="flex-shrink:0;opacity:.65;vertical-align:middle"><line x1="2" y1="10" x2="78" y2="10" stroke="#383838" stroke-width="0.5"/><polyline points="${pts.join(' ')}" fill="none" stroke="#e07840" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg width="80" height="20" viewBox="0 0 80 20" style="flex-shrink:0;opacity:.65;vertical-align:middle"><line x1="2" y1="10" x2="78" y2="10" stroke="var(--divider)" stroke-width="0.5"/><polyline points="${pts.join(' ')}" fill="none" stroke="#e07840" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function renderLFOPanel() {
   const el = document.getElementById('lfo-list'); if (!el) return;
