@@ -5523,13 +5523,23 @@ function _hideExprPreview() {
 function renameExpr(idx) {
   if (idx < 0 || idx >= expressions.length) return;
   const ex = expressions[idx];
-  const newName = prompt('表情の名前を変更:', ex.name);
-  if (newName !== null && newName.trim()) {
-    saveState();
-    ex.name = newName.trim();
+  const item = document.querySelector(`#expr-list .ex-item:nth-child(${idx+1})`);
+  if (!item) { const n=prompt('表情の名前を変更:',ex.name); if(n&&n.trim()){saveState();ex.name=n.trim();updateExpressionsUI();setStatus(`表情名を「${ex.name}」に変更`);} return; }
+  const nameEl = item.querySelector('.ex-name');
+  if (!nameEl || item.querySelector('.ex-rename-input')) return;
+  const inp = document.createElement('input');
+  inp.className = 'ex-rename-input';
+  inp.value = ex.name;
+  inp.style.cssText = 'flex:1;background:var(--bg);border:1px solid var(--accent);color:var(--text);border-radius:var(--r-xs);padding:1px 5px;font-size:11px;outline:none;min-width:0';
+  nameEl.replaceWith(inp);
+  inp.select();
+  const commit = () => {
+    const v = inp.value.trim();
+    if (v && v !== ex.name) { saveState(); ex.name = v; setStatus(`表情名を「${ex.name}」に変更`); }
     updateExpressionsUI();
-    setStatus(`表情名を「${ex.name}」に変更`);
-  }
+  };
+  inp.onblur = commit;
+  inp.onkeydown = e => { if (e.key==='Enter'){e.preventDefault();inp.blur();} if (e.key==='Escape'){inp.value=ex.name;inp.blur();} e.stopPropagation(); };
 }
 function duplicateExpr(idx) {
   if (idx < 0 || idx >= expressions.length) return;
@@ -8202,7 +8212,7 @@ function showWsTestPanel() {
       <textarea id="wt-input" rows="3" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <button onclick="(function(){const url=document.getElementById('wt-url').value.trim();const msg=document.getElementById('wt-input').value.trim();if(!url||!msg)return;try{JSON.parse(msg);}catch(e){document.getElementById('wt-status').textContent='JSON エラー: '+e.message;document.getElementById('wt-status').style.color='#f87171';return;}const ws=new WebSocket(url);ws.onopen=()=>{ws.send(msg);document.getElementById('wt-status').textContent='送信完了: '+msg.slice(0,40);document.getElementById('wt-status').style.color='#7af070';setTimeout(()=>ws.close(),500);};ws.onerror=()=>{document.getElementById('wt-status').textContent='接続エラー: '+url;document.getElementById('wt-status').style.color='#f87171';};})()" style="flex:1;background:rgba(60,160,80,.25);border:1px solid rgba(60,160,80,.5);color:var(--ok-text);border-radius:4px;padding:6px;cursor:pointer;font-size:11px">送信</button>
+      <button onclick="(function(){const url=document.getElementById('wt-url').value.trim();const msg=document.getElementById('wt-input').value.trim();if(!url||!msg)return;try{JSON.parse(msg);}catch(e){document.getElementById('wt-status').textContent='JSON エラー: '+e.message;document.getElementById('wt-status').style.color='var(--danger)';return;}const ws=new WebSocket(url);ws.onopen=()=>{ws.send(msg);document.getElementById('wt-status').textContent='送信完了: '+msg.slice(0,40);document.getElementById('wt-status').style.color='var(--ok-text)';setTimeout(()=>ws.close(),500);};ws.onerror=()=>{document.getElementById('wt-status').textContent='接続エラー: '+url;document.getElementById('wt-status').style.color='var(--danger)';};})()" style="flex:1;background:rgba(60,160,80,.25);border:1px solid rgba(60,160,80,.5);color:var(--ok-text);border-radius:4px;padding:6px;cursor:pointer;font-size:11px">送信</button>
       <span id="wt-status" style="flex:2;font-size:9px;color:var(--dim);font-family:monospace"></span>
     </div>
   </div>`;
@@ -10098,7 +10108,7 @@ function initCam(){
   cam.start().then(()=>{
     if(SHOW_STATUS||PERF_HUD){_stEl.textContent='✓ Camera';_stEl.style.color='#70d870';}
     setInterval(()=>{if(SHOW_STATUS||PERF_HUD)_stEl.textContent=(tracking?'✓':'✗')+' | '+_fpsVal+'fps / '+TARGET_FPS+'fps'+' | '+Date().slice(16,21);},1000);
-  }).catch(()=>{if(SHOW_STATUS||PERF_HUD){_stEl.textContent='No camera';_stEl.style.color='#f87171';}});
+  }).catch(()=>{if(SHOW_STATUS||PERF_HUD){_stEl.textContent='No camera';_stEl.style.color='var(--danger)';}});
 }
 // ===== STREAMING WIDGETS =====
 (function(){
@@ -10147,7 +10157,7 @@ function initCam(){
     setInterval(()=>{
       const rem=Math.max(0,_cdEnd-Date.now());
       if(_cdEl)_cdEl.textContent=fmtDur(rem);
-      if(rem<=0&&_cdEl){_cdEl.style.color='#f87171';_cdEl.textContent='TIME!';}
+      if(rem<=0&&_cdEl){_cdEl.style.color='var(--danger)';_cdEl.textContent='TIME!';}
     },500);
     window._cdReset=(s)=>{_cdEnd=Date.now()+(s||cdSecs)*1000;if(_cdEl){_cdEl.style.color='';}}
   }
