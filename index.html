@@ -269,10 +269,10 @@ button:focus:not(:focus-visible){outline:none;}
 /* Param groups — Cubism folder style */
 .pgroup-header{display:flex;align-items:center;padding:2px 8px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--surface);transition:background .08s;}
 .pgroup-header:hover{background:var(--panel);}
-.pgroup-icon{font-size:10px;margin-right:4px;color:var(--dim);}
-.pgroup-label{font-size:10px;font-weight:500;color:var(--dim);flex:1;letter-spacing:.5px;}
+.pgroup-icon{font-size:10px;margin-right:4px;color:var(--text);}
+.pgroup-label{font-size:10px;font-weight:500;color:var(--text);flex:1;letter-spacing:.5px;}
 .pgroup-count{font-size:9px;color:var(--muted);font-family:monospace;}
-.pgroup-toggle{font-size:9px;color:var(--dim);margin-left:6px;}
+.pgroup-toggle{font-size:9px;color:var(--text);margin-left:6px;}
 .pgroup-body{border-bottom:1px solid var(--divider);}
 
 /* Weight paint */
@@ -294,13 +294,13 @@ button:focus:not(:focus-visible){outline:none;}
 .ctx-info-name{font-size:11px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ctx-info-type{font-size:10px;color:var(--accent);background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.35);border-radius:var(--r-md);padding:1px 6px;flex-shrink:0;}
 .ctx-section{border-bottom:1px solid var(--divider);}
-.ctx-section>summary{display:flex;align-items:center;padding:2px 8px;cursor:pointer;font-size:11px;color:var(--dim);font-weight:500;letter-spacing:0.4px;text-transform:uppercase;list-style:none;user-select:none;background:var(--header);border-bottom:1px solid var(--border);transition:background .08s;}
+.ctx-section>summary{display:flex;align-items:center;padding:2px 8px;cursor:pointer;font-size:11px;color:var(--text);font-weight:500;letter-spacing:0.4px;text-transform:uppercase;list-style:none;user-select:none;background:var(--header);border-bottom:1px solid var(--border);transition:background .08s;}
 .ctx-section>summary::-webkit-details-marker{display:none;}
 .ctx-section>summary::before{content:'▶';font-size:8px;margin-right:5px;color:var(--accent);transition:transform .12s;display:inline-block;}
 .ctx-section[open]>summary::before{transform:rotate(90deg);}
 .ctx-section>summary:hover{background:var(--surface2);}
 .ctx-row{display:flex;align-items:center;padding:2px 8px 2px 14px;gap:6px;font-size:11px;}
-.ctx-label{color:var(--dim);width:48px;flex-shrink:0;font-size:10px;}
+.ctx-label{color:var(--text);width:48px;flex-shrink:0;font-size:10px;}
 .ctx-val{color:var(--accent);font-family:monospace;font-size:11px;flex:1;}
 .ctx-val-input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:var(--r-sm);font-size:11px;font-family:monospace;width:60px;text-align:right;}
 .ctx-val-input:focus{outline:none;border-color:var(--accent);}
@@ -309,7 +309,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 /* ===== UX PATTERN 3: Timeline Track Controls (Adobe Animate Style) ===== */
 #tl-track-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;}
 .tl-track-label-row{position:absolute;left:0;width:90px;display:flex;align-items:center;padding:0 2px 0 3px;box-sizing:border-box;pointer-events:auto;}
-.tl-track-name{font-size:11px;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.tl-track-name{font-size:11px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
 .tl-track-name.active{color:var(--text);}
 .tl-track-name.sync-sel{color:var(--accent);font-weight:600;}
 .tl-track-eye{background:none;border:none;cursor:pointer;font-size:10px;padding:0 1px;line-height:1;opacity:.5;flex-shrink:0;}
@@ -426,18 +426,18 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div class="lpanel" id="lpanel-params">
     <div class="ptitle" style="display:flex;align-items:center;">パラメータ
       <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;line-height:1;" title="パラメータを追加 (+)">+</button>
-      <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
-      <button onclick="autoGroupParams()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 4px;" title="名前プレフィックスで自動グルーピング">A</button>
+      <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
+      <button onclick="autoGroupParams()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:11px;padding:0 4px;" title="名前プレフィックスで自動グルーピング">A</button>
     </div>
     <div style="padding:2px 6px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
         style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 6px;border-radius:3px;font-size:11px;outline:none;">
-      <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
-      <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
-      <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
-      <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
+      <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
+      <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
+      <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
+      <button onclick="takeParamSnapshot()" title="現在のパラメータ値をスナップショット記録（compareParamSnapshotで比較）" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;" id="btn-snap-take">📷</button>
       <button onclick="compareParamSnapshot()" title="スナップショットと現在値の差分を一覧表示" style="background:none;border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">Δ</button>
-      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
+      <button onclick="showParamBatchEdit()" title="全パラメータのラベル・min/max・ステップを一覧表示して一括編集" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">⚙ 一括</button>
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:2px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
@@ -465,13 +465,13 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <input type="file" id="part-file-input" accept="image/*" style="display:none" onchange="onPartFileInput(this)">
       <div id="part-ctrl" style="margin-top:5px;padding-top:4px;border-top:1px solid var(--divider);">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-          <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">不透明:</label>
+          <label style="font-size:10px;color:var(--text);width:36px;flex-shrink:0;">不透明:</label>
           <input type="range" id="part-opacity-slider" min="0" max="100" value="100" oninput="setActivePartOpacity(this.value)"
             style="flex:1;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;accent-color:var(--accent);">
           <span id="part-opacity-val" style="font-size:10px;width:28px;text-align:right;color:var(--accent);">100%</span>
         </div>
         <div style="display:flex;align-items:center;gap:4px;">
-          <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">合成:</label>
+          <label style="font-size:10px;color:var(--text);width:36px;flex-shrink:0;">合成:</label>
           <select id="part-blend-select" onchange="setActivePartBlend(this.value)"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="source-over">通常</option>
@@ -484,7 +484,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
           </select>
         </div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
-          <label style="font-size:10px;color:var(--dim);width:36px;flex-shrink:0;">クリップ:</label>
+          <label style="font-size:10px;color:var(--text);width:36px;flex-shrink:0;">クリップ:</label>
           <select id="part-clip-select" onchange="setActivePartClip(this.value)"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="">なし</option>
@@ -492,16 +492,16 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </div>
         <div style="height:1px;background:var(--border);margin:4px 0;"></div>
         <div style="display:grid;grid-template-columns:30px 1fr 24px;align-items:center;gap:2px 4px;font-size:9px;">
-          <span style="color:var(--dim);">明度</span>
+          <span style="color:var(--text);">明度</span>
           <input type="range" id="part-f-b" min="0" max="200" value="100" oninput="setPartFilter('b',this.value)" style="height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;width:100%;accent-color:var(--accent);">
           <span id="part-f-b-v" style="color:var(--accent);text-align:right;">100</span>
-          <span style="color:var(--dim);">コン</span>
+          <span style="color:var(--text);">コン</span>
           <input type="range" id="part-f-c" min="0" max="200" value="100" oninput="setPartFilter('c',this.value)" style="height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;width:100%;accent-color:var(--accent);">
           <span id="part-f-c-v" style="color:var(--accent);text-align:right;">100</span>
-          <span style="color:var(--dim);">彩度</span>
+          <span style="color:var(--text);">彩度</span>
           <input type="range" id="part-f-s" min="0" max="200" value="100" oninput="setPartFilter('s',this.value)" style="height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;width:100%;accent-color:var(--accent);">
           <span id="part-f-s-v" style="color:var(--accent);text-align:right;">100</span>
-          <span style="color:var(--dim);">色相</span>
+          <span style="color:var(--text);">色相</span>
           <input type="range" id="part-f-h" min="-180" max="180" value="0" oninput="setPartFilter('h',this.value)" style="height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;width:100%;accent-color:var(--accent);">
           <span id="part-f-h-v" style="color:var(--accent);text-align:right;">0°</span>
         </div>
