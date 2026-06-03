@@ -262,7 +262,7 @@ button:focus:not(:focus-visible){outline:none;}
 /* Physics enhanced */
 .phys-group{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:2px 6px;margin-bottom:2px;}
 .phys-row{display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:10px;}
-.phys-row label{color:var(--dim);width:55px;flex-shrink:0;}
+.phys-row label{color:var(--text);width:55px;flex-shrink:0;}
 .phys-row input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:var(--border);border-radius:var(--r-xs);outline:none;cursor:pointer;accent-color:var(--accent);}
 .phys-val{font-size:10px;color:var(--accent);width:35px;text-align:right;}
 
@@ -19231,7 +19231,7 @@ function _midiRenderCCList() {
   Object.entries(M.midiMappings.cc).forEach(([cc, param]) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg);border-radius:3px;font-size:9px;';
-    row.innerHTML = `<code style="color:var(--accent);background:var(--bg);padding:1px 4px;border-radius:2px;">CC${cc}</code><span style="flex:1;color:var(--dim);">→ ${param}</span><button onclick="delete M.midiMappings.cc['${cc}'];_midiRenderCCList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML = `<code style="color:var(--accent);background:var(--bg);padding:1px 4px;border-radius:2px;">CC${cc}</code><span style="flex:1;color:var(--text);">→ ${param}</span><button onclick="delete M.midiMappings.cc['${cc}'];_midiRenderCCList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19245,7 +19245,7 @@ function _midiRenderNoteList() {
     const nn = noteNames[parseInt(note) % 12] + Math.floor(parseInt(note) / 12 - 1);
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg);border-radius:3px;font-size:9px;';
-    row.innerHTML = `<code style="color:var(--pink);background:var(--bg);padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:var(--dim);">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML = `<code style="color:var(--pink);background:var(--bg);padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:var(--text);">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19352,7 +19352,7 @@ function _gpadRenderAxisList() {
   list.innerHTML = '';
   (M.gamepadMappings?.axes||[]).forEach(m => {
     const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg);border-radius:3px;font-size:9px;';
-    row.innerHTML=`<code style="color:#60e090;background:#0e2010;padding:1px 4px;border-radius:2px;">A${m.axis}</code><span style="flex:1;color:var(--dim);">→ ${m.param} ×${m.scale||1}</span><button onclick="M.gamepadMappings.axes=M.gamepadMappings.axes.filter(a=>a.axis!==${m.axis});_gpadRenderAxisList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML=`<code style="color:#60e090;background:#0e2010;padding:1px 4px;border-radius:2px;">A${m.axis}</code><span style="flex:1;color:var(--text);">→ ${m.param} ×${m.scale||1}</span><button onclick="M.gamepadMappings.axes=M.gamepadMappings.axes.filter(a=>a.axis!==${m.axis});_gpadRenderAxisList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -19361,7 +19361,7 @@ function _gpadRenderBtnList() {
   list.innerHTML = '';
   (M.gamepadMappings?.buttons||[]).forEach(m => {
     const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg);border-radius:3px;font-size:9px;';
-    row.innerHTML=`<code style="color:#ffa060;background:var(--bg);padding:1px 4px;border-radius:2px;">B${m.btn}</code><span style="flex:1;color:var(--dim);">→ ${m.target}</span><button onclick="M.gamepadMappings.buttons=M.gamepadMappings.buttons.filter(b=>b.btn!==${m.btn});_gpadRenderBtnList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML=`<code style="color:#ffa060;background:var(--bg);padding:1px 4px;border-radius:2px;">B${m.btn}</code><span style="flex:1;color:var(--text);">→ ${m.target}</span><button onclick="M.gamepadMappings.buttons=M.gamepadMappings.buttons.filter(b=>b.btn!==${m.btn});_gpadRenderBtnList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
