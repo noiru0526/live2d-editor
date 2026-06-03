@@ -125,7 +125,7 @@ button:focus:not(:focus-visible){outline:none;}
 .kfi:hover{background:rgba(255,208,96,.1);}
 .kfi.sel{background:rgba(255,208,96,.2);}
 .kfv{font-family:monospace;font-size:11px;color:var(--kf);}
-.kfd-btn{color:var(--dim);font-size:11px;margin-left:auto;padding:0 3px;transition:color .1s;}
+.kfd-btn{color:var(--text);font-size:11px;margin-left:auto;padding:0 3px;transition:color .1s;}
 .kfd-btn:hover{color:var(--danger);}
 #kf-btns{padding:2px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
 #kf-btns button{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:2px 8px;cursor:pointer;font-size:10px;text-align:left;transition:background .1s,border-color .1s;}
@@ -395,7 +395,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <button class="tbtn" id="btn-param-scan"   onclick="toggleParamScan()"   title="パラメータスキャン">🔍</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="openRigger()" title="リギングエディタ (Ctrl+R)" style="color:var(--text);">🔧 リガー</button>
-  <button class="tbtn" onclick="autoScreenshot()" title="スクリーンショット (Ctrl+Shift+C)" style="color:var(--dim);">📸 SS</button>
+  <button class="tbtn" onclick="autoScreenshot()" title="スクリーンショット (Ctrl+Shift+C)" style="color:var(--text);">📸 SS</button>
   <div class="tsep"></div>
   <button class="tbtn" onclick="showShortcutHelp()" title="ショートカット一覧 (?)">?</button>
   <button class="tbtn" id="btn-theme" onclick="cycleEditorTheme()" title="テーマ切替">🎨</button>
@@ -444,7 +444,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
       <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
-      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
+      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
       <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
     </div>
     <div id="params"></div>
@@ -508,7 +508,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div>
     </div>
     <div style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="savePoseAtPlayhead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;" title="再生ヘッド位置のアニメーション値をポーズ保存（アニメモード時）">⏱+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
+      <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="savePoseAtPlayhead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;" title="再生ヘッド位置のアニメーション値をポーズ保存（アニメモード時）">⏱+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
       <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 2px;font-size:9px;color:var(--dim);">
         <span>遷移</span>
         <input type="range" id="pose-tween-dur" min="0" max="1" step="0.05" value="0.3"
@@ -872,7 +872,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-row"><button onclick="showBrowSetup()">眉毛セットアップ</button></div>
       <div class="mcfg-row"><button onclick="showMouthSetup()">口 セットアップ</button></div>
       <div class="mcfg-row"><button onclick="faceAutoDetect()" style="color:var(--gold);" title="MediaPipe で顔ランドマーク自動検出">顔ランドマーク自動検出</button></div>
-      <div class="mcfg-row"><button onclick="addVTuberParams()" style="color:var(--dim);">+ VTuberパラメータ追加</button></div>
+      <div class="mcfg-row"><button onclick="addVTuberParams()" style="color:var(--text);">+ VTuberパラメータ追加</button></div>
       <div class="mcfg-row"><button onclick="showMouthShapeSetup()">口形 A/I/U セットアップ</button></div>
       <div class="mcfg-row"><button onclick="showEyeLookSetup()" style="color:var(--text);">目線（eyeX/Y）セットアップ</button></div>
       <div class="mcfg-row"><button onclick="scaleModelAll()" style="color:var(--accent-light);" title="全パーツのメッシュ頂点をセンターから拡縮（モデル全体サイズ変更）">⤢ モデル全体スケール</button></div>
@@ -890,9 +890,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('spring-body',this)">🌊 バネ骨格<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="spring-body">
       <div style="display:flex;gap:4px;margin-bottom:2px;">
-        <button onclick="addSpringBone()" style="flex:1;color:var(--dim);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
-        <button id="phys-sim-btn" onclick="togglePhysSim()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="リアルタイム物理シミュレーター ON/OFF">▶ シミュ</button>
-        <button onclick="resetPhysSim()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
+        <button onclick="addSpringBone()" style="flex:1;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
+        <button id="phys-sim-btn" onclick="togglePhysSim()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="リアルタイム物理シミュレーター ON/OFF">▶ シミュ</button>
+        <button onclick="resetPhysSim()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
         <button onclick="bakePhysToTimeline()" style="background:var(--kf-bg);border:1px solid rgba(200,180,80,.4);color:var(--kf);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
       </div>
       <div id="spring-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
@@ -942,8 +942,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <div style="font-size:9px;color:var(--dim);margin-bottom:2px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
         <div id="ma-slots" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
         <div style="display:flex;gap:4px;">
-          <button onclick="addMASlot()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
-          <button onclick="generateMultiAvatarHTML()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📤 HTML生成</button>
+          <button onclick="addMASlot()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
+          <button onclick="generateMultiAvatarHTML()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📤 HTML生成</button>
         </div>
       </div>
     </div>
@@ -1156,7 +1156,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div style="display:flex;align-items:center;padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);gap:8px;flex-shrink:0;">
     <span style="font-size:12px;font-weight:600;color:var(--text-bright);">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
-    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:var(--btn);border:1px solid var(--border);color:var(--dim);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
+    <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:var(--btn);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
   </div>
   <div style="flex:1;display:flex;overflow:hidden;">
     <div style="flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);">
@@ -1174,7 +1174,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <div id="rnd-pose-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:var(--surface);border:1px solid rgba(255,144,208,.3);border-radius:8px;z-index:162;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:10px 14px;min-width:280px;max-height:60vh;overflow-y:auto;">
   <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
     <span style="font-size:12px;font-weight:600;color:var(--pink);">🎲 ランダムポーズ設定</span>
-    <button onclick="document.getElementById('rnd-pose-panel').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;">✕</button>
+    <button onclick="document.getElementById('rnd-pose-panel').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:13px;">✕</button>
   </div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -1242,7 +1242,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="modal-title" style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text-bright);"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="closeModal()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);padding:5px 16px;border-radius:4px;cursor:pointer;">キャンセル</button>
+      <button onclick="closeModal()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);padding:5px 16px;border-radius:4px;cursor:pointer;">キャンセル</button>
       <button id="modal-ok" style="background:rgba(224,120,64,.8);border:none;color:#fff;padding:5px 16px;border-radius:4px;cursor:pointer;">適用</button>
     </div>
   </div>
@@ -1252,7 +1252,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div id="tl-header">
     <span id="tl-param-name">headX</span>
     <span style="font-size:10px;color:var(--dim)">キーフレームをクリックで移動</span>
-    <button onclick="toggleAnimMode()" id="btn-anim-mode" style="margin-left:auto;background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="Aキーでアニメーションモード切替">🎬 アニメ</button>
+    <button onclick="toggleAnimMode()" id="btn-anim-mode" style="margin-left:auto;background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="Aキーでアニメーションモード切替">🎬 アニメ</button>
     <button onclick="addKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">+ KF追加</button>
   </div>
   <div id="tl-track">
@@ -1265,9 +1265,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div id="tl-multi-header">
     <button onclick="animMultiPlay()" id="btn-multi-play" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">▶</button>
     <button onclick="animMultiStop()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:11px;">■</button>
-    <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
+    <button id="btn-ab-snap-a" onclick="abSnapShot('A')" title="現在のアニメーショントラックをAとして記録" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A記録</button>
     <button id="btn-ab-snap-b" onclick="abSnapShot('B')" title="現在のアニメーショントラックをBとして記録" style="background:var(--bg);border:1px solid rgba(255,160,100,.4);color:#ffb060;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">B記録</button>
-    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:var(--bg);border:1px solid rgba(150,150,150,.3);color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
+    <button id="btn-ab-play" onclick="toggleABPlay()" title="A/B交互再生（2秒ごとに切替）&#10;右クリックで切替間隔を変更" oncontextmenu="event.preventDefault();const v=prompt('A/B切替間隔（秒）',_abInterval||2);if(v&&!isNaN(+v))_abInterval=+v;" style="background:var(--bg);border:1px solid rgba(150,150,150,.3);color:var(--text);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;">A/B</button>
     <select id="tl-speed" title="再生速度" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 2px;font-size:10px;cursor:pointer;">
       <option value="-1">-1x</option>
       <option value="0.25">0.25x</option>
@@ -1305,18 +1305,18 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         style="width:36px;background:var(--bg);border:1px solid var(--border);color:#ffa080;padding:1px 3px;border-radius:3px;font-size:10px;"
         onchange="M.animation.loopOut=this.value===''?null:(parseFloat(this.value)||null);">
     </label>
-    <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
-    <button onclick="addAnimKF()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
-    <button onclick="copyAnimKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
-    <button onclick="pasteAnimKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
+    <button onclick="insertPoseKF()" title="現在のすべてのパラメータ値をKFとして現在時刻に挿入" style="margin-left:auto;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📸 ポーズKF</button>
+    <button onclick="addAnimKF()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">+ タイムKF</button>
+    <button onclick="copyAnimKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="現在のKFをコピー">コピー</button>
+    <button onclick="pasteAnimKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="KFをペースト">ペースト</button>
     <button onclick="selectAllAnimKF()" style="background:var(--btn);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="全KFを選択してスケール">全選択</button>
-    <button onclick="showAnimEasing()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
+    <button onclick="showAnimEasing()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;" title="イージング設定">イージング</button>
     <button onclick="clearAnimTracks()" style="background:var(--btn);border:1px solid var(--border);color:var(--danger);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">クリア</button>
     <button onclick="cleanAnimTracks()" title="値が変化しないフラットなトラックを一括削除" style="background:var(--btn);border:1px solid var(--border);color:#c0a080;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🧹 クリーン</button>
     <button onclick="addAnimMarker()" title="現在のプレイヘッド位置にマーカーを追加 (M)" style="background:var(--btn);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📍 マーカー</button>
     <button onclick="addBPMMarkers()" title="BPM基準でビートマーカーを一括生成" style="background:var(--btn);border:1px solid rgba(255,160,60,.4);color:#ffb040;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎵 BPM</button>
-    <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
-    <button onclick="showPoseSequencer()" title="複数ポーズを順番に並べてアニメーションKFを自動生成（ループ可）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔀 シーケンサー</button>
+    <button onclick="showAnimTemplates()" title="よく使うアニメーションテンプレートを適用" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">✨ テンプレ</button>
+    <button onclick="showPoseSequencer()" title="複数ポーズを順番に並べてアニメーションKFを自動生成（ループ可）" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🔀 シーケンサー</button>
     <button onclick="padToNeutral()" title="全トラックのt=0とt=尺にニュートラル(0)KFを自動追加" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⌬ 補完</button>
     <button onclick="showTimeStretch()" title="全KFの時刻を倍率で一括スケーリング" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⏱ 速度</button>
     <button onclick="showKFShift()" title="KFを時刻方向にシフト" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">↔ シフト</button>
@@ -1407,8 +1407,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button id="btn-bgm-sync" onclick="toggleBGMSync()" title="BGM同期再生: アニメーション再生時にBGMを同期して再生/停止" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;display:none;">🔊 同期</button>
     <button onclick="showLipSyncDialog()" title="BGM波形の音量からmouthOpenキーフレームを自動生成" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">👄 口パクKF</button>
     <button onclick="showAllKfNotes()" title="全トラックのノート付きKFを一覧表示・クリックでジャンプ" style="background:#2a1508;border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">📝 ノート</button>
-    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
-    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
+    <button onclick="showAIPoseInterpDialog()" title="AIポーズ補間: Gemini AIが2つのポーズ間の自然な中間ポーズを自動生成" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🤖 AI補間</button>
+    <button onclick="showAIAnimCritiqueDialog()" title="AIアニメ批評: Gemini AIが現在のアニメーションを分析し改善点を提案" style="background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🔬 AI批評</button>
     <button onclick="showAIDanceMotionDialog()" title="AIダンスモーション生成: BPMとスタイルを指定してGeminiがダンスKFを自動生成" style="background:#221520;border:1px solid rgba(255,80,200,.5);color:#ff60d0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">💃 AI踊</button>
     <button onclick="showAICharacterCoachDialog()" title="AIキャラクターコーチ: GeminiがアニメーションをリアルタイムでレビューしVTuber向け改善提案をする" style="background:#0a200a;border:1px solid rgba(60,220,100,.5);color:#40dd70;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🎯 AIコーチ</button>
     <button onclick="showKFDensityHeatmap()" title="KF密度ヒートマップ: 全トラックのキーフレーム密度を時間×トラック2Dマップで可視化" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">🗺 KF密度</button>

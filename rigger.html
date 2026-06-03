@@ -467,7 +467,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="font-size:9px;color:var(--dim);flex-shrink:0">🏷</span>
         <div class="pi-clr-swatch" id="cf-f87171" onclick="toggleColorFilter('#f87171')" style="width:11px;height:11px;background:#f87171;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f87171でフィルター"></div><div class="pi-clr-swatch" id="cf-fb923c" onclick="toggleColorFilter('#fb923c')" style="width:11px;height:11px;background:#fb923c;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#fb923cでフィルター"></div><div class="pi-clr-swatch" id="cf-facc15" onclick="toggleColorFilter('#facc15')" style="width:11px;height:11px;background:#facc15;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#facc15でフィルター"></div><div class="pi-clr-swatch" id="cf-4ade80" onclick="toggleColorFilter('#4ade80')" style="width:11px;height:11px;background:#4ade80;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#4ade80でフィルター"></div><div class="pi-clr-swatch" id="cf-22d3ee" onclick="toggleColorFilter('#22d3ee')" style="width:11px;height:11px;background:#22d3ee;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#22d3eeでフィルター"></div><div class="pi-clr-swatch" id="cf-60a5fa" onclick="toggleColorFilter('#60a5fa')" style="width:11px;height:11px;background:#60a5fa;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#60a5faでフィルター"></div><div class="pi-clr-swatch" id="cf-c084fc" onclick="toggleColorFilter('#c084fc')" style="width:11px;height:11px;background:#c084fc;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#c084fcでフィルター"></div><div class="pi-clr-swatch" id="cf-f9a8d4" onclick="toggleColorFilter('#f9a8d4')" style="width:11px;height:11px;background:#f9a8d4;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f9a8d4でフィルター"></div>
         <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:var(--dim);" title="ラベルなしのみ表示">∅</div>
-        <button onclick="partsColorFilter=null;document.querySelectorAll('[id^=cf-]').forEach(e=>e.style.boxShadow='');updatePartsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0;margin-left:2px;" title="カラーフィルターをクリア">×</button>
+        <button onclick="partsColorFilter=null;document.querySelectorAll('[id^=cf-]').forEach(e=>e.style.boxShadow='');updatePartsUI()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:9px;padding:0;margin-left:2px;" title="カラーフィルターをクリア">×</button>
       </div>
       <div id="parts-list"></div>
       <!-- Live part preview -->
@@ -641,7 +641,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid var(--border);border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:var(--dim)">
       <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:3px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:3px">📂 画像を読み込む</button>
+      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid var(--divider);color:var(--text);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:3px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:var(--accent)" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
@@ -782,7 +782,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <input class="prop-in" id="pp-x" type="number" oninput="applyPartXY()">
           <span id="pp-coord-lbl-y" class="prop-lbl" style="margin-left:2px">Y</span>
           <input class="prop-in" id="pp-y" type="number" oninput="applyPartXY()">
-          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
+          <button id="pp-coord-btn" title="グローバル座標モード：中心基準の絶対座標" onclick="toggleGlobalCoordMode()" style="font-size:8px;padding:1px 3px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:2px;cursor:pointer;margin-left:2px">LC</button>
         </div>
         <div class="prop-row">
           <span class="prop-lbl">W/H</span>
@@ -809,7 +809,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:2px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:2px;font-size:9px;color:var(--dim);user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:2px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:2px;font-size:9px;color:var(--text);user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -903,7 +903,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
-        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(150,150,150,.05);border:1px dashed rgba(150,150,150,.2);color:var(--dim);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
+        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(150,150,150,.05);border:1px dashed rgba(150,150,150,.2);color:var(--text);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         </div><!-- end pp-ext-body -->
         <!-- Legacy clip/deformer/group selects (hidden - replaced by ci-row at top) -->
         <select id="pp-clip" style="display:none" onchange="applyPartClip(this.value)"><option value="">なし</option></select>
@@ -924,8 +924,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
-              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
-              <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
+              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid var(--divider);color:var(--text);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid var(--divider);color:var(--text);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
@@ -962,7 +962,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button class="tbtn" onclick="distributeParts('v')" style="font-size:8px;padding:2px 0" title="垂直等間隔">↕ 等間隔</button>
           </div>
           <div style="margin-top:2px;">
-            <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:var(--dim)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
+            <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:var(--text)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
           </div>
         </div>
       </div>
