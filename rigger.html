@@ -5386,12 +5386,32 @@ function confirmExpr() {
   setStatus(`表情「${nm}」を保存 (${expressions.length}個)`);
 }
 function cancelExpr() { document.getElementById('exmod').style.display='none'; pendingExprValues=null; }
+let _exprApplyRaf = null;
 function applyExpr(idx) {
   if (idx<0||idx>=expressions.length) return;
   _exprPreviewSaved = null;
-  activeExprIdx=idx; Object.assign(pv, expressions[idx].values);
-  buildParamsUI(); render(); updateExpressionsUI();
-  setStatus(`表情「${expressions[idx].name}」を適用`);
+  const ex = expressions[idx];
+  activeExprIdx = idx;
+  updateExpressionsUI();
+  setStatus(`表情「${ex.name}」を適用`);
+  // Smooth interpolation over 200ms
+  if (_exprApplyRaf) { cancelAnimationFrame(_exprApplyRaf); _exprApplyRaf = null; }
+  const from = {...pv};
+  const to = ex.values;
+  const dur = 200;
+  const t0 = performance.now();
+  function step(ts) {
+    const t = Math.min(1, (ts - t0) / dur);
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease-in-out quad
+    for (const k of Object.keys(to)) {
+      const a = from[k] ?? 0, b = to[k] ?? 0;
+      pv[k] = a + (b - a) * ease;
+    }
+    render();
+    if (t < 1) { _exprApplyRaf = requestAnimationFrame(step); }
+    else { Object.assign(pv, to); buildParamsUI(); render(); _exprApplyRaf = null; }
+  }
+  _exprApplyRaf = requestAnimationFrame(step);
 }
 function deleteExpr(idx) {
   saveState();
@@ -5400,9 +5420,19 @@ function deleteExpr(idx) {
   updateExpressionsUI(); setStatus(`表情「${nm}」を削除`);
 }
 function resetAllParams() {
-  for (const k of Object.keys(pv)) pv[k]=0;
-  activeExprIdx=-1; buildParamsUI(); render(); updateExpressionsUI();
-  setStatus('パラメータをリセット');
+  if (_exprApplyRaf) { cancelAnimationFrame(_exprApplyRaf); _exprApplyRaf = null; }
+  const from = {...pv};
+  activeExprIdx = -1; updateExpressionsUI(); setStatus('パラメータをリセット');
+  const dur = 200, t0 = performance.now();
+  function step(ts) {
+    const t = Math.min(1, (ts - t0) / dur);
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    for (const k of Object.keys(from)) pv[k] = from[k] * (1 - ease);
+    render();
+    if (t < 1) { _exprApplyRaf = requestAnimationFrame(step); }
+    else { for (const k of Object.keys(pv)) pv[k]=0; buildParamsUI(); render(); _exprApplyRaf = null; }
+  }
+  _exprApplyRaf = requestAnimationFrame(step);
 }
 function updateExpressionsUI() {
   _exprPreviewSaved = null;
@@ -7531,14 +7561,14 @@ function showSnapshotCompare() {
   const header = `<div style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:12px">📸 スナップショット比較</div>`;
   const imgStyle = 'max-width:46vw;max-height:70vh;border-radius:4px;object-fit:contain;';
   const aHTML = _snapA
-    ? `<div style="text-align:center"><div style="font-size:10px;color:#60d8a0;margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid #60d8a0;"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #3d7060;border-radius:4px;color:#6ab090;font-size:11px">未撮影</div>`;
+    ? `<div style="text-align:center"><div style="font-size:10px;color:var(--teal);margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid var(--teal);"></div>`
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed var(--border);border-radius:4px;color:var(--dim);font-size:11px">未撮影</div>`;
   const bHTML = _snapB
     ? `<div style="text-align:center"><div style="font-size:10px;color:var(--accent);margin-bottom:4px;font-weight:600">B（変形後）</div><img src="${_snapB}" style="${imgStyle}border:2px solid var(--accent);"></div>`
-    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed #585848;border-radius:4px;color:var(--dim);font-size:11px">未撮影</div>`;
+    : `<div style="display:flex;align-items:center;justify-content:center;width:280px;height:200px;border:2px dashed var(--border);border-radius:4px;color:var(--dim);font-size:11px">未撮影</div>`;
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
-      <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:#60d8a0;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
+      <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:var(--teal);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
       <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
       <button onclick="this.closest('[style]').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
     </div>`;
