@@ -817,7 +817,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--dim)">パーティクル演出:</label>
+        <label style="font-size:10px;color:var(--text)">パーティクル演出:</label>
         <select id="export-particle" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="">なし</option>
           <option value="hearts">💗 ハート</option>
@@ -851,7 +851,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim)">クレジット表示テキスト（空=非表示）</label>
+        <label style="font-size:10px;color:var(--text)">クレジット表示テキスト（空=非表示）</label>
         <input id="export-credit" type="text" placeholder="Made with noiru-editor / © yourname" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
         <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:4px;margin-top:2px;">
           位置:
@@ -900,7 +900,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         頂点を選択→追加 (髪・耳・アクセサリー等)<br>エクスポートHTMLで二次揺れが有効</div>
       <!-- Physics enhanced controls -->
       <div id="phys-global" style="margin-top:2px;border-top:1px solid var(--border);padding-top:2px;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:2px;">物理グローバル設定</div>
+        <div style="font-size:10px;color:var(--text);margin-bottom:2px;">物理グローバル設定</div>
         <div class="phys-row"><label>重力X</label><input type="range" id="phys-gx" min="-1" max="1" step="0.05" value="0" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gx-v">0.00</span></div>
         <div class="phys-row"><label>重力Y</label><input type="range" id="phys-gy" min="-1" max="1" step="0.05" value="0.3" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gy-v">0.30</span></div>
         <div class="phys-row"><label>風力X</label><input type="range" id="phys-wx" min="-1" max="1" step="0.05" value="0" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-wx-v">0.00</span></div>
@@ -920,7 +920,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
           <textarea id="prof-desc" placeholder="説明・備考" rows="2" oninput="updateProfile('description',this.value)"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;resize:vertical;"></textarea>
           <input type="text" id="prof-tags" placeholder="タグ（カンマ区切り）" oninput="updateProfile('tags',this.value.split(',').map(t=>t.trim()).filter(Boolean))"
-            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);padding:3px 6px;border-radius:3px;font-size:11px;">
+            style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
         </div>
       </div>
     </div>
@@ -928,7 +928,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="atlas-panel">
       <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="atlas-body" style="display:none;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:2px;">含めるパーツを選択してアトラスを生成します</div>
+        <div style="font-size:10px;color:var(--text);margin-bottom:2px;">含めるパーツを選択してアトラスを生成します</div>
         <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;max-height:80px;overflow-y:auto;"></div>
         <div class="mcfg-row"><button onclick="generateAtlas()" style="color:var(--gold);">🗺 アトラス生成 (縦並び)</button></div>
         <div class="mcfg-row"><button onclick="generateAtlasBinPack()" style="color:var(--text);">🗺 アトラス BinPack (最適化)</button></div>
@@ -955,7 +955,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
     <div style="font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:10px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
-      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
+      <tr style="color:var(--text);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
       <tr><td style="padding:2px 16px 2px 0;font-family:monospace;color:var(--gold)">Ctrl+O</td><td>画像を開く</td></tr>
       <tr><td style="font-family:monospace;color:var(--gold);padding:2px 16px 2px 0">Ctrl+S</td><td>モデルを保存</td></tr>
       <tr><td style="font-family:monospace;color:var(--gold);padding:2px 16px 2px 0">Ctrl+Z</td><td>元に戻す</td></tr>
@@ -995,7 +995,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">Shift+クリック</td><td>頂点を追加選択</td></tr>
       <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">ドラッグ(空白)</td><td>ボックス選択</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">アニメーションモード（A キー）</td></tr>
+      <tr style="color:var(--text);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">アニメーションモード（A キー）</td></tr>
       <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
       <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">J</td><td>1フレーム後退</td></tr>
       <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">K</td><td>停止</td></tr>
@@ -1022,7 +1022,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">⏱ リタイム</td><td>アニメ全体を新デュレーションに比例スケール</td></tr>
       <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">ミニマップクリック</td><td>タイムライン上部のミニマップでシークジャンプ</td></tr>
       <tr><td style="height:8px"></td></tr>
-      <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">エクスポートHTML内のショートカット</td></tr>
+      <tr style="color:var(--text);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">エクスポートHTML内のショートカット</td></tr>
       <tr><td style="font-family:monospace;color:var(--text);padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
       <tr><td style="font-family:monospace;color:var(--text);padding:2px 16px 2px 0">←→</td><td>1フレームシーク (Shift: 10フレーム)</td></tr>
       <tr><td style="font-family:monospace;color:var(--text);padding:2px 16px 2px 0">Home / End</td><td>先頭 / 末尾にジャンプ</td></tr>
@@ -1178,7 +1178,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   </div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <label style="font-size:10px;color:var(--dim);white-space:nowrap;">全体強度:</label>
+    <label style="font-size:10px;color:var(--text);white-space:nowrap;">全体強度:</label>
     <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:var(--pink);">
     <span id="rnd-global-lbl" style="font-size:10px;color:var(--pink);min-width:28px;">100%</span>
     <button onclick="randomizePose()" style="background:#221520;border:1px solid rgba(255,144,208,.4);color:var(--pink);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
@@ -1202,7 +1202,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <canvas id="hist-canvas" width="300" height="140" style="width:100%;background:var(--bg);border-radius:4px;display:block;"></canvas>
     <div id="hist-stats" style="margin-top:6px;font-size:10px;color:var(--dim);display:flex;gap:12px;flex-wrap:wrap;"></div>
     <div style="margin-top:8px;">
-      <label style="font-size:10px;color:var(--dim);">ビン数: <span id="hist-bin-lbl">20</span></label>
+      <label style="font-size:10px;color:var(--text);">ビン数: <span id="hist-bin-lbl">20</span></label>
       <input type="range" id="hist-bins" min="5" max="60" value="20" oninput="document.getElementById('hist-bin-lbl').textContent=this.value;renderHistogram();" style="width:100%;margin-top:2px;accent-color:var(--gold);">
     </div>
     <div style="margin-top:6px;display:flex;gap:6px;">
@@ -1214,17 +1214,17 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- A/B Playback Panel -->
 <div id="abplay-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:var(--surface);border:1px solid var(--border);border-radius:8px;z-index:165;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:8px 12px;display:none;flex-direction:row;align-items:center;gap:10px;">
   <span style="font-size:11px;color:var(--teal);font-weight:600;">⇄ A/B再生</span>
-  <span style="font-size:10px;color:var(--dim);">A:</span>
+  <span style="font-size:10px;color:var(--text);">A:</span>
   <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--muted);">→</span>
   <input type="number" id="ab-a-end" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:var(--dim);">B:</span>
+  <span style="font-size:10px;color:var(--text);">B:</span>
   <input type="number" id="ab-b-start" value="1" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--muted);">→</span>
   <input type="number" id="ab-b-end" value="2" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:var(--dim);">ホールド:</span>
+  <span style="font-size:10px;color:var(--text);">ホールド:</span>
   <input type="number" id="ab-hold" value="1.5" step="0.1" min="0.2" style="width:44px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
-  <span style="font-size:10px;color:var(--dim);">s</span>
+  <span style="font-size:10px;color:var(--text);">s</span>
   <span id="ab-indicator" style="font-size:11px;font-weight:600;min-width:16px;color:var(--gold);">A</span>
   <button onclick="stopABPlayback()" style="background:var(--btn);border:none;color:var(--text);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px;">停止</button>
 </div>
