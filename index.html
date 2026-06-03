@@ -248,13 +248,13 @@ button:focus:not(:focus-visible){outline:none;}
 
 /* Multi-track timeline */
 #timeline-multi{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:height .2s;}
-#tl-multi-header{display:flex;align-items:center;gap:6px;padding:3px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#tl-multi-header{display:flex;align-items:center;gap:6px;padding:2px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
 #tl-multi-tracks{flex:1;overflow:hidden;position:relative;}
 #tl-multi-canvas{position:absolute;inset:0;cursor:pointer;}
 #tl-label-col{position:relative;width:90px;overflow:hidden;pointer-events:auto;flex-shrink:0;cursor:pointer;}
 
 /* Texture atlas panel */
-#atlas-panel{padding:3px 8px;border-top:1px solid var(--border);flex-shrink:0;}
+#atlas-panel{padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;}
 .atlas-item{display:flex;align-items:center;gap:4px;padding:2px 0;font-size:11px;}
 .atlas-chk{accent-color:var(--accent);}
 
@@ -533,7 +533,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
           <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
-        <div id="deformer-param-bind" style="padding:4px 8px 3px;border-top:1px solid var(--divider);display:none;">
+        <div id="deformer-param-bind" style="padding:2px 8px 2px;border-top:1px solid var(--divider);display:none;">
           <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
@@ -635,7 +635,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         アニメスニペット
         <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
       </div>
-      <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:4px 6px;">
+      <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:2px 6px;">
         <div id="snippet-items"></div>
         <div style="display:flex;gap:4px;margin-top:3px;border-top:1px solid var(--border);padding-top:3px">
           <button onclick="saveCurrentAsSnippet()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
@@ -653,7 +653,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-row"><button onclick="rebuildMesh()">メッシュ再構築</button></div>
       </div><!-- mesh-cfg-body -->
     </div>
-    <div id="embed-cfg" style="padding:3px 8px;border-top:1px solid var(--border);flex-shrink:0;">
+    <div id="embed-cfg" style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
         <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
         <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
@@ -871,11 +871,11 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-row"><button onclick="fullAutoRig()" style="color:var(--text);background:var(--surface);border-color:var(--muted);" title="顔パーツに自動リグ（デフォーマー一括配置）">🤖 自動リグ（デフォーマー一括配置）</button></div>
       </div><!-- preset-body -->
     </div>
-    <div id="vgroup-panel" style="padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;">
+    <div id="vgroup-panel" style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="mcfg-title" style="padding:0 0 3px 0;border:none;display:flex;align-items:center;">頂点グループ<button onclick="saveVertGroup()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の選択をグループ保存">+</button></div>
       <div id="vgroup-list" style="display:flex;flex-direction:column;gap:3px;"></div>
     </div>
-    <div id="spring-panel" style="padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;">
+    <div id="spring-panel" style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('spring-body',this)">🌊 バネ骨格<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="spring-body">
       <div style="display:flex;gap:4px;margin-bottom:3px;">
@@ -898,7 +898,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div><!-- spring-body -->
     </div>
     <!-- Character Profile Panel -->
-    <div id="profile-panel" style="padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;">
+    <div id="profile-panel" style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('profile-body',this)">👤 キャラクタープロファイル<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="profile-body" style="display:none;">
         <div style="display:flex;flex-direction:column;gap:3px;">
