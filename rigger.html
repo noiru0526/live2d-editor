@@ -115,9 +115,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* Section panels in left panel */
 .lsec{border-top:1px solid var(--border);flex-shrink:0}
-.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:2px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);transition:background .08s}
+.lsec-hd{display:flex;align-items:center;justify-content:space-between;padding:2px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);border-left:2px solid var(--accent);transition:background .08s}
 .lsec-hd:hover{background:var(--hover)}
-.lsec-hd h3{color:var(--dim);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
+.lsec-hd h3{color:var(--text);font-size:11px;letter-spacing:0.4px;font-weight:500;text-transform:uppercase}
 .lsec-body{padding:2px 6px;display:flex;flex-direction:column;gap:2px}
 .mrow{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
 .mi{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:2px 4px;border-radius:var(--r-sm);width:50px;outline:none}
@@ -145,11 +145,11 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 #rp{width:270px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
 #rtabs{display:none}
 /* Section headers (Cubism インスペクタ/パラメータ style) */
-.rsec-hd{display:flex;align-items:center;padding:2px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
+.rsec-hd{display:flex;align-items:center;padding:2px 8px;cursor:pointer;background:var(--header);border-bottom:1px solid var(--border);border-left:2px solid var(--accent);gap:6px;flex-shrink:0;user-select:none;transition:background .08s}
 .rsec-hd:hover{background:var(--hover)}
 .rsec-caret{font-size:9px;color:var(--muted);transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
-.rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--dim);text-transform:uppercase;flex:1}
+.rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--text);text-transform:uppercase;flex:1}
 .rsec-sub{font-size:9px;color:var(--dim)}
 /* Inspector selection banner */
 #rp-sel-banner{padding:2px 8px;border-bottom:1px solid var(--divider);background:var(--bg);display:none}
@@ -540,11 +540,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
         </div>
-        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:2px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
+        <div style="display:flex;gap:3px;margin-top:2px">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
+        </div>
         <div style="display:flex;gap:3px;margin-top:2px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
           <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
           <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:var(--accent);border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
         </div>
       </div>
     </div>
@@ -563,20 +565,30 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
         </div>
-        <button id="btn-deform-heat" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleDeformHeat()" title="変形量ヒートマップ: 頂点の変形量を青(0)→赤(大)で色表示">🌡 熱マップ</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="showDeformWaveModal()" title="サインウェーブパターンを頂点デフォームに適用（波紋・揺れ・うねり効果）">〜 Wave</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
-        <button id="btn-mesh-sym" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleMeshSymmetry()" title="シメトリ編集: 頂点移動をX軸に対称反映（メッシュ/デフォームモードで有効）(S)">⇄ シメトリ</button>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button id="btn-deform-heat" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="toggleDeformHeat()" title="変形量ヒートマップ: 頂点の変形量を青(0)→赤(大)で色表示">🌡 熱マップ</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="smoothDeform()" title="現在のKFのデフォームを滑らかに（Laplacian）">∿ スムーズ</button>
+        </div>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="showDeformWaveModal()" title="サインウェーブパターンを頂点デフォームに適用（波紋・揺れ・うねり効果）">〜 Wave</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="copyDeformToAnotherPart()" title="全デフォームデータを別パーツにコピー（同じメッシュ解像度のパーツが対象）">→ 他パーツへ</button>
+        </div>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="snapMeshVertsToGrid()" title="全頂点をグリッドにスナップ（グリッドサイズに基づく）">⊞ 頂点スナップ</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="trimMeshByAlpha()" title="透明領域の三角形を削除（アルファしきい値15未満を除去）">✂ アルファトリム</button>
+        </div>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="subdivideMesh()" title="メッシュ細分化: 解像度を2倍に（デフォームデータを補間して保持）">⊕ 細分化</button>
+          <button id="btn-mesh-sym" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="toggleMeshSymmetry()" title="シメトリ編集: 頂点移動をX軸に対称反映（メッシュ/デフォームモードで有効）(S)">⇄ シメトリ</button>
+        </div>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button id="btn-pin-mode" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="togglePinMode()" title="ピンモード: Alt+クリックで頂点をピン固定（固定頂点はデフォーム/ブラシの影響を受けない）">📌 ピン</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="clearAllPins()" title="全ピンを解除">× 全解除</button>
         </div>
-        <button id="btn-uv-overlay" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleUVOverlay()" title="UVオーバーレイ: 現在のメッシュをUV座標空間で表示（テクスチャのどの部分がどのポリゴンに対応するか可視化）">🗺 UV表示</button>
-        <button id="btn-topo-edit" class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="toggleTopoEditMode()" title="手動トポロジー: 頂点をクリックして三角形を手動で作成・削除。3頂点選択で三角形追加、既存三角形クリックで削除">▽ トポロジー編集</button>
+        <div style="display:flex;gap:2px;margin-top:2px;">
+          <button id="btn-uv-overlay" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="toggleUVOverlay()" title="UVオーバーレイ: 現在のメッシュをUV座標空間で表示（テクスチャのどの部分がどのポリゴンに対応するか可視化）">🗺 UV表示</button>
+          <button id="btn-topo-edit" class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="toggleTopoEditMode()" title="手動トポロジー: 頂点をクリックして三角形を手動で作成・削除。3頂点選択で三角形追加、既存三角形クリックで削除">▽ トポロジー</button>
+        </div>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="exportDeformCSV()" title="全デフォームデータをCSVでエクスポート">↓ CSV</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="document.getElementById('csv-import-in').click()" title="CSVからデフォームデータをインポート">↑ CSV</button>

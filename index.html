@@ -605,16 +605,24 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <button class="kfb-del" onclick="delKFData()">↺ このKFのデータを消す</button>
       <button class="kfb-del" onclick="delKF()">× KFを削除</button>
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
-      <button class="kfb-copy" onclick="copyKFData()" id="btn-copy-kf">↑ KFデータをコピー</button>
-      <button class="kfb-copy" onclick="pasteKFData()">↓ KFデータを貼り付け</button>
+      <div style="display:flex;gap:2px">
+        <button class="kfb-copy" style="flex:1" onclick="copyKFData()" id="btn-copy-kf">↑ コピー</button>
+        <button class="kfb-copy" style="flex:1" onclick="pasteKFData()">↓ 貼り付け</button>
+      </div>
       <button class="kfb-copy" onclick="flipDeformH()">⟺ 左右反転して貼り付け</button>
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
-      <button class="kfb-deform" onclick="smoothDeform()" title="選択頂点の変形をなめらかに">〜 スムーズ (選択頂点)</button>
-      <button class="kfb-deform" onclick="gradientDeform()" title="選択頂点の変形にグラデーションをかける">▽ グラデーション変形</button>
-      <button class="kfb-deform" onclick="scaleSelection()" title="選択頂点を拡大縮小">⤡ 拡大縮小</button>
-      <button class="kfb-deform" onclick="rotateSelection()" title="選択頂点を回転">↻ 回転</button>
-      <button class="kfb-deform" onclick="weldVertices()" title="近接頂点を溶接して結合">⊕ 頂点溶接</button>
-      <button class="kfb-deform" onclick="showGlueManager()" title="メッシュ境界を別パーツに結合（グルー）">🔗 グルー</button>
+      <div style="display:flex;gap:2px">
+        <button class="kfb-deform" style="flex:1" onclick="smoothDeform()" title="選択頂点の変形をなめらかに">〜 スムーズ</button>
+        <button class="kfb-deform" style="flex:1" onclick="gradientDeform()" title="選択頂点の変形にグラデーションをかける">▽ グラデーション</button>
+      </div>
+      <div style="display:flex;gap:2px">
+        <button class="kfb-deform" style="flex:1" onclick="scaleSelection()" title="選択頂点を拡大縮小">⤡ 拡大縮小</button>
+        <button class="kfb-deform" style="flex:1" onclick="rotateSelection()" title="選択頂点を回転">↻ 回転</button>
+      </div>
+      <div style="display:flex;gap:2px">
+        <button class="kfb-deform" style="flex:1" onclick="weldVertices()" title="近接頂点を溶接して結合">⊕ 頂点溶接</button>
+        <button class="kfb-deform" style="flex:1" onclick="showGlueManager()" title="メッシュ境界を別パーツに結合（グルー）">🔗 グルー</button>
+      </div>
       <button class="kfb-del" onclick="deleteActiveParam()" id="btn-del-param" style="display:none;">× このパラメータを削除</button>
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
       <button class="kfb-loop" onclick="toggleLoopPreview()" id="btn-loop-prev">⟳ このパラメータをループ再生</button>
@@ -714,7 +722,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
           <input type="checkbox" id="export-ctrlpanel" style="accent-color:var(--accent);">
-          コントロールパネル埋め込み（🎛ボタンでスライダー表示）
+          <span title="🎛ボタンでスライダー表示するコントロールパネルを埋め込む">🎛 コントロールパネル埋め込み</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
           <input type="checkbox" id="export-autoplay" style="accent-color:var(--accent);" checked>
