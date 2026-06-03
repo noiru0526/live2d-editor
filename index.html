@@ -17466,7 +17466,7 @@ function gradientDeform() {
   }
   const spanX=maxX-minX||1, spanY=maxY-minY||1;
   showModal('グラデーション変形', `
-    <div style="display:grid;gap:8px;font-size:12px;">
+    <div style="display:grid;gap:8px;font-size:11px;">
       <div><label style="color:var(--text);font-size:11px">方向</label><br>
         <select id="gd-dir" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;">
           <option value="x">左→右 (X方向)</option>
@@ -22058,7 +22058,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       if (!srcFrames?.length) { document.getElementById('lbl-status').textContent='コピーするKFがありません'; return; }
       const opts = paramEntries.filter(([k])=>k!==srcName).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('');
       showModal('トラックKFをコピー', `
-        <div style="font-size:12px;display:grid;gap:8px;">
+        <div style="font-size:11px;display:grid;gap:8px;">
           <div>コピー元: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
           <div><label style="font-size:11px;color:var(--text)">コピー先パラメータ</label><br>
             <select id="track-copy-dst" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">${opts}</select></div>
@@ -22116,7 +22116,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       const hm = currentHsl.match(/hsl\((\d+)/);
       const currentH = hm ? parseInt(hm[1]) : 200;
       showModal('トラックカラーを変更', `
-        <div style="font-size:12px;display:grid;gap:12px;">
+        <div style="font-size:11px;display:grid;gap:12px;">
           <div>パラメータ: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
           <div>
             <label style="font-size:11px;color:var(--text)">色相 (0–360)</label>
@@ -22330,7 +22330,7 @@ function generateWaveKFs(paramName) {
   const pRange = p.max - p.min;
   const pMid = p.min + pRange * 0.5;
   showModal('🌊 波形KF自動生成', `
-    <div style="font-size:12px;display:grid;gap:10px;">
+    <div style="font-size:11px;display:grid;gap:10px;">
       <div>パラメータ: <strong style="color:var(--accent)">${p.lbl||paramName}</strong>
         <span style="color:var(--dim);font-size:10px;margin-left:6px;">範囲: ${p.min} 〜 ${p.max}</span>
       </div>
@@ -23629,7 +23629,7 @@ function showAnimTemplates() {
     { id:'shy', name:'はずかしい (1.5秒)', desc:'顔を下に向けてそっぽを向く' },
   ];
   showModal('アニメーションテンプレート', `
-    <div style="font-size:12px;display:grid;gap:8px;">
+    <div style="font-size:11px;display:grid;gap:8px;">
       <div style="color:var(--text);font-size:10px;">テンプレートは現在のアニメーションに追加されます（既存KFは保持）</div>
       ${templates.map(t=>`
         <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;"
@@ -23913,7 +23913,7 @@ function showTimeScaleDialog() {
   }
   const dur = anim.duration || 3;
   showModal('⏩ タイムスケール', `
-    <div style="font-size:12px;display:grid;gap:10px;min-width:280px">
+    <div style="font-size:11px;display:grid;gap:10px;min-width:280px">
       <div style="font-size:10px;color:var(--text)">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
       <div style="font-size:10px;color:var(--dim)">現在の長さ: <b style="color:var(--text)">${dur.toFixed(2)}s</b></div>
       <div style="display:grid;gap:6px;">
@@ -24291,7 +24291,7 @@ function showOverlayClipDialog() {
   if (clips.length < 1) { document.getElementById('lbl-status').textContent = 'オーバーレイには1つ以上のクリップが必要です'; return; }
   const opts = clips.map((c,i)=>`<option value="${i}"${_overlayClipIdx===i?' selected':''}>${c.name}</option>`).join('');
   showModal('⊞ クリップオーバーレイ', `
-    <div style="font-size:12px;display:grid;gap:10px">
+    <div style="font-size:11px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--text)">2つのクリップを同時再生してブレンドします。<br>オーバーレイクリップは独立してループ再生されます。</div>
       <label>オーバーレイクリップ<br><select id="ov-clip" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">${opts}</select></label>
       <label>ブレンド重み <span id="ov-w-v">${(_overlayWeight*100).toFixed(0)}%</span><br>
@@ -24419,7 +24419,7 @@ function checkLoopConsistency() {
     <td style="padding:4px 8px;color:#ff6060;font-size:10px;font-family:monospace;">${m.diff.toFixed(3)}</td>
   </tr>`).join('');
   showModal('ループ整合性チェック', `
-    <div style="font-size:12px;">
+    <div style="font-size:11px;">
       <div style="color:var(--text);margin-bottom:8px;">${mismatch.length}個のトラックで先頭・末尾のKF値が一致しません</div>
       <table style="width:100%;border-collapse:collapse;">
         <tr style="color:var(--text);font-size:10px;"><th style="text-align:left;padding:4px 8px;">トラック</th><th style="padding:4px 8px;">先頭値</th><th style="padding:4px 8px;">末尾値</th><th style="padding:4px 8px;">差</th></tr>
@@ -24535,7 +24535,7 @@ function showAnimStats() {
   const clips = (M.animClips||[]).length;
   const markers = (M.animation.markers||[]).length;
   showModal('アニメーション統計', `
-    <div style="font-size:12px;display:grid;gap:10px;">
+    <div style="font-size:11px;display:grid;gap:10px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
           <div style="font-size:24px;font-weight:bold;color:var(--accent);">${totalKF}</div>
@@ -24781,7 +24781,7 @@ function showAIPoseInterpDialog() {
   const loopIn = M.animation?.loopIn ?? 0;
   const loopOut = M.animation?.loopOut ?? dur;
   showModal('🤖 AIポーズ補間', `
-    <div style="font-size:12px;display:grid;gap:10px">
+    <div style="font-size:11px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--text)">2つの時刻のポーズを指定すると、Gemini AIが<br>自然な中間ポーズを推定してKFを挿入します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <label>開始時刻（秒）<br><input id="ai-t0" type="number" min="0" max="${dur}" step="0.01" value="${loopIn.toFixed(2)}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
@@ -24867,7 +24867,7 @@ async function showAIDanceMotionDialog() {
   const tracks = Object.keys(M.params);
   if (!tracks.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
   showModal('💃 AIダンスモーション生成', `
-    <div style="font-size:12px;display:grid;gap:10px">
+    <div style="font-size:11px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--text)">BPMとダンスタイプを指定すると、Gemini AIが<br>リズムに合ったキャラクターモーションKFを自動生成します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <label>BPM<br><input id="ai-dance-bpm" type="number" min="60" max="200" value="128" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
@@ -24964,7 +24964,7 @@ async function showAIAnimCritiqueDialog() {
     return;
   }
   showModal('🔬 AIアニメーション批評', `
-    <div style="font-size:12px;display:grid;gap:10px">
+    <div style="font-size:11px;display:grid;gap:10px">
       <div style="font-size:10px;color:var(--text)">Gemini AIが現在のアニメーションを分析し、<br>改善点・問題点・提案をレポートします。</div>
       <div id="ai-crit-status" style="font-size:11px;color:var(--dim);min-height:20px">準備中...</div>
       <div id="ai-crit-result" style="font-size:11px;color:var(--text);max-height:55vh;overflow-y:auto;display:none;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;white-space:pre-wrap;line-height:1.6"></div>
@@ -26303,7 +26303,7 @@ function batchSetInterpolation() {
   const INTERP_LIST = ['linear','step','ease','ease-in','ease-out','ease-in-out','bounce','elastic','cubic'];
   const html = INTERP_LIST.map(i=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 0;font-size:11px;"><input type="radio" name="bi-interp" value="${i}"> ${i}</label>`).join('');
   showModal('補間方式を一括変更', `
-    <div style="font-size:12px;">
+    <div style="font-size:11px;">
       <div style="color:var(--text);font-size:10px;margin-bottom:8px;">選択KFがあればそのトラックのみ、なければ全トラックのKFに適用</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">${html}</div>
       <div style="margin-top:8px;display:flex;gap:8px;align-items:center;font-size:10px;color:var(--text);">
@@ -27731,7 +27731,7 @@ let pgroupVisible = {}; // groupName -> bool (expanded?)
 
 function showParamGroupManager() {
   const paramNames = Object.keys(M.params);
-  let html = '<div style="font-size:12px;line-height:2;display:grid;gap:6px;">';
+  let html = '<div style="font-size:11px;line-height:2;display:grid;gap:6px;">';
   for (const [grp, ids] of Object.entries(PGROUPS)) {
     html += `<div style="background:var(--bg);border:1px solid #2d2d2d;border-radius:4px;padding:5px 8px;">
       <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:4px;">${grp}</div>
@@ -28105,7 +28105,7 @@ function pasteAnimKF() {
 function selectAllAnimKF() {
   // Show scale dialog to shift/scale all KFs in time
   showModal('全KFタイムスケール', `
-    <div style="display:grid;gap:8px;font-size:12px;">
+    <div style="display:grid;gap:8px;font-size:11px;">
       <div><label style="color:var(--text);font-size:11px">タイムスケール (1.0=変更なし)</label><br>
         <input id="tl-scale" type="number" value="1.0" step="0.1" min="0.1" max="10"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
@@ -28213,7 +28213,7 @@ function showAnimEasing() {
   showEasingPicker((easing)=>{
     // After picking easing, ask which param to apply to
     showModal('イージング適用', `
-      <div style="display:grid;gap:8px;font-size:12px;">
+      <div style="display:grid;gap:8px;font-size:11px;">
         <div style="color:var(--accent);font-size:13px;font-weight:600;">「${EASING_CATALOG.find(e=>e.id===easing)?.label||easing}」を適用</div>
         <div><label style="color:var(--text);font-size:11px">適用対象パラメータ</label><br>
           <select id="anim-easing-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
