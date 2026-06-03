@@ -13,7 +13,7 @@
   --accent:#e07840; --accent-light:#ffb070; --accent2:#c09040; --accent3:#c09060;
   --accent-dim:rgba(224,120,64,.15); --accent2-dim:rgba(192,144,64,.15);
   /* Status colors */
-  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --teal:#60d890; --pink:var(--pink); --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
+  --kf:#e0c060; --kf-bg:#2a1a0a; --gold:#ffd060; --rec:#e04040; --green:#60c060; --teal:#60d890; --pink:#ff80c0; --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
   /* Text */
   --text:#c8c8c8; --text-bright:#e0e0e0; --dim:#909090; --muted:#707070;
   /* Radius scale */
@@ -386,10 +386,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <button class="tbtn" id="btn-gamepad"      onclick="toggleGamepadPanel()" title="ゲームパッド">🎮</button>
   <button class="tbtn" id="btn-param-hud"    onclick="ST.paramHUD=!ST.paramHUD;this.classList.toggle('on',ST.paramHUD);redraw();" title="パラメータHUD">HUD</button>
   <button class="tbtn" id="btn-hq"           onclick="toggleHQRender()"    title="高品質レンダリング">HQ</button>
-  <button class="tbtn" id="btn-weight"       onclick="toggleWeightMode()"  title="ウェイトモード" style="color:#ff9060;">⚖</button>
-  <button class="tbtn" id="btn-abplay"       onclick="toggleABPlayback()"  title="A/B再生" style="color:#80ffb0;">⇄</button>
+  <button class="tbtn" id="btn-weight"       onclick="toggleWeightMode()"  title="ウェイトモード" style="color:var(--accent-light);">⚖</button>
+  <button class="tbtn" id="btn-abplay"       onclick="toggleABPlayback()"  title="A/B再生" style="color:var(--teal);">⇄</button>
   <button class="tbtn" id="btn-rnd-pose"     onclick="randomizePose()"     title="ランダムポーズ" style="color:var(--pink);">🎲</button>
-  <button class="tbtn"                       onclick="bakeAnimToTimeline()" title="タイムラインベイク" style="color:#d0c060;">🍞</button>
+  <button class="tbtn"                       onclick="bakeAnimToTimeline()" title="タイムラインベイク" style="color:var(--kf);">🍞</button>
   <button class="tbtn" id="btn-bc"           onclick="toggleBroadcastChannel()" title="BC">📡</button>
   <button class="tbtn" id="btn-param-scan"   onclick="toggleParamScan()"   title="パラメータスキャン">🔍</button>
   <div class="tsep"></div>
@@ -864,7 +864,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="mcfg-row"><button onclick="addVTuberParams()" style="color:var(--dim);">+ VTuberパラメータ追加</button></div>
       <div class="mcfg-row"><button onclick="showMouthShapeSetup()">口形 A/I/U セットアップ</button></div>
       <div class="mcfg-row"><button onclick="showEyeLookSetup()" style="color:var(--text);">目線（eyeX/Y）セットアップ</button></div>
-      <div class="mcfg-row"><button onclick="scaleModelAll()" style="color:#ffc080;" title="全パーツのメッシュ頂点をセンターから拡縮（モデル全体サイズ変更）">⤢ モデル全体スケール</button></div>
+      <div class="mcfg-row"><button onclick="scaleModelAll()" style="color:var(--accent-light);" title="全パーツのメッシュ頂点をセンターから拡縮（モデル全体サイズ変更）">⤢ モデル全体スケール</button></div>
       <div class="mcfg-row"><button onclick="deformQC()" style="color:var(--gold);" title="変形データの問題を自動検出">🔍 変形QCチェック</button></div>
       <div class="mcfg-row"><button onclick="showModelQC()" style="color:var(--text);" title="モデル全体の品質チェック（メッシュ・頂点・パラメータ・サマリー）">📋 モデルQCレポート</button></div>
       <div class="mcfg-row"><button onclick="clearAllDef()" style="color:var(--danger)">全変形データ削除</button></div>
@@ -882,7 +882,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <button onclick="addSpringBone()" style="flex:1;color:var(--dim);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
         <button id="phys-sim-btn" onclick="togglePhysSim()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="リアルタイム物理シミュレーター ON/OFF">▶ シミュ</button>
         <button onclick="resetPhysSim()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
-        <button onclick="bakePhysToTimeline()" style="background:#302010;border:1px solid rgba(200,180,80,.4);color:#d0c060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
+        <button onclick="bakePhysToTimeline()" style="background:var(--kf-bg);border:1px solid rgba(200,180,80,.4);color:var(--kf);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
       </div>
       <div id="spring-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:5px;"></div>
       <div style="font-size:9px;color:var(--dim);line-height:1.5;">
@@ -1202,7 +1202,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 <!-- A/B Playback Panel -->
 <div id="abplay-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:var(--surface);border:1px solid var(--border);border-radius:8px;z-index:165;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:8px 12px;display:none;flex-direction:row;align-items:center;gap:10px;">
-  <span style="font-size:11px;color:#80ffb0;font-weight:600;">⇄ A/B再生</span>
+  <span style="font-size:11px;color:var(--teal);font-weight:600;">⇄ A/B再生</span>
   <span style="font-size:10px;color:var(--dim);">A:</span>
   <input type="number" id="ab-a-start" value="0" step="0.1" min="0" style="width:48px;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;">
   <span style="font-size:10px;color:var(--muted);">→</span>
@@ -1363,7 +1363,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="shiftAllKFTimes()" title="KF時刻シフト: 全KF（または選択トラック）を指定秒数だけ前後にずらす" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⇄ シフト</button>
     <button onclick="scaleParamValues()" title="KF値スケール: 選択トラックのv値を倍率変換（例: 0.5で半分の振れ幅）" style="background:var(--btn);border:1px solid rgba(255,200,80,.4);color:#ffc840;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✕ 値</button>
     <button onclick="batchSetInterpolation()" title="補間一括変更: 選択トラック（またはすべてのトラック）の補間方式を一括変更" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">〜 補間</button>
-    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:var(--btn);border:1px solid rgba(255,120,80,.4);color:#ff9060;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
+    <button onclick="cleanupAnimKFs()" title="KFクリーンアップ: 重複・近接KFを自動削除&#10;右クリックでオプション" oncontextmenu="event.preventDefault();showCtxMenu(event.clientX,event.clientY,[{icon:'✂',label:'KFクリーンアップ（近接除去）',action:()=>cleanupAnimKFs()},{icon:'📐',label:'KF値クランプ（範囲外修正）',action:()=>clampAllKFValues()}]);" style="background:var(--btn);border:1px solid rgba(255,120,80,.4);color:var(--accent-light);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">✂ 整理</button>
     <button id="btn-tl-snap" onclick="toggleTLSnap()" title="KFスナップ: グリッドにスナップして配置 (右クリックでBPM設定)" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" oncontextmenu="event.preventDefault();showSnapMenu(event)">🧲</button>
     <button onclick="quantizeKFTimes()" title="KF量子化: 全KF（または選択KF）を現在のスナップグリッドに揃える（BPMビートに合わせる）" style="background:var(--btn);border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">♩ 量子化</button>
     <button onclick="showTimeScaleDialog()" title="タイムスケール: 全KFの時刻を倍率変換してアニメ全体のスピードを変更&#10;例: 0.5→2倍速、2.0→半速" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⏩ 速度</button>
@@ -1462,10 +1462,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 </div>
 
 <!-- Weight paint panel -->
-<div id="weight-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);background:#120c08;padding:6px 8px;">
+<div id="weight-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg-deep);padding:6px 8px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <span style="font-size:9px;color:#ff9060;font-weight:600;letter-spacing:1px;">WEIGHT PAINT</span>
-    <select id="wt-deformer" style="background:#1e1210;border:1px solid #503020;color:#ff9060;font-size:10px;border-radius:3px;padding:1px 4px;" onchange="setWeightDeformer(this.value)">
+    <span style="font-size:9px;color:var(--accent-light);font-weight:600;letter-spacing:1px;">WEIGHT PAINT</span>
+    <select id="wt-deformer" style="background:var(--bg);border:1px solid var(--border);color:var(--accent-light);font-size:10px;border-radius:3px;padding:1px 4px;" onchange="setWeightDeformer(this.value)">
       <option value="">デフォーマー選択...</option>
     </select>
     <button onclick="toggleWeightMode()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
@@ -1474,12 +1474,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
       ブラシ径
       <input type="range" id="wt-brush-r" min="10" max="150" value="50" oninput="ST.weightBrushR=+this.value;document.getElementById('wt-r-val').textContent=this.value">
-      <span id="wt-r-val" style="color:#ff9060;font-size:10px;width:24px;">50</span>
+      <span id="wt-r-val" style="color:var(--accent-light);font-size:10px;width:24px;">50</span>
     </label>
     <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
       強さ
       <input type="range" id="wt-brush-str" min="0.05" max="1" step="0.05" value="1" oninput="ST.weightBrushStr=+this.value;document.getElementById('wt-str-val').textContent=(+this.value).toFixed(2)">
-      <span id="wt-str-val" style="color:#ff9060;font-size:10px;width:28px;">1.00</span>
+      <span id="wt-str-val" style="color:var(--accent-light);font-size:10px;width:28px;">1.00</span>
     </label>
     <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
       <input type="radio" name="wt-mode" value="add" checked onchange="ST.weightBrushAdd=true">追加
@@ -1487,8 +1487,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
       <input type="radio" name="wt-mode" value="sub" onchange="ST.weightBrushAdd=false">削除
     </label>
-    <button onclick="fillWeights(1)" style="background:#2a1008;border:1px solid #ff9060;color:#ff9060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全塗り</button>
-    <button onclick="fillWeights(0)" style="background:#1a1010;border:1px solid #804030;color:#d07050;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全消し</button>
+    <button onclick="fillWeights(1)" style="background:var(--danger-bg);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全塗り</button>
+    <button onclick="fillWeights(0)" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">全消し</button>
   </div>
 </div>
 
@@ -6878,7 +6878,7 @@ window._applyTrackPreset=function(preset){
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px 14px;color:var(--text);font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
   panel.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dim);">📡 顔追跡設定</div>
 <div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--dim);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
-<button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:var(--surface);border:1px solid var(--border);color:#ff9060;border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
+<button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--accent-light);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
 <button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
 <button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
 <button onclick="window._applyTrackPreset('stable')" title="安定: 揺れ・ノイズ耐性" style="flex:1;background:var(--surface);border:1px solid var(--border);color:rgba(160,210,160,.8);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🛡 安定</button>
@@ -27292,7 +27292,7 @@ function applyPlayheadToParams() {
       const p=M.params[hit.name];
       const lbl=p?.lbl||hit.name;
       const interpIcon={'smooth':'〜','ease-in':'◁','ease-out':'▷','step':'⟂','linear':'—','ease-in-cubic':'◁³','ease-out-cubic':'▷³','ease-in-out-cubic':'〈〉','elastic':'🌀','elastic-in':'🌀◁','back':'🔙◁','back-out':'🔙','circ':'○◁','circ-out':'○','sine':'♪◁','sine-out':'♪'}[hit.kf.interp||'linear']||'—';
-      _kfTip.innerHTML=`<span style="color:var(--dim)">${lbl}</span><br>t: <span style="color:var(--gold)">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:var(--teal)">${hit.kf.v.toFixed(3)}</span>  <span style="color:var(--dim)">${interpIcon}</span>${hit.kf.note?`<br><span style="color:#ffc080;font-size:9px;">📝 ${hit.kf.note}</span>`:''}`;
+      _kfTip.innerHTML=`<span style="color:var(--dim)">${lbl}</span><br>t: <span style="color:var(--gold)">${hit.kf.t.toFixed(3)}s</span>  v: <span style="color:var(--teal)">${hit.kf.v.toFixed(3)}</span>  <span style="color:var(--dim)">${interpIcon}</span>${hit.kf.note?`<br><span style="color:var(--accent-light);font-size:9px;">📝 ${hit.kf.note}</span>`:''}`;
     } else {
       // Show interpolated track value at cursor position
       const trackHit = hitTestTrack(e);
@@ -29869,7 +29869,7 @@ function showGIFExportDialog() {
       <div style="height:4px;background:var(--bg);border-radius:2px;overflow:hidden;"><div id="gf-prog-bar" style="height:100%;background:var(--accent);width:0%;transition:width .1s;"></div></div>
     </div>
     <div style="display:flex;gap:6px;">
-      <button id="gf-start-btn" style="flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.15);color:#80ffb0;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
+      <button id="gf-start-btn" style="flex:1;background:var(--surface);border:1px solid rgba(255,255,255,.15);color:var(--teal);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🎞 GIF生成</button>
       <button onclick="this.closest('.mo').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">キャンセル</button>
     </div>
   </div>`;
@@ -30763,7 +30763,7 @@ function renderHistogram() {
       <span>最小: <b style="color:var(--accent)">${globalMin.toFixed(3)}</b></span>
       <span>最大: <b style="color:#ff8888">${globalMax.toFixed(3)}</b></span>
       <span>平均: <b style="color:#ffd080">${mean.toFixed(3)}</b></span>
-      <span>σ: <b style="color:#80ffb0">${std.toFixed(3)}</b></span>
+      <span>σ: <b style="color:var(--teal)">${std.toFixed(3)}</b></span>
     `;
   }
 }
