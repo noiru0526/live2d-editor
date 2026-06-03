@@ -208,9 +208,9 @@ button:focus:not(:focus-visible){outline:none;}
 #ruler-h{position:absolute;top:0;left:0;right:0;height:16px;pointer-events:none;opacity:.5;}
 #ruler-v{position:absolute;top:0;left:0;bottom:0;width:16px;pointer-events:none;opacity:.5;}
 /* Context menu */
-#ctx-menu .cm-item{padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+#ctx-menu .cm-item{padding:2px 8px;cursor:pointer;display:flex;align-items:center;gap:8px;}
 #ctx-menu .cm-item:hover{background:rgba(255,255,255,.08);}
-#ctx-menu .cm-sep{height:1px;background:var(--border);margin:3px 0;}
+#ctx-menu .cm-sep{height:1px;background:var(--border);margin:2px 0;}
 #ctx-menu .cm-disabled{opacity:.4;pointer-events:none;}
 #ctx-menu .cm-shortcut{margin-left:auto;color:var(--dim);font-size:10px;}
 
@@ -1137,7 +1137,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 <!-- Canvas right-click context menu -->
 <div id="kf-inspector" style="display:none;position:fixed;z-index:190;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,.6);font-size:11px;color:var(--text);pointer-events:none;"></div>
-<div id="ctx-menu" style="display:none;position:fixed;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 0;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:11px;color:var(--text);">
+<div id="ctx-menu" style="display:none;position:fixed;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px 0;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.5);font-size:11px;color:var(--text);">
 </div>
 
 <!-- Snapshot Compare Overlay -->
@@ -2884,7 +2884,7 @@ function updateUndoHistoryPanel() {
   if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>'; return; }
   items.forEach((s,i) => {
     const d = document.createElement('div');
-    d.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid var(--divider);';
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:2px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid var(--divider);';
     d.innerHTML=`<span style="color:var(--dim);font-family:monospace;font-size:8px;min-width:40px">${s._time||'—'}</span><span style="flex:1;color:${i===0?'#d8d4c0':'#888'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i===0?'▶ ':''+(ST.undo.length-i)+'. '}${s._name||'操作'}</span>`;
     d.onclick = () => { for(let j=0;j<=i;j++) undo(); };
     d.onmouseover = () => d.style.background='rgba(255,255,255,.05)';
@@ -2893,7 +2893,7 @@ function updateUndoHistoryPanel() {
   });
   if (ST.redo.length) {
     const sep=document.createElement('div');
-    sep.style.cssText='padding:3px 8px;font-size:9px;color:var(--muted);border-top:1px solid var(--divider);background:transparent';
+    sep.style.cssText='padding:2px 8px;font-size:9px;color:var(--muted);border-top:1px solid var(--divider);background:transparent';
     sep.textContent=`↪ Redo: ${ST.redo.length}ステップ (Ctrl+Shift+Z)`;
     el.appendChild(sep);
   }
