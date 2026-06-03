@@ -32,8 +32,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tbtn:hover{background:rgba(255,255,255,.1);color:var(--text-bright);border-color:rgba(255,255,255,.18)}
 .tbtn:active{transform:translateY(1px)}
 .tbtn.active{background:rgba(224,120,64,.22);border-color:rgba(224,120,64,.6);color:var(--accent-light)}
-.tbtn.ok{background:rgba(48,140,48,.4);border-color:var(--ok-border);color:var(--ok-text)}
-.tbtn.ok:hover{background:rgba(6,78,59,.6)}
+.tbtn.ok{background:rgba(224,120,64,.22);border-color:var(--accent);color:var(--accent-light)}
+.tbtn.ok:hover{background:rgba(224,120,64,.38);border-color:var(--accent-light)}
 .tbtn.danger{background:rgba(160,48,48,.3);border-color:var(--rec);color:var(--danger)}
 .tb-more{position:relative;flex-shrink:0}
 .tb-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:3px 0;z-index:1000;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.8)}
@@ -220,11 +220,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-swatch{width:18px;height:14px;border:1px solid var(--border-strong);border-radius:var(--r-sm);cursor:pointer;flex-shrink:0;transition:border-color .1s;background:#ffffff}
 .ci-swatch:hover{border-color:var(--accent);outline:1px solid rgba(224,120,64,.3)}
 .ci-hex{font-size:10px;color:var(--dim);font-family:monospace;flex:1;letter-spacing:.3px}
-.ci-reset{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
+.ci-reset{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
 .ci-reset:hover{color:var(--accent);opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
-.ci-arr{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-size:14px;padding:0 6px;cursor:pointer;border-radius:var(--r-md);line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
+.ci-arr{background:var(--surface);border:1px solid var(--border);color:var(--dim);font-size:12px;padding:0 5px;cursor:pointer;border-radius:var(--r-md);line-height:1.4;font-family:monospace;transition:color .1s,border-color .1s;user-select:none}
 .ci-arr:hover{color:var(--accent);border-color:var(--accent)}
 .ci-num-sm{width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:2px 6px;border-radius:var(--r-sm);outline:none;font-family:monospace;-moz-appearance:textfield;text-align:center}
 .ci-num-sm::-webkit-outer-spin-button,.ci-num-sm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -255,7 +255,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-num{font-size:10px;color:var(--dim);font-family:monospace;min-width:18px}
 .ex-name{flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ex-item.active .ex-name{color:var(--accent)}
-.ex-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1}
+.ex-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1}
 .ex-del:hover{color:var(--danger)}
 .ex-empty{padding:10px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
 #expr-preview-tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:7px 9px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
@@ -272,9 +272,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 
 /* ===== MODALS ===== */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(2px)}
-.mb{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-.mb h3{color:var(--accent);font-size:14px;margin-bottom:12px;font-weight:600}
-.mb input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;padding:6px 9px;border-radius:var(--r-sm);width:100%;margin-bottom:10px;outline:none}
+.mb{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.mb h3{color:var(--accent);font-size:12px;margin-bottom:8px;font-weight:600}
+.mb input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 8px;border-radius:var(--r-sm);width:100%;margin-bottom:8px;outline:none}
 .mb input:focus{border-color:var(--accent)}
 .mb p{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
 .ma{display:flex;gap:7px;justify-content:flex-end}
@@ -292,7 +292,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pdef-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdef-count{font-size:10px;color:var(--muted);font-family:monospace;margin-right:2px}
 .pi.in-deformer{padding-left:24px}
-.pdef-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;transition:color .1s}
+.pdef-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;transition:color .1s}
 .pdef-del:hover{color:var(--danger)}
 .pdef.rotation .pdef-name{color:var(--accent2)}
 .pdef.rotation.sel .pdef-name{color:var(--accent)}
@@ -313,7 +313,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pgroup-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pgroup-count{font-size:10px;color:var(--muted);font-family:monospace;margin-right:2px}
 .pi.in-group{padding-left:24px}
-.pgroup-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:0 3px;line-height:1;transition:color .1s}
+.pgroup-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;transition:color .1s}
 .pgroup-del:hover{color:var(--danger)}
 
 /* Custom modal fields */
@@ -1060,7 +1060,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('lfo')">
       <span class="rsec-caret collapsed" id="rsec-caret-lfo">▼</span>
       <span class="rsec-ttl">パラメータ自動化（LFO）</span>
-      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:12px;color:var(--dim)">＋</button>
+      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:11px;color:var(--dim)">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
       <div style="padding:3px 5px;border-bottom:1px solid var(--divider);flex-shrink:0">
@@ -1077,7 +1077,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('expr')">
       <span class="rsec-caret collapsed" id="rsec-caret-expr">▼</span>
       <span class="rsec-ttl">表情</span>
-      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:12px;color:var(--dim)">＋</button>
+      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:11px;color:var(--dim)">＋</button>
     </div>
     <div id="rp-expr" class="rpanel rp-collapsed">
       <div id="expr-list" style="flex:1;overflow-y:auto">
@@ -1088,7 +1088,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
-            <button onclick="applyPoseBlend()" style="background:#0e2a20;border:1px solid #1a4a30;color:#40c080;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
+            <button onclick="applyPoseBlend()" style="background:rgba(60,200,120,.1);border:1px solid var(--ok-border);color:var(--green);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
             <button onclick="clearPoseBlend()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
           </div>
         </div>
@@ -3231,7 +3231,7 @@ function showGuideManager() {
       <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:var(--danger);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
     </div>`).join('');
   showModal('カスタムガイドライン管理', `
-    <div style="font-size:12px;min-width:280px;display:grid;gap:6px;">
+    <div style="font-size:11px;min-width:280px;display:grid;gap:6px;">
       <div style="color:var(--dim);font-size:10px;">キャンバスに参照線を追加（保存時にJSONに含まれません）</div>
       <div id="gg-list">${renderRows()}</div>
       <button onclick="javascript:_customGuides.push({axis:'x',pos:0,color:'rgba(255,200,80,0.7)'});render();document.getElementById('gg-list').innerHTML=document.getElementById('gg-list').innerHTML;"
@@ -4025,7 +4025,7 @@ function showTexSwitchModal() {
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
-  <div style="font-size:13px;color:var(--kf);margin-bottom:12px;font-weight:600">⇄ テクスチャスイッチ設定</div>
+  <div style="font-size:11px;color:var(--kf);margin-bottom:8px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">切替パラメータ</div>
   <select id="tsp-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
@@ -4083,7 +4083,7 @@ function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
-  <div style="font-size:13px;color:var(--text);margin-bottom:12px;font-weight:600">∇ テクスチャ生成</div>
+  <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
     <option value="solid">ソリッド（単色）</option>
@@ -4378,7 +4378,7 @@ function rotatePartMesh() {
       <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
       <span id="rot-angv" style="font-size:10px;color:var(--amber);font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
-    <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
+    <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:var(--r-sm);font-size:11px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
       <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
@@ -4452,9 +4452,9 @@ function generateColorVariants() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
   const inner = document.createElement('div');
-  inner.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:300px;color:var(--text);font-size:12px;';
+  inner.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:300px;color:var(--text);font-size:11px;';
   inner.innerHTML = `
-    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">🎨 カラーバリエーション生成</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">🎨 カラーバリエーション生成</div>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px;">色相シフトを等間隔で適用した複数バリエーションを一括生成します。</div>
     <div style="display:flex;flex-direction:column;gap:7px;">
       <div style="display:flex;align-items:center;gap:6px;">
@@ -4586,7 +4586,7 @@ function showGlobalTransformModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:13px;color:var(--text);margin-bottom:14px;font-weight:600">⊙ 全体変換</div>
+      <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">⊙ 全体変換</div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>X 移動 (px)</span>
@@ -4830,8 +4830,8 @@ async function aiAutoNameParts() {
 
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:flex;align-items:center;justify-content:center;';
-  modal.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:10px;color:var(--text);font-size:12px;">
-    <div style="font-size:13px;font-weight:600;color:var(--text);">🤖 AIパーツ自動命名（${targetIdxs.length}件）</div>
+  modal.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:380px;max-width:560px;max-height:80vh;display:flex;flex-direction:column;gap:6px;color:var(--text);font-size:11px;">
+    <div style="font-size:11px;font-weight:600;color:var(--text);">🤖 AIパーツ自動命名（${targetIdxs.length}件）</div>
     <div id="ainm-status" style="font-size:10px;color:var(--dim);">分析中...</div>
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
@@ -4893,8 +4893,8 @@ function batchRenameParts() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;';
   modal.innerHTML = `
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:340px;color:var(--text);font-size:12px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:340px;color:var(--text);font-size:11px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
           <span style="font-size:10px;width:80px;color:var(--dim);">プレフィックス追加:</span>
@@ -5235,7 +5235,7 @@ function batchEditPartProps() {
   const blendOptions = ['source-over','multiply','screen','overlay','darken','lighten','color-dodge','color-burn','hard-light','soft-light','difference','exclusion']
     .map(v=>`<option value="${v}"${(sample?.blendMode||'source-over')===v?' selected':''}>${v}</option>`).join('');
   showModal(`一括プロパティ適用 (${targets.length}パーツ)`, `
-    <div style="font-size:12px;display:grid;gap:10px;">
+    <div style="font-size:11px;display:grid;gap:6px;">
       <div style="color:var(--dim);font-size:10px;">チェックした項目を選択中の全パーツに適用します</div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-opacity-on">
@@ -5564,7 +5564,7 @@ function editExprValues(idx) {
   const _prevPV = {...pv};
   window._eevCancel = () => { Object.assign(pv, _prevPV); render(); document.getElementById('expr-edit-overlay')?.remove(); delete window._eevCancel; };
   ov.onclick=(e)=>{if(e.target===ov)window._eevCancel?.();};
-  ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
+  ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px;width:340px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
     <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
     <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
     ${rows}
@@ -5606,7 +5606,7 @@ function togglePoseBlendPanel() {
   const btn = document.getElementById('btn-blend-toggle');
   const isOpen = panel.style.display !== 'none';
   panel.style.display = isOpen ? 'none' : 'block';
-  btn.style.color = isOpen ? '' : '#40c080';
+  btn.style.color = isOpen ? '' : 'var(--green)';
   if (!isOpen) buildBlendSliders();
 }
 function buildBlendSliders() {
@@ -7176,7 +7176,7 @@ function showDeformWaveModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:13px;color:var(--text);margin-bottom:14px;font-weight:600">〜 デフォームWave</div>
+      <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>振幅 (px)</span>
         <input id="wave-amp" type="number" value="20" min="1" max="500" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 8px;width:80px">
@@ -7470,9 +7470,9 @@ function showKFBlendTool() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:flex;align-items:center;justify-content:center;';
   const inner = document.createElement('div');
-  inner.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:280px;color:var(--text);font-size:12px;';
+  inner.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:280px;color:var(--text);font-size:11px;';
   inner.innerHTML = `
-    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;">⇌ KFブレンド</div>
+    <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">⇌ KFブレンド</div>
     <div style="font-size:10px;color:var(--dim);margin-bottom:10px;">2つのKFデフォームをブレンドして新しいKFを生成します。</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;align-items:center;gap:6px;">
@@ -7564,7 +7564,7 @@ function showSnapshotCompare() {
   if (!_snapA && !_snapB) { setStatus('📷 A / 📷 B ボタンでスナップショットを撮影してください'); return; }
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999';
-  const header = `<div style="color:var(--text);font-size:14px;font-weight:600;margin-bottom:12px">📸 スナップショット比較</div>`;
+  const header = `<div style="color:var(--text);font-size:12px;font-weight:600;margin-bottom:8px">📸 スナップショット比較</div>`;
   const imgStyle = 'max-width:46vw;max-height:70vh;border-radius:4px;object-fit:contain;';
   const aHTML = _snapA
     ? `<div style="text-align:center"><div style="font-size:10px;color:var(--teal);margin-bottom:4px;font-weight:600">A（変形前）</div><img src="${_snapA}" style="${imgStyle}border:2px solid var(--teal);"></div>`
@@ -8110,9 +8110,9 @@ function showShortcutsOverlay() {
     `<tr><td style="padding:3px 8px;font-family:monospace;color:var(--gold);font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--dim);font-size:11px;">${v}</td></tr>` :
     `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
   ).join('');
-  d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
-      <span style="font-size:13px;font-weight:600;color:var(--text);">⌨ キーボードショートカット</span>
+      <span style="font-size:11px;font-weight:600;color:var(--text);">⌨ キーボードショートカット</span>
       <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;">×</button>
     </div>
     <table style="width:100%;border-collapse:collapse;">${rows}</table>
@@ -8155,7 +8155,7 @@ function showWsTestPanel() {
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
   const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
-  ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
+  ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:var(--text)">🔌 WebSocket 送信テスト</span>
       <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button>
@@ -8245,9 +8245,9 @@ function showWsApiRef() {
     `<tr>${r.map(c=>`<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border)">${c}</th>`).join('')}</tr>`:
     `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 8px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 8px;color:var(--dim);font-size:10px">${r[1]}</td><td style="padding:3px 8px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
   ).join('');
-  d.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
+  d.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
-      <span style="font-size:13px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
+      <span style="font-size:11px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
       <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px">×</button>
     </div>
     <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:var(--dim)">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
@@ -8291,7 +8291,7 @@ function showAvatarExportDialog() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
-      <div style="font-size:14px;color:var(--text);margin-bottom:14px;font-weight:600">🎭 アバターHTML書き出し設定</div>
+      <div style="font-size:12px;color:var(--text);margin-bottom:8px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
@@ -8494,7 +8494,7 @@ function showAvatarExportDialog() {
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
-        <button onclick="showWsApiRef()" style="background:none;border:1px solid #2a4a3a;color:#50a080;font-size:9px;border-radius:4px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
+        <button onclick="showWsApiRef()" style="background:none;border:1px solid var(--border);color:var(--ok-text);font-size:9px;border-radius:4px;padding:1px 6px;cursor:pointer;margin-left:auto">API仕様</button>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;font-size:11px">
         <input id="av-ws-url" type="text" placeholder="ws://localhost:8765（空白=無効）" style="flex:1;background:var(--bg);border:1px solid #1a3a2a;color:#80e0c0;border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace">
