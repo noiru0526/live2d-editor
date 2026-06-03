@@ -191,7 +191,7 @@ button:focus:not(:focus-visible){outline:none;}
 
 /* Active param overlay */
 #param-hud{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.8);border:1px solid var(--border);border-radius:var(--r-lg);padding:4px 14px;font-size:11px;color:var(--dim);pointer-events:none;white-space:nowrap;}
-#param-hud .ph-name{color:var(--accent2);font-weight:600;}
+#param-hud .ph-name{color:var(--accent);font-weight:600;}
 #param-hud .ph-val{color:var(--kf);font-family:monospace;margin-left:8px;}
 #param-hud .ph-rec{color:var(--rec);margin-left:8px;}
 
@@ -268,7 +268,7 @@ button:focus:not(:focus-visible){outline:none;}
 /* Param groups — Cubism folder style */
 .pgroup-header{display:flex;align-items:center;padding:2px 8px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--surface);transition:background .08s;}
 .pgroup-header:hover{background:var(--panel);}
-.pgroup-icon{font-size:10px;margin-right:4px;color:var(--accent2);}
+.pgroup-icon{font-size:10px;margin-right:4px;color:var(--dim);}
 .pgroup-label{font-size:10px;font-weight:500;color:var(--dim);flex:1;letter-spacing:.5px;}
 .pgroup-count{font-size:9px;color:var(--muted);font-family:monospace;}
 .pgroup-toggle{font-size:9px;color:var(--dim);margin-left:6px;}
@@ -424,9 +424,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <!-- Panel: パラメータ -->
     <div class="lpanel" id="lpanel-params">
     <div class="ptitle" style="display:flex;align-items:center;">パラメータ
-      <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:0 4px;line-height:1;" title="パラメータを追加 (+)">+</button>
-      <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
-      <button onclick="autoGroupParams()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="名前プレフィックスで自動グルーピング">A</button>
+      <button onclick="addCustomParam()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;line-height:1;" title="パラメータを追加 (+)">+</button>
+      <button onclick="showParamGroupManager()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 4px;" title="グループ管理">G</button>
+      <button onclick="autoGroupParams()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 4px;" title="名前プレフィックスで自動グルーピング">A</button>
     </div>
     <div style="padding:2px 6px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
@@ -454,7 +454,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">
         パーツ
-        <button onclick="addNewPart()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:0 4px;" title="パーツを追加">+</button>
+        <button onclick="addNewPart()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="パーツを追加">+</button>
       </div>
       <div id="parts-list" style="display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto;padding:2px 0;"></div>
       <div style="display:flex;gap:3px;margin-top:2px;">
@@ -507,7 +507,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div>
     </div>
     <div style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="savePoseAtPlayhead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;" title="再生ヘッド位置のアニメーション値をポーズ保存（アニメモード時）">⏱+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
+      <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="savePoseAtPlayhead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;" title="再生ヘッド位置のアニメーション値をポーズ保存（アニメモード時）">⏱+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
       <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 2px;font-size:9px;color:var(--dim);">
         <span>遷移</span>
         <input type="range" id="pose-tween-dur" min="0" max="1" step="0.05" value="0.3"
@@ -529,8 +529,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div class="lpanel hidden" id="lpanel-deform">
       <div id="deformer-section" style="border-bottom:1px solid var(--border);flex-shrink:0;">
         <div class="ptitle" style="display:flex;align-items:center;">デフォーマー
-          <button onclick="addWarpDeformer()" style="margin-left:auto;background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="ワープデフォーマー追加">+W</button>
-          <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
+          <button onclick="addWarpDeformer()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="ワープデフォーマー追加">+W</button>
+          <button onclick="addRotateDeformer()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="回転デフォーマー追加">+R</button>
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
         <div id="deformer-param-bind" style="padding:2px 8px 2px;border-top:1px solid var(--divider);display:none;">
@@ -622,7 +622,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="undo-history-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('undo-history-list',this)">
         操作履歴
-        <span id="undo-count" style="margin-left:6px;font-size:9px;color:var(--accent2);font-family:monospace;"></span>
+        <span id="undo-count" style="margin-left:6px;font-size:9px;color:var(--dim);font-family:monospace;"></span>
         <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
       </div>
       <div id="undo-history-list" style="max-height:160px;overflow-y:auto;display:none;">
@@ -20934,7 +20934,7 @@ function renderDeformerTree() {
     const row = document.createElement('div');
     row.className = 'deformer-row' + (def.id === ST.activeDeformer ? ' active-def' : '');
     const icon = def.type === 'warp' ? '▦' : '↻';
-    const boundParam = def.boundParam ? `<span style="font-size:8px;color:var(--accent2);margin-left:3px;">[${def.boundParam}]</span>` : '';
+    const boundParam = def.boundParam ? `<span style="font-size:8px;color:var(--dim);margin-left:3px;">[${def.boundParam}]</span>` : '';
     const indent = depth > 0 ? `<span style="display:inline-block;width:${depth*10}px;opacity:0.4;font-size:10px;">${'└'.padStart(depth,'·')}</span>` : '';
     row.innerHTML = `
       ${indent}
