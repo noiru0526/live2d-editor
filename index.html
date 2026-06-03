@@ -13,7 +13,7 @@
   --accent:#e07840; --accent-light:#ffb070; --accent2:#c09040; --accent3:#c09060;
   --accent-dim:rgba(224,120,64,.15); --accent2-dim:rgba(192,144,64,.15);
   /* Status colors */
-  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --teal:#60d890; --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
+  --kf:#e0c060; --gold:#ffd060; --rec:#e04040; --green:#60c060; --teal:#60d890; --pink:var(--pink); --warn:#e09040; --error:#e05050; --danger:#f08080; --danger-bg:#2e1a1a;
   /* Text */
   --text:#c8c8c8; --text-bright:#e0e0e0; --dim:#909090; --muted:#707070;
   /* Radius scale */
@@ -379,7 +379,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div class="tsep"></div>
   <!-- Extra tools (overflow) -->
   <button class="tbtn" id="btn-weight-paint" onclick="toggleWeightPaint()" title="ウェイトペイント (W)">🎨</button>
-  <button class="tbtn" id="btn-face-rec"     onclick="toggleFaceRec()"     title="顔トラ録音" style="color:#ff80c0;">🎭</button>
+  <button class="tbtn" id="btn-face-rec"     onclick="toggleFaceRec()"     title="顔トラ録音" style="color:var(--pink);">🎭</button>
   <button class="tbtn" id="btn-webcam"       onclick="toggleWebcamTest()"  title="カメラ">📷</button>
   <button class="tbtn" id="btn-mic"          onclick="toggleMicTest()"     title="マイク">🎤</button>
   <button class="tbtn" id="btn-midi"         onclick="toggleMidiPanel()"   title="MIDI">🎹</button>
@@ -388,7 +388,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <button class="tbtn" id="btn-hq"           onclick="toggleHQRender()"    title="高品質レンダリング">HQ</button>
   <button class="tbtn" id="btn-weight"       onclick="toggleWeightMode()"  title="ウェイトモード" style="color:#ff9060;">⚖</button>
   <button class="tbtn" id="btn-abplay"       onclick="toggleABPlayback()"  title="A/B再生" style="color:#80ffb0;">⇄</button>
-  <button class="tbtn" id="btn-rnd-pose"     onclick="randomizePose()"     title="ランダムポーズ" style="color:#ff90d0;">🎲</button>
+  <button class="tbtn" id="btn-rnd-pose"     onclick="randomizePose()"     title="ランダムポーズ" style="color:var(--pink);">🎲</button>
   <button class="tbtn"                       onclick="bakeAnimToTimeline()" title="タイムラインベイク" style="color:#d0c060;">🍞</button>
   <button class="tbtn" id="btn-bc"           onclick="toggleBroadcastChannel()" title="BC">📡</button>
   <button class="tbtn" id="btn-param-scan"   onclick="toggleParamScan()"   title="パラメータスキャン">🔍</button>
@@ -985,31 +985,31 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <tr><td style="font-family:monospace;color:var(--dim);padding:2px 16px 2px 0">ドラッグ(空白)</td><td>ボックス選択</td></tr>
       <tr><td style="height:8px"></td></tr>
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">アニメーションモード（A キー）</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">J</td><td>1フレーム後退</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">K</td><td>停止</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">L</td><td>1フレーム前進</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">M</td><td>現在位置にマーカーを追加</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Delete</td><td>選択KFを削除</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+C / V</td><td>選択KFをコピー / ペースト</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+A</td><td>アクティブトラックのKFを全選択</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+Shift+A</td><td>全トラックのKFを全選択</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Home / End</td><td>プレイヘッドを先頭/末尾に移動（アニメモード）</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+D</td><td>KF選択解除</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+クリック</td><td>KFを追加選択（マルチ選択）</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Ctrl+ホイール</td><td>タイムライン横ズーム</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">ホイール</td><td>タイムライン縦スクロール</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">←→ (KF選択時)</td><td>KFを1フレーム前後にナッジ</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+←→ (KF選択時)</td><td>KFを5フレーム前後にナッジ</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Shift+ドラッグ (タイムライン)</td><td>ラバーバンド選択</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Alt+D (KF選択時)</td><td>選択KFを1フレーム後に複製</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">[ / ]</td><td>前/次のマーカーにジャンプ（アニメモード）</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">Alt+D</td><td>選択KFを1フレーム後に複製</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">📸 ポーズKF</td><td>全パラメータを現在時刻にKF挿入</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">🎵 BPM</td><td>BPMグリッドでマーカーを一括生成</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">⊡ 正規化</td><td>選択KFの値を指定範囲にリマップ</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">⏱ リタイム</td><td>アニメ全体を新デュレーションに比例スケール</td></tr>
-      <tr><td style="font-family:monospace;color:#ff80c0;padding:2px 16px 2px 0">ミニマップクリック</td><td>タイムライン上部のミニマップでシークジャンプ</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">J</td><td>1フレーム後退</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">K</td><td>停止</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">L</td><td>1フレーム前進</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">M</td><td>現在位置にマーカーを追加</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Delete</td><td>選択KFを削除</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+C / V</td><td>選択KFをコピー / ペースト</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+A</td><td>アクティブトラックのKFを全選択</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+Shift+A</td><td>全トラックのKFを全選択</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Home / End</td><td>プレイヘッドを先頭/末尾に移動（アニメモード）</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+D</td><td>KF選択解除</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+クリック</td><td>KFを追加選択（マルチ選択）</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Ctrl+ホイール</td><td>タイムライン横ズーム</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">ホイール</td><td>タイムライン縦スクロール</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">←→ (KF選択時)</td><td>KFを1フレーム前後にナッジ</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Shift+←→ (KF選択時)</td><td>KFを5フレーム前後にナッジ</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Shift+ドラッグ (タイムライン)</td><td>ラバーバンド選択</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Alt+D (KF選択時)</td><td>選択KFを1フレーム後に複製</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">[ / ]</td><td>前/次のマーカーにジャンプ（アニメモード）</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">Alt+D</td><td>選択KFを1フレーム後に複製</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">📸 ポーズKF</td><td>全パラメータを現在時刻にKF挿入</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">🎵 BPM</td><td>BPMグリッドでマーカーを一括生成</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">⊡ 正規化</td><td>選択KFの値を指定範囲にリマップ</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">⏱ リタイム</td><td>アニメ全体を新デュレーションに比例スケール</td></tr>
+      <tr><td style="font-family:monospace;color:var(--pink);padding:2px 16px 2px 0">ミニマップクリック</td><td>タイムライン上部のミニマップでシークジャンプ</td></tr>
       <tr><td style="height:8px"></td></tr>
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td colspan="2" style="padding:0 0 6px">エクスポートHTML内のショートカット</td></tr>
       <tr><td style="font-family:monospace;color:var(--text);padding:2px 16px 2px 0">Space</td><td>再生 / 停止</td></tr>
@@ -1118,13 +1118,13 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
       <span style="font-size:9px;color:var(--dim);">表情プリセット</span>
       <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;margin-left:auto;">
-        <input type="checkbox" id="wc-expr-auto" style="accent-color:#ff80c0;width:10px;height:10px;">自動検出
+        <input type="checkbox" id="wc-expr-auto" style="accent-color:var(--pink);width:10px;height:10px;">自動検出
       </label>
       <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;" title="検出した表情名と同名のポーズを自動適用">
         <input type="checkbox" id="wc-expr-apply-pose" style="accent-color:var(--accent);width:10px;height:10px;">ポーズ連動
       </label>
     </div>
-    <div id="wc-expr-detected" style="font-size:9px;color:#ff80c0;margin-bottom:4px;min-height:14px;"></div>
+    <div id="wc-expr-detected" style="font-size:9px;color:var(--pink);margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
@@ -1162,19 +1162,19 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- Random Pose Config Panel -->
 <div id="rnd-pose-panel" style="display:none;position:fixed;left:50%;transform:translateX(-50%);top:44px;background:var(--surface);border:1px solid rgba(255,144,208,.3);border-radius:8px;z-index:162;box-shadow:0 4px 20px rgba(0,0,0,.6);padding:10px 14px;min-width:280px;max-height:60vh;overflow-y:auto;">
   <div style="display:flex;align-items:center;margin-bottom:8px;gap:6px;">
-    <span style="font-size:12px;font-weight:600;color:#ff90d0;">🎲 ランダムポーズ設定</span>
+    <span style="font-size:12px;font-weight:600;color:var(--pink);">🎲 ランダムポーズ設定</span>
     <button onclick="document.getElementById('rnd-pose-panel').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;">✕</button>
   </div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">各パラメータのランダム化範囲を設定。スライダーで強度（0=固定、100=最大範囲）。</div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
     <label style="font-size:10px;color:var(--dim);white-space:nowrap;">全体強度:</label>
-    <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:#ff90d0;">
-    <span id="rnd-global-lbl" style="font-size:10px;color:#ff90d0;min-width:28px;">100%</span>
-    <button onclick="randomizePose()" style="background:#221520;border:1px solid rgba(255,144,208,.4);color:#ff90d0;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
+    <input type="range" id="rnd-global-strength" min="0" max="100" value="100" style="flex:1;accent-color:var(--pink);">
+    <span id="rnd-global-lbl" style="font-size:10px;color:var(--pink);min-width:28px;">100%</span>
+    <button onclick="randomizePose()" style="background:#221520;border:1px solid rgba(255,144,208,.4);color:var(--pink);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🎲</button>
   </div>
   <div style="margin-bottom:6px;display:flex;gap:6px;">
     <label style="font-size:10px;color:var(--dim);"><input type="checkbox" id="rnd-animate" onchange="toggleRndAnimate(this.checked)" style="margin-right:3px;">自動ランダム (<span id="rnd-interval-lbl">2</span>s毎)</label>
-    <input type="range" id="rnd-interval" min="0.5" max="10" step="0.5" value="2" oninput="document.getElementById('rnd-interval-lbl').textContent=this.value;" style="flex:1;accent-color:#ff90d0;">
+    <input type="range" id="rnd-interval" min="0.5" max="10" step="0.5" value="2" oninput="document.getElementById('rnd-interval-lbl').textContent=this.value;" style="flex:1;accent-color:var(--pink);">
   </div>
   <div id="rnd-param-list" style="display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto;"></div>
   <button onclick="buildRndParamList()" style="margin-top:6px;width:100%;background:var(--surface);border:1px solid rgba(255,144,208,.3);color:#c090d0;border-radius:4px;padding:3px;cursor:pointer;font-size:9px;">↻ リスト更新</button>
@@ -1272,7 +1272,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <input type="checkbox" id="tl-follow-ph" checked style="accent-color:var(--teal);">追跡
     </label>
     <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--dim);">
-      <input type="checkbox" id="tl-pingpong" style="accent-color:#ff80c0;">🏓 往復
+      <input type="checkbox" id="tl-pingpong" style="accent-color:var(--pink);">🏓 往復
     </label>
     <span style="font-size:10px;color:var(--dim)">尺:</span>
     <input type="number" id="tl-duration" value="3.0" min="0.5" max="60" step="0.5"
@@ -17590,7 +17590,7 @@ function toggleFaceRec() {
     animRecordStop();
     // Stop webcam if active
     if (_wcActive) toggleWebcamTest();
-    if (btn) { btn.textContent='🎭 顔録音'; btn.style.color='#ff80c0'; btn.classList.remove('on'); }
+    if (btn) { btn.textContent='🎭 顔録音'; btn.style.color='var(--pink)'; btn.classList.remove('on'); }
     document.getElementById('lbl-status').textContent = '顔録音停止 — 🍞 ベイクボタンでタイムラインに変換できます';
   } else {
     _faceRecActive = true;
@@ -19026,7 +19026,7 @@ function _oscLoop() {
   ctx.strokeStyle='rgba(100,160,100,.6)'; ctx.beginPath(); ctx.moveTo(0,OSC_H/2); ctx.lineTo(OSC_W,OSC_H/2); ctx.stroke();
 
   // Draw waveforms
-  const colors=['#60e090','#e07840','#ffa060','#ff80c0','#c0a060','#60f0d0','#ffdf60','#80ff80','#ff6060','#c0c060','#e0a060','#a0c080'];
+  const colors=['#60e090','#e07840','#ffa060','var(--pink)','#c0a060','#60f0d0','#ffdf60','#80ff80','#ff6060','#c0c060','#e0a060','#a0c080'];
   let ci=0;
   const legend=document.getElementById('osc-legend');
   if (legend) legend.innerHTML='';
@@ -19105,12 +19105,12 @@ function _buildMidiPanel() {
     </div>
     <!-- Note Mappings -->
     <div>
-      <div style="font-size:9px;color:#ff80c0;margin-bottom:4px;font-weight:600;">ノート → ポーズ/表情</div>
+      <div style="font-size:9px;color:var(--pink);margin-bottom:4px;font-weight:600;">ノート → ポーズ/表情</div>
       <div id="midi-note-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-note-num" type="number" min="0" max="127" placeholder="Note#" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
         <select id="midi-note-target" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;"></select>
-        <button onclick="_midiAddNoteMap()" style="background:var(--surface);border:1px solid rgba(200,60,200,.4);color:#ff80c0;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
+        <button onclick="_midiAddNoteMap()" style="background:var(--surface);border:1px solid rgba(200,60,200,.4);color:var(--pink);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
     </div>`;
   document.body.appendChild(panel);
@@ -19234,7 +19234,7 @@ function _midiRenderNoteList() {
     const nn = noteNames[parseInt(note) % 12] + Math.floor(parseInt(note) / 12 - 1);
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 5px;background:var(--bg);border-radius:3px;font-size:9px;';
-    row.innerHTML = `<code style="color:#ff80c0;background:var(--bg);padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:var(--dim);">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
+    row.innerHTML = `<code style="color:var(--pink);background:var(--bg);padding:1px 4px;border-radius:2px;">${nn}(${note})</code><span style="flex:1;color:var(--dim);">→ ${target}</span><button onclick="delete M.midiMappings.notes['${note}'];_midiRenderNoteList();" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -21679,7 +21679,7 @@ function drawMultiTimeline() {
         const ky=ry+rh/2;
         const sz=isActiveTrack?5:4;
         // Color by interp type or user color tag
-        const KFCOL={linear:'#60d890',smooth:'#e07840','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'#ff80c0',step:'#e06060','ease-in-cubic':'#e0c040','ease-out-cubic':'#d07020','ease-in-out-cubic':'#a0c860',elastic:'#ff60a0','elastic-in':'#ff4060',back:'#c0a040','back-out':'#e09040',circ:'#40d0c0','circ-out':'#20b0a0',sine:'#d09060','sine-out':'#c07840'};
+        const KFCOL={linear:'#60d890',smooth:'#e07840','ease-in':'#ffd060','ease-out':'#f0a040',bounce:'var(--pink)',step:'#e06060','ease-in-cubic':'#e0c040','ease-out-cubic':'#d07020','ease-in-out-cubic':'#a0c860',elastic:'#ff60a0','elastic-in':'#ff4060',back:'#c0a040','back-out':'#e09040',circ:'#40d0c0','circ-out':'#20b0a0',sine:'#d09060','sine-out':'#c07840'};
         const interpCol = kf.color || (kf.interp ? (KFCOL[kf.interp]||'#ffd060') : (isActiveTrack?'#ffd060':'rgba(255,208,96,.55)'));
         const col = isActiveTrack ? interpCol : interpCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i,(_,r,g,b)=>`${parseInt(r,16)},${parseInt(g,16)},${parseInt(b,16)}`)+'.6)';
         // Shadow
@@ -23739,7 +23739,7 @@ function addTimelineMarkerAt(t) {
   if (label === null) return;
   if (!M.animation.markers) M.animation.markers = [];
   M.animation.markers = M.animation.markers.filter(m => Math.abs(m.t - t) > 0.01);
-  const colors = ['#ffd060','#60d890','#ff80c0','#c09040','#ffa060'];
+  const colors = ['#ffd060','#60d890','var(--pink)','#c09040','#ffa060'];
   const color = colors[M.animation.markers.length % colors.length];
   M.animation.markers.push({ t: Math.round(t*1000)/1000, label: label||'●', color });
   M.animation.markers.sort((a,b)=>a.t-b.t);
@@ -23752,7 +23752,7 @@ function addAnimMarker() {
   if (label === null) return;
   if (!M.animation.markers) M.animation.markers = [];
   M.animation.markers = M.animation.markers.filter(m => Math.abs(m.t - t) > 0.01);
-  const colors = ['#ffd060','#60d890','#ff80c0','#c09040','#ffa060'];
+  const colors = ['#ffd060','#60d890','var(--pink)','#c09040','#ffa060'];
   const color = colors[M.animation.markers.length % colors.length];
   M.animation.markers.push({ t, label: label||'●', color });
   M.animation.markers.sort((a,b)=>a.t-b.t);
@@ -24537,7 +24537,7 @@ function showAnimStats() {
           <div style="font-size:10px;color:var(--dim);">デュレーション</div>
         </div>
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center;">
-          <div style="font-size:24px;font-weight:bold;color:#ff80c0;">${kfPerSec}</div>
+          <div style="font-size:24px;font-weight:bold;color:var(--pink);">${kfPerSec}</div>
           <div style="font-size:10px;color:var(--dim);">KF/秒</div>
         </div>
       </div>
@@ -25216,7 +25216,7 @@ function showAnimCompareDialog() {
   }
   const W = Math.min(window.innerWidth - 80, 750);
   const H = 240;
-  const COLORS = ['#e07840', '#ff6060', '#60d890', '#ffd060', '#c09040', '#ff80c0'];
+  const COLORS = ['#e07840', '#ff6060', '#60d890', '#ffd060', '#c09040', 'var(--pink)'];
 
   const mo = document.createElement('div');
   mo.className = 'mo';
@@ -30243,7 +30243,7 @@ async function _doExportGIF(fps,scale,quality,loopOnly) {
 }
 
 // ==================== TIMELINE MARKERS ====================
-const MARKER_COLORS = ['#ffd080','#ff8080','#80ff90','#e07840','#ff90d0','#c09040','#ffa060'];
+const MARKER_COLORS = ['#ffd080','#ff8080','#80ff90','#e07840','var(--pink)','#c09040','#ffa060'];
 let _markerColorIdx = 0;
 
 function addTimelineMarker() {
@@ -30533,10 +30533,10 @@ function buildRndParamList() {
     lbl.textContent = k; lbl.title = k;
     const sl = document.createElement('input');
     sl.type = 'range'; sl.min = '0'; sl.max = '100'; sl.value = Math.round(str * 100);
-    sl.style.cssText = 'flex:1;accent-color:#ff90d0;height:4px;';
+    sl.style.cssText = 'flex:1;accent-color:var(--pink);height:4px;';
     sl.oninput = () => { _rndStrengths[k] = parseInt(sl.value) / 100; };
     const val = document.createElement('span');
-    val.style.cssText = 'font-size:9px;color:#ff90d0;min-width:24px;text-align:right;';
+    val.style.cssText = 'font-size:9px;color:var(--pink);min-width:24px;text-align:right;';
     val.textContent = Math.round(str * 100) + '%';
     sl.addEventListener('input', () => { val.textContent = sl.value + '%'; });
     row.appendChild(lbl); row.appendChild(sl); row.appendChild(val);
@@ -30566,7 +30566,7 @@ function toggleRndAnimate(on) {
   if (on) {
     const interval = parseFloat(document.getElementById('rnd-interval')?.value ?? 2) * 1000;
     _rndAnimTimer = setInterval(randomizePose, interval);
-    document.getElementById('btn-rnd-pose').style.outline = '1px solid #ff90d0';
+    document.getElementById('btn-rnd-pose').style.outline = '1px solid var(--pink)';
   } else {
     document.getElementById('btn-rnd-pose').style.outline = '';
   }
