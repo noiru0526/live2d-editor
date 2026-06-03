@@ -411,7 +411,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
   <div class="tgrp">
     <button class="tbtn ok" onclick="saveModelOnly()" title="モデルを保存"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="1" width="6" height="3.5" fill="currentColor" opacity=".45"/><rect x="3.5" y="6" width="5" height="3.5" fill="currentColor" opacity=".45"/><rect x="5" y="1.5" width="1.5" height="2.5" fill="currentColor"/></svg>保存</button>
     <button class="tbtn ok" onclick="exportAvatarHTMLDirect()" title="HTMLとして出力"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="vertical-align:middle;margin-right:3px"><rect x="1" y="2" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M7 1L11 1V5" stroke="currentColor" stroke-width="1.2"/><path d="M7 5L11 1" stroke="currentColor" stroke-width="1.2"/></svg>出力</button>
-    <button class="tbtn" onclick="previewAvatarInTab()" title="アバターを新しいタブでプレビュー（保存不要）" style="color:var(--teal)">👁 プレビュー</button>
+    <button class="tbtn" onclick="previewAvatarInTab()" title="アバターを新しいタブでプレビュー（保存不要）">👁 プレビュー</button>
     <button class="tbtn" onclick="loadModelJSON()" title="モデルを読み込む"><svg width="13" height="11" viewBox="0 0 13 11" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M1 4H5.5L7 2H12V9H1Z" stroke="currentColor" stroke-width="1.1"/></svg>読込</button>
     <div class="tb-more">
       <button class="tbtn" onclick="toggleTbMore('tb-more-tools',this)">▾</button>
@@ -499,7 +499,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
         <div style="padding:3px 6px;border-top:1px solid var(--divider);display:flex;gap:3px;flex-shrink:0">
-          <button class="tbtn" style="flex:1;color:var(--teal);border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
+          <button class="tbtn" style="flex:1;color:var(--accent-light);border-color:rgba(255,160,60,.35)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
           <button class="tbtn" style="flex:1;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
         </div>
       </div>
@@ -523,7 +523,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,160,60,.4)" onclick="kfScaleDeform()" title="現在のKFデフォームをスケーリング（増減）">✕ スケール</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:2px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,160,60,.35)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:2px">
@@ -531,7 +531,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--kf);border-color:rgba(160,160,60,.35)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:2px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--text);border-color:var(--border)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:2px">
@@ -542,7 +542,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:2px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
         <div style="display:flex;gap:3px;margin-top:2px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
-          <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:var(--teal);border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
+          <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
           <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:var(--accent);border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
         </div>
@@ -644,7 +644,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:var(--accent)" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
       <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:var(--accent)" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
       <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:var(--ok-text)" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
-      <button onclick="wpFill(1)" style="background:rgba(96,200,136,.15);border:1px solid rgba(96,200,136,.4);color:var(--ok-text);border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
+      <button onclick="wpFill(1)" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
       <button onclick="wpFill(0)" style="background:var(--danger-bg);border:1px solid rgba(240,128,128,.4);color:var(--danger);border-radius:4px;padding:1px 6px;cursor:pointer">全0</button>
       <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:1px 6px;cursor:pointer">自動計算</button>
     </div>
@@ -887,7 +887,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
-        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:var(--green);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
+        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(150,150,150,.05);border:1px dashed rgba(150,150,150,.2);color:var(--dim);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         </div><!-- end pp-ext-body -->
         <!-- Legacy clip/deformer/group selects (hidden - replaced by ci-row at top) -->
         <select id="pp-clip" style="display:none" onchange="applyPartClip(this.value)"><option value="">なし</option></select>
@@ -1094,7 +1094,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
           <span style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">ポーズブレンド</span>
           <div style="display:flex;gap:4px">
-            <button onclick="applyPoseBlend()" style="background:rgba(60,200,120,.1);border:1px solid var(--ok-border);color:var(--green);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
+            <button onclick="applyPoseBlend()" style="background:rgba(224,120,64,.12);border:1px solid var(--accent);color:var(--accent-light);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:8px;">適用</button>
             <button onclick="clearPoseBlend()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;" title="全ウェイトをリセット">✕</button>
           </div>
         </div>
@@ -7528,7 +7528,7 @@ function showKFBlendTool() {
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button id="kfb-preview" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
-        <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:var(--teal);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
+        <button id="kfb-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
         <button id="kfb-cancel" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
