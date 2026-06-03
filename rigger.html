@@ -1047,7 +1047,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     </div>
     <div id="rp-physics" class="rpanel rp-collapsed">
       <div style="padding:2px 8px;border-bottom:1px solid var(--divider);display:flex;justify-content:flex-end;flex-shrink:0">
-        <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:var(--dim)">✕ 全OFF</button>
+        <button class="ih" onclick="clearAllPhysics()" title="全てOFF" style="font-size:11px;color:var(--text)">✕ 全OFF</button>
       </div>
       <!-- Physics presets -->
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0">
@@ -1072,7 +1072,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('lfo')">
       <span class="rsec-caret collapsed" id="rsec-caret-lfo">▼</span>
       <span class="rsec-ttl">パラメータ自動化（LFO）</span>
-      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:11px;color:var(--dim)">＋</button>
+      <button class="ih" onclick="event.stopPropagation();addLFO()" title="LFO追加" style="font-size:11px;color:var(--text)">＋</button>
     </div>
     <div id="rp-lfo" class="rpanel rp-collapsed">
       <div style="padding:2px 5px;border-bottom:1px solid var(--divider);flex-shrink:0">
@@ -1089,7 +1089,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div class="rsec-hd" onclick="toggleRSec('expr')">
       <span class="rsec-caret collapsed" id="rsec-caret-expr">▼</span>
       <span class="rsec-ttl">表情</span>
-      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:11px;color:var(--dim)">＋</button>
+      <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:11px;color:var(--text)">＋</button>
     </div>
     <div id="rp-expr" class="rpanel rp-collapsed">
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
@@ -4049,11 +4049,11 @@ function showTexSwitchModal() {
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:var(--r-lg);padding:12px 16px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
   <div style="font-size:11px;color:var(--kf);margin-bottom:8px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
-  <div style="font-size:10px;color:var(--dim);margin-bottom:4px">切替パラメータ</div>
+  <div style="font-size:10px;color:var(--text);margin-bottom:4px">切替パラメータ</div>
   <select id="tsp-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
     <option value="">（なし）</option>${paramOpts}
   </select>
-  <div style="font-size:10px;color:var(--dim);margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:9px;color:var(--dim)"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
+  <div style="font-size:10px;color:var(--text);margin-bottom:4px">ルール（範囲 → テクスチャ）<span style="font-size:9px;color:var(--dim)"> min値 ≤ param ≤ max値 のとき指定テクスチャを使用</span></div>
   <div style="font-size:9px;color:var(--dim);display:grid;grid-template-columns:1fr 1fr 1fr 20px;gap:4px;margin-bottom:3px">
     <span>最小値</span><span>最大値</span><span>テクスチャ</span><span></span>
   </div>
@@ -4106,7 +4106,7 @@ function showGenerateTextureModal() {
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
   <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">∇ テクスチャ生成</div>
-  <div style="font-size:10px;color:var(--dim);margin-bottom:4px">タイプ</div>
+  <div style="font-size:10px;color:var(--text);margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
     <option value="solid">ソリッド（単色）</option>
     <option value="linear" selected>リニアグラデーション</option>
@@ -4115,11 +4115,11 @@ function showGenerateTextureModal() {
   </select>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
     <div>
-      <div style="font-size:10px;color:var(--dim);margin-bottom:3px">幅</div>
+      <div style="font-size:10px;color:var(--text);margin-bottom:3px">幅</div>
       <input id="gt-w" type="number" value="${parts[selPart].w||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:11px">
     </div>
     <div>
-      <div style="font-size:10px;color:var(--dim);margin-bottom:3px">高さ</div>
+      <div style="font-size:10px;color:var(--text);margin-bottom:3px">高さ</div>
       <input id="gt-h" type="number" value="${parts[selPart].h||256}" min="8" max="2048" step="8" oninput="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:11px">
     </div>
   </div>
@@ -4128,14 +4128,14 @@ function showGenerateTextureModal() {
     <div id="gt-c2-wrap"><div style="font-size:10px;color:var(--text);margin-bottom:3px">色 2</div><input id="gt-c2" type="color" value="#000000" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
   </div>
   <div id="gt-dir-wrap" style="margin-bottom:8px">
-    <div style="font-size:10px;color:var(--dim);margin-bottom:3px">方向</div>
+    <div style="font-size:10px;color:var(--text);margin-bottom:3px">方向</div>
     <select id="gt-dir" onchange="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px">
       <option value="horizontal">水平（左→右）</option><option value="vertical">垂直（上→下）</option>
       <option value="diagonal">斜め（左上→右下）</option><option value="diagonal2">斜め（左下→右上）</option>
     </select>
   </div>
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-    <div style="font-size:10px;color:var(--dim)">不透明度</div>
+    <div style="font-size:10px;color:var(--text)">不透明度</div>
     <input id="gt-alpha" type="range" min="0" max="100" value="100" oninput="document.getElementById('gt-alpha-v').textContent=this.value+'%';updateGentexPreview()" style="flex:1;accent-color:var(--accent)">
     <span id="gt-alpha-v" style="font-size:10px;color:var(--dim);min-width:32px">100%</span>
   </div>
