@@ -535,7 +535,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
           <button id="btn-param-sweep" class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--gold);border-color:rgba(255,200,60,.4)" onclick="toggleParamSweep()" title="パラメータを自動スイープ: KF全範囲を往復再生してデフォームを確認">▷ スイープ</button>
-          <select id="sweep-speed-sel" style="flex:0 0 auto;background:var(--bg);border:1px solid rgba(255,200,60,.3);color:#c0a050;border-radius:3px;padding:1px 3px;font-size:8px;" title="スイープ速度（サイクル/秒）">
+          <select id="sweep-speed-sel" style="flex:0 0 auto;background:var(--bg);border:1px solid rgba(255,200,60,.3);color:var(--kf);border-radius:3px;padding:1px 3px;font-size:8px;" title="スイープ速度（サイクル/秒）">
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
         </div>
@@ -557,7 +557,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:4px">頂点: — / 三角形: —</div>
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成（グリッド）</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:#c0c0a0" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:var(--dim)" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('v')" title="メッシュを垂直に反転（Y軸ミラー）">↕ 反転V</button>
@@ -642,9 +642,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <span style="color:var(--text);font-weight:600;letter-spacing:.5px">🎨 WEIGHT PAINT</span>
       <label>ブラシ径 <input id="wp-r" type="range" min="5" max="150" value="40" style="width:70px;accent-color:var(--accent)" oninput="_wpBrushR=+this.value;document.getElementById('wp-rv').textContent=this.value"> <span id="wp-rv">40</span></label>
       <label>強度 <input id="wp-s" type="range" min="1" max="20" value="5" style="width:60px;accent-color:var(--accent)" oninput="_wpBrushStr=this.value/100;document.getElementById('wp-sv').textContent=(this.value/100).toFixed(2)"> <span id="wp-sv">0.05</span></label>
-      <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:#22c55e" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
-      <button onclick="wpFill(1)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
-      <button onclick="wpFill(0)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:4px;padding:1px 6px;cursor:pointer">全0</button>
+      <label>値 <input id="wp-v" type="range" min="0" max="100" value="100" style="width:60px;accent-color:var(--ok-text)" oninput="_wpBrushVal=this.value/100;document.getElementById('wp-vv').textContent=(this.value/100).toFixed(2)"> <span id="wp-vv">1.00</span></label>
+      <button onclick="wpFill(1)" style="background:rgba(96,200,136,.15);border:1px solid rgba(96,200,136,.4);color:var(--ok-text);border-radius:4px;padding:1px 6px;cursor:pointer">全1</button>
+      <button onclick="wpFill(0)" style="background:var(--danger-bg);border:1px solid rgba(240,128,128,.4);color:var(--danger);border-radius:4px;padding:1px 6px;cursor:pointer">全0</button>
       <button onclick="wpAutoCalc()" title="デフォーマー境界からの距離で自動ウェイト計算（内部=1、外部=0、境界はなめらか）" style="background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:1px 6px;cursor:pointer">自動計算</button>
     </div>
   </div>
@@ -683,9 +683,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
           </div>
           <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
-            <span class="prop-lbl" style="color:#a0a080">輪郭</span>
+            <span class="prop-lbl" style="color:var(--dim)">輪郭</span>
             <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px;accent-color:var(--accent)" oninput="applyDeformerFalloff(this.value)">
-            <span id="dp-falloff-val" style="font-size:9px;color:#a0a080;min-width:24px">0%</span>
+            <span id="dp-falloff-val" style="font-size:9px;color:var(--dim);min-width:24px">0%</span>
           </div>
           <div class="prop-row">
             <span class="prop-lbl">親デフォーマー</span>
@@ -886,7 +886,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
-        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:#50a870;border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
+        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:var(--green);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         </div><!-- end pp-ext-body -->
         <!-- Legacy clip/deformer/group selects (hidden - replaced by ci-row at top) -->
         <select id="pp-clip" style="display:none" onchange="applyPartClip(this.value)"><option value="">なし</option></select>
@@ -907,7 +907,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
-              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid var(--divider);color:#a0a080;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
+              <button onclick="showGenerateTextureModal()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="ソリッド/グラデーション/ラジアルテクスチャを自動生成">∇ 生成</button>
               <button onclick="addAltTexture()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="代替テクスチャを追加">＋ 追加</button>
             </div>
           </div>
@@ -945,7 +945,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button class="tbtn" onclick="distributeParts('v')" style="font-size:8px;padding:2px 0" title="垂直等間隔">↕ 等間隔</button>
           </div>
           <div style="margin-top:4px;">
-            <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:#c0a060;border-color:rgba(180,150,60,.35)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
+            <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:var(--accent2);border-color:rgba(180,150,60,.35)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
           </div>
         </div>
       </div>
@@ -3473,7 +3473,7 @@ function updatePartsUI() {
     lockSpan.onclick=(e)=>togLockItem(i,e); d.appendChild(lockSpan);
     if (pt.clipTo) { const b=document.createElement('span'); b.className='pi-clip-badge'; b.textContent='✂'; b.title='クリッピングマスク有効'; d.appendChild(b); }
     if (pt.physics?.enabled) { const b=document.createElement('span'); b.className='pi-phys-badge'; b.textContent='〜'; b.title='物理シミュレーション有効'; d.appendChild(b); }
-    if (pt.note) { const b=document.createElement('span'); b.style.cssText='font-size:8px;color:#a0c080;cursor:help;flex-shrink:0;'; b.textContent='📝'; b.title=pt.note; d.appendChild(b); }
+    if (pt.note) { const b=document.createElement('span'); b.style.cssText='font-size:8px;color:var(--green);cursor:help;flex-shrink:0;'; b.textContent='📝'; b.title=pt.note; d.appendChild(b); }
     // Color label dot
     const clrDot = document.createElement('span');
     clrDot.className='pi-clr'; clrDot.style.background=pt.colorLabel||'transparent'; clrDot.title='カラーラベル';
@@ -4025,7 +4025,7 @@ function showTexSwitchModal() {
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
-  <div style="font-size:13px;color:#d0c060;margin-bottom:12px;font-weight:600">⇄ テクスチャスイッチ設定</div>
+  <div style="font-size:13px;color:var(--kf);margin-bottom:12px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">切替パラメータ</div>
   <select id="tsp-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:10px">
@@ -4040,7 +4040,7 @@ function showTexSwitchModal() {
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
     <button onclick="clearTexSwitch()" style="background:var(--danger-bg-deep);border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
     <button onclick="document.getElementById('texswitch-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
-    <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:#d0c060;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
+    <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:var(--kf);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
   </div>`;
   mo.onclick=()=>mo.remove();document.body.appendChild(mo);
@@ -4608,7 +4608,7 @@ function showGlobalTransformModal() {
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
         <button onclick="document.getElementById('gtf-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
-        <button onclick="applyGlobalTransform()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
+        <button onclick="applyGlobalTransform()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
   overlay.onclick = () => overlay.remove();
@@ -4866,7 +4866,7 @@ async function aiAutoNameParts() {
     row.innerHTML = `
       <span style="font-size:9px;color:var(--dim);width:16px;text-align:right;flex-shrink:0;">${i+1}</span>
       <span style="font-size:10px;color:var(--dim);min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${pt.name}">${pt.name}</span>
-      <span style="color:#70a080;font-size:10px;flex-shrink:0;">→</span>
+      <span style="color:var(--dim);font-size:10px;flex-shrink:0;">→</span>
       <input type="text" value="${suggested}" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;" data-result-idx="${results.length-1}">
     `;
     listEl.appendChild(row);
@@ -5213,7 +5213,7 @@ function showPartNoteList() {
     return `<tr style="border-bottom:1px solid var(--divider);cursor:pointer;" onclick="selPartClick(${i},false);renderPartPanel();document.getElementById('rig-modal-overlay').remove();">
       <td style="padding:4px 6px;font-size:9px;color:var(--dim);font-family:monospace;">${i}</td>
       <td style="padding:4px 6px;font-size:10px;color:var(--text);white-space:nowrap;">${clrDot}${pt.name.replace(/</g,'&lt;')}</td>
-      <td style="padding:4px 6px;font-size:10px;color:#a0c080;">${note}</td>
+      <td style="padding:4px 6px;font-size:10px;color:var(--green);">${note}</td>
     </tr>`;
   }).join('');
   const m = document.createElement('div'); m.className='modal'; m.id='rig-modal-overlay';
@@ -5569,7 +5569,7 @@ function editExprValues(idx) {
     <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
-      <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:#c0a080;border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
+      <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:var(--accent3);border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
       <button onclick="_eevCancel()" style="background:rgba(60,60,60,.5);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
     </div>
   </div>`;
@@ -7203,7 +7203,7 @@ function showDeformWaveModal() {
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
         <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
-        <button onclick="applyDeformWave()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
+        <button onclick="applyDeformWave()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
   overlay.onclick = () => overlay.remove();
@@ -7575,7 +7575,7 @@ function showSnapshotCompare() {
   overlay.innerHTML = `${header}<div style="display:flex;gap:16px;align-items:flex-start">${aHTML}${bHTML}</div>
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:var(--teal);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
-      <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:#ffd090;border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
+      <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
       <button onclick="this.closest('[style]').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
     </div>`;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
@@ -8202,7 +8202,7 @@ function showWsTestPanel() {
       <textarea id="wt-input" rows="3" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <button onclick="(function(){const url=document.getElementById('wt-url').value.trim();const msg=document.getElementById('wt-input').value.trim();if(!url||!msg)return;try{JSON.parse(msg);}catch(e){document.getElementById('wt-status').textContent='JSON エラー: '+e.message;document.getElementById('wt-status').style.color='#f87171';return;}const ws=new WebSocket(url);ws.onopen=()=>{ws.send(msg);document.getElementById('wt-status').textContent='送信完了: '+msg.slice(0,40);document.getElementById('wt-status').style.color='#7af070';setTimeout(()=>ws.close(),500);};ws.onerror=()=>{document.getElementById('wt-status').textContent='接続エラー: '+url;document.getElementById('wt-status').style.color='#f87171';};})()" style="flex:1;background:rgba(60,160,80,.25);border:1px solid rgba(60,160,80,.5);color:#70d070;border-radius:4px;padding:6px;cursor:pointer;font-size:11px">送信</button>
+      <button onclick="(function(){const url=document.getElementById('wt-url').value.trim();const msg=document.getElementById('wt-input').value.trim();if(!url||!msg)return;try{JSON.parse(msg);}catch(e){document.getElementById('wt-status').textContent='JSON エラー: '+e.message;document.getElementById('wt-status').style.color='#f87171';return;}const ws=new WebSocket(url);ws.onopen=()=>{ws.send(msg);document.getElementById('wt-status').textContent='送信完了: '+msg.slice(0,40);document.getElementById('wt-status').style.color='#7af070';setTimeout(()=>ws.close(),500);};ws.onerror=()=>{document.getElementById('wt-status').textContent='接続エラー: '+url;document.getElementById('wt-status').style.color='#f87171';};})()" style="flex:1;background:rgba(60,160,80,.25);border:1px solid rgba(60,160,80,.5);color:var(--ok-text);border-radius:4px;padding:6px;cursor:pointer;font-size:11px">送信</button>
       <span id="wt-status" style="flex:2;font-size:9px;color:var(--dim);font-family:monospace"></span>
     </div>
   </div>`;
@@ -8250,7 +8250,7 @@ function showWsApiRef() {
       <span style="font-size:13px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
       <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px">×</button>
     </div>
-    <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:#70a070">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
+    <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:var(--dim)">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <div style="padding:12px 16px 0;font-size:9px;color:var(--dim)">クリックして閉じる</div>
   </div>`;
@@ -8490,7 +8490,7 @@ function showAvatarExportDialog() {
           <option value="leader">リーダー（送信）</option>
         </select>
       </div>
-      <div style="font-size:9px;color:#70a070;margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
+      <div style="font-size:9px;color:var(--dim);margin-bottom:12px">同じチャンネル名を設定した複数タブ間でパラメータ・表情・エフェクトを同期。<br>リーダー1台＋フォロワー複数でマルチアバター配置。</div>
 
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <div style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:.5px">🔌 WebSocket連携（ゲームイベント）</div>
@@ -8505,7 +8505,7 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-pulse" style="accent-color:var(--accent)"> 💓 パルスリング（枠発光）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-wobblecam" style="accent-color:var(--accent)"> 🎥 カメラ揺れエフェクト</label>
       </div>
-      <div style="font-size:9px;color:#8aaab4;margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:#50a080">{"type":"kill"}</code> <code style="color:#50a080">{"type":"health","value":0.75}</code></div>
+      <div style="font-size:9px;color:var(--dim);margin-bottom:6px">kill/death/hit/win/lose/shake/flash/blur イベントをJSONで受信して画面エフェクトを発動。<br>例: <code style="color:var(--ok-text)">{"type":"kill"}</code> <code style="color:var(--ok-text)">{"type":"health","value":0.75}</code></div>
       <div style="display:grid;grid-template-columns:40px 1fr 38px;gap:3px 6px;font-size:10px;align-items:center;margin-bottom:12px">
         <span style="color:var(--dim);font-size:9px">kill:</span>
         <select id="av-ev-kill" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:9px"><option value="">（なし）</option>${expressions.map(e=>`<option value="${e.name}">${e.name}</option>`).join('')}</select>
