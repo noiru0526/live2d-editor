@@ -152,7 +152,8 @@ button:focus:not(:focus-visible){outline:none;}
 #mesh-cfg{padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;}
 .mcfg-title{font-size:11px;color:var(--dim);margin-bottom:2px;}
 .mcfg-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
-.mcfg-row label{font-size:11px;width:44px;}
+.mcfg-row label{font-size:11px;}
+#mesh-cfg .mcfg-row label{width:44px;}
 .mcfg-row input{width:54px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:var(--r-sm);font-size:11px;}
 .mcfg-row button{flex:1;background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:var(--r-md);padding:2px 5px;cursor:pointer;font-size:11px;}
 .mcfg-row button:hover{background:rgba(255,255,255,.08);}
@@ -691,23 +692,23 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row">
-        <label>追跡スムース:</label>
-        <select id="export-smooth" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <label style="width:auto;white-space:nowrap;flex-shrink:0">追跡スムース:</label>
+        <select id="export-smooth" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;min-width:0">
           <option value="soft">ソフト (推奨)</option>
           <option value="medium">ミディアム</option>
           <option value="fast">レスポンシブ</option>
         </select>
       </div>
       <div class="mcfg-row">
-        <label>アイドル動作:</label>
-        <select id="export-idle" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
+        <label style="width:auto;white-space:nowrap;flex-shrink:0">アイドル動作:</label>
+        <select id="export-idle" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;min-width:0">
           <option value="full">フル（頭・目・口）</option>
           <option value="minimal">最小限（頭のみ）</option>
           <option value="none">なし</option>
         </select>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim)">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
+        <label style="font-size:10px;color:var(--dim);width:100%">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
         <input id="export-html-title" type="text" placeholder="Live2D Viewer" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
@@ -729,7 +730,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--dim);white-space:nowrap;">ポーズトランジション:</label>
+        <label style="font-size:10px;color:var(--dim);white-space:nowrap;width:auto;flex-shrink:0">ポーズトランジション:</label>
         <select id="export-pose-transition" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="0">即時（トランジションなし）</option>
           <option value="150">高速 (150ms)</option>
@@ -746,7 +747,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </select>
       </div>
       <div class="mcfg-row">
-        <label style="font-size:11px;white-space:nowrap;">アニメーションループ回数:</label>
+        <label style="font-size:11px;white-space:nowrap;width:auto;flex-shrink:0">アニメーションループ回数:</label>
         <select id="export-loop-count" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="-1" selected>∞ 無限ループ</option>
           <option value="1">1回のみ</option>
@@ -760,13 +761,13 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim)">背景画像URL（空欄でなし）</label>
+        <label style="font-size:10px;color:var(--dim);width:100%">背景画像URL（空欄でなし）</label>
         <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
-        <label style="font-size:10px;color:var(--dim);margin-top:4px">背景動画URL（MP4/WebM・空欄でなし）</label>
+        <label style="font-size:10px;color:var(--dim);margin-top:4px;width:100%">背景動画URL（MP4/WebM・空欄でなし）</label>
         <input id="export-bgvideo" type="text" placeholder="https://example.com/bg.mp4" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row">
-        <label>背景グラデーション:</label>
+        <label style="width:auto;white-space:nowrap;flex-shrink:0">背景グラデーション:</label>
         <select id="export-bg-gradient" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
           <option value="">なし（単色）</option>
           <option value="linear-gradient(180deg,#0a0a1a 0%,#1a1a2e 60%,#16213e 100%)">夜空 (デフォルト)</option>
