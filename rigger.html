@@ -5489,6 +5489,7 @@ function renameExpr(idx) {
   const ex = expressions[idx];
   const newName = prompt('表情の名前を変更:', ex.name);
   if (newName !== null && newName.trim()) {
+    saveState();
     ex.name = newName.trim();
     updateExpressionsUI();
     setStatus(`表情名を「${ex.name}」に変更`);
@@ -5553,6 +5554,7 @@ function importExpressionsJSON() {
       const data = JSON.parse(text);
       const exprs = data.expressions || (Array.isArray(data) ? data : null);
       if (!exprs?.length) { setStatus('有効な表情データが見つかりません'); return; }
+      saveState();
       const merged = [...expressions, ...exprs.map(e => ({...e, id: Date.now() + Math.random()}))];
       expressions = merged;
       updateExpressionsUI(); setStatus(`表情をインポート: ${exprs.length}件追加（計${expressions.length}件）`);
@@ -5578,9 +5580,9 @@ function buildBlendSliders() {
     const w = parseFloat(_blendWeights[i] || 0);
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:3px;';
-    row.innerHTML = `<span style="flex:1;font-size:8px;color:#60a880;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ex.name}">${ex.name}</span>
-      <input type="range" min="0" max="100" value="${(w*100).toFixed(0)}" style="width:60px;accent-color:#50b090;" oninput="onBlendSlider(${i}, this.value)" title="ウェイト">
-      <span id="bw-${i}" style="font-size:7px;color:#60a890;min-width:24px;text-align:right;">${(w*100).toFixed(0)}%</span>`;
+    row.innerHTML = `<span style="flex:1;font-size:8px;color:var(--teal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ex.name}">${ex.name}</span>
+      <input type="range" min="0" max="100" value="${(w*100).toFixed(0)}" style="width:60px;accent-color:var(--teal);" oninput="onBlendSlider(${i}, this.value)" title="ウェイト">
+      <span id="bw-${i}" style="font-size:7px;color:var(--teal);min-width:24px;text-align:right;">${(w*100).toFixed(0)}%</span>`;
     cont.appendChild(row);
   });
 }
