@@ -36,9 +36,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tbtn.ok:hover{background:rgba(224,120,64,.38);border-color:var(--accent-light)}
 .tbtn.danger{background:rgba(160,48,48,.3);border-color:var(--rec);color:var(--danger)}
 .tb-more{position:relative;flex-shrink:0}
-.tb-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:3px 0;z-index:1000;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.8)}
+.tb-more-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:2px 0;z-index:1000;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.8)}
 .tb-more-menu.open{display:block}
-.tb-more-item{display:block;width:100%;text-align:left;padding:3px 8px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .08s,color .1s}
+.tb-more-item{display:block;width:100%;text-align:left;padding:2px 8px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .08s,color .1s}
 .tb-more-item:hover{background:rgba(255,255,255,.06);color:var(--text)}
 .tb-more-sep{height:1px;background:var(--divider);margin:3px 0}
 .sep{width:1px;height:26px;background:var(--border);margin:0 3px;flex-shrink:0}
@@ -136,7 +136,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 /* ===== CANVAS AREA ===== */
 #cw{flex:1;background:var(--panel);background-image:linear-gradient(45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(-45deg,rgba(255,255,255,.04) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(255,255,255,.04) 75%),linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.04) 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 #c{image-rendering:pixelated;cursor:crosshair;box-shadow:0 0 0 1px var(--muted),0 4px 24px rgba(0,0,0,.5)}
-#hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 8px;border-radius:12px;pointer-events:none;display:none}
+#hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.9);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:2px 8px;border-radius:12px;pointer-events:none;display:none}
 #zoom-hud{position:absolute;top:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:var(--r-sm);padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace;min-width:38px;text-align:center;}
 #coord-hud{position:absolute;bottom:8px;left:8px;background:rgba(18,18,18,.7);border:1px solid var(--divider);border-radius:var(--r-sm);padding:2px 8px;font-size:9px;color:var(--dim);pointer-events:none;font-family:monospace}
 #mode-badge{position:absolute;top:8px;right:8px;background:rgba(224,120,64,.15);border:1px solid var(--accent);border-radius:var(--r-sm);padding:2px 8px;font-size:9px;color:var(--accent-light);pointer-events:none;font-family:monospace;letter-spacing:1px}
@@ -399,7 +399,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <button class="tb-more-item" onclick="showGuideManager();closeTbMore('tb-more-view')">⊞ ガイド管理</button>
         <button class="tb-more-item" onclick="toggleRefImagePanel();closeTbMore('tb-more-view')" id="btn-refimg">🖼 参考画像</button>
         <div class="tb-more-sep"></div>
-        <span style="padding:3px 8px;font-size:9px;color:var(--dim)">グリッドサイズ: </span>
+        <span style="padding:2px 8px;font-size:9px;color:var(--dim)">グリッドサイズ: </span>
         <input type="number" id="grid-size-input" value="50" min="5" max="500" step="5"
           style="margin:2px 12px 4px;width:56px;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:2px 4px;font-size:10px;text-align:center"
           onchange="gridSize=Math.max(5,parseInt(this.value)||50);render();if(snapToGrid)setStatus('グリッド: '+gridSize+'px');">
@@ -1305,11 +1305,11 @@ function showRigCtxMenu(x, y, items) {
   document.getElementById('rig-ctx-menu')?.remove();
   const menu = document.createElement('div');
   menu.id = 'rig-ctx-menu';
-  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 0;z-index:9999;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;`;
+  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 0;z-index:9999;min-width:180px;box-shadow:0 4px 16px rgba(0,0,0,.7);font-size:11px;`;
   for (const item of items) {
     if (!item) { const sep=document.createElement('div'); sep.style.cssText='border-top:1px solid var(--border);margin:2px 0;'; menu.appendChild(sep); continue; }
     const row = document.createElement('div');
-    row.style.cssText = `padding:3px 8px;cursor:pointer;color:${item.danger?'#ff8080':'var(--text)'};display:flex;align-items:center;gap:6px;white-space:nowrap;`;
+    row.style.cssText = `padding:2px 8px;cursor:pointer;color:${item.danger?'#ff8080':'var(--text)'};display:flex;align-items:center;gap:6px;white-space:nowrap;`;
     row.innerHTML = `<span style="width:14px;text-align:center;">${item.icon||''}</span>${item.label}`;
     row.onmouseenter = () => row.style.background = 'rgba(224,120,64,.15)';
     row.onmouseleave = () => row.style.background = '';
