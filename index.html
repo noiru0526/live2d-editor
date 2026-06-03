@@ -4638,7 +4638,7 @@ ${includeCtrlPanel ? `
     <input type="range" min="${p.min}" max="${p.max}" step="${p.step||0.01}" value="${p.val||0}"
       oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(2);params['${k}'].val=parseFloat(this.value);">
     <span>${(p.val||0).toFixed(2)}</span>
-    <button title="リセット(${dflt.toFixed(2)})" onclick="(()=>{const sp=this.previousElementSibling;const inp=sp.previousElementSibling;const v=${dflt};inp.value=v;sp.textContent=v.toFixed(2);params['${k}'].val=v;})()" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;padding:0 2px;line-height:1;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='#888'">↺</button>
+    <button title="リセット(${dflt.toFixed(2)})" onclick="(()=>{const sp=this.previousElementSibling;const inp=sp.previousElementSibling;const v=${dflt};inp.value=v;sp.textContent=v.toFixed(2);params['${k}'].val=v;})()" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;padding:0 2px;line-height:1;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'">↺</button>
   </div>`;}).join('')}
   <h3 style="margin-top:10px;">ポーズスロット <span style="color:var(--dim);font-size:9px;">(Alt+1〜9で呼び出し)</span></h3>
   <div id="ps-list"></div>
