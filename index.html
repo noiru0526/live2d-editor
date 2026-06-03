@@ -430,7 +430,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <div style="padding:2px 6px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:4px;align-items:center;">
       <input id="param-filter" type="text" placeholder="パラメータを検索..." oninput="filterParams(this.value)"
-        style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:3px;font-size:11px;outline:none;">
+        style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 6px;border-radius:3px;font-size:11px;outline:none;">
       <button onclick="resetAllParams()" title="全パラメータをゼロ(中立値)にリセット" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">↺</button>
       <button onclick="copyAllParamValues()" title="全パラメータの現在値をJSONでクリップボードにコピー" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📋</button>
       <button onclick="pasteAllParamValues()" title="クリップボードのJSONから全パラメータ値を貼り付け" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:10px;flex-shrink:0;">📥</button>
@@ -443,7 +443,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
       <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
-      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:#80c080;border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
+      <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
       <button onclick="showChatTriggerPanel()" title="チャットキーワード→アクションのトリガーを設定" style="background:none;border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-chat-trigger">💬</button>
     </div>
     <div id="params"></div>
@@ -534,7 +534,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
         <div id="deformer-param-bind" style="padding:2px 8px 2px;border-top:1px solid var(--divider);display:none;">
-          <div style="font-size:9px;color:var(--dim);margin-bottom:3px;">バインドパラメータ:</div>
+          <div style="font-size:9px;color:var(--dim);margin-bottom:2px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="">(全パラメータ積算)</option>
@@ -655,12 +655,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <div id="embed-cfg" style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
-        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:#80d890;border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
+        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
         <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
         <span style="color:var(--dim)">▾</span>
       </span></div>
       <div id="embed-cfg-body">
-      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:3px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:2px;">
         <input type="checkbox" id="embed-img" style="accent-color:var(--accent);">
         <span>保存時に画像を埋め込む</span>
       </label>
@@ -915,20 +915,20 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <!-- Texture Atlas Panel -->
     <div id="atlas-panel">
-      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="atlas-body" style="display:none;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:3px;">含めるパーツを選択してアトラスを生成します</div>
-        <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:3px;max-height:80px;overflow-y:auto;"></div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:2px;">含めるパーツを選択してアトラスを生成します</div>
+        <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;max-height:80px;overflow-y:auto;"></div>
         <div class="mcfg-row"><button onclick="generateAtlas()" style="color:var(--gold);">🗺 アトラス生成 (縦並び)</button></div>
         <div class="mcfg-row"><button onclick="generateAtlasBinPack()" style="color:var(--text);">🗺 アトラス BinPack (最適化)</button></div>
-        <canvas id="atlas-preview-canvas" style="width:100%;height:auto;margin-top:3px;border:1px solid var(--border);border-radius:3px;display:block;max-height:80px;object-fit:contain;"></canvas>
+        <canvas id="atlas-preview-canvas" style="width:100%;height:auto;margin-top:2px;border:1px solid var(--border);border-radius:3px;display:block;max-height:80px;object-fit:contain;"></canvas>
       </div>
     </div>
     <!-- Multi-Avatar Composer -->
     <div style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('multi-avatar-body',this)">🎭 マルチアバター<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="multi-avatar-body" style="display:none;">
-        <div style="font-size:9px;color:var(--dim);margin-bottom:3px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
+        <div style="font-size:9px;color:var(--dim);margin-bottom:2px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
         <div id="ma-slots" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
         <div style="display:flex;gap:4px;">
           <button onclick="addMASlot()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
@@ -20959,7 +20959,7 @@ function renderDeformerTree() {
       const bound = def.bindParts.includes(ap.id);
       const bindBtn = document.createElement('button');
       bindBtn.textContent = bound ? '🔗 バインド解除' : '🔗 バインド';
-      bindBtn.style.cssText = `width:100%;margin-top:3px;background:${bound?'#2e201a':'#1e3020'};border:1px solid ${bound?'rgba(224,120,64,.5)':'#2a4030'};color:${bound?'#e07840':'#60d890'};border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;`;
+      bindBtn.style.cssText = `width:100%;margin-top:2px;background:${bound?'rgba(224,120,64,.12)':'var(--surface)'};border:1px solid ${bound?'rgba(224,120,64,.5)':'var(--border)'};color:${bound?'var(--accent-light)':'var(--dim)'};border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;`;
       bindBtn.onclick = () => {
         if (bound) def.bindParts = def.bindParts.filter(p=>p!==ap.id);
         else def.bindParts.push(ap.id);
