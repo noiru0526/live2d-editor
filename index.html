@@ -4623,9 +4623,9 @@ ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object
     </select>
   </div>
   <div id="anim-progress-wrap" onclick="seekAnimProgress(event,this)" style="width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;cursor:pointer;position:relative;">
-    <div id="anim-progress-bar" style="width:0%;height:100%;background:var(--teal);border-radius:2px;pointer-events:none;transition:none;"></div>
+    <div id="anim-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:2px;pointer-events:none;transition:none;"></div>
   </div>
-  ${(M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).length > 0 ? `<div id="clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;">${['現在'].concat((M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).map(c=>c.name)).map((n,i)=>`<button onclick="switchClip(${i-1})" id="clip-tab-${i}" style="background:${i===0?'rgba(20,50,30,.9)':'rgba(28,28,28,.88)'};border:1px solid ${i===0?'#2a7050':'rgba(255,255,255,.12)'};border-radius:4px;padding:2px 8px;color:${i===0?'#60d890':'#aaa'};font-size:9px;font-family:monospace;cursor:pointer;">${n}</button>`).join('')}</div>` : ''}
+  ${(M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).length > 0 ? `<div id="clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;">${['現在'].concat((M.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).map(c=>c.name)).map((n,i)=>`<button onclick="switchClip(${i-1})" id="clip-tab-${i}" style="background:${i===0?'rgba(224,120,64,.15)':'rgba(28,28,28,.88)'};border:1px solid ${i===0?'rgba(224,120,64,.4)':'rgba(255,255,255,.12)'};border-radius:4px;padding:2px 8px;color:${i===0?'var(--accent-light)':'var(--text)'};font-size:9px;font-family:monospace;cursor:pointer;">${n}</button>`).join('')}</div>` : ''}
 </div>` : ''}
 ${includeCtrlPanel ? `
 <button id="cp-btn" onclick="document.getElementById('cp-panel').style.display=document.getElementById('cp-panel').style.display==='block'?'none':'block'">🎛 コントロール</button>
@@ -5354,7 +5354,7 @@ function switchClip(idx){
     const active=(i===idx+1);
     t.style.background=active?'rgba(20,50,30,.9)':'rgba(28,28,28,.88)';
     t.style.borderColor=active?'#2a7050':'rgba(255,255,255,.12)';
-    t.style.color=active?'#60d890':'#aaa';
+    t.style.color=active?'var(--accent-light)':'var(--text)';
   });
 }
 
@@ -6011,7 +6011,7 @@ function _hoverPreviewPose(idx){
     _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
     _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
     _pbtn.onclick=window.openAvatarPiP;
-    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'#60d890':'#888';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
+    document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'var(--accent-light)':'var(--text)';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
     document.body.appendChild(_pbtn);
   }
   if(_usp2.get('pip')==='1') document.addEventListener('click',()=>window.openAvatarPiP(),{once:true});
@@ -6022,7 +6022,7 @@ let _speedVary=false, _speedVaryT=0;
   const btn=document.createElement('button');
   btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
   btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
-  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'#60d890':'#888';btn.style.borderColor=_speedVary?'rgba(96,216,144,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
+  btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'var(--accent-light)':'var(--text)';btn.style.borderColor=_speedVary?'rgba(224,120,64,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
   if(typeof animPlaying!=='undefined') btn.style.display='';
   document.body.appendChild(btn);
 })();
@@ -6811,7 +6811,7 @@ window.addEventListener('message',e=>{
   _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _gpBtn.onclick = () => {
     _gpActive = !_gpActive;
-    _gpBtn.style.color = _gpActive ? '#60d890' : '#888';
+    _gpBtn.style.color = _gpActive ? 'var(--accent-light)' : 'var(--text)';
     _gpBtn.style.borderColor = _gpActive ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
     _gpBtn.textContent = _gpActive ? '🎮 ON' : '🎮 Pad';
     if (_gpActive) { _gpRaf = requestAnimationFrame(_gpTick); } else if (_gpRaf) { cancelAnimationFrame(_gpRaf); _gpRaf = null; }
@@ -6856,7 +6856,7 @@ _mtBtn.textContent = '🖱 マウス追従';
 _mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
 _mtBtn.onclick = () => {
   _mouseTracking = !_mouseTracking;
-  _mtBtn.style.color = _mouseTracking ? '#60d890' : '#888';
+  _mtBtn.style.color = _mouseTracking ? 'var(--accent-light)' : 'var(--text)';
   _mtBtn.style.borderColor = _mouseTracking ? 'rgba(96,216,144,.5)' : 'rgba(255,255,255,.12)';
   _mtBtn.textContent = _mouseTracking ? '🖱 ON' : '🖱 マウス追従';
 };
@@ -6931,7 +6931,7 @@ window._applyTrackPreset=function(preset){
   settBtn.onclick=()=>{
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
-    settBtn.style.color=v?'#60d890':'#888';
+    settBtn.style.color=v?'var(--accent-light)':'var(--text)';
     if(v) _syncAllSliders();
   };
   document.body.appendChild(settBtn);
@@ -6972,7 +6972,7 @@ window._applyTrackPreset=function(preset){
         _sr.onerror = () => { _srActive=false; _srBtn.style.color='#ff6060'; };
         _sr.onend = () => { if(_srActive) { try{_sr.start();}catch(e){} } };
         _sr.start(); _srActive = true;
-        _srBtn.style.color = '#60d890'; _srBtn.style.borderColor = 'rgba(96,216,144,.5)';
+        _srBtn.style.color = 'var(--accent-light)'; _srBtn.style.borderColor = 'rgba(224,120,64,.5)';
         _srBtn.textContent = '🎙 ON';
       } catch(e) { console.warn('SpeechRecognition failed', e); }
     }
