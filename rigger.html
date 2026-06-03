@@ -220,7 +220,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ci-swatch{width:18px;height:14px;border:1px solid var(--border-strong);border-radius:var(--r-sm);cursor:pointer;flex-shrink:0;transition:border-color .1s;background:#ffffff}
 .ci-swatch:hover{border-color:var(--accent);outline:1px solid rgba(224,120,64,.3)}
 .ci-hex{font-size:10px;color:var(--dim);font-family:monospace;flex:1;letter-spacing:.3px}
-.ci-reset{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
+.ci-reset{background:none;border:none;color:var(--text);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;flex-shrink:0;transition:color .1s}
 .ci-reset:hover{color:var(--accent);opacity:1}
 /* Cubism-style z-order arrows (VT-003) */
 .ci-num-wrap{display:flex;align-items:center;gap:2px;flex:1}
@@ -276,7 +276,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .mb h3{color:var(--accent);font-size:12px;margin-bottom:8px;font-weight:600}
 .mb input[type=text]{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 8px;border-radius:var(--r-sm);width:100%;margin-bottom:8px;outline:none}
 .mb input:focus{border-color:var(--accent)}
-.mb p{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
+.mb p{font-size:11px;color:var(--text);margin-bottom:12px;line-height:1.6}
 .ma{display:flex;gap:7px;justify-content:flex-end}
 .mbn{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 8px;border-radius:var(--r-md);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:var(--accent-light)}
@@ -319,7 +319,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 /* Custom modal fields */
 .mb-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .mb-field{display:flex;flex-direction:column;gap:3px}
-.mb-field label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.mb-field label{font-size:10px;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
 .mb-field input{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 7px;border-radius:var(--r-sm);outline:none;width:100%}
 .mb-field input:focus{border-color:var(--accent)}
 
@@ -1014,8 +1014,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
         <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--text);font-size:10px;outline:none;padding:2px 0">
-        <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
-        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px">▲▲</button>
+        <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0">×</button>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px">▲▲</button>
         <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px">▼▼</button>
       </div>
       <div id="params-list"></div>
@@ -1095,7 +1095,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
         <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="expr-search" type="text" placeholder="表情を検索..." oninput="filterExpressions(this.value)" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:10px;font-family:inherit">
-        <button onclick="document.getElementById('expr-search').value='';filterExpressions('')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1" title="クリア">×</button>
+        <button onclick="document.getElementById('expr-search').value='';filterExpressions('')" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;line-height:1" title="クリア">×</button>
       </div>
       <div id="expr-list" style="flex:1;overflow-y:auto">
         <div class="ex-empty">表情が登録されていません<br>「＋」ボタンで現在のパラメータを<br>表情として保存できます</div>
@@ -4361,11 +4361,11 @@ function scalePartMesh() {
   body.innerHTML = `
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点座標とデフォームデルタに倍率を適用します。<br><small style="font-size:9px;color:var(--dim);">元の原点(0,0)からの距離がスケールされます。</small></div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <label style="font-size:11px;color:var(--dim);min-width:60px;">X 倍率</label>
+      <label style="font-size:11px;color:var(--text);min-width:60px;">X 倍率</label>
       <input id="sc-x" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
-      <label style="font-size:11px;color:var(--dim);min-width:60px;">Y 倍率</label>
+      <label style="font-size:11px;color:var(--text);min-width:60px;">Y 倍率</label>
       <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
@@ -4396,7 +4396,7 @@ function rotatePartMesh() {
   body.innerHTML = `
     <div style="font-size:11px;color:var(--dim);margin-bottom:10px;">メッシュ頂点をパーツ中心周りに回転します。<br><small style="font-size:9px;color:var(--dim);">デフォームデルタも同じ角度で回転されます。</small></div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-      <label style="font-size:11px;color:var(--dim);min-width:60px;">角度 (°)</label>
+      <label style="font-size:11px;color:var(--text);min-width:60px;">角度 (°)</label>
       <input id="rot-ang" type="range" min="-180" max="180" value="0" step="1" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('rot-angv').textContent=this.value+'°'">
       <span id="rot-angv" style="font-size:10px;color:var(--amber);font-family:monospace;min-width:36px;text-align:right">0°</span>
     </div>
@@ -4919,23 +4919,23 @@ function batchRenameParts() {
       <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">✏ パーツ一括リネーム（${targetParts.length}件）</div>
       <div style="display:flex;flex-direction:column;gap:7px;">
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:var(--dim);">プレフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:var(--text);">プレフィックス追加:</span>
           <input id="brn-prefix" type="text" placeholder="例: L_" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:var(--dim);">サフィックス追加:</span>
+          <span style="font-size:10px;width:80px;color:var(--text);">サフィックス追加:</span>
           <input id="brn-suffix" type="text" placeholder="例: _02" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:var(--dim);">検索:</span>
+          <span style="font-size:10px;width:80px;color:var(--text);">検索:</span>
           <input id="brn-find" type="text" placeholder="置換する文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:10px;width:80px;color:var(--dim);">置換:</span>
+          <span style="font-size:10px;width:80px;color:var(--text);">置換:</span>
           <input id="brn-replace" type="text" placeholder="置換後の文字列" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 5px;font-size:10px;outline:none;">
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
-          <label style="font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;">
+          <label style="font-size:10px;color:var(--text);display:flex;align-items:center;gap:4px;">
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
           <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
@@ -4945,8 +4945,8 @@ function batchRenameParts() {
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
         <button id="brn-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
-        <button id="brn-preview-btn" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
-        <button id="brn-ok" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
+        <button id="brn-preview-btn" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">プレビュー</button>
+        <button id="brn-ok" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">適用</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
@@ -5261,33 +5261,33 @@ function batchEditPartProps() {
       <div style="color:var(--dim);font-size:10px;">チェックした項目を選択中の全パーツに適用します</div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-opacity-on">
-        <label for="bp-opacity-on" style="font-size:11px;color:var(--dim);width:80px;">不透明度</label>
+        <label for="bp-opacity-on" style="font-size:11px;color:var(--text);width:80px;">不透明度</label>
         <input id="bp-opacity" type="number" value="${Math.round((sample?.opacity||1)*100)}" min="0" max="100" step="5"
           style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;font-family:monospace;">
         <span style="color:var(--dim);font-size:10px;">%</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-blend-on">
-        <label for="bp-blend-on" style="font-size:11px;color:var(--dim);width:80px;">ブレンドモード</label>
+        <label for="bp-blend-on" style="font-size:11px;color:var(--text);width:80px;">ブレンドモード</label>
         <select id="bp-blend" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">${blendOptions}</select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-visible-on">
-        <label for="bp-visible-on" style="font-size:11px;color:var(--dim);width:80px;">表示状態</label>
+        <label for="bp-visible-on" style="font-size:11px;color:var(--text);width:80px;">表示状態</label>
         <select id="bp-visible" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
           <option value="1">表示</option><option value="0">非表示</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-locked-on">
-        <label for="bp-locked-on" style="font-size:11px;color:var(--dim);width:80px;">ロック</label>
+        <label for="bp-locked-on" style="font-size:11px;color:var(--text);width:80px;">ロック</label>
         <select id="bp-locked" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:11px;">
           <option value="0">解除</option><option value="1">ロック</option>
         </select>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <input type="checkbox" id="bp-clr-on">
-        <label for="bp-clr-on" style="font-size:11px;color:var(--dim);width:80px;">カラーラベル</label>
+        <label for="bp-clr-on" style="font-size:11px;color:var(--text);width:80px;">カラーラベル</label>
         <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
           ${['#f87171','#fb923c','#facc15','#4ade80','#22d3ee','#60a5fa','#c084fc','#f9a8d4'].map(c=>`<div class="bp-clr-swatch" data-color="${c}" onclick="document.querySelectorAll('.bp-clr-swatch').forEach(s=>s.style.boxShadow='');this.style.boxShadow='0 0 0 2px #fff';document.getElementById('bp-clr-val').value='${c}';" style="width:14px;height:14px;border-radius:50%;background:${c};cursor:pointer;border:1px solid rgba(255,255,255,.2);flex-shrink:0;"></div>`).join('')}
           <div class="bp-clr-swatch" data-color="" onclick="document.querySelectorAll('.bp-clr-swatch').forEach(s=>s.style.boxShadow='');this.style.boxShadow='0 0 0 2px #fff';document.getElementById('bp-clr-val').value='';" style="width:14px;height:14px;border-radius:50%;background:transparent;cursor:pointer;border:1px solid rgba(255,255,255,.3);flex-shrink:0;" title="なし（クリア）">✕</div>
@@ -6618,7 +6618,7 @@ ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option
 <option value="noise"${lfo.wave==='noise'?' selected':''}>noise</option>
 </select>
 <span class="lfo-wave-svg">${_lfoWaveSVG(lfo.wave, lfo.amp, lfo.offset)}</span>
-<button class="ih" onclick="removeLFO('${lfo.id}')" style="color:var(--dim);font-size:10px;padding:0 4px">✕</button>
+<button class="ih" onclick="removeLFO('${lfo.id}')" style="color:var(--text);font-size:10px;padding:0 4px">✕</button>
 </div>
 <div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:var(--dim)">
 <span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.freq||0).toFixed(2)}</span>
