@@ -5412,13 +5412,31 @@ function updateExpressionsUI() {
     return;
   }
   const _exBaseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
+  let _exprDragSrc = -1;
   expressions.forEach((ex,i)=>{
     const d=document.createElement('div'); d.className='ex-item'+(i===activeExprIdx?' active':'');
     d.onclick=()=>applyExpr(i);
+    // Drag-and-drop reorder
+    d.draggable = true;
+    d.ondragstart = (e) => { _exprDragSrc=i; e.dataTransfer.effectAllowed='move'; d.style.opacity='.5'; };
+    d.ondragend = () => { d.style.opacity=''; };
+    d.ondragover = (e) => { e.preventDefault(); d.style.background='rgba(224,120,64,.12)'; };
+    d.ondragleave = () => { d.style.background=''; };
+    d.ondrop = (e) => {
+      e.preventDefault(); d.style.background='';
+      if (_exprDragSrc<0||_exprDragSrc===i) return;
+      saveState();
+      const moved=expressions.splice(_exprDragSrc,1)[0];
+      expressions.splice(i,0,moved);
+      if (activeExprIdx===_exprDragSrc) activeExprIdx=i;
+      else if (activeExprIdx>_exprDragSrc&&activeExprIdx<=i) activeExprIdx--;
+      else if (activeExprIdx<_exprDragSrc&&activeExprIdx>=i) activeExprIdx++;
+      updateExpressionsUI();
+    };
     // Diff badge: count params changed from baseline (center KF value)
     const diffCount = Object.entries(ex.values||{}).filter(([k,v])=>Math.abs(v-(_exBaseline[k]??0))>0.01).length;
     const diffBadge = diffCount > 0 ? `<span style="font-size:7px;background:#383838;color:var(--muted);border-radius:2px;padding:0 3px;margin-left:2px;">${diffCount}P</span>` : '';
-    d.innerHTML=`<span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name} — ダブルクリックで名前変更" ondblclick="event.stopPropagation();renameExpr(${i})">${ex.name}${diffBadge}</span>
+    d.innerHTML=`<span class="ex-num" style="cursor:grab;color:var(--dim)" title="ドラッグして並び替え">⠿</span><span class="ex-num">[${i<9?i+1:'*'}]</span><span class="ex-name" title="${ex.name} — ダブルクリックで名前変更" ondblclick="event.stopPropagation();renameExpr(${i})">${ex.name}${diffBadge}</span>
       <button class="ex-del" onclick="event.stopPropagation();editExprValues(${i})" title="値を編集" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">✏</button>
       <button class="ex-del" onclick="event.stopPropagation();duplicateExpr(${i})" title="複製" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:1px 3px;">⧉</button>
       <button class="ex-del" onclick="event.stopPropagation();deleteExpr(${i})">✕</button>`;
