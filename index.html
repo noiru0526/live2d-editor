@@ -1456,7 +1456,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- Graph Editor (Animation Curve Editor) -->
 <div id="graph-editor" style="display:none;flex-shrink:0;height:200px;background:var(--bg);border-top:1px solid var(--border);position:relative;overflow:hidden;">
   <div id="ge-header" style="display:flex;align-items:center;gap:6px;padding:2px 8px;border-bottom:1px solid var(--border);background:var(--panel);height:24px;">
-    <span style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">GRAPH EDITOR</span>
+    <span style="font-size:9px;color:var(--text);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">GRAPH EDITOR</span>
     <span id="ge-param-name" style="font-size:10px;color:var(--accent);margin-left:4px;font-family:monospace;"></span>
     <button onclick="geAddKF()" style="margin-left:4px;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;">+ KF</button>
     <button onclick="geDeleteKF()" id="ge-del-btn" style="background:#301010;border:1px solid #502020;color:var(--danger);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">× 削除</button>
@@ -1506,7 +1506,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- Snapshot comparison panel -->
 <div id="snap-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg);padding:6px;">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-    <span style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:1px;">SNAPSHOT COMPARE</span>
+    <span style="font-size:9px;color:var(--text);font-weight:600;letter-spacing:1px;">SNAPSHOT COMPARE</span>
     <button onclick="clearAllSnapshots()" style="margin-left:auto;background:var(--bg);border:1px solid rgba(255,60,60,.3);color:var(--danger);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:10px;">全削除</button>
     <button onclick="toggleSnapPanel()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;">×</button>
   </div>
@@ -3282,7 +3282,7 @@ function buildParamUI() {
       const hdr = document.createElement('div');
       const isCollapsed = _collapsedParamGroups.has(group.key);
       hdr.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 4px;cursor:pointer;user-select:none;background:var(--surface);border-radius:4px;margin-bottom:2px;';
-      hdr.innerHTML = `<span style="font-size:10px;color:var(--dim);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--dim);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(180,180,180,.4);margin-left:auto;">${group.entries.length}</span>`;
+      hdr.innerHTML = `<span style="font-size:10px;color:var(--text);transition:transform .15s;display:inline-block;transform:rotate(${isCollapsed?'-90':'0'}deg);">▾</span><span style="font-size:10px;color:var(--text);font-weight:600;">${group.key}</span><span style="font-size:9px;color:rgba(180,180,180,.4);margin-left:auto;">${group.entries.length}</span>`;
       hdr.onclick = () => {
         if (_collapsedParamGroups.has(group.key)) _collapsedParamGroups.delete(group.key);
         else _collapsedParamGroups.add(group.key);
@@ -6887,7 +6887,7 @@ window._applyTrackPreset=function(preset){
   const panel=document.createElement('div');
   panel.id='track-settings-panel';
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px 14px;color:var(--text);font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
-  panel.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dim);">📡 顔追跡設定</div>
+  panel.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--text);">📡 顔追跡設定</div>
 <div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--dim);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
 <button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--accent-light);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
 <button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
@@ -28182,7 +28182,7 @@ function showEasingPicker(callback, currentEasing) {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(2px);';
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;width:560px;max-width:96vw;box-shadow:0 16px 48px rgba(0,0,0,.7);';
-  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:var(--dim);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-size:10px;color:var(--text);font-weight:600;letter-spacing:1.2px;text-transform:uppercase;">イージング / 補間タイプを選択</span><button id="_ease-close" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;padding:0 2px;">×</button></div>';
   const grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
   for(const ease of EASING_CATALOG){
