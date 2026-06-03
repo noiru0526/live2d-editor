@@ -498,7 +498,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
         <div style="padding:3px 6px;border-top:1px solid var(--divider);display:flex;gap:3px;flex-shrink:0">
-          <button class="tbtn" style="flex:1;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
+          <button class="tbtn" style="flex:1;color:var(--teal);border-color:rgba(100,200,120,.4)" onclick="addDeformerPrompt()" title="新規デフォーマーを作成">＋ 追加</button>
           <button class="tbtn" style="flex:1;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="if(selDeformer>=0)deleteDeformer(selDeformer)" title="選択中のデフォーマーを削除">✕ 削除</button>
         </div>
       </div>
@@ -518,19 +518,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfMirrorX()" title="現在のKFのX変形を左右反転">↔ ミラーX</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#c0c090;border-color:rgba(180,180,80,.35)" onclick="kfCrossParamCopy()" title="現在のKFデフォームを別パラメータの対応KFにコピー">↗ 他パラムへ</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ffb060;border-color:rgba(255,160,60,.4)" onclick="kfScaleDeform()" title="現在のKFデフォームをスケーリング（増減）">✕ スケール</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--kf);border-color:rgba(180,180,80,.35)" onclick="kfCrossParamCopy()" title="現在のKFデフォームを別パラメータの対応KFにコピー">↗ 他パラムへ</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,160,60,.4)" onclick="kfScaleDeform()" title="現在のKFデフォームをスケーリング（増減）">✕ スケール</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#80d890;border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#ff8060;border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#a0a060;border-color:rgba(160,160,60,.35)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--kf);border-color:rgba(160,160,60,.35)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
-          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:#60d8c0;border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--text);border-color:var(--border)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
         </div>
         <div style="display:flex;gap:3px;margin-top:3px">
@@ -539,9 +539,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
         </div>
-        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:#d0d0c0;border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
+        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
         <div style="display:flex;gap:3px;margin-top:3px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
-          <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:#60d8a0;border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
+          <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:var(--teal);border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
           <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:var(--accent);border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
         </div>
@@ -7493,7 +7493,7 @@ function showKFBlendTool() {
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
         <button id="kfb-preview" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">👁 プレビュー</button>
-        <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:#80d890;border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
+        <button id="kfb-ok" style="flex:1;background:#183828;border:1px solid rgba(80,200,120,.5);color:var(--teal);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 適用</button>
         <button id="kfb-cancel" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
