@@ -872,7 +872,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div><!-- preset-body -->
     </div>
     <div id="vgroup-panel" style="padding:4px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 5px 0;border:none;display:flex;align-items:center;">頂点グループ<button onclick="saveVertGroup()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:0 4px;" title="現在の選択をグループ保存">+</button></div>
+      <div class="mcfg-title" style="padding:0 0 5px 0;border:none;display:flex;align-items:center;">頂点グループ<button onclick="saveVertGroup()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の選択をグループ保存">+</button></div>
       <div id="vgroup-list" style="display:flex;flex-direction:column;gap:3px;"></div>
     </div>
     <div id="spring-panel" style="padding:4px 8px;border-top:1px solid var(--border);flex-shrink:0;">
@@ -941,8 +941,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 <!-- Shortcut help -->
 <div id="shortcut-overlay" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;">
-  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
-    <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:14px;">キーボードショートカット</div>
+  <div onclick="event.stopPropagation()" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;min-width:400px;color:var(--text);max-height:80vh;overflow-y:auto;">
+    <div style="font-size:12px;font-weight:600;color:var(--text-bright);margin-bottom:10px;">キーボードショートカット</div>
     <table style="border-spacing:0;width:100%;">
       <tr style="color:var(--dim);font-size:10px;letter-spacing:1px;"><td style="padding:0 0 6px">キー</td><td style="padding:0 0 6px">機能</td></tr>
       <tr><td style="padding:2px 16px 2px 0;font-family:monospace;color:var(--gold)">Ctrl+O</td><td>画像を開く</td></tr>
@@ -1143,7 +1143,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <!-- Snapshot Compare Overlay -->
 <div id="snapshot-compare" style="display:none;position:fixed;inset:0;background:var(--bg-deep);z-index:180;flex-direction:column;">
   <div style="display:flex;align-items:center;padding:6px 8px;background:var(--bg);border-bottom:1px solid var(--border);gap:8px;flex-shrink:0;">
-    <span style="font-size:13px;font-weight:600;color:#fff;">スナップショット比較</span>
+    <span style="font-size:12px;font-weight:600;color:var(--text-bright);">スナップショット比較</span>
     <span style="font-size:11px;color:var(--dim);">スナップA vs 現在の状態</span>
     <button onclick="toggleSnapshotCompare()" style="margin-left:auto;background:var(--btn);border:1px solid var(--border);color:var(--dim);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">閉じる</button>
   </div>
@@ -1227,8 +1227,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 <!-- Blink/Mouth setup modal -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;min-width:320px;color:var(--text);">
-    <div id="modal-title" style="font-size:14px;font-weight:600;margin-bottom:14px;color:#fff;"></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;min-width:320px;color:var(--text);">
+    <div id="modal-title" style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text-bright);"></div>
     <div id="modal-body" style="margin-bottom:16px;font-size:12px;line-height:1.8;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button onclick="closeModal()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);padding:5px 16px;border-radius:4px;cursor:pointer;">キャンセル</button>
@@ -2032,7 +2032,7 @@ function showGlueManager() {
     return `<div style="display:flex;align-items:center;gap:6px;padding:4px;background:var(--bg);border:1px solid rgba(255,255,255,.08);border-radius:3px;margin-bottom:4px;">
       <span style="flex:1;font-size:11px;color:var(--text);">${g.name||'グルー'+gi} <span style="color:var(--dim);">${sp} → ${dp} (${g.pairs?.length||0}ペア)</span></span>
       <input type="range" min="0" max="1" step="0.05" value="${g.weight??1}" style="width:60px;" oninput="M.glues[${gi}].weight=+this.value;ST.cachedVerts=null;redraw();" title="ウェイト">
-      <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:#300;border:1px solid #600;color:#f88;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
+      <button onclick="M.glues.splice(${gi},1);ST.cachedVerts=null;redraw();showGlueManager();" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">削除</button>
     </div>`;
   }).join('');
   const html = `
@@ -3222,7 +3222,7 @@ function buildParamUI() {
   // Solo mode banner
   if (_soloParam) {
     const banner = document.createElement('div');
-    banner.style.cssText = 'background:#3a2a00;border:1px solid #f0c040;border-radius:4px;padding:4px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#f0c040;';
+    banner.style.cssText = 'background:rgba(240,192,64,.1);border:1px solid var(--gold);border-radius:var(--r-sm);padding:3px 8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--gold);';
     banner.innerHTML = `<span>⚡ ソロ: <strong>${M.params[_soloParam]?.lbl || _soloParam}</strong></span><button onclick="toggleParamSolo('${_soloParam}')" style="background:#f0c040;border:none;color:#000;border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;font-weight:600;">解除</button>`;
     cont.appendChild(banner);
   }
@@ -3649,7 +3649,7 @@ function editKFComment(paramId, kfv) {
   const current=(M.kfComments||{})[key]||'';
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999';
-  overlay.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+  overlay.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;min-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="font-size:12px;color:var(--text);margin-bottom:8px">KFメモ — <span style="color:var(--gold)">${paramId}:${kfv}</span></div>
     <textarea id="kfc-input" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
@@ -4116,7 +4116,7 @@ function showExportHotkeyDialog() {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center;';
   const box = document.createElement('div');
-  box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
+  box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
   let rows = '';
   rows += `<div style="margin-bottom:8px;padding:4px 8px;background:var(--bg);border-radius:4px;font-size:10px;color:var(--dim);">デフォルト: ポーズ1〜9が数字キー1〜9、デフォルト(無表情)が0</div>`;
   rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid var(--border);">`;
@@ -4131,7 +4131,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -4332,7 +4332,7 @@ function _showEmbedCode(filePath) {
       row.style.cssText='display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid rgba(255,255,255,.08);border-radius:3px;padding:2px 4px;';
       row.innerHTML=`<span style="flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.url}">${p.name}</span>
         <button style="background:none;border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:2px;padding:1px 5px;cursor:pointer;font-size:9px;">呼出</button>
-        <button style="background:none;border:1px solid #ff4060;color:#ff8090;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:9px;">削除</button>`;
+        <button style="background:none;border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:var(--r-xs);padding:1px 5px;cursor:pointer;font-size:9px;">削除</button>`;
       row.querySelectorAll('button')[0].onclick=()=>{
         dlg.querySelector('#obs-url-out').value=p.url;
         navigator.clipboard?.writeText(p.url);
@@ -4672,7 +4672,7 @@ ${M.poses.length>0?`<br><strong style="color:var(--gold)">表情 (数字キー)<
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
 ${hotkeyHelp ? `<div id="hk-help-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
   <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px 24px;color:var(--text);font-family:monospace;font-size:11px;min-width:260px;max-width:360px;line-height:1.9;">
-    <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;border-bottom:1px solid var(--divider);padding-bottom:6px;">⌨ ホットキー一覧</div>
+    <div style="font-size:11px;font-weight:600;color:var(--accent);margin-bottom:8px;border-bottom:1px solid var(--divider);padding-bottom:4px;">⌨ ホットキー一覧</div>
     <table style="border-collapse:collapse;width:100%;">
       <tr><td style="color:var(--gold);padding:1px 10px 1px 0;white-space:nowrap;">1 〜 9</td><td>表情・ポーズ切替</td></tr>
       <tr><td style="color:var(--gold);padding:1px 10px 1px 0;">0</td><td>デフォルト表情に戻す</td></tr>
@@ -6079,7 +6079,7 @@ document.addEventListener('keydown',ev=>{
     const ov=document.createElement('div');
     ov.id='kbhelp-overlay';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-    ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:600;font-size:14px;margin-bottom:12px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
+    ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;max-width:420px;color:var(--text);font-size:11px;line-height:1.8;box-shadow:0 8px 32px rgba(0,0,0,.8)"><div style="font-weight:600;font-size:12px;margin-bottom:8px;color:var(--text);">⌨ キーボードショートカット</div><table style="width:100%;border-collapse:collapse"><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">1〜9</td><td>表情切替（固定）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Shift+1〜9</td><td>瞬間表情（離すとリセット）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">0</td><td>表情リセット</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">T</td><td>顔追跡 一時停止/再開</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Q</td><td>現在のアニメーション</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">W E R T...</td><td>クリップ 1, 2, 3, 4...</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Space</td><td>再生/停止</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">← →</td><td>1フレーム移動（Shift: 10f）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Home / End</td><td>先頭/末尾へ</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">+ / -</td><td>顔追跡感度 ±</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">[ / ]</td><td>デッドゾーン ±</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">C</td><td>顔中心キャリブレーション（現在位置をニュートラルに）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">L</td><td>ポーズロック（顔追跡を一時固定）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">H</td><td>ステータス表示切替</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">D</td><td>追跡デバッグ表示（FPS・BlendShape値）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">S</td><td>スクリーンショット保存 (PNG)</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Shift+S</td><td>透過PNGとして保存（背景なし・アルファ付き）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">Alt+1〜9</td><td>ポーズスロット呼び出し（Pパネルで保存・管理）</td></tr><tr><td style="color:var(--gold);padding:1px 12px 1px 0;font-family:monospace">?</td><td>このヘルプを表示/非表示</td></tr></table><div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px;font-size:9px;color:var(--dim);line-height:1.7;"><strong style="color:var(--accent)">URLパラメータ（新機能）</strong><br>?audiobreathe=1 … 音声反応呼吸（マイク/BGM音量で呼吸速度変化）<br>window.saveTransparentPNG() … 透過PNG保存API</div><div style="margin-top:10px;font-size:9px;color:var(--dim);">クリックまたはEscで閉じる</div></div>`;
     ov.onclick=()=>ov.remove();
     document.body.appendChild(ov);
     ev.preventDefault();
@@ -23152,7 +23152,7 @@ function showKFRangeDelete() {
   const lo = (M.animation.loopOut ?? dur).toFixed(3);
   const mo = document.createElement('div');
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:280px">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:280px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">🗑 KF区間削除</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">指定した時刻範囲内の全トラックKFを削除します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
@@ -23214,7 +23214,7 @@ function showKFShift() {
   const active = ST.ap || '';
   const mo = document.createElement('div');
   mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
-  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:260px">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:260px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">↔ KFタイムシフト</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">KFの時刻を前後にずらします。</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -23258,7 +23258,7 @@ function showTimeStretch() {
   const cur = M.animation.duration || 3;
   const mo = document.createElement('div');
   mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
-  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:280px">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:280px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">⏱ タイムストレッチ</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px">全KFの時刻を倍率で一括スケーリングします。</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -23305,7 +23305,7 @@ function showRangeCopyPaste() {
   const mo = document.createElement('div');
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   const hasCb = _rangeClipboard !== null;
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:300px">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">📋 区間コピー&ペースト</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">指定区間の全トラックKFをコピーして、ペースト位置に貼り付けます。</div>
     <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
@@ -23376,7 +23376,7 @@ function showKFRamp() {
   const dur = M.animation.duration || 3;
   const mo = document.createElement('div');
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:290px">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:290px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">∿ KF ランプ生成</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">区間内に等間隔KFのグラデーションを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
@@ -23439,7 +23439,7 @@ function showKFRamp() {
 function showAnimMerge() {
   const mo = document.createElement('div');
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:300px">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">⊕ アニメーションマージ</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">別のアニメーションJSONを読み込み、現在のトラックにマージします。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
@@ -23531,7 +23531,7 @@ function showPoseSequencer() {
   window.seqMoveUp = i => { if(i>0)[sequence[i-1],sequence[i]]=[sequence[i],sequence[i-1]]; renderSeq(); };
   window.seqMoveDown = i => { if(i<sequence.length-1)[sequence[i+1],sequence[i]]=[sequence[i],sequence[i+1]]; renderSeq(); };
   window.seqRemove = i => { sequence.splice(i,1); renderSeq(); };
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:320px;max-height:80vh;overflow-y:auto;">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:320px;max-height:80vh;overflow-y:auto;">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">🔀 ポーズシーケンサー</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">ポーズを順番に並べてアニメーションKFを自動生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
@@ -24639,7 +24639,7 @@ function mergeAnimClips() {
   if (!M.animClips?.length) { alert('保存済みクリップがありません。先にクリップを保存してください。'); return; }
   const allClips = [{name:'メイン（現在）', animation: M.animation}, ...M.animClips];
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-lg);padding:12px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   const checks = allClips.map((c,i) => `<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;"><input type="checkbox" data-idx="${i}" style="accent-color:var(--accent);" ${i===0?'checked':''}><span>${c.name}</span><span style="color:var(--dim);font-size:9px;margin-left:auto;">${(c.animation?.duration||3).toFixed(1)}s</span></label>`).join('');
   dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
@@ -25676,7 +25676,7 @@ function decimateAnimKFs(eps) {
 
 function smartDecimateAnim() {
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-lg);padding:12px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">🗜 スマートデシメーション</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">各トラックの値域に対する相対閾値でKFを削減します。線形補間で再現できるKFを除去します。</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
@@ -26145,7 +26145,7 @@ function blendAnimations() {
   const clips = [{name:'メイン（現在）'}, ...M.animClips];
   const opts = clips.slice(1).map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
   const dlg = document.createElement('div');
-  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:16px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
+  dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-lg);padding:12px;z-index:9999;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">⚗ アニメーションブレンド</div>
     <div style="color:var(--dim);font-size:10px;margin-bottom:10px;">現在のアニメーションに別クリップのKFをブレンドします</div>
     <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
@@ -26564,7 +26564,7 @@ function showClipBlend() {
   const mo = document.createElement('div');
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   const opts = clips.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:300px">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">⊕ クリップブレンド合成</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">2つのクリップを時間軸ごとにブレンドして新規クリップを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
@@ -29586,7 +29586,7 @@ function showPNGSequenceDialog() {
   const lo = (M.animation.loopOut ?? dur).toFixed(3);
   const mo = document.createElement('div');
   mo.className = 'mo';
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:320px;">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:320px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <h3 style="font-size:13px;color:var(--text);margin:0;">🖼 PNGシーケンス書き出し</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
@@ -29827,7 +29827,7 @@ function showGIFExportDialog() {
   const lo = (M.animation?.loopOut ?? dur).toFixed(3);
   const mo = document.createElement('div');
   mo.className = 'mo';
-  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;width:320px;">
+  mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:320px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <h3 style="font-size:13px;color:var(--text);margin:0;">🎞 GIF書き出し</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
