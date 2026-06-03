@@ -70,7 +70,7 @@ button:focus:not(:focus-visible){outline:none;}
 #mode-pill{display:flex;align-items:center;gap:0;border-radius:var(--r-md);overflow:hidden;
   border:1px solid var(--border);flex-shrink:0;}
 .mpill{padding:2px 10px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
-  cursor:pointer;color:var(--dim);background:var(--surface);
+  cursor:pointer;color:var(--text);background:var(--surface);
   transition:background .1s,color .1s;height:22px;display:flex;align-items:center;border:none;}
 .mpill:hover{color:#fff;background:rgba(255,255,255,.12);}
 .mpill.on{background:rgba(224,120,64,.28);color:var(--accent);}
@@ -79,7 +79,7 @@ button:focus:not(:focus-visible){outline:none;}
 /* ===== Left panel Cubism-style tab strip ===== */
 #left-tabs{display:flex;height:24px;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);}
 .ltab{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;
-  color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
+  color:var(--text);cursor:pointer;border-bottom:2px solid transparent;
   transition:color .12s,border-color .12s,background .12s;letter-spacing:.5px;text-transform:uppercase;}
 .ltab:hover{color:var(--text);background:rgba(255,255,255,.05);}
 .ltab.on{color:var(--accent);border-bottom-color:var(--accent);background:rgba(224,120,64,.1);}
@@ -2064,7 +2064,7 @@ function showGlueManager() {
       <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;">
-      <button onclick="_gluePreview()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
+      <button onclick="_gluePreview()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔍 プレビュー</button>
       <button onclick="_glueApply()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✔ 追加</button>
     </div>
     <div id="glue-preview-info" style="margin-top:6px;font-size:10px;color:var(--dim);"></div>`;
@@ -3664,7 +3664,7 @@ function editKFComment(paramId, kfv) {
     <div style="font-size:12px;color:var(--text);margin-bottom:8px">KFメモ — <span style="color:var(--gold)">${paramId}:${kfv}</span></div>
     <textarea id="kfc-input" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px;font-size:11px;resize:vertical;min-height:60px;box-sizing:border-box">${current}</textarea>
     <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end">
-      <button onclick="this.closest('[style]').parentElement.remove()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="this.closest('[style]').parentElement.remove()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">キャンセル</button>
       <button onclick="saveKFComment('${paramId}',${kfv});this.closest('[style]').parentElement.remove()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px">保存</button>
     </div>
   </div>`;
@@ -4142,7 +4142,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:8px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -4278,7 +4278,7 @@ function _showEmbedCode(filePath) {
   dlg.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="color:var(--text);font-size:12px;font-weight:600;">📋 埋め込みコード</span>
-      <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;">×</button>
+      <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
     <div style="color:var(--dim);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
     <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:var(--bg);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
@@ -18079,7 +18079,7 @@ function showDriverManager() {
       box.appendChild(row);
     });
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '閉じる'; closeBtn.style.cssText = 'margin-top:6px;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;';
+    closeBtn.textContent = '閉じる'; closeBtn.style.cssText = 'margin-top:6px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;';
     closeBtn.onclick = () => overlay.remove();
     box.appendChild(closeBtn);
   };
@@ -18155,7 +18155,7 @@ function showPoseTweenDialog() {
   d.innerHTML = `
     <div style="display:flex;align-items:center;margin-bottom:10px;">
       <span style="font-size:11px;color:var(--text-bright);font-weight:600;">🔀 ポーズトゥイーン</span>
-      <button onclick="document.getElementById('pose-tween-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;">×</button>
+      <button onclick="document.getElementById('pose-tween-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;">×</button>
     </div>
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">2つのポーズ間を補間するKFを自動生成します。</div>
     <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin-bottom:8px;">

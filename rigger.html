@@ -278,7 +278,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .mb input:focus{border-color:var(--accent)}
 .mb p{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
 .ma{display:flex;gap:7px;justify-content:flex-end}
-.mbn{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:4px 8px;border-radius:var(--r-md);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
+.mbn{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:4px 8px;border-radius:var(--r-md);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .mbn.ok{background:rgba(224,120,64,.25);border-color:var(--accent);color:var(--accent-light)}
 .mbn:hover{background:var(--header);color:var(--text)}
 .mbn:active{transform:translateY(1px)}
@@ -3252,7 +3252,7 @@ function showGuideManager() {
       <div style="color:var(--dim);font-size:10px;">キャンバスに参照線を追加（保存時にJSONに含まれません）</div>
       <div id="gg-list">${renderRows()}</div>
       <button onclick="javascript:_customGuides.push({axis:'x',pos:0,color:'rgba(255,200,80,0.7)'});render();document.getElementById('gg-list').innerHTML=document.getElementById('gg-list').innerHTML;"
-        style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
+        style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;">+ ガイドを追加</button>
     </div>
   `, () => {
     _customGuides.forEach((g, i) => {
@@ -4061,7 +4061,7 @@ function showTexSwitchModal() {
   <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
     <button onclick="clearTexSwitch()" style="background:var(--danger-bg-deep);border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
-    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('texswitch-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:var(--kf);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
   </div>`;
@@ -4143,7 +4143,7 @@ function showGenerateTextureModal() {
     <canvas id="gt-preview" width="120" height="120" style="border:1px solid var(--border);border-radius:4px;image-rendering:pixelated"></canvas>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end">
-    <button onclick="document.getElementById('gentex-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+    <button onclick="document.getElementById('gentex-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyGeneratedTexture()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:var(--text);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">∇ 生成・適用</button>
   </div>
   </div>`;
@@ -4369,9 +4369,9 @@ function scalePartMesh() {
       <input id="sc-y" type="number" value="1" step="0.1" min="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:13px;">
     </div>
     <div style="display:flex;gap:6px;margin-top:6px;">
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
-      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=0.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×0.5</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=2" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×2</button>
+      <button onclick="document.getElementById('sc-x').value=document.getElementById('sc-y').value=1.5" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">×1.5</button>
     </div>`;
   showModal(`メッシュスケール: ${pt.name}`, body, () => {
     const sx = parseFloat(document.getElementById('sc-x').value);
@@ -4402,9 +4402,9 @@ function rotatePartMesh() {
     </div>
     <input id="rot-ang-num" type="number" value="0" step="1" min="-180" max="180" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:var(--r-sm);font-size:11px;box-sizing:border-box;margin-bottom:4px;" oninput="document.getElementById('rot-ang').value=this.value;document.getElementById('rot-angv').textContent=this.value+'°'">
     <div style="display:flex;gap:6px;margin-top:4px;">
-      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
-      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
-      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
+      <button onclick="document.getElementById('rot-ang').value=-90;document.getElementById('rot-ang-num').value=-90;document.getElementById('rot-angv').textContent='-90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">-90°</button>
+      <button onclick="document.getElementById('rot-ang').value=90;document.getElementById('rot-ang-num').value=90;document.getElementById('rot-angv').textContent='90°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">+90°</button>
+      <button onclick="document.getElementById('rot-ang').value=180;document.getElementById('rot-ang-num').value=180;document.getElementById('rot-angv').textContent='180°'" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:10px;">180°</button>
     </div>`;
   showModal(`メッシュ回転: ${pt.name}`, body, () => {
     const deg = parseFloat(document.getElementById('rot-ang-num').value) || parseFloat(document.getElementById('rot-ang').value) || 0;
@@ -4500,7 +4500,7 @@ function generateColorVariants() {
         <span style="font-size:9px;color:var(--dim);">px (X方向)</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:4px;">
-        <button id="cv-ok" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
+        <button id="cv-ok" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✔ 生成</button>
         <button onclick="this.closest('[style]').remove()" style="flex:1;background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px;cursor:pointer;font-size:10px;">✕ キャンセル</button>
       </div>
     </div>`;
@@ -4629,7 +4629,7 @@ function showGlobalTransformModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('gtf-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyGlobalTransform()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -4858,7 +4858,7 @@ async function aiAutoNameParts() {
     <div id="ainm-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
       <button id="ainm-cancel" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;">キャンセル</button>
-      <button id="ainm-apply" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
+      <button id="ainm-apply" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:10px;" disabled>すべて適用</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
