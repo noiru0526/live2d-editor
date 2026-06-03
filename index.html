@@ -634,7 +634,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('undo-history-list',this)">
         操作履歴
         <span id="undo-count" style="margin-left:6px;font-size:9px;color:var(--dim);font-family:monospace;"></span>
-        <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span>
       </div>
       <div id="undo-history-list" style="max-height:160px;overflow-y:auto;display:none;">
         <div style="padding:4px 8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>
@@ -644,20 +644,20 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="snippet-panel" style="border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('snippet-list',this)">
         アニメスニペット
-        <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span>
       </div>
       <div id="snippet-list" style="max-height:240px;overflow-y:auto;display:none;padding:2px 6px;">
         <div id="snippet-items"></div>
         <div style="display:flex;gap:4px;margin-top:2px;border-top:1px solid var(--border);padding-top:2px">
           <button onclick="saveCurrentAsSnippet()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;" title="現在の選択KF範囲をスニペットとして保存">💾 現在から保存</button>
-          <button onclick="exportSnippets()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
-          <button onclick="importSnippetsFile()" style="background:var(--surface);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
+          <button onclick="exportSnippets()" style="background:var(--surface);border:1px solid var(--divider);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="カスタムスニペットをJSONで書き出し">↑</button>
+          <button onclick="importSnippetsFile()" style="background:var(--surface);border:1px solid var(--divider);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px;" title="スニペットJSONを読み込み">↓</button>
         </div>
       </div>
     </div>
 
     <div id="mesh-cfg">
-      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('mesh-cfg-body',this)">メッシュ設定<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="mesh-cfg-body">
       <div class="mcfg-row"><label>列数:</label><input id="mcols" type="number" value="12" min="2" max="40"></div>
       <div class="mcfg-row"><label>行数:</label><input id="mrows" type="number" value="9" min="2" max="30"></div>
@@ -666,9 +666,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <div id="embed-cfg" style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('embed-cfg-body',this)">出力設定<span style="margin-left:auto;display:flex;gap:4px;align-items:center;font-size:10px;">
-        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
+        <button onclick="event.stopPropagation();saveExportPreset()" title="現在の出力設定をプリセット保存" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">💾</button>
         <button onclick="event.stopPropagation();loadExportPreset()" title="出力設定プリセットを読み込み" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:9px;height:16px;">📂</button>
-        <span style="color:var(--dim)">▾</span>
+        <span style="color:var(--text)">▾</span>
       </span></div>
       <div id="embed-cfg-body">
       <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;margin-bottom:2px;">
@@ -864,7 +864,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div><!-- embed-cfg-body -->
     </div>
     <div id="auto-preset">
-      <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('preset-body',this)">⚡ 自動プリセット<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('preset-body',this)">⚡ 自動プリセット<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="preset-body">
       <div class="mcfg-row"><button onclick="fullAutoSetup()" style="background:var(--surface);border-color:var(--muted);color:var(--text);font-weight:600;">⚡ ワンクリック全自動セットアップ</button></div>
       <div class="mcfg-row"><button onclick="applyHeadPreset()">頭 X/Y/Z（自動）</button></div>
@@ -887,7 +887,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <div id="vgroup-list" style="display:flex;flex-direction:column;gap:3px;"></div>
     </div>
     <div id="spring-panel" style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('spring-body',this)">🌊 バネ骨格<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('spring-body',this)">🌊 バネ骨格<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="spring-body">
       <div style="display:flex;gap:4px;margin-bottom:2px;">
         <button onclick="addSpringBone()" style="flex:1;color:var(--dim);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">+ 頂点追加</button>
@@ -910,7 +910,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <!-- Character Profile Panel -->
     <div id="profile-panel" style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('profile-body',this)">👤 キャラクタープロファイル<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('profile-body',this)">👤 キャラクタープロファイル<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="profile-body" style="display:none;">
         <div style="display:flex;flex-direction:column;gap:3px;">
           <input type="text" id="prof-name" placeholder="キャラクター名" oninput="updateProfile('name',this.value)"
@@ -926,7 +926,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <!-- Texture Atlas Panel -->
     <div id="atlas-panel">
-      <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="atlas-body" style="display:none;">
         <div style="font-size:10px;color:var(--dim);margin-bottom:2px;">含めるパーツを選択してアトラスを生成します</div>
         <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;max-height:80px;overflow-y:auto;"></div>
@@ -937,7 +937,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <!-- Multi-Avatar Composer -->
     <div style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('multi-avatar-body',this)">🎭 マルチアバター<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('multi-avatar-body',this)">🎭 マルチアバター<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="multi-avatar-body" style="display:none;">
         <div style="font-size:9px;color:var(--dim);margin-bottom:2px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
         <div id="ma-slots" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
