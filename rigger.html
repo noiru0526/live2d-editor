@@ -127,7 +127,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .lsec-body .tbtn{font-size:9px !important;padding:3px 5px !important;height:auto !important}
 
 /* KF section */
-#kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
+#kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:2px}
 .kb{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:2px 7px;border-radius:var(--r-sm);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .kb:hover{background:var(--header);color:var(--text)}
 .kb:active{transform:translateY(1px)}
@@ -201,7 +201,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .prop-sel{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:3px 5px;border-radius:var(--r-sm);outline:none;flex:1}
 .prop-sel:focus{border-color:var(--accent)}
 .prop-row .tbtn{font-size:10px;padding:3px 8px}
-.ab{display:block;width:100%;margin-bottom:3px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:3px 8px;border-radius:var(--r-sm);cursor:pointer;text-align:left;transition:all .1s}
+.ab{display:block;width:100%;margin-bottom:2px;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:2px 8px;border-radius:var(--r-sm);cursor:pointer;text-align:left;transition:all .1s}
 .ab:hover{background:var(--panel);color:var(--text);border-color:var(--border)}
 .ab:active{transform:translateY(1px)}
 .ab.pr{background:linear-gradient(135deg,rgba(224,120,64,.3),rgba(192,80,40,.25));border-color:var(--accent);color:var(--gold)}
@@ -514,34 +514,34 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div class="lsec-body" id="kf-body">
         <div id="kf-list"></div>
         <div style="font-size:9px;color:var(--dim)" id="kf-cur">—</div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfCopyPrompt()" title="現在のKFのデフォームを別KFにコピー">⧉ コピー</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfMirrorX()" title="現在のKFのX変形を左右反転">↔ ミラーX</button>
         </div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--kf);border-color:rgba(180,180,80,.35)" onclick="kfCrossParamCopy()" title="現在のKFデフォームを別パラメータの対応KFにコピー">↗ 他パラムへ</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,160,60,.4)" onclick="kfScaleDeform()" title="現在のKFデフォームをスケーリング（増減）">✕ スケール</button>
         </div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(100,200,120,.4)" onclick="addKFPosition()" title="現在のパラメータに新しいKF位置を追加">＋ KF追加</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--danger);border-color:rgba(200,80,80,.4)" onclick="removeKFPosition()" title="現在のKF位置を削除（端点は削除不可）">－ KF削除</button>
         </div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--accent-light);border-color:rgba(255,120,80,.4)" onclick="clearCurrentKFDeform()" title="現在KFの全パーツデフォームをゼロにリセット（ニュートラル）">✕ KFクリア</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--kf);border-color:rgba(160,160,60,.35)" onclick="interpolateKFFromNeighbors()" title="隣接KFから線形補間して現在KFのデフォームを生成">↕ 補間KF</button>
         </div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--teal);border-color:rgba(80,200,180,.4)" onclick="saveDeformPreset()" title="現在パーツ・現在KFのデフォームを名前付きプリセットとして保存">💾 保存</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--text);border-color:var(--border)" onclick="loadDeformPreset()" title="保存済みデフォームプリセットを現在KFに適用">📂 読込</button>
         </div>
-        <div style="display:flex;gap:3px;margin-top:3px">
+        <div style="display:flex;gap:3px;margin-top:2px">
           <button id="btn-param-sweep" class="tbtn" style="flex:1;font-size:8px;padding:2px 4px;color:var(--gold);border-color:rgba(255,200,60,.4)" onclick="toggleParamSweep()" title="パラメータを自動スイープ: KF全範囲を往復再生してデフォームを確認">▷ スイープ</button>
           <select id="sweep-speed-sel" style="flex:0 0 auto;background:var(--bg);border:1px solid rgba(255,200,60,.3);color:var(--kf);border-radius:3px;padding:1px 3px;font-size:8px;" title="スイープ速度（サイクル/秒）">
             <option value="0.3">遅</option><option value="0.7" selected>中</option><option value="1.5">速</option>
           </select>
         </div>
-        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:3px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
-        <div style="display:flex;gap:3px;margin-top:3px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
+        <button class="tbtn" style="width:100%;font-size:8px;padding:2px 4px;margin-top:2px;color:var(--text-bright);border-color:rgba(200,200,160,.25)" onclick="showKFBlendTool()" title="2つのKF変形をt比率でブレンドして新しいKFを生成">⇌ KFブレンド</button>
+        <div style="display:flex;gap:3px;margin-top:2px" title="スナップショット比較: A/Bで変形前後を並べてプレビュー">
           <button class="tbtn" id="btn-snap-a" style="flex:1;font-size:8px;padding:2px 3px;color:var(--teal);border-color:rgba(80,200,150,.4)" onclick="captureSnapshotAB('a')" title="現在の表示をスナップA（緑）に記録">📷 A</button>
           <button class="tbtn" id="btn-snap-b" style="flex:1;font-size:8px;padding:2px 3px;color:var(--accent);border-color:rgba(224,120,64,.4)" onclick="captureSnapshotAB('b')" title="現在の表示をスナップB（紫）に記録">📷 B</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 3px;color:var(--text);border-color:var(--border)" onclick="showSnapshotCompare()" title="A/B比較ウィンドウを表示">▷ 比較</button>
@@ -587,7 +587,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('left')" title="左→右にミラー">←→</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('right')" title="右→左にミラー">→←</button>
         </div>
-        <div style="margin-top:3px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
+        <div style="margin-top:2px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
           <span style="font-size:8px;color:var(--dim);flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
           <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:var(--accent);" oninput="setBrushRadius(this.value)">
           <span id="brush-radius-val" style="font-size:8px;color:var(--dim);flex:0 0 auto;min-width:24px;text-align:right">60</span>
@@ -610,7 +610,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(2048,2048)" title="正方形 2K">2K□</button>
         </div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="applyCanvasSize()">サイズ適用</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:3px" onclick="showGlobalTransformModal()" title="全パーツを一括で移動・スケール（グローバル変換）">⊙ 全体変換</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px" onclick="showGlobalTransformModal()" title="全パーツを一括で移動・スケール（グローバル変換）">⊙ 全体変換</button>
       </div>
     </div>
   </div>
@@ -683,7 +683,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span style="font-size:9px;color:var(--muted);margin:0 2px">×</span>
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:2px;padding-top:2px">
             <span class="prop-lbl" style="color:var(--dim)">輪郭</span>
             <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px;accent-color:var(--accent)" oninput="applyDeformerFalloff(this.value)">
             <span id="dp-falloff-val" style="font-size:9px;color:var(--dim);min-width:24px">0%</span>
@@ -704,7 +704,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="prop-row">
             <span class="prop-lbl">半径</span><input class="prop-in" id="rp-r" type="number" min="10" max="500" oninput="applyRotRadius()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:2px;padding-top:2px">
             <span class="prop-lbl" style="color:var(--amber)">角度°</span>
             <input class="prop-in" id="rp-angle" type="number" min="-180" max="180" step="0.5" oninput="applyRotAngle()" style="border-color:rgba(245,158,11,.4)">
           </div>
@@ -730,7 +730,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl">長さ</span><input class="prop-in" id="bp-len" type="number" min="10" max="1000" oninput="applyBoneLength()">
             <span class="prop-lbl" style="margin-left:2px">静止角°</span><input class="prop-in" id="bp-ang" type="number" min="-180" max="180" step="1" oninput="applyBoneRestAngle()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:2px;padding-top:2px">
             <span class="prop-lbl" style="color:var(--accent)">KF角°</span>
             <input class="prop-in" id="bp-kf" type="number" min="-180" max="180" step="0.5" oninput="applyBoneKF()" style="border-color:rgba(224,120,64,.4)">
           </div>
@@ -742,7 +742,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="font-size:8px;color:var(--dim);margin:2px 4px">※ KF角はデルタ（静止からの変化）</div>
         </div>
-        <div class="prop-row" style="margin-top:3px">
+        <div class="prop-row" style="margin-top:2px">
           <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
         </div>
       </div>
@@ -793,7 +793,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:3px;font-size:9px;color:var(--dim);user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:2px;font-size:9px;color:var(--dim);user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -814,7 +814,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </select>
         </div>
         <!-- Shadow/Glow Effect -->
-        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+        <div style="margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
             <button onclick="resetPartShadow()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="影をリセット">↺</button>
@@ -834,7 +834,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Color adjustment (HSB) -->
-        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+        <div style="margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
             <button onclick="resetPartHSB()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="リセット">↺</button>
@@ -864,7 +864,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
               <button onclick="clearHSBKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
             </div>
           </div>
-          <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:var(--accent3);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
+          <button onclick="toggleHSBKFMode()" id="btn-hsbkf-toggle" style="width:100%;background:rgba(224,120,64,.07);border:1px dashed rgba(224,120,64,.25);color:var(--accent3);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="HSBをパラメータKFに連動させる（現在KF位置でのH/S/Bを記録→パラメータ移動で色変化）">⊕ HSBキーフレーム</button>
         </div>
         <!-- Scale KF -->
         <div id="pp-scalekf-row" style="display:none;background:rgba(96,200,140,.05);border:1px solid rgba(96,200,140,.2);border-radius:var(--r-sm);padding:3px 6px;margin-top:2px">
@@ -887,7 +887,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button onclick="clearScaleKF()" style="background:var(--surface);border:1px solid rgba(200,80,80,.3);color:var(--danger);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:8px">✕</button>
           </div>
         </div>
-        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:var(--green);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:3px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
+        <button onclick="toggleScaleKFMode()" id="btn-scalekf-toggle" style="width:100%;background:rgba(96,200,140,.07);border:1px dashed rgba(96,200,140,.25);color:var(--green);border-radius:2px;padding:1px 4px;cursor:pointer;font-size:9px;margin-top:2px;letter-spacing:.5px" title="スケールをパラメータKFに連動させる（現在KF位置でのX/Yスケールを記録→パラメータ移動でサイズ変化）">⊕ スケールキーフレーム</button>
         </div><!-- end pp-ext-body -->
         <!-- Legacy clip/deformer/group selects (hidden - replaced by ci-row at top) -->
         <select id="pp-clip" style="display:none" onchange="applyPartClip(this.value)"><option value="">なし</option></select>
@@ -904,7 +904,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" onclick="rotatePartMesh()" style="flex:1;font-size:8px" title="メッシュ頂点をパーツ中心周りに回転">↻ 回転</button>
         </div>
         <!-- Texture swap panel -->
-        <div id="tex-panel" style="display:none;margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+        <div id="tex-panel" style="display:none;margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
@@ -914,7 +914,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
           <!-- Texture switch by parameter -->
-          <div id="texswitch-panel" style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+          <div id="texswitch-panel" style="margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
               <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
               <button onclick="showTexSwitchModal()" style="background:#282828;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
@@ -923,7 +923,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Part note/memo -->
-        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+        <div style="margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
           <textarea id="pp-note" rows="2"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
@@ -931,7 +931,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             oninput="if(selPart>=0&&selPart<parts.length)parts[selPart].note=this.value"></textarea>
         </div>
         <!-- Alignment tools (multi-select) -->
-        <div id="align-panel" style="display:none;margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
+        <div id="align-panel" style="display:none;margin-top:2px;border-top:1px solid var(--divider);padding-top:2px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-bottom:2px">
             <button class="tbtn" onclick="alignParts('left')"   style="font-size:8px;padding:2px 0" title="左端揃え">⊢ 左</button>
@@ -945,7 +945,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button class="tbtn" onclick="distributeParts('h')" style="font-size:8px;padding:2px 0" title="水平等間隔">↔ 等間隔</button>
             <button class="tbtn" onclick="distributeParts('v')" style="font-size:8px;padding:2px 0" title="垂直等間隔">↕ 等間隔</button>
           </div>
-          <div style="margin-top:3px;">
+          <div style="margin-top:2px;">
             <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:var(--accent2);border-color:rgba(180,150,60,.35)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
           </div>
         </div>
