@@ -257,7 +257,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-item.active .ex-name{color:var(--accent)}
 .ex-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1}
 .ex-del:hover{color:var(--danger)}
-.ex-empty{padding:10px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
+.ex-empty{padding:4px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.5}
 #expr-preview-tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:5px 7px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
 #expr-preview-tip .ept-title{font-size:10px;color:var(--text);font-weight:600;margin-bottom:3px;border-bottom:1px solid var(--divider);padding-bottom:2px}
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
@@ -951,7 +951,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
 
-      <div class="prop-section" id="no-sel-msg" style="padding:10px 8px;text-align:center;color:var(--dim);font-size:10px;line-height:2">
+      <div class="prop-section" id="no-sel-msg" style="padding:4px 8px;text-align:center;color:var(--dim);font-size:10px;line-height:1.6">
         パーツを選択してください<br><span style="font-size:9px;color:var(--dim)">クリックで選択 / Shiftで複数選択</span>
       </div>
     </div>
@@ -3349,7 +3349,7 @@ function toggleColorFilter(color) {
 function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   if (parts.length === 0) {
-    list.innerHTML = '<div style="padding:28px 16px;text-align:center;color:var(--dim);font-size:9px;line-height:2;user-select:none">パーツがありません<br><span style="color:var(--dim)">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
+    list.innerHTML = '<div style="padding:8px 12px;text-align:center;color:var(--dim);font-size:9px;line-height:1.6;user-select:none">パーツがありません<br><span style="color:var(--dim)">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
     return;
   }
   const seenGroups = new Set();
@@ -5844,7 +5844,7 @@ function buildLPDeformerTree() {
   const body = document.getElementById('lp-def-tree');
   if (!body) return;
   if (deformers.length === 0) {
-    body.innerHTML = '<div style="padding:16px 8px;text-align:center;color:var(--dim);font-size:9px;line-height:2">デフォーマがありません<br><span style="color:var(--dim)">「＋」で追加</span></div>';
+    body.innerHTML = '<div style="padding:6px 8px;text-align:center;color:var(--dim);font-size:9px;line-height:1.6">デフォーマがありません<br><span style="color:var(--dim)">「＋」で追加</span></div>';
     return;
   }
   const filter = (document.getElementById('deformer-search')?.value || '').toLowerCase();
@@ -6586,7 +6586,7 @@ function renderLFOPanel() {
   const pe = document.getElementById('lfo-presets');
   if (pe) pe.innerHTML = LFO_PRESETS.map((p,i)=>`<button class="tbtn" onclick="addLFO(LFO_PRESETS[${i}])" style="font-size:8px;padding:1px 4px" title="${p.param} ${p.wave} ${p.freq}Hz">${p.label}</button>`).join('');
   if (!lfos.length) {
-    el.innerHTML = '<div style="color:var(--dim);font-size:9px;padding:8px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
+    el.innerHTML = '<div style="color:var(--dim);font-size:9px;padding:3px 4px;text-align:center">LFOがありません<br>「＋」で追加</div>'; return;
   }
   const pkeys = Object.keys(P);
   el.innerHTML = lfos.map(lfo => `<div style="border:1px solid var(--divider);border-radius:4px;padding:3px 5px;margin-bottom:2px;background:var(--bg)">

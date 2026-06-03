@@ -626,7 +626,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span>
       </div>
       <div id="undo-history-list" style="max-height:160px;overflow-y:auto;display:none;">
-        <div style="padding:8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>
+        <div style="padding:4px 8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>
       </div>
     </div>
     <!-- Animation Snippets Panel -->
@@ -2881,7 +2881,7 @@ function updateUndoHistoryPanel() {
   if (!el) return;
   el.innerHTML = '';
   const items = [...ST.undo].reverse().slice(0, 20);
-  if (!items.length) { el.innerHTML='<div style="padding:8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>'; return; }
+  if (!items.length) { el.innerHTML='<div style="padding:4px 8px;font-size:9px;color:var(--dim);text-align:center;">履歴なし</div>'; return; }
   items.forEach((s,i) => {
     const d = document.createElement('div');
     d.style.cssText='display:flex;align-items:center;gap:6px;padding:2px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid var(--divider);';
