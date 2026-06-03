@@ -884,12 +884,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <button onclick="resetPhysSim()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理状態をリセット">↺ リセット</button>
         <button onclick="bakePhysToTimeline()" style="background:var(--kf-bg);border:1px solid rgba(200,180,80,.4);color:var(--kf);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
       </div>
-      <div id="spring-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:5px;"></div>
+      <div id="spring-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:3px;"></div>
       <div style="font-size:9px;color:var(--dim);line-height:1.5;">
         頂点を選択→追加 (髪・耳・アクセサリー等)<br>エクスポートHTMLで二次揺れが有効</div>
       <!-- Physics enhanced controls -->
-      <div id="phys-global" style="margin-top:6px;border-top:1px solid var(--border);padding-top:5px;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:4px;">物理グローバル設定</div>
+      <div id="phys-global" style="margin-top:4px;border-top:1px solid var(--border);padding-top:3px;">
+        <div style="font-size:10px;color:var(--dim);margin-bottom:2px;">物理グローバル設定</div>
         <div class="phys-row"><label>重力X</label><input type="range" id="phys-gx" min="-1" max="1" step="0.05" value="0" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gx-v">0.00</span></div>
         <div class="phys-row"><label>重力Y</label><input type="range" id="phys-gy" min="-1" max="1" step="0.05" value="0.3" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-gy-v">0.30</span></div>
         <div class="phys-row"><label>風力X</label><input type="range" id="phys-wx" min="-1" max="1" step="0.05" value="0" oninput="updatePhysGlobal()"><span class="phys-val" id="phys-wx-v">0.00</span></div>
@@ -898,10 +898,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       </div><!-- spring-body -->
     </div>
     <!-- Character Profile Panel -->
-    <div id="profile-panel" style="padding:4px 8px;border-top:1px solid var(--border);flex-shrink:0;">
-      <div class="mcfg-title" style="padding:0 0 4px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('profile-body',this)">👤 キャラクタープロファイル<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+    <div id="profile-panel" style="padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;">
+      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('profile-body',this)">👤 キャラクタープロファイル<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="profile-body" style="display:none;">
-        <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;flex-direction:column;gap:3px;">
           <input type="text" id="prof-name" placeholder="キャラクター名" oninput="updateProfile('name',this.value)"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
           <input type="text" id="prof-author" placeholder="作者名" oninput="updateProfile('author',this.value)"
@@ -915,10 +915,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <!-- Texture Atlas Panel -->
     <div id="atlas-panel">
-      <div class="mcfg-title" style="padding:0 0 4px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
+      <div class="mcfg-title" style="padding:0 0 3px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('atlas-body',this)">🗺 テクスチャアトラス<span style="margin-left:auto;font-size:10px;color:var(--dim)">▾</span></div>
       <div id="atlas-body" style="display:none;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:5px;">含めるパーツを選択してアトラスを生成します</div>
-        <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:5px;max-height:80px;overflow-y:auto;"></div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:3px;">含めるパーツを選択してアトラスを生成します</div>
+        <div id="atlas-part-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:3px;max-height:80px;overflow-y:auto;"></div>
         <div class="mcfg-row"><button onclick="generateAtlas()" style="color:var(--gold);">🗺 アトラス生成 (縦並び)</button></div>
         <div class="mcfg-row"><button onclick="generateAtlasBinPack()" style="color:var(--text);">🗺 アトラス BinPack (最適化)</button></div>
         <canvas id="atlas-preview-canvas" style="width:100%;height:auto;margin-top:4px;border:1px solid var(--border);border-radius:3px;display:block;max-height:80px;object-fit:contain;"></canvas>
