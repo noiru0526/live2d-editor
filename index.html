@@ -6009,7 +6009,7 @@ function _hoverPreviewPose(idx){
   if(_usp2.get('noui')!=='1'){
     const _pbtn=document.createElement('button');
     _pbtn.id='pip-btn';_pbtn.title='ピクチャーインピクチャー (PiP)';_pbtn.textContent='⧉ PiP';
-    _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 10px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+    _pbtn.style.cssText='position:fixed;bottom:110px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 10px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
     _pbtn.onclick=window.openAvatarPiP;
     document.addEventListener('pictureinpicturechange',()=>{_pbtn.style.color=document.pictureInPictureElement?'var(--accent-light)':'var(--text)';_pbtn.textContent=document.pictureInPictureElement?'⧉ ON':'⧉ PiP';});
     document.body.appendChild(_pbtn);
@@ -6021,7 +6021,7 @@ let _speedVary=false, _speedVaryT=0;
 (()=>{
   const btn=document.createElement('button');
   btn.id='speed-vary-btn'; btn.title='アニメーション速度を自然に揺らす (±8%)';
-  btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
+  btn.textContent='〜 自然'; btn.style.cssText='position:fixed;bottom:80px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;display:none;';
   btn.onclick=()=>{_speedVary=!_speedVary;btn.style.color=_speedVary?'var(--accent-light)':'var(--text)';btn.style.borderColor=_speedVary?'rgba(224,120,64,.5)':'rgba(255,255,255,.12)';btn.textContent=_speedVary?'〜 ON':'〜 自然';};
   if(typeof animPlaying!=='undefined') btn.style.display='';
   document.body.appendChild(btn);
@@ -6808,7 +6808,7 @@ window.addEventListener('message',e=>{
   _gpBtn.id = 'gp-btn';
   _gpBtn.textContent = '🎮 Pad';
   _gpBtn.title = 'ゲームパッド: 左スティック=頭、右スティック=目線、ボタン=表情';
-  _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _gpBtn.style.cssText = 'position:fixed;bottom:80px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _gpBtn.onclick = () => {
     _gpActive = !_gpActive;
     _gpBtn.style.color = _gpActive ? 'var(--accent-light)' : 'var(--text)';
@@ -6844,7 +6844,7 @@ if ((MD.animClips||[]).filter(c=>Object.keys(c.animation?.tracks||{}).length>0).
   _idleBtn.id = 'idle-rand-btn';
   _idleBtn.textContent = '🎲 Auto';
   _idleBtn.title = 'アイドルランダム: クリップをランダムに自動再生';
-  _idleBtn.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _idleBtn.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _idleBtn.onclick = toggleIdleRandom;
   document.body.appendChild(_idleBtn);
 }
@@ -6853,7 +6853,7 @@ let _mouseTracking = false;
 const _mtBtn = document.createElement('button');
 _mtBtn.id = 'mt-btn';
 _mtBtn.textContent = '🖱 マウス追従';
-_mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+_mtBtn.style.cssText = 'position:fixed;bottom:10px;left:10px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
 _mtBtn.onclick = () => {
   _mouseTracking = !_mouseTracking;
   _mtBtn.style.color = _mouseTracking ? 'var(--accent-light)' : 'var(--text)';
@@ -6927,7 +6927,7 @@ window._applyTrackPreset=function(preset){
   const settBtn=document.createElement('button');
   settBtn.textContent='⚙ 追跡'; settBtn.id='track-settings-btn';
   settBtn.title='顔追跡の感度・デッドゾーン・スムース設定';
-  settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  settBtn.style.cssText='position:fixed;bottom:10px;left:120px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   settBtn.onclick=()=>{
     const v=panel.style.display==='none';
     panel.style.display=v?'block':'none';
@@ -6945,7 +6945,7 @@ window._applyTrackPreset=function(preset){
   _srBtn.id = 'sr-btn';
   _srBtn.textContent = '🎙 音声';
   _srBtn.title = '音声認識でキーワードトリガー（Chrome推奨）';
-  _srBtn.style.cssText = 'position:fixed;bottom:10px;left:230px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--dim);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
+  _srBtn.style.cssText = 'position:fixed;bottom:10px;left:230px;background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:5px;padding:4px 12px;color:var(--text);font-size:11px;font-family:monospace;cursor:pointer;z-index:99;';
   _srBtn.onclick = () => {
     if (_srActive) {
       _sr?.stop(); _srActive = false;
