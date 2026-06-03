@@ -697,7 +697,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <label>背景:</label>
         <input id="export-bg" type="color" value="#1a1a2e" style="width:28px;height:22px;border:1px solid var(--border);border-radius:4px;padding:1px;cursor:pointer;background:none;">
         <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;flex:1;">
-          <input type="checkbox" id="export-chromakey" style="accent-color:#00cc44;">
+          <input type="checkbox" id="export-chromakey" style="accent-color:var(--accent);">
           <span>グリーンバック</span>
         </label>
       </div>
@@ -718,7 +718,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </select>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim);width:100%">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
+        <label style="font-size:10px;color:var(--text);width:100%">HTMLタイトル（ブラウザタブ・OGタイトル）</label>
         <input id="export-html-title" type="text" placeholder="Live2D Viewer" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row" style="flex-wrap:wrap;gap:8px;">
@@ -740,7 +740,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row" style="align-items:center;gap:6px;">
-        <label style="font-size:10px;color:var(--dim);white-space:nowrap;width:auto;flex-shrink:0">ポーズトランジション:</label>
+        <label style="font-size:10px;color:var(--text);white-space:nowrap;width:auto;flex-shrink:0">ポーズトランジション:</label>
         <select id="export-pose-transition" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
           <option value="0">即時（トランジションなし）</option>
           <option value="150">高速 (150ms)</option>
@@ -768,12 +768,12 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </select>
       </div>
       <div class="mcfg-row">
-        <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
+        <button onclick="showExportHotkeyDialog()" title="ポーズ切替に使うキーをカスタマイズ" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;width:100%;">⌨ ポーズ切替ホットキー設定…</button>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim);width:100%">背景画像URL（空欄でなし）</label>
+        <label style="font-size:10px;color:var(--text);width:100%">背景画像URL（空欄でなし）</label>
         <input id="export-bgimg" type="text" placeholder="https://example.com/bg.png" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
-        <label style="font-size:10px;color:var(--dim);margin-top:4px;width:100%">背景動画URL（MP4/WebM・空欄でなし）</label>
+        <label style="font-size:10px;color:var(--text);margin-top:4px;width:100%">背景動画URL（MP4/WebM・空欄でなし）</label>
         <input id="export-bgvideo" type="text" placeholder="https://example.com/bg.mp4" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
       </div>
       <div class="mcfg-row">
@@ -789,7 +789,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </select>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim)">BGM URL（MP3/OGG・空欄でなし）</label>
+        <label style="font-size:10px;color:var(--text)">BGM URL（MP3/OGG・空欄でなし）</label>
         <input id="export-bgm" type="text" placeholder="https://example.com/bgm.mp3" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;">
         <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;margin-top:2px;">
           <input type="checkbox" id="export-bgm-loop" checked style="accent-color:var(--accent);">
@@ -800,9 +800,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </label>
       </div>
       <div class="mcfg-row" style="flex-direction:column;align-items:flex-start;gap:3px;">
-        <label style="font-size:10px;color:var(--dim)">カスタムCSS（エクスポートHTMLに追加）</label>
+        <label style="font-size:10px;color:var(--text)">カスタムCSS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-css" rows="3" placeholder="/* 例: body { animation: fadeIn 1s; } */" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
-        <label style="font-size:10px;color:var(--dim);margin-top:4px">カスタムJS（エクスポートHTMLに追加）</label>
+        <label style="font-size:10px;color:var(--text);margin-top:4px">カスタムJS（エクスポートHTMLに追加）</label>
         <textarea id="export-custom-js" rows="3" placeholder="// 例: document.getElementById('canvas').onclick = () => alert('clicked!');" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:10px;font-family:monospace;resize:vertical;"></textarea>
       </div>
       <div class="mcfg-row" style="gap:8px;align-items:center;flex-wrap:wrap;">
