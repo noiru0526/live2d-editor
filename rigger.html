@@ -4060,7 +4060,7 @@ function showTexSwitchModal() {
   <div id="tsr-list">${existingRules}</div>
   <button onclick="addTexSwitchRule()" style="width:100%;background:#282828;border:1px solid rgba(200,160,60,.3);color:#c0a040;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;margin-top:4px">＋ ルール追加</button>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-    <button onclick="clearTexSwitch()" style="background:var(--danger-bg-deep);border:1px solid #3c1818;color:#e06060;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
+    <button onclick="clearTexSwitch()" style="background:var(--danger-bg-deep);border:1px solid rgba(255,80,80,.3);color:var(--danger);border-radius:4px;padding:6px 12px;cursor:pointer;font-size:10px">クリア</button>
     <button onclick="document.getElementById('texswitch-mo').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px">キャンセル</button>
     <button onclick="applyTexSwitch()" style="background:rgba(180,140,40,.3);border:1px solid rgba(200,160,60,.6);color:var(--kf);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;font-weight:600">⇄ 適用</button>
   </div>
@@ -8380,8 +8380,8 @@ function showAvatarExportDialog() {
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-autoidle" style="accent-color:var(--accent)"> 🎭 自動表情ランダム</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px">🔄 表情サイクル間隔(秒): <input id="av-exprcycle" type="number" min="0" max="3600" step="1" value="0" placeholder="0=無効" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px"></label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-chat"> 💬 Twitchチャット連動</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-tts" style="accent-color:#60d0a0"> 🎤 TTSリップシンク</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-mic" style="accent-color:#60d0a0"> 🎙 マイクリップシンク</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;font-size:10px"><input type="checkbox" id="av-afk" style="accent-color:var(--accent)"> 😴 離席AFK検出 (秒: <input id="av-afk-secs" type="number" min="30" max="3600" value="300" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px">)</label>
       </div>
       <div id="av-chat-opts" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;margin-bottom:8px;font-size:11px">
@@ -8392,7 +8392,7 @@ function showAvatarExportDialog() {
         <div style="color:var(--dim);font-size:9px;margin-top:4px">チャットに表情名（例: "笑い"）を含むと自動発動。数字0でリセット。</div>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:5px;font-size:10px"><input type="checkbox" id="av-chatoverlay" style="accent-color:var(--accent)"> 💬 チャットオーバーレイ表示（アバターに吹き出し）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chatbubble" style="accent-color:var(--accent)"> 💬 チャット吹き出し（右上ポップアップ）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer;margin-top:3px;font-size:10px"><input type="checkbox" id="av-chattts" style="accent-color:#60d0a0"> 🔊 チャットTTS読み上げ（最大 <input id="av-chatttsmaxlen" type="number" min="10" max="200" value="80" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 4px;font-size:10px"> 文字）</label>
       </div>
 
       <div style="font-size:10px;color:var(--text);margin-bottom:6px;font-weight:600;letter-spacing:.5px">🎭 演技モード</div>
