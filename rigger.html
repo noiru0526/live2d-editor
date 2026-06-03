@@ -5614,7 +5614,7 @@ function editExprValues(idx) {
   window._eevCancel = () => { Object.assign(pv, _prevPV); render(); document.getElementById('expr-edit-overlay')?.remove(); delete window._eevCancel; };
   ov.onclick=(e)=>{if(e.target===ov)window._eevCancel?.();};
   ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px;width:340px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
-    <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button></div>
+    <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px">×</button></div>
     <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
@@ -8162,7 +8162,7 @@ function showShortcutsOverlay() {
   d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
       <span style="font-size:11px;font-weight:600;color:var(--text);">⌨ キーボードショートカット</span>
-      <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;">×</button>
+      <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;padding:0;">×</button>
     </div>
     <table style="width:100%;border-collapse:collapse;">${rows}</table>
     <div style="text-align:center;color:var(--dim);font-size:9px;margin-top:12px;padding:0 12px;">クリックで閉じる / ショートカット: ? または Shift+?</div>
@@ -8207,7 +8207,7 @@ function showWsTestPanel() {
   ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:var(--text)">🔌 WebSocket 送信テスト</span>
-      <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">×</button>
+      <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px">×</button>
     </div>
     <div style="margin-bottom:8px">
       <div style="font-size:9px;color:var(--dim);margin-bottom:4px">送信先 URL</div>
@@ -8297,7 +8297,7 @@ function showWsApiRef() {
   d.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
       <span style="font-size:11px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
-      <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px">×</button>
+      <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:16px">×</button>
     </div>
     <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:var(--dim)">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
