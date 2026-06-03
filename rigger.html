@@ -950,7 +950,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         </div>
       </div>
 
-      <div class="prop-section" id="no-sel-msg" style="padding:16px 8px;text-align:center;color:var(--dim);font-size:10px;line-height:2">
+      <div class="prop-section" id="no-sel-msg" style="padding:10px 8px;text-align:center;color:var(--dim);font-size:10px;line-height:2">
         パーツを選択してください<br><span style="font-size:9px;color:var(--dim)">クリックで選択 / Shiftで複数選択</span>
       </div>
     </div>
@@ -5454,7 +5454,7 @@ function updateExpressionsUI() {
   const _exBaseline = Object.fromEntries(Object.entries(P).map(([k,pc])=>[k, pc.k.length ? pc.k[Math.floor(pc.k.length/2)] : 0]));
   let _exprDragSrc = -1;
   expressions.forEach((ex,i)=>{
-    const d=document.createElement('div'); d.className='ex-item'+(i===activeExprIdx?' active':'');
+    const d=document.createElement('div'); d.className='ex-item'+(i===activeExprIdx?' active':''); d.dataset.exIdx=i;
     d.onclick=()=>applyExpr(i);
     // Drag-and-drop reorder
     d.draggable = true;
@@ -5545,7 +5545,7 @@ function _hideExprPreview() {
 function renameExpr(idx) {
   if (idx < 0 || idx >= expressions.length) return;
   const ex = expressions[idx];
-  const item = document.querySelector(`#expr-list .ex-item:nth-child(${idx+1})`);
+  const item = document.querySelector(`#expr-list .ex-item[data-ex-idx="${idx}"]`);
   if (!item) { const n=prompt('表情の名前を変更:',ex.name); if(n&&n.trim()){saveState();ex.name=n.trim();updateExpressionsUI();setStatus(`表情名を「${ex.name}」に変更`);} return; }
   const nameEl = item.querySelector('.ex-name');
   if (!nameEl || item.querySelector('.ex-rename-input')) return;
