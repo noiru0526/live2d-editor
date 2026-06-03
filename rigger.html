@@ -649,8 +649,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <input type="range" id="ref-scl" min="10" max="400" value="100" style="width:100%;accent-color:var(--accent)" oninput="_refScale=this.value/100;document.getElementById('ref-scl-v').textContent=(this.value/100).toFixed(2);render()">
       </label>
       <div style="display:flex;gap:4px;margin-bottom:3px">
-        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
-        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
+        <label style="flex:1">X <input type="number" id="ref-x" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refX=+this.value;render()"></label>
+        <label style="flex:1">Y <input type="number" id="ref-y" value="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;padding:1px 2px;font-size:8px" oninput="_refY=+this.value;render()"></label>
       </div>
       <button onclick="_refImg=null;render();document.getElementById('btn-refimg').classList.remove('active');" style="width:100%;background:var(--danger-bg-deep);border:1px solid rgba(200,60,60,.3);color:var(--danger);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px">✕ クリア</button>
     </div>
@@ -1013,7 +1013,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
         <span style="font-size:10px;color:var(--dim)">🔍</span>
-        <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--dim);font-size:10px;outline:none;padding:2px 0">
+        <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--text);font-size:10px;outline:none;padding:2px 0">
         <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
         <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px">▲▲</button>
         <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px">▼▼</button>
@@ -4124,8 +4124,8 @@ function showGenerateTextureModal() {
     </div>
   </div>
   <div id="gt-colors" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-    <div><div style="font-size:10px;color:var(--dim);margin-bottom:3px">色 1</div><input id="gt-c1" type="color" value="#ffffff" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
-    <div id="gt-c2-wrap"><div style="font-size:10px;color:var(--dim);margin-bottom:3px">色 2</div><input id="gt-c2" type="color" value="#000000" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
+    <div><div style="font-size:10px;color:var(--text);margin-bottom:3px">色 1</div><input id="gt-c1" type="color" value="#ffffff" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
+    <div id="gt-c2-wrap"><div style="font-size:10px;color:var(--text);margin-bottom:3px">色 2</div><input id="gt-c2" type="color" value="#000000" oninput="updateGentexPreview()" style="width:100%;height:28px;border:none;border-radius:4px;cursor:pointer"></div>
   </div>
   <div id="gt-dir-wrap" style="margin-bottom:8px">
     <div style="font-size:10px;color:var(--dim);margin-bottom:3px">方向</div>
@@ -8345,10 +8345,10 @@ function showAvatarExportDialog() {
       <div style="font-size:10px;color:var(--text);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:11px">
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-obs" style="accent-color:var(--accent)"> OBSモード（バッジ表示）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
-        <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-controls"> パラメータコントロールパネル（Pキー）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-nostatus"> ステータスHUD非表示</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-perf"> FPSカウンター表示</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-hotkeys" checked> ホットキーヘルプ（?キー）</label>
+        <label style="display:flex;align-items:center;gap:6px;color:var(--text);cursor:pointer"><input type="checkbox" id="av-controls"> パラメータコントロールパネル（Pキー）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-mixer"> 🎚 表情ミキサーパネル（Mキー）</label>
         <label style="display:flex;align-items:center;gap:6px;color:var(--dim);cursor:pointer"><input type="checkbox" id="av-gamepad"> ゲームパッド自動ON</label>
       </div>
