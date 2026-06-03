@@ -1080,6 +1080,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button class="ih" onclick="event.stopPropagation();saveExpr()" title="現在のパラメータを表情として保存" style="font-size:11px;color:var(--dim)">＋</button>
     </div>
     <div id="rp-expr" class="rpanel rp-collapsed">
+      <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
+        <span style="font-size:10px;color:var(--dim)">🔍</span>
+        <input id="expr-search" type="text" placeholder="表情を検索..." oninput="filterExpressions(this.value)" style="flex:1;background:none;border:none;outline:none;color:var(--text);font-size:10px;font-family:inherit">
+        <button onclick="document.getElementById('expr-search').value='';filterExpressions('')" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1" title="クリア">×</button>
+      </div>
       <div id="expr-list" style="flex:1;overflow-y:auto">
         <div class="ex-empty">表情が登録されていません<br>「＋」ボタンで現在のパラメータを<br>表情として保存できます</div>
       </div>
@@ -5480,6 +5485,23 @@ function updateExpressionsUI() {
     c.appendChild(d);
   });
   const panel=document.getElementById('pose-blend-panel'); if(panel?.style.display!=='none') buildBlendSliders();
+  const q=document.getElementById('expr-search')?.value||''; if(q) filterExpressions(q);
+}
+function filterExpressions(q) {
+  const items=document.querySelectorAll('#expr-list .ex-item');
+  const lq=q.toLowerCase();
+  let vis=0;
+  items.forEach(el=>{
+    const nm=el.querySelector('.ex-name')?.textContent?.toLowerCase()||'';
+    const show=!lq||nm.includes(lq);
+    el.style.display=show?'':'none';
+    if(show)vis++;
+  });
+  let empty=document.getElementById('expr-filter-empty');
+  if(!vis&&lq){
+    if(!empty){empty=document.createElement('div');empty.id='expr-filter-empty';empty.className='ex-empty';empty.style.fontSize='9px';document.getElementById('expr-list').appendChild(empty);}
+    empty.textContent=`「${q}」に一致する表情がありません`;
+  } else if(empty) { empty.remove(); }
 }
 function _previewExprLive(ex) {
   if (_exprPreviewSaved !== null) return;
