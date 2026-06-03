@@ -4030,7 +4030,7 @@ function showTexSwitchModal() {
       <button onclick="removeTexSwitchRule(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0">✕</button>
     </div>`).join('');
   const mo=document.createElement('div');mo.className='mo';mo.id='texswitch-mo';
-  mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:10px;padding:18px 22px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(200,160,60,.4);border-radius:var(--r-lg);padding:12px 16px;min-width:340px;max-width:420px" onclick="event.stopPropagation()">
   <div style="font-size:11px;color:var(--kf);margin-bottom:8px;font-weight:600">⇄ テクスチャスイッチ設定</div>
   <div style="font-size:9px;color:var(--dim);margin-bottom:6px">パラメータ値の範囲に応じてテクスチャを自動切替します（まばたき・口形状など）</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">切替パラメータ</div>
@@ -4088,7 +4088,7 @@ function applyTexSwitch(){
 function showGenerateTextureModal() {
   if (selPart<0||selPart>=parts.length){setStatus('パーツを選択してください');return;}
   const mo=document.createElement('div');mo.className='mo';mo.id='gentex-mo';
-  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
+  mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;min-width:300px;max-width:380px" onclick="event.stopPropagation()">
   <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">∇ テクスチャ生成</div>
   <div style="font-size:10px;color:var(--dim);margin-bottom:4px">タイプ</div>
   <select id="gt-type" onchange="updateGentexPreview()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;font-size:11px;margin-bottom:8px">
@@ -4591,7 +4591,7 @@ function showGlobalTransformModal() {
   overlay.id = 'gtf-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">⊙ 全体変換</div>
       <div style="font-size:9px;color:var(--dim);margin-bottom:12px;">全パーツのx/y座標とメッシュ頂点を一括変換します</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
@@ -7208,7 +7208,7 @@ function showDeformWaveModal() {
   overlay.id = 'wave-modal-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;min-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:11px;color:var(--text);margin-bottom:8px;font-weight:600">〜 デフォームWave</div>
       <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 12px;align-items:center;font-size:11px;color:var(--dim)">
         <span>振幅 (px)</span>
@@ -8323,7 +8323,7 @@ function showAvatarExportDialog() {
   overlay.id = 'av-export-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;min-width:340px;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
       <div style="font-size:12px;color:var(--text);margin-bottom:8px;font-weight:600">🎭 アバターHTML書き出し設定</div>
 
       <div style="font-size:10px;color:var(--dim);margin-bottom:10px;font-weight:600;letter-spacing:.5px">OBSブラウザソース設定</div>
