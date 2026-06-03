@@ -128,7 +128,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 /* KF section */
 #kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:2px}
-.kb{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:2px 7px;border-radius:var(--r-sm);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
+.kb{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:2px 7px;border-radius:var(--r-sm);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .kb:hover{background:var(--header);color:var(--text)}
 .kb:active{transform:translateY(1px)}
 .kb.on{background:rgba(224,120,64,.2);border-color:rgba(224,120,64,.6);color:var(--accent-light)}
@@ -289,7 +289,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pdef:hover{background:var(--surface)}
 .pdef.sel{background:rgba(224,120,64,.12);border-color:rgba(224,120,64,.5);border-bottom-color:rgba(224,120,64,.5)}
 .pdef-caret{font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0}
-.pdef-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdef-name{flex:1;font-size:11px;color:var(--text);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdef-count{font-size:10px;color:var(--muted);font-family:monospace;margin-right:2px}
 .pi.in-deformer{padding-left:24px}
 .pdef-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;transition:color .1s}
@@ -310,7 +310,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .pgroup{background:var(--bg);border-bottom:1px solid var(--divider);padding:2px 7px;display:flex;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;transition:background .08s}
 .pgroup:hover{background:var(--surface)}
 .pgroup-caret{font-size:10px;color:var(--muted);width:12px;text-align:center;flex-shrink:0}
-.pgroup-name{flex:1;font-size:11px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgroup-name{flex:1;font-size:11px;color:var(--text);font-weight:600;text-transform:uppercase;letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pgroup-count{font-size:10px;color:var(--muted);font-family:monospace;margin-right:2px}
 .pi.in-group{padding-left:24px}
 .pgroup-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1;transition:color .1s}
@@ -459,8 +459,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <span style="font-size:10px;color:var(--muted)">🔍</span>
         <input id="parts-search" type="text" placeholder="パーツ名フィルター…"
           oninput="partsFilter=this.value.toLowerCase();updatePartsUI()"
-          style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
-        <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
+          style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+        <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
       <!-- Color label filter (hidden until parts with color labels are loaded) -->
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:none;align-items:center;gap:3px;" id="clr-filter-bar">
@@ -494,8 +494,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <span style="font-size:9px;color:var(--dim)">🔍</span>
           <input id="deformer-search" type="text" placeholder="デフォーマ名フィルター…"
             oninput="buildLPDeformerTree()"
-            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
-          <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
+          <button onclick="document.getElementById('deformer-search').value='';buildLPDeformerTree()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0">×</button>
         </div>
         <div id="lp-def-tree" style="flex:1;overflow-y:auto"></div>
         <div style="padding:2px 6px;border-top:1px solid var(--divider);display:flex;gap:3px;flex-shrink:0">
@@ -561,7 +561,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="rebuildMesh()" title="グリッドメッシュを再生成">⊞ グリッド生成</button>
-          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px;color:var(--dim)" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunay</button>
+          <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunay</button>
         </div>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px" onclick="flipMesh('h')" title="メッシュを水平に反転（X軸ミラー）">↔ 反転H</button>
