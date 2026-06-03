@@ -192,8 +192,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 /* Props panel */
 #rp-props{gap:0}
 .prop-section{padding:2px 6px;border-bottom:1px solid var(--divider);background:var(--bg)}
-.prop-section h4{color:var(--dim);font-size:10px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:3px}
-.prop-row{display:flex;align-items:center;gap:5px;margin-bottom:2px;font-size:11px;color:var(--dim)}
+.prop-section h4{color:var(--dim);font-size:10px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-bottom:2px}
+.prop-row{display:flex;align-items:center;gap:5px;margin-bottom:1px;font-size:11px;color:var(--dim)}
 .prop-lbl{min-width:36px;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
 .prop-in{background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:11px;padding:3px 6px;border-radius:var(--r-sm);width:60px;outline:none;font-family:monospace}
 .prop-in:focus{border-color:var(--accent)}
@@ -236,7 +236,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 /* Physics panel */
 #rp-physics{gap:0}
 .phys-part-item{padding:3px 8px;border-bottom:1px solid var(--divider);font-size:11px}
-.phys-part-header{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.phys-part-header{display:flex;align-items:center;gap:5px;margin-bottom:2px}
 .phys-part-name{flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
 .phys-toggle{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
 .phys-sliders{display:none;padding-left:20px;gap:4px;flex-direction:column}
@@ -258,8 +258,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .ex-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 3px;line-height:1}
 .ex-del:hover{color:var(--danger)}
 .ex-empty{padding:10px 8px;text-align:center;font-size:11px;color:var(--dim);line-height:1.6}
-#expr-preview-tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:7px 9px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
-#expr-preview-tip .ept-title{font-size:10px;color:var(--text);font-weight:600;margin-bottom:5px;border-bottom:1px solid var(--divider);padding-bottom:3px}
+#expr-preview-tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:5px 7px;z-index:650;pointer-events:none;min-width:160px;max-width:220px;box-shadow:0 4px 14px rgba(0,0,0,.7);display:none;font-size:9px}
+#expr-preview-tip .ept-title{font-size:10px;color:var(--text);font-weight:600;margin-bottom:3px;border-bottom:1px solid var(--divider);padding-bottom:2px}
 #expr-preview-tip .ept-row{display:flex;align-items:center;gap:4px;margin-bottom:2px}
 #expr-preview-tip .ept-label{min-width:65px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #expr-preview-tip .ept-bar-bg{flex:1;height:3px;background:var(--panel);border-radius:var(--r-xs);overflow:hidden}
@@ -748,7 +748,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       </div>
       <div class="prop-section" id="part-props" style="display:none">
         <!-- Cubism-style inspector header (Cubism 5.2.03 field order) -->
-        <div style="border-bottom:1px solid var(--surface);margin:-8px -10px 8px;padding:0">
+        <div style="border-bottom:1px solid var(--surface);margin:-8px -10px 4px;padding:0">
           <div class="ci-row"><span class="ci-lbl">名前</span><input type="text" id="pp-name" class="ci-inp" onblur="applyPartName(this.value)" onkeydown="if(event.key==='Enter')this.blur()" placeholder="パーツ名"></div>
           <div class="ci-row"><span class="ci-lbl">ID</span><span id="pp-id" class="ci-ro" title="自動生成ID"></span></div>
           <div class="ci-row"><span class="ci-lbl">親パーツ</span><select class="ci-sel" id="ci-parent" onchange="applyPartParent(this.value)"><option value="">なし（ルート）</option></select></div>
