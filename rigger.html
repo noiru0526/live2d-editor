@@ -5619,7 +5619,7 @@ function editExprValues(idx) {
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
       <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:var(--accent3);border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
-      <button onclick="_eevCancel()" style="background:rgba(60,60,60,.5);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
+      <button onclick="_eevCancel()" style="background:rgba(60,60,60,.5);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:11px">キャンセル</button>
     </div>
   </div>`;
   ov.querySelector('.eev-wrap')._tmp = {..._vals};
@@ -7251,7 +7251,7 @@ function showDeformWaveModal() {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end">
-        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('wave-modal-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="applyDeformWave()" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">適用</button>
       </div>
     </div>`;
@@ -7625,7 +7625,7 @@ function showSnapshotCompare() {
     <div style="margin-top:14px;display:flex;gap:10px">
       <button onclick="captureSnapshotAB('a');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(80,200,150,.2);border:1px solid rgba(80,200,150,.5);color:var(--teal);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 A 再撮影</button>
       <button onclick="captureSnapshotAB('b');document.body.removeChild(this.closest('[style]'));showSnapshotCompare();" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent-light);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">📷 B 再撮影</button>
-      <button onclick="this.closest('[style]').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
+      <button onclick="this.closest('[style]').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 14px;cursor:pointer;font-size:11px">閉じる</button>
     </div>`;
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   document.body.appendChild(overlay);
@@ -8603,7 +8603,7 @@ function showAvatarExportDialog() {
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
+        <button onclick="document.getElementById('av-export-overlay').remove()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px">キャンセル</button>
         <button onclick="doExportAvatar()" style="background:rgba(224,120,64,.25);border:1px solid rgba(224,120,64,.6);color:var(--text);border-radius:4px;padding:6px 16px;cursor:pointer;font-size:11px;font-weight:600">🎭 書き出し</button>
       </div>
     </div>`;
