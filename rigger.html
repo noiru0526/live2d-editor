@@ -5356,10 +5356,12 @@ const _PHYS_PRESETS = [
 function setPhysPreset(i, preset) {
   if (!parts[i]?.physics) return;
   const p = _PHYS_PRESETS[preset]; if (!p) return;
+  saveState();
   Object.assign(parts[i].physics, p);
   updatePhysicsUI();
 }
 function clearAllPhysics() {
+  saveState();
   parts.forEach(p=>{ p.physics.enabled=false; physState.delete(p.id); });
   updatePhysicsUI(); updatePartsUI(); render();
 }
