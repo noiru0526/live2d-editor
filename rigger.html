@@ -127,7 +127,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .lsec-body .tbtn{font-size:9px !important;padding:3px 5px !important;height:auto !important}
 
 /* KF section */
-#kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
+#kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
 .kb{background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:11px;padding:3px 8px;border-radius:var(--r-sm);cursor:pointer;transition:background .1s,color .1s,border-color .1s}
 .kb:hover{background:var(--header);color:var(--text)}
 .kb:active{transform:translateY(1px)}
@@ -514,7 +514,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <div class="lsec-body" id="kf-body">
         <div id="kf-list"></div>
         <div style="font-size:9px;color:var(--dim)" id="kf-cur">—</div>
-        <div style="display:flex;gap:3px;margin-top:4px">
+        <div style="display:flex;gap:3px;margin-top:3px">
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfCopyPrompt()" title="現在のKFのデフォームを別KFにコピー">⧉ コピー</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:2px 4px" onclick="kfMirrorX()" title="現在のKFのX変形を左右反転">↔ ミラーX</button>
         </div>
@@ -555,7 +555,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <h3>MESH</h3>
       </div>
       <div class="lsec-body" id="mesh-body">
-        <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:4px">頂点: — / 三角形: —</div>
+        <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:3px">頂点: — / 三角形: —</div>
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="rebuildMesh()">メッシュ再生成（グリッド）</button>
         <button class="tbtn" style="width:100%;font-size:9px;margin-top:2px;color:var(--dim)" onclick="rebuildMeshDelaunay()" title="画像の非透明部分にDelaunay三角分割メッシュを生成（グリッドより自然な形状）">△ Delaunayメッシュ</button>
@@ -587,7 +587,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('left')" title="左→右にミラー">←→</button>
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="symmetrizeDeform('right')" title="右→左にミラー">→←</button>
         </div>
-        <div style="margin-top:4px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
+        <div style="margin-top:3px;display:flex;align-items:center;gap:4px;" title="ブラシデフォームの影響半径（デフォームモードでCtrl+ドラッグ / Ctrl+ホイールで調整）">
           <span style="font-size:8px;color:var(--dim);flex:0 0 auto;white-space:nowrap">🖌 ブラシR</span>
           <input id="brush-radius-slider" type="range" min="10" max="400" value="60" style="flex:1;accent-color:var(--accent);" oninput="setBrushRadius(this.value)">
           <span id="brush-radius-val" style="font-size:8px;color:var(--dim);flex:0 0 auto;min-width:24px;text-align:right">60</span>
@@ -610,7 +610,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" style="flex:1;font-size:7px;padding:1px 2px" onclick="setCanvasPreset(2048,2048)" title="正方形 2K">2K□</button>
         </div>
         <button class="tbtn" style="width:100%;font-size:9px" onclick="applyCanvasSize()">サイズ適用</button>
-        <button class="tbtn" style="width:100%;font-size:9px;margin-top:4px" onclick="showGlobalTransformModal()" title="全パーツを一括で移動・スケール（グローバル変換）">⊙ 全体変換</button>
+        <button class="tbtn" style="width:100%;font-size:9px;margin-top:3px" onclick="showGlobalTransformModal()" title="全パーツを一括で移動・スケール（グローバル変換）">⊙ 全体変換</button>
       </div>
     </div>
   </div>
@@ -624,8 +624,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
     <div id="mode-badge">PARTS</div>
     <!-- Reference Image Panel -->
     <div id="ref-panel" style="display:none;position:absolute;top:44px;right:8px;background:rgba(20,20,20,.96);border:1px solid var(--border);border-radius:5px;padding:6px 8px;width:180px;z-index:180;font-size:9px;color:var(--dim)">
-      <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:4px">🖼 参考画像</div>
-      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:4px">📂 画像を読み込む</button>
+      <div style="font-weight:600;color:var(--text);letter-spacing:.5px;margin-bottom:3px">🖼 参考画像</div>
+      <button onclick="loadRefImage()" style="width:100%;background:var(--panel);border:1px solid var(--divider);color:var(--dim);border-radius:4px;padding:2px 0;cursor:pointer;font-size:9px;margin-bottom:3px">📂 画像を読み込む</button>
       <label style="display:block;margin-bottom:3px">不透明度 <span id="ref-opa-v">30%</span><br>
         <input type="range" id="ref-opa" min="0" max="100" value="30" style="width:100%;accent-color:var(--accent)" oninput="_refOpacity=this.value/100;document.getElementById('ref-opa-v').textContent=this.value+'%';render()">
       </label>
@@ -742,7 +742,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div style="font-size:8px;color:var(--dim);margin:2px 4px">※ KF角はデルタ（静止からの変化）</div>
         </div>
-        <div class="prop-row" style="margin-top:4px">
+        <div class="prop-row" style="margin-top:3px">
           <button class="tbtn danger" onclick="deleteDeformer(selDeformer)" style="flex:1;font-size:8px">デフォーマーを削除</button>
         </div>
       </div>
@@ -945,7 +945,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <button class="tbtn" onclick="distributeParts('h')" style="font-size:8px;padding:2px 0" title="水平等間隔">↔ 等間隔</button>
             <button class="tbtn" onclick="distributeParts('v')" style="font-size:8px;padding:2px 0" title="垂直等間隔">↕ 等間隔</button>
           </div>
-          <div style="margin-top:4px;">
+          <div style="margin-top:3px;">
             <button class="tbtn" onclick="batchEditPartProps()" style="width:100%;font-size:8px;padding:2px 0;color:var(--accent2);border-color:rgba(180,150,60,.35)" title="選択中の全パーツに同じプロパティを一括適用">⚙ 一括プロパティ適用</button>
           </div>
         </div>
@@ -1116,9 +1116,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <button class="ab" onclick="resetKF()" style="font-size:9px;margin:0;padding:3px 6px">現KFリセット</button>
       <button class="ab" onclick="resetAll()" style="font-size:9px;margin:0;padding:3px 6px">全リセット</button>
     </div>
-    <button class="ab pr" onclick="saveModelOnly()" style="margin-bottom:4px">💾 モデル保存</button>
+    <button class="ab pr" onclick="saveModelOnly()">💾 モデル保存</button>
     <button class="ab pr" onclick="showAvatarExportDialog()">🎭 アバターHTML出力</button>
-    <button class="ab" onclick="previewAvatarInTab()" title="新しいタブでアバターをプレビュー" style="margin-bottom:4px;font-size:10px">👁 タブでプレビュー</button>
+    <button class="ab" onclick="previewAvatarInTab()" title="新しいタブでアバターをプレビュー" style="font-size:10px">👁 タブでプレビュー</button>
   </div>
 </div>
 
