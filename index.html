@@ -17478,7 +17478,7 @@ function gradientDeform() {
         <div style="flex:1"><label style="color:var(--text);font-size:11px">終点スケール</label><br>
           <input id="gd-s1" type="number" value="1" step="0.1" min="0" max="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
-      <div style="color:var(--dim);font-size:10px;">選択 ${vArr.length}頂点の変形にグラデーションをかけます</div>
+      <div style="color:var(--text);font-size:10px;">選択 ${vArr.length}頂点の変形にグラデーションをかけます</div>
     </div>
   `, ()=>{
     const dir=document.getElementById('gd-dir').value;
@@ -19654,7 +19654,7 @@ function renderVGroupList() {
       ` style="flex:1;text-align:left;background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;">`+
       `${nm} <span style="color:var(--dim)">(${vs.size})</span></button>`+
       `<span onclick="deleteVGroup('${nm.replace(/'/g,"\\'")}')"`+
-      ` style="color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>`;
+      ` style="color:var(--text);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>`;
     cont.appendChild(row);
   }
 }
@@ -20174,7 +20174,7 @@ function renderSpringList() {
         <span style="font-size:10px;font-weight:600;color:var(--teal);flex:1;cursor:pointer;" onclick="selectSpringVerts(${idx})" title="頂点を選択">
           🌊 ${sb.name} <span style="color:var(--dim);font-weight:400">(${sb.verts.length}v)</span>
         </span>
-        <span onclick="deleteSpring(${idx})" style="color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>
+        <span onclick="deleteSpring(${idx})" style="color:var(--text);cursor:pointer;padding:0 3px;font-size:12px;" title="削除">×</span>
       </div>
       ${mkSlider('硬さ','stiffness',0.01,1,0.01,sb.stiffness??0.25)}
       ${mkSlider('減衰','damping',0.1,0.99,0.01,sb.damping??0.82)}
@@ -20388,7 +20388,7 @@ function renderPoseList() {
       },{once:true});
     });
     const delBtn=document.createElement('span');
-    delBtn.textContent='×'; delBtn.style.cssText='color:var(--dim);cursor:pointer;padding:0 3px;font-size:12px;';
+    delBtn.textContent='×'; delBtn.style.cssText='color:var(--text);cursor:pointer;padding:0 3px;font-size:12px;';
     delBtn.onclick=()=>deletePose(idx);
     // Blend slider: 0=neutral, 100=full pose
     const slider=document.createElement('input');
@@ -22266,18 +22266,18 @@ function generateBlinkAnim() {
   box.innerHTML = `<div style="font-weight:600;color:#80d0b0;">👁 ランダムまばたき生成</div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--text);width:90px">まばたき回数:</span><input id="blk-count" type="number" value="${Math.max(2,Math.round(dur/2.5))}" min="1" max="30" style="width:60px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
 <div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--text);width:90px">速さ (秒):</span><input id="blk-spd" type="number" value="0.12" min="0.05" max="0.5" step="0.01" style="width:60px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">対象パラメータ:</span>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--text);width:90px">対象パラメータ:</span>
   <select id="blk-param" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${['blinkL&blinkR','blinkL','blinkR'].map(v=>`<option value="${v}">${v}</option>`).join('')}
     ${Object.keys(M.params).filter(n=>n!=='blinkL'&&n!=='blinkR').map(n=>`<option value="${n}">${M.params[n].lbl||n}</option>`).join('')}
   </select></div>
-<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--dim);width:90px">配置:</span>
+<div style="display:flex;gap:6px;align-items:center;"><span style="color:var(--text);width:90px">配置:</span>
   <select id="blk-mode" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="random">ランダム</option><option value="regular">均等</option>
   </select></div>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
   <button id="blk-ok" style="background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:3px 12px;cursor:pointer;font-size:10px;">生成</button>
-  <button onclick="this.closest('[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
+  <button onclick="this.closest('[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
 </div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
@@ -22336,7 +22336,7 @@ function generateWaveKFs(paramName) {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div>
-          <label style="font-size:10px;color:var(--dim)">波形</label>
+          <label style="font-size:10px;color:var(--text)">波形</label>
           <select id="wg-shape" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;">
             <option value="sin">サイン波 (sin)</option>
             <option value="cos">コサイン波 (cos)</option>
@@ -22347,43 +22347,43 @@ function generateWaveKFs(paramName) {
           </select>
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">周期 (秒)</label>
+          <label style="font-size:10px;color:var(--text)">周期 (秒)</label>
           <input id="wg-period" type="number" value="${Math.min(dur, 2).toFixed(2)}" min="0.05" max="60" step="0.05"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">振幅 (パラメータ値)</label>
+          <label style="font-size:10px;color:var(--text)">振幅 (パラメータ値)</label>
           <input id="wg-amp" type="number" value="${(pRange * 0.4).toFixed(3)}" min="0" max="${pRange}" step="${(pRange*0.01).toFixed(3)}"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">中心値</label>
+          <label style="font-size:10px;color:var(--text)">中心値</label>
           <input id="wg-center" type="number" value="${pMid.toFixed(3)}" min="${p.min}" max="${p.max}" step="${(pRange*0.01).toFixed(3)}"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">位相オフセット (度)</label>
+          <label style="font-size:10px;color:var(--text)">位相オフセット (度)</label>
           <input id="wg-phase" type="number" value="0" min="-360" max="360" step="15"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">KF密度 (個/秒)</label>
+          <label style="font-size:10px;color:var(--text)">KF密度 (個/秒)</label>
           <input id="wg-density" type="number" value="12" min="1" max="60" step="1"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">開始時刻 (秒)</label>
+          <label style="font-size:10px;color:var(--text)">開始時刻 (秒)</label>
           <input id="wg-start" type="number" value="0" min="0" max="${dur}" step="0.01"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
         <div>
-          <label style="font-size:10px;color:var(--dim)">終了時刻 (秒)</label>
+          <label style="font-size:10px;color:var(--text)">終了時刻 (秒)</label>
           <input id="wg-end" type="number" value="${dur.toFixed(2)}" min="0" max="${dur}" step="0.01"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-top:3px;font-size:11px;font-family:monospace;">
         </div>
       </div>
       <div>
-        <label style="font-size:10px;color:var(--dim)">既存KFを</label>
+        <label style="font-size:10px;color:var(--text)">既存KFを</label>
         <select id="wg-merge" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;margin-left:6px;font-size:11px;">
           <option value="replace">上書き</option>
           <option value="add">追加（マージ）</option>
@@ -22451,26 +22451,26 @@ function generateIdleLoop() {
 </table>
 <table style="border-spacing:0 4px;width:100%;">
   <tr><td colspan="2" style="color:var(--dim);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">⚙ パラメータ設定</td></tr>
-  <tr><td style="color:var(--dim);width:110px;">まばたき速さ (秒)</td>
+  <tr><td style="color:var(--text);width:110px;">まばたき速さ (秒)</td>
       <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
-  <tr><td style="color:var(--dim);">呼吸周期 (秒)</td>
+  <tr><td style="color:var(--text);">呼吸周期 (秒)</td>
       <td><input id="idle-bperiod" type="number" value="${Math.min(4, dur * 0.8).toFixed(1)}" min="1" max="10" step="0.5" style="width:70px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
-  <tr><td style="color:var(--dim);">呼吸対象パラメータ</td>
+  <tr><td style="color:var(--text);">呼吸対象パラメータ</td>
       <td><select id="idle-breathparam" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         ${Object.entries(M.params).map(([k,p])=>`<option value="${k}"${k==='bodyZ'?' selected':''}>${p.lbl||k}</option>`).join('')}
       </select></td></tr>
-  <tr><td style="color:var(--dim);">呼吸振幅</td>
+  <tr><td style="color:var(--text);">呼吸振幅</td>
       <td><input id="idle-bamp" type="number" value="0.2" min="0.01" max="1" step="0.05" style="width:70px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
-  <tr><td style="color:var(--dim);">頭揺れ振幅</td>
+  <tr><td style="color:var(--text);">頭揺れ振幅</td>
       <td><input id="idle-swayamp" type="number" value="0.05" min="0.01" max="0.5" step="0.01" style="width:70px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
-  <tr><td style="color:var(--dim);">既存KFを</td>
+  <tr><td style="color:var(--text);">既存KFを</td>
       <td><select id="idle-merge" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
         <option value="replace">上書き</option><option value="add">追加</option>
       </select></td></tr>
 </table>
 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
   <button id="idle-ok" style="background:var(--surface);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:3px 14px;cursor:pointer;font-size:10px;font-weight:600;">生成</button>
-  <button onclick="this.closest('[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
+  <button onclick="this.closest('[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">キャンセル</button>
 </div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
@@ -22592,28 +22592,28 @@ function showProceduralAnimDialog() {
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:14px 16px;min-width:300px;max-width:360px;display:flex;flex-direction:column;gap:8px;font-size:11px;';
   const ap = ST.ap || params[0];
-  box.innerHTML = `<div style="color:var(--dim);font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
+  box.innerHTML = `<div style="color:var(--text);font-size:13px;font-weight:bold;">🌊 プロシージャルアニメーション</div>
 <div style="display:grid;grid-template-columns:100px 1fr;gap:4px;align-items:center;">
-  <label style="color:var(--dim);">パラメータ</label>
+  <label style="color:var(--text);">パラメータ</label>
   <select id="pa-param" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     ${params.map(n=>`<option value="${n}"${n===ap?' selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}
   </select>
-  <label style="color:var(--dim);">波形</label>
+  <label style="color:var(--text);">波形</label>
   <select id="pa-wave" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="sin">サイン波（滑らか）</option>
     <option value="tri">三角波（線形）</option>
     <option value="noise">ランダムノイズ</option>
     <option value="breath">呼吸（非対称サイン）</option>
   </select>
-  <label style="color:var(--dim);">周期 (秒)</label>
+  <label style="color:var(--text);">周期 (秒)</label>
   <input id="pa-period" type="number" value="2" min="0.1" max="30" step="0.1" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
-  <label style="color:var(--dim);">振幅</label>
+  <label style="color:var(--text);">振幅</label>
   <input id="pa-amp" type="number" value="0.3" min="0.01" max="1" step="0.01" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
-  <label style="color:var(--dim);">中心値</label>
+  <label style="color:var(--text);">中心値</label>
   <input id="pa-center" type="number" value="0" min="-1" max="1" step="0.01" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
-  <label style="color:var(--dim);">解像度 (fps)</label>
+  <label style="color:var(--text);">解像度 (fps)</label>
   <input id="pa-fps" type="number" value="12" min="2" max="60" step="1" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;width:100%;">
-  <label style="color:var(--dim);">既存KFを</label>
+  <label style="color:var(--text);">既存KFを</label>
   <select id="pa-merge" style="background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;">
     <option value="replace">上書き</option>
     <option value="add">追加</option>
@@ -22621,7 +22621,7 @@ function showProceduralAnimDialog() {
 </div>
 <div style="display:flex;gap:6px;margin-top:4px;">
   <button id="pa-ok" style="flex:1;background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 8px;cursor:pointer;">生成</button>
-  <button id="pa-cancel" style="flex:1;background:#282828;border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 8px;cursor:pointer;">キャンセル</button>
+  <button id="pa-cancel" style="flex:1;background:#282828;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;cursor:pointer;">キャンセル</button>
 </div>`;
   overlay.appendChild(box);
   overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
@@ -22767,7 +22767,7 @@ function showLipSyncDialog() {
     </div>
     <div style="display:flex;gap:6px;margin-top:12px">
       <button onclick="generateLipSyncKFs()" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23184,7 +23184,7 @@ function showKFRangeDelete() {
     <div id="dr-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px">
       <button id="dr-ok" style="flex:1;background:var(--danger-bg);border:1px solid rgba(255,80,80,.5);color:var(--danger);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23245,7 +23245,7 @@ function showKFShift() {
     <div style="font-size:8px;color:#70a0a0;margin-bottom:8px">※ 0秒未満になるKFは0にクランプされます</div>
     <div style="display:flex;gap:6px">
       <button id="ks-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23285,7 +23285,7 @@ function showTimeStretch() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="ts-ok" style="flex:1;background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">適用</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23338,7 +23338,7 @@ function showRangeCopyPaste() {
     <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
     <div style="display:flex;gap:6px">
       <button id="rc-paste-btn" style="flex:1;background:${hasCb?'rgba(224,120,64,.18)':'#1e1e1e'};border:1px solid ${hasCb?'rgba(224,120,64,.5)':'rgba(255,255,255,.08)'};color:${hasCb?'var(--accent)':'#404040'};border-radius:4px;padding:4px;cursor:pointer;font-size:10px;" ${!hasCb?'disabled':''}>📌 ペースト</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">閉じる</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">閉じる</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23420,7 +23420,7 @@ function showKFRamp() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="ramp-ok" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23466,14 +23466,14 @@ function showAnimMerge() {
         <option value="add">追記（既存KFを保持）</option><option value="replace">上書き（同時刻を置換）</option>
       </select>
     </div>
-    <label style="display:block;background:var(--bg);border:2px dashed rgba(255,255,255,.12);border-radius:4px;padding:10px;text-align:center;cursor:pointer;margin-bottom:8px;font-size:10px;color:var(--dim);">
+    <label style="display:block;background:var(--bg);border:2px dashed rgba(255,255,255,.12);border-radius:4px;padding:10px;text-align:center;cursor:pointer;margin-bottom:8px;font-size:10px;color:var(--text);">
       📂 クリックでJSONを選択
       <input id="merge-file" type="file" accept=".json" style="display:none">
     </label>
     <div id="merge-info" style="font-size:9px;color:#a0b8a0;min-height:16px;"></div>
     <div style="display:flex;gap:6px;margin-top:8px">
       <button id="merge-ok" disabled style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:5px;cursor:not-allowed;font-size:11px;">マージ</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23532,8 +23532,8 @@ function showPoseSequencer() {
         <span style="color:#80d8c0;min-width:12px;">${i+1}.</span>
         <span style="flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${poses[item.poseIdx]?.name||'?'}</span>
         <span style="color:var(--dim);min-width:32px;text-align:right;">${item.holdSec.toFixed(2)}s</span>
-        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
-        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
+        <button onclick="seqMoveUp(${i})" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;">↑</button>
+        <button onclick="seqMoveDown(${i})" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;">↓</button>
         <button onclick="seqRemove(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;">✕</button>
       </div>`).join('')
     : '<div style="font-size:9px;color:var(--dim);padding:4px 0;">シーケンスが空です</div>';
@@ -23566,7 +23566,7 @@ function showPoseSequencer() {
     </div>
     <div style="display:flex;gap:6px;">
       <button id="seq-gen" style="flex:1;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">🔀 KF生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
@@ -23630,7 +23630,7 @@ function showAnimTemplates() {
   ];
   showModal('アニメーションテンプレート', `
     <div style="font-size:12px;display:grid;gap:8px;">
-      <div style="color:var(--dim);font-size:10px;">テンプレートは現在のアニメーションに追加されます（既存KFは保持）</div>
+      <div style="color:var(--text);font-size:10px;">テンプレートは現在のアニメーションに追加されます（既存KFは保持）</div>
       ${templates.map(t=>`
         <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;"
           onclick="applyAnimTemplate('${t.id}');document.getElementById('modal-ok').click()">
@@ -23914,17 +23914,17 @@ function showTimeScaleDialog() {
   const dur = anim.duration || 3;
   showModal('⏩ タイムスケール', `
     <div style="font-size:12px;display:grid;gap:10px;min-width:280px">
-      <div style="font-size:10px;color:var(--dim)">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
+      <div style="font-size:10px;color:var(--text)">全KFの時刻を倍率変換してアニメーション全体のスピードを変更します。</div>
       <div style="font-size:10px;color:var(--dim)">現在の長さ: <b style="color:var(--text)">${dur.toFixed(2)}s</b></div>
       <div style="display:grid;gap:6px;">
-        <div style="font-size:10px;color:var(--dim);margin-bottom:2px">プリセット:</div>
+        <div style="font-size:10px;color:var(--text);margin-bottom:2px">プリセット:</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${[['0.25x', 0.25], ['0.5x', 0.5], ['0.75x', 0.75], ['2x', 2], ['3x', 3], ['4x', 4]].map(([lbl, v]) =>
             `<button onclick="document.getElementById('ts-factor').value=${v};document.getElementById('ts-preview').textContent='→ '+(${dur}*${v}).toFixed(2)+'s'" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 10px;cursor:pointer;font-size:10px;">${lbl}</button>`
           ).join('')}
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
-          <span style="font-size:10px;color:var(--dim);white-space:nowrap">倍率:</span>
+          <span style="font-size:10px;color:var(--text);white-space:nowrap">倍率:</span>
           <input id="ts-factor" type="number" value="1.0" min="0.1" max="10" step="0.1"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:12px;"
             oninput="document.getElementById('ts-preview').textContent='→ '+(${dur}*parseFloat(this.value||1)).toFixed(2)+'s'">
@@ -24081,7 +24081,7 @@ function showParamRecSelect() {
 <div id="prs-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:2px;padding-right:4px;"></div>
 <div style="display:flex;gap:6px;margin-top:6px;">
   <button id="prs-ok" style="flex:1;background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:3px 8px;cursor:pointer;">OK</button>
-  <button id="prs-cancel" style="flex:1;background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px 8px;cursor:pointer;">キャンセル</button>
+  <button id="prs-cancel" style="flex:1;background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;">キャンセル</button>
 </div>`;
   const list = box.querySelector('#prs-list');
   const tempSel = new Set(_paramRecSelected.size ? _paramRecSelected : params.map(([n])=>n));
@@ -24292,7 +24292,7 @@ function showOverlayClipDialog() {
   const opts = clips.map((c,i)=>`<option value="${i}"${_overlayClipIdx===i?' selected':''}>${c.name}</option>`).join('');
   showModal('⊞ クリップオーバーレイ', `
     <div style="font-size:12px;display:grid;gap:10px">
-      <div style="font-size:10px;color:var(--dim)">2つのクリップを同時再生してブレンドします。<br>オーバーレイクリップは独立してループ再生されます。</div>
+      <div style="font-size:10px;color:var(--text)">2つのクリップを同時再生してブレンドします。<br>オーバーレイクリップは独立してループ再生されます。</div>
       <label>オーバーレイクリップ<br><select id="ov-clip" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px">${opts}</select></label>
       <label>ブレンド重み <span id="ov-w-v">${(_overlayWeight*100).toFixed(0)}%</span><br>
         <input type="range" id="ov-w" min="0" max="100" value="${Math.round(_overlayWeight*100)}" style="width:100%;margin-top:4px" oninput="document.getElementById('ov-w-v').textContent=this.value+'%'">
@@ -24420,9 +24420,9 @@ function checkLoopConsistency() {
   </tr>`).join('');
   showModal('ループ整合性チェック', `
     <div style="font-size:12px;">
-      <div style="color:var(--dim);margin-bottom:8px;">${mismatch.length}個のトラックで先頭・末尾のKF値が一致しません</div>
+      <div style="color:var(--text);margin-bottom:8px;">${mismatch.length}個のトラックで先頭・末尾のKF値が一致しません</div>
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:10px;"><th style="text-align:left;padding:4px 8px;">トラック</th><th style="padding:4px 8px;">先頭値</th><th style="padding:4px 8px;">末尾値</th><th style="padding:4px 8px;">差</th></tr>
+        <tr style="color:var(--text);font-size:10px;"><th style="text-align:left;padding:4px 8px;">トラック</th><th style="padding:4px 8px;">先頭値</th><th style="padding:4px 8px;">末尾値</th><th style="padding:4px 8px;">差</th></tr>
         ${rows}
       </table>
     </div>
@@ -24655,14 +24655,14 @@ function mergeAnimClips() {
   dlg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-lg);padding:12px;z-index:9999;min-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.7);font-family:monospace;font-size:11px;';
   const checks = allClips.map((c,i) => `<label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;"><input type="checkbox" data-idx="${i}" style="accent-color:var(--accent);" ${i===0?'checked':''}><span>${c.name}</span><span style="color:var(--dim);font-size:9px;margin-left:auto;">${(c.animation?.duration||3).toFixed(1)}s</span></label>`).join('');
   dlg.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px;">📎 クリップ連結</div>
-    <div style="color:var(--dim);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
+    <div style="color:var(--text);font-size:10px;margin-bottom:8px;">結合するクリップを選択（上から順に連結されます）</div>
     <div id="merge-checks" style="margin-bottom:12px;">${checks}</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <label style="font-size:10px;color:var(--dim);">新クリップ名:</label>
+      <label style="font-size:10px;color:var(--text);">新クリップ名:</label>
       <input id="merge-name" type="text" value="連結クリップ" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button onclick="this.closest('div[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
+      <button onclick="this.closest('div[style]').remove()" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">キャンセル</button>
       <button id="merge-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:10px;">連結</button>
     </div>`;
   document.body.appendChild(dlg);
@@ -24782,7 +24782,7 @@ function showAIPoseInterpDialog() {
   const loopOut = M.animation?.loopOut ?? dur;
   showModal('🤖 AIポーズ補間', `
     <div style="font-size:12px;display:grid;gap:10px">
-      <div style="font-size:10px;color:var(--dim)">2つの時刻のポーズを指定すると、Gemini AIが<br>自然な中間ポーズを推定してKFを挿入します。</div>
+      <div style="font-size:10px;color:var(--text)">2つの時刻のポーズを指定すると、Gemini AIが<br>自然な中間ポーズを推定してKFを挿入します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <label>開始時刻（秒）<br><input id="ai-t0" type="number" min="0" max="${dur}" step="0.01" value="${loopIn.toFixed(2)}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
         <label>終了時刻（秒）<br><input id="ai-t1" type="number" min="0" max="${dur}" step="0.01" value="${loopOut.toFixed(2)}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
@@ -24868,7 +24868,7 @@ async function showAIDanceMotionDialog() {
   if (!tracks.length) { document.getElementById('lbl-status').textContent = 'パラメータがありません'; return; }
   showModal('💃 AIダンスモーション生成', `
     <div style="font-size:12px;display:grid;gap:10px">
-      <div style="font-size:10px;color:var(--dim)">BPMとダンスタイプを指定すると、Gemini AIが<br>リズムに合ったキャラクターモーションKFを自動生成します。</div>
+      <div style="font-size:10px;color:var(--text)">BPMとダンスタイプを指定すると、Gemini AIが<br>リズムに合ったキャラクターモーションKFを自動生成します。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <label>BPM<br><input id="ai-dance-bpm" type="number" min="60" max="200" value="128" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
         <label>小節数<br><input id="ai-dance-bars" type="number" min="1" max="8" value="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;margin-top:4px"></label>
@@ -26599,7 +26599,7 @@ function showClipBlend() {
     </div>
     <div style="display:flex;gap:6px">
       <button id="cb-ok" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">生成</button>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
   document.body.appendChild(mo);
