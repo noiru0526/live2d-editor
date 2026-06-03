@@ -683,7 +683,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span style="font-size:9px;color:var(--muted);margin:0 2px">×</span>
             <input class="prop-in" id="dp-rows" type="number" min="1" max="8" value="2" style="width:36px" oninput="applyDeformerGrid()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
             <span class="prop-lbl" style="color:var(--dim)">輪郭</span>
             <input type="range" id="dp-falloff" min="0" max="1" step="0.01" value="0" style="flex:1;margin:0 4px;accent-color:var(--accent)" oninput="applyDeformerFalloff(this.value)">
             <span id="dp-falloff-val" style="font-size:9px;color:var(--dim);min-width:24px">0%</span>
@@ -704,7 +704,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <div class="prop-row">
             <span class="prop-lbl">半径</span><input class="prop-in" id="rp-r" type="number" min="10" max="500" oninput="applyRotRadius()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
             <span class="prop-lbl" style="color:var(--amber)">角度°</span>
             <input class="prop-in" id="rp-angle" type="number" min="-180" max="180" step="0.5" oninput="applyRotAngle()" style="border-color:rgba(245,158,11,.4)">
           </div>
@@ -730,7 +730,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             <span class="prop-lbl">長さ</span><input class="prop-in" id="bp-len" type="number" min="10" max="1000" oninput="applyBoneLength()">
             <span class="prop-lbl" style="margin-left:2px">静止角°</span><input class="prop-in" id="bp-ang" type="number" min="-180" max="180" step="1" oninput="applyBoneRestAngle()">
           </div>
-          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:4px;padding-top:4px">
+          <div class="prop-row" style="border-top:1px solid var(--divider);margin-top:3px;padding-top:3px">
             <span class="prop-lbl" style="color:var(--accent)">KF角°</span>
             <input class="prop-in" id="bp-kf" type="number" min="-180" max="180" step="0.5" oninput="applyBoneKF()" style="border-color:rgba(224,120,64,.4)">
           </div>
@@ -793,7 +793,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Extended settings collapsible section -->
-        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:4px;font-size:9px;color:var(--dim);user-select:none">
+        <div id="pp-ext-hd" onclick="toggleExtProps()" style="display:flex;align-items:center;gap:5px;padding:3px 8px;cursor:pointer;background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--divider);margin-top:3px;font-size:9px;color:var(--dim);user-select:none">
           <span id="pp-ext-caret" style="transition:transform .12s;display:inline-block">▶</span>
           <span>拡張設定（合成/影/HSB/スケール）</span>
         </div>
@@ -814,7 +814,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </select>
         </div>
         <!-- Shadow/Glow Effect -->
-        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
+        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">影/グロー</span>
             <button onclick="resetPartShadow()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="影をリセット">↺</button>
@@ -834,7 +834,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Color adjustment (HSB) -->
-        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
+        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">色調整 (HSB)</span>
             <button onclick="resetPartHSB()" style="background:none;border:1px solid rgba(100,100,100,.3);color:var(--dim);border-radius:2px;padding:0 4px;cursor:pointer;font-size:8px" title="リセット">↺</button>
@@ -904,7 +904,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           <button class="tbtn" onclick="rotatePartMesh()" style="flex:1;font-size:8px" title="メッシュ頂点をパーツ中心周りに回転">↻ 回転</button>
         </div>
         <!-- Texture swap panel -->
-        <div id="tex-panel" style="display:none;margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
+        <div id="tex-panel" style="display:none;margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
             <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャ</span>
             <div style="display:flex;gap:3px">
@@ -914,7 +914,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
           <div id="tex-list" style="display:flex;flex-direction:column;gap:2px"></div>
           <!-- Texture switch by parameter -->
-          <div id="texswitch-panel" style="margin-top:4px;border-top:1px solid var(--divider);padding-top:3px">
+          <div id="texswitch-panel" style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
               <span style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase">テクスチャスイッチ</span>
               <button onclick="showTexSwitchModal()" style="background:#282828;border:1px solid rgba(180,140,80,.3);color:#b09040;border-radius:2px;padding:1px 5px;cursor:pointer;font-size:8px" title="パラメータ値に応じてテクスチャを自動切替（まばたき等）">⇄ 設定</button>
@@ -923,7 +923,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           </div>
         </div>
         <!-- Part note/memo -->
-        <div style="margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
+        <div style="margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px">メモ</div>
           <textarea id="pp-note" rows="2"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:3px 5px;border-radius:3px;resize:vertical;outline:none;box-sizing:border-box;font-family:inherit"
@@ -931,7 +931,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
             oninput="if(selPart>=0&&selPart<parts.length)parts[selPart].note=this.value"></textarea>
         </div>
         <!-- Alignment tools (multi-select) -->
-        <div id="align-panel" style="display:none;margin-top:4px;border-top:1px solid var(--divider);padding-top:4px">
+        <div id="align-panel" style="display:none;margin-top:3px;border-top:1px solid var(--divider);padding-top:3px">
           <div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">整列 (複数選択時)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;margin-bottom:2px">
             <button class="tbtn" onclick="alignParts('left')"   style="font-size:8px;padding:2px 0" title="左端揃え">⊢ 左</button>
