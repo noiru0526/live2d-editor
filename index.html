@@ -602,8 +602,10 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="kf-list"></div>
     <div id="kf-btns">
       <button class="kfb-add" onclick="addKF()">＋ 現在値をKFに追加</button>
-      <button class="kfb-del" onclick="delKFData()">↺ このKFのデータを消す</button>
-      <button class="kfb-del" onclick="delKF()">× KFを削除</button>
+      <div style="display:flex;gap:2px">
+        <button class="kfb-del" style="flex:1" onclick="delKFData()" title="現在KFのデフォームデータを消去">↺ KFリセット</button>
+        <button class="kfb-del" style="flex:1" onclick="delKF()" title="現在のKF位置を削除（端点は削除不可）">× KF削除</button>
+      </div>
       <div style="height:1px;background:var(--border);margin:3px 0;"></div>
       <div style="display:flex;gap:2px">
         <button class="kfb-copy" style="flex:1" onclick="copyKFData()" id="btn-copy-kf">↑ コピー</button>
