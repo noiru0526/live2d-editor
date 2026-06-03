@@ -3333,7 +3333,7 @@ function renderParamRow(name, p, cont, _isFavArg) {
           <span id="kfnav-cur-${name}" style="display:none;font-size:9px;color:var(--dim);font-family:monospace;min-width:28px;text-align:center;"></span>
           <button onclick="event.stopPropagation();navParamKF('${name}',1)" title="次のKFへ" style="display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-next-${name}">▶</button>
         </div>
-        <select id="interp-${name}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;display:${ST.animMode?'':'none'};" onclick="event.stopPropagation()">
+        <select id="interp-${name}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;display:${ST.animMode?'':'none'};" onclick="event.stopPropagation()">
           ${interpModes.map(m=>`<option value="${m}"${(p.interp??'linear')===m?' selected':''}>${interpLabels[m]}</option>`).join('')}
         </select>
       </div>`;
@@ -4617,7 +4617,7 @@ ${Object.keys(M.animation.tracks).length > 0 || (M.animClips||[]).some(c=>Object
     <button id="anim-loop-btn" onclick="toggleAnimLoop()" title="ループ切替" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--gold);font-size:10px;font-family:monospace;cursor:pointer;">🔁</button>
     <button onclick="animT=0;animLastNow=null;" title="先頭に戻す" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--text);font-size:10px;font-family:monospace;cursor:pointer;">⏮</button>
     <button id="anim-rev-btn" onclick="toggleReversePlay()" title="逆再生切替" style="background:rgba(28,28,28,.88);border:1px solid var(--border);border-radius:4px;padding:4px 7px;color:var(--text);font-size:10px;font-family:monospace;cursor:pointer;">⏪</button>
-    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=Math.abs(parseFloat(this.value))*(_reversePlay?-1:1)" style="background:rgba(28,28,28,.88);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
+    <select id="anim-speed" title="再生速度" onchange="animSpeedMult=Math.abs(parseFloat(this.value))*(_reversePlay?-1:1)" style="background:rgba(28,28,28,.88);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;font-size:9px;font-family:monospace;cursor:pointer;">
       <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option>
       <option value="1.5">1.5x</option><option value="2">2x</option>
     </select>
