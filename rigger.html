@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #lp-def-caret{font-size:9px;color:var(--muted);margin-left:4px;transition:transform .15s;display:inline-block}
 #lp-deformer-section.lp-def-collapsed #lp-def-caret{transform:rotate(-90deg)}
 /* Deformer list */
-#deformer-list{height:180px;overflow-y:auto;padding:0;display:flex;flex-direction:column;background:var(--bg)}
+#deformer-list{height:110px;overflow-y:auto;padding:0;display:flex;flex-direction:column;background:var(--bg)}
 #lp-deformer-section.lp-def-collapsed #deformer-list{display:none}
 .dl-row{display:flex;align-items:center;cursor:pointer;font-size:11px;padding:2px 4px;transition:background .08s;min-height:22px;border-left:2px solid transparent}
 .dl-row:hover{background:rgba(255,255,255,.05)}
@@ -124,7 +124,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .mi:focus{border-color:var(--accent)}
 input::placeholder,textarea::placeholder{color:var(--muted);}
 /* Uniform sizing for left-panel section buttons */
-.lsec-body .tbtn{font-size:9px !important;padding:2px 5px !important;height:auto !important}
+.lsec-body .tbtn{font-size:10px !important;padding:2px 4px !important;height:auto !important}
 
 /* KF section */
 #kf-list{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:2px}
@@ -462,8 +462,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
           style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:2px 5px;border-radius:2px;outline:none">
         <button onclick="document.getElementById('parts-search').value='';partsFilter='';updatePartsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
       </div>
-      <!-- Color label filter -->
-      <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px;" id="clr-filter-bar">
+      <!-- Color label filter (hidden until parts with color labels are loaded) -->
+      <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:none;align-items:center;gap:3px;" id="clr-filter-bar">
         <span style="font-size:9px;color:var(--dim);flex-shrink:0">🏷</span>
         <div class="pi-clr-swatch" id="cf-f87171" onclick="toggleColorFilter('#f87171')" style="width:11px;height:11px;background:#f87171;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f87171でフィルター"></div><div class="pi-clr-swatch" id="cf-fb923c" onclick="toggleColorFilter('#fb923c')" style="width:11px;height:11px;background:#fb923c;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#fb923cでフィルター"></div><div class="pi-clr-swatch" id="cf-facc15" onclick="toggleColorFilter('#facc15')" style="width:11px;height:11px;background:#facc15;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#facc15でフィルター"></div><div class="pi-clr-swatch" id="cf-4ade80" onclick="toggleColorFilter('#4ade80')" style="width:11px;height:11px;background:#4ade80;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#4ade80でフィルター"></div><div class="pi-clr-swatch" id="cf-22d3ee" onclick="toggleColorFilter('#22d3ee')" style="width:11px;height:11px;background:#22d3ee;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#22d3eeでフィルター"></div><div class="pi-clr-swatch" id="cf-60a5fa" onclick="toggleColorFilter('#60a5fa')" style="width:11px;height:11px;background:#60a5fa;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#60a5faでフィルター"></div><div class="pi-clr-swatch" id="cf-c084fc" onclick="toggleColorFilter('#c084fc')" style="width:11px;height:11px;background:#c084fc;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#c084fcでフィルター"></div><div class="pi-clr-swatch" id="cf-f9a8d4" onclick="toggleColorFilter('#f9a8d4')" style="width:11px;height:11px;background:#f9a8d4;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.15);" title="#f9a8d4でフィルター"></div>
         <div class="pi-clr-swatch" id="cf-none" onclick="toggleColorFilter('__none__')" style="width:11px;height:11px;background:transparent;cursor:pointer;border-radius:50%;border:1px solid rgba(255,255,255,.3);font-size:8px;text-align:center;line-height:11px;color:var(--dim);" title="ラベルなしのみ表示">∅</div>
@@ -557,7 +557,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
         <h3>MESH</h3>
       </div>
       <div class="lsec-body" id="mesh-body">
-        <div id="mesh-stats" style="font-size:9px;color:var(--dim);text-align:center;padding:2px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:3px">頂点: — / 三角形: —</div>
+        <div id="mesh-stats" style="font-size:10px;color:var(--dim);text-align:center;padding:1px 0;background:var(--bg-deep);border-radius:var(--r-sm);margin-bottom:2px">頂点: — / 三角形: —</div>
         <div class="mrow">列: <input class="mi" id="mc" type="number" value="8" min="2" max="32">行: <input class="mi" id="mr" type="number" value="8" min="2" max="32"></div>
         <div style="display:flex;gap:2px;margin-top:2px;">
           <button class="tbtn" style="flex:1;font-size:8px;padding:1px 2px" onclick="rebuildMesh()" title="グリッドメッシュを再生成">⊞ グリッド生成</button>
@@ -1007,16 +1007,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- KF Loop Preview -->
       <div style="padding:2px 5px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:4px">
         <span style="font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">KF ループ</span>
-        <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:var(--dim);flex-shrink:0">▶ 再生</button>
+        <button id="btn-kf-loop" class="ih" onclick="toggleKFLoopPreview()" title="現在パラメータのKF値をループアニメ再生（デフォーム確認用）" style="font-size:9px;color:var(--text);flex-shrink:0">▶ 再生</button>
         <input type="range" id="kf-loop-speed" min="0.2" max="5" step="0.1" value="1" style="flex:1;accent-color:var(--accent);">
-        <span id="kf-loop-speed-v" style="font-size:8px;color:var(--accent);min-width:20px;text-align:right">1.0</span>
+        <span id="kf-loop-speed-v" style="font-size:9px;color:var(--accent);min-width:20px;text-align:right">1.0</span>
       </div>
       <div style="padding:2px 6px;border-bottom:1px solid var(--divider);flex-shrink:0;display:flex;align-items:center;gap:3px">
         <span style="font-size:10px;color:var(--dim)">🔍</span>
         <input id="params-search" type="text" placeholder="パラメータ検索…" oninput="paramsFilter=this.value.toLowerCase();buildParamsUI()" style="flex:1;background:none;border:none;color:var(--dim);font-size:10px;outline:none;padding:2px 0">
         <button onclick="document.getElementById('params-search').value='';paramsFilter='';buildParamsUI()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0">×</button>
-        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px">▲▲</button>
-        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px">▼▼</button>
+        <button onclick="toggleAllPGroups(true)" title="全グループを折りたたむ" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px">▲▲</button>
+        <button onclick="toggleAllPGroups(false)" title="全グループを展開" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px">▼▼</button>
       </div>
       <div id="params-list"></div>
       <!-- PARAM BINDINGS -->
@@ -3361,8 +3361,13 @@ function updatePartsUI() {
   const list = document.getElementById('parts-list'); list.innerHTML = '';
   if (parts.length === 0) {
     list.innerHTML = '<div style="padding:8px 12px;text-align:center;color:var(--dim);font-size:9px;line-height:1.6;user-select:none">パーツがありません<br><span style="color:var(--dim)">「追加」ボタンで<br>PNG画像を読み込めます</span></div>';
+    const clrBar = document.getElementById('clr-filter-bar');
+    if (clrBar) clrBar.style.display = 'none';
     return;
   }
+  const hasColorLabels = parts.some(p => p.colorLabel);
+  const clrBar = document.getElementById('clr-filter-bar');
+  if (clrBar) clrBar.style.display = hasColorLabels ? 'flex' : 'none';
   const seenGroups = new Set();
   const seenDeformers = new Set();
 
@@ -4758,7 +4763,7 @@ let _kfLoopActive = false, _kfLoopRAF = null, _kfLoopT = 0, _kfLoopDir = 1, _kfL
 function toggleKFLoopPreview() {
   _kfLoopActive = !_kfLoopActive;
   const btn = document.getElementById('btn-kf-loop');
-  if (btn) { btn.textContent = _kfLoopActive ? '⏹ 停止' : '▶ 再生'; btn.style.color = _kfLoopActive ? '#60d890' : '#888'; }
+  if (btn) { btn.textContent = _kfLoopActive ? '⏹ 停止' : '▶ 再生'; btn.style.color = _kfLoopActive ? 'var(--accent-light)' : 'var(--text)'; }
   document.getElementById('kf-loop-speed')?.addEventListener('input', function(){ document.getElementById('kf-loop-speed-v').textContent = parseFloat(this.value).toFixed(1); });
   if (_kfLoopActive) {
     _kfLoopLastNow = null;
