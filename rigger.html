@@ -109,7 +109,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pi-zidx:hover{color:var(--accent)}
 .pi-clr{width:9px;height:9px;border-radius:50%;border:1px solid var(--muted);flex-shrink:0;cursor:pointer;transition:transform .1s}
 .pi-clr:hover{transform:scale(1.4)}
-.pi-clr-menu{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:5px;display:flex;flex-wrap:wrap;gap:4px;width:88px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.7)}
+.pi-clr-menu{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:4px;display:flex;flex-wrap:wrap;gap:3px;width:86px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.7)}
 .pi-clr-swatch{width:13px;height:13px;border-radius:50%;cursor:pointer;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
 .pi-clr-swatch:hover{transform:scale(1.3);border-color:rgba(255,255,255,.6)}
 
@@ -245,7 +245,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
 .phys-row label{min-width:32px}
 .phys-row input[type=range]{flex:1;height:4px;accent-color:var(--accent)}
 .phys-val{font-size:10px;color:var(--accent);font-family:monospace;min-width:32px;text-align:right}
-.phys-info{padding:4px 8px;font-size:10px;color:var(--dim);line-height:1.6;border-top:1px solid var(--divider);flex-shrink:0}
+.phys-info{padding:3px 8px;font-size:10px;color:var(--dim);line-height:1.5;border-top:1px solid var(--divider);flex-shrink:0}
 
 /* Expressions panel */
 #rp-expr{gap:0}
@@ -1111,10 +1111,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
   <!-- Utility footer — always visible at bottom of right panel -->
   <div id="rp-footer" style="padding:3px 6px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:2px">
-      <button class="ab" onclick="undo()" style="font-size:9px;margin:0;padding:4px 6px">↩ 元に戻す</button>
-      <button class="ab" onclick="redo()" style="font-size:9px;margin:0;padding:4px 6px">↪ やり直す</button>
-      <button class="ab" onclick="resetKF()" style="font-size:9px;margin:0;padding:4px 6px">現KFリセット</button>
-      <button class="ab" onclick="resetAll()" style="font-size:9px;margin:0;padding:4px 6px">全リセット</button>
+      <button class="ab" onclick="undo()" style="font-size:9px;margin:0;padding:3px 6px">↩ 元に戻す</button>
+      <button class="ab" onclick="redo()" style="font-size:9px;margin:0;padding:3px 6px">↪ やり直す</button>
+      <button class="ab" onclick="resetKF()" style="font-size:9px;margin:0;padding:3px 6px">現KFリセット</button>
+      <button class="ab" onclick="resetAll()" style="font-size:9px;margin:0;padding:3px 6px">全リセット</button>
     </div>
     <button class="ab pr" onclick="saveModelOnly()" style="margin-bottom:4px">💾 モデル保存</button>
     <button class="ab pr" onclick="showAvatarExportDialog()">🎭 アバターHTML出力</button>
@@ -1309,7 +1309,7 @@ function showRigCtxMenu(x, y, items) {
   for (const item of items) {
     if (!item) { const sep=document.createElement('div'); sep.style.cssText='border-top:1px solid var(--border);margin:2px 0;'; menu.appendChild(sep); continue; }
     const row = document.createElement('div');
-    row.style.cssText = `padding:4px 8px;cursor:pointer;color:${item.danger?'#ff8080':'var(--text)'};display:flex;align-items:center;gap:7px;white-space:nowrap;`;
+    row.style.cssText = `padding:3px 8px;cursor:pointer;color:${item.danger?'#ff8080':'var(--text)'};display:flex;align-items:center;gap:6px;white-space:nowrap;`;
     row.innerHTML = `<span style="width:14px;text-align:center;">${item.icon||''}</span>${item.label}`;
     row.onmouseenter = () => row.style.background = 'rgba(224,120,64,.15)';
     row.onmouseleave = () => row.style.background = '';
