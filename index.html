@@ -1130,7 +1130,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
       <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
       <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
-      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.3);color:#ff8080;border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
+      <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.3);color:var(--danger);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
   </div>
 </div>
@@ -1220,7 +1220,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 
 <!-- Weight Paint HUD -->
 <div id="weight-hud" style="display:none;position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.88);border:1px solid var(--border);border-radius:5px;padding:4px 14px;font-size:11px;color:var(--text);pointer-events:none;white-space:nowrap;">
-  <span style="color:#ff4444;font-weight:600;">ウェイトペイント</span>
+  <span style="color:var(--danger);font-weight:600;">ウェイトペイント</span>
   <span style="color:var(--dim);margin-left:8px;">ブラシ: <span id="wt-r-val">30</span>px</span>
   <span style="color:var(--dim);margin-left:8px;">値: <span id="wt-v-val">1.0</span></span>
 </div>
@@ -1312,7 +1312,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="showKFRamp()" title="選択パラメータに等間隔KFのランプ（グラデーション）を生成" style="background:var(--btn);border:1px solid rgba(160,220,100,.4);color:#a0e060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">∿ ランプ</button>
     <button onclick="showAnimMerge()" title="別のアニメーションJSONをインポートして現在のトラックにマージ（時刻オフセット付き）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⊕ マージ</button>
     <button onclick="showRangeCopyPaste()" title="指定区間の全トラックKFをコピー&ペースト（ループ複製・再利用に）" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">📋 区間</button>
-    <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:#2a1a1a;border:1px solid rgba(255,80,80,.35);color:#ff8080;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
+    <button onclick="showKFRangeDelete()" title="指定した時刻範囲内のKFを一括削除（全トラック or 現在トラック）" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.35);color:var(--danger);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">🗑 区間</button>
     <button onclick="reverseAnimation()" title="アニメーションを時間反転" style="background:var(--btn);border:1px solid rgba(220,120,60,.4);color:#e09060;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:10px;">⟺ 逆転</button>
     <button onclick="mirrorAnimTracks()" title="左右パラメータを自動ミラー（blinkL↔blinkR等）&#10;同名で末尾L/Rが違うトラックを対称コピー" style="background:var(--btn);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">↔ ミラー</button>
     <button onclick="quantizeAnimKFs()" title="全KFをスナップグリッドに量子化（タイミングを整列）" style="background:var(--btn);border:1px solid var(--border);color:#c0d080;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">⊠ 量子化</button>
@@ -4131,7 +4131,7 @@ function showExportHotkeyDialog() {
     rows += `<input data-pose="${p.name.replace(/"/g,'&quot;')}" value="${curKey}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
     rows += `</div>`;
   });
-  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
+  box.innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">⌨ ポーズ切替ホットキー設定</div>${rows}<div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;"><button id="hk-reset" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">リセット</button><button id="hk-cancel" style="background:var(--btn);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">キャンセル</button><button id="hk-ok" style="background:rgba(224,120,64,.2);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:4px 12px;cursor:pointer;font-size:11px;">OK</button></div>`;
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   box.querySelector('#hk-ok').onclick = () => {
@@ -5106,7 +5106,7 @@ function showClipChainDialog() {
     </div>
     <div style="display:flex;gap:4px;">
       <button onclick="_chainStartPlay()" style="flex:1;background:#1a2818;border:1px solid rgba(80,200,120,.4);color:var(--teal);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">▶ 連鎖再生</button>
-      <button onclick="_chainStop()" style="flex:1;background:#281a1a;border:1px solid rgba(255,100,80,.4);color:#ff8060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">⏹ 停止</button>
+      <button onclick="_chainStop()" style="flex:1;background:var(--danger-bg);border:1px solid rgba(255,100,80,.4);color:#ff8060;border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">⏹ 停止</button>
     </div>`;
   document.body.appendChild(d);
   _renderChainList();
@@ -6159,7 +6159,7 @@ window.saveScreenshot=function(filename){_doScreenshot(false,filename);};
         onchange="_slots[${i}].name=this.value;_persist();">
       <button onclick="_psLoad(${i})" title="呼び出し(Alt+${i<9?i+1:'—'})" style="background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.4);border-radius:4px;color:var(--accent);font-size:10px;padding:1px 5px;cursor:pointer;">▶</button>
       <button onclick="_psSave(${i})" title="上書き保存" style="background:rgba(255,200,80,.1);border:1px solid #5a4a20;border-radius:4px;color:var(--gold);font-size:10px;padding:1px 5px;cursor:pointer;">💾</button>
-      <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid #5a2020;border-radius:4px;color:#ff8080;font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
+      <button onclick="_slots.splice(${i},1);_persist();_renderPsList();" title="削除" style="background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.25);border-radius:4px;color:var(--danger);font-size:10px;padding:1px 5px;cursor:pointer;">✕</button>
     </div>`).join('');
   }
   window._psAddSlot=function(){
@@ -6885,7 +6885,7 @@ window._applyTrackPreset=function(preset){
 </div></div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:var(--accent);" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
 <div style="font-size:9px;color:var(--dim);margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
-<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#ff8080">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
+<label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:var(--danger)">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#80ff80">Y(上下)</span><input id="ts-sy" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--teal);" oninput="curSensY=parseFloat(this.value);document.getElementById('ts-sy-val').textContent=this.value"><span id="ts-sy-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--kf)">Z(傾き)</span><input id="ts-sz" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--kf);" oninput="curSensZ=parseFloat(this.value);document.getElementById('ts-sz-val').textContent=this.value"><span id="ts-sz-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:70px;accent-color:var(--accent);" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
@@ -23170,7 +23170,7 @@ function showKFRangeDelete() {
     </div>
     <div id="dr-preview" style="font-size:9px;color:var(--dim);margin-bottom:8px;"></div>
     <div style="display:flex;gap:6px">
-      <button id="dr-ok" style="flex:1;background:var(--danger-bg);border:1px solid rgba(255,80,80,.5);color:#ff8080;border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
+      <button id="dr-ok" style="flex:1;background:var(--danger-bg);border:1px solid rgba(255,80,80,.5);color:var(--danger);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">🗑 削除</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">キャンセル</button>
     </div>
   </div>`;
@@ -24305,7 +24305,7 @@ function showOverlayClipDialog() {
     const footer = mo.querySelector('.modal-footer') || mo.querySelector('div:last-child');
     const stopBtn = document.createElement('button');
     stopBtn.textContent = '⏹ 停止';
-    stopBtn.style.cssText = 'background:#2a1010;border:1px solid rgba(255,80,80,.4);color:#ff8080;border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;margin-right:8px;';
+    stopBtn.style.cssText = 'background:#2a1010;border:1px solid rgba(255,80,80,.4);color:var(--danger);border-radius:4px;padding:6px 14px;cursor:pointer;font-size:11px;margin-right:8px;';
     stopBtn.onclick = () => { _overlayClipIdx = -1; const btn=document.getElementById('btn-overlay-clip'); if(btn){btn.style.color='#ff9040';btn.style.borderColor='rgba(255,160,80,.4)';btn.style.background='#1a1e30';} mo.remove(); document.getElementById('lbl-status').textContent='オーバーレイ停止'; };
     if (footer) footer.prepend(stopBtn);
   }
