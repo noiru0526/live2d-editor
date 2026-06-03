@@ -3329,9 +3329,9 @@ function renderParamRow(name, p, cont, _isFavArg) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
         <div style="display:flex;align-items:center;gap:2px;">
           <div class="kfdots" id="kd-${name}" style="margin:0;"></div>
-          <button onclick="event.stopPropagation();navParamKF('${name}',-1)" title="前のKFへ" style="display:none;background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-prev-${name}">◀</button>
+          <button onclick="event.stopPropagation();navParamKF('${name}',-1)" title="前のKFへ" style="display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-prev-${name}">◀</button>
           <span id="kfnav-cur-${name}" style="display:none;font-size:9px;color:var(--dim);font-family:monospace;min-width:28px;text-align:center;"></span>
-          <button onclick="event.stopPropagation();navParamKF('${name}',1)" title="次のKFへ" style="display:none;background:none;border:none;color:var(--dim);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-next-${name}">▶</button>
+          <button onclick="event.stopPropagation();navParamKF('${name}',1)" title="次のKFへ" style="display:none;background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;line-height:1;" id="kfnav-next-${name}">▶</button>
         </div>
         <select id="interp-${name}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);font-size:9px;padding:1px 2px;border-radius:2px;cursor:pointer;display:${ST.animMode?'':'none'};" onclick="event.stopPropagation()">
           ${interpModes.map(m=>`<option value="${m}"${(p.interp??'linear')===m?' selected':''}>${interpLabels[m]}</option>`).join('')}
@@ -4572,7 +4572,7 @@ canvas.mirrored{transform:scaleX(-1);}
 #countdown-ov{display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,.88);border:1px solid rgba(224,120,64,.4);border-radius:8px;padding:6px 22px;font-family:'Segoe UI',monospace;color:var(--text-bright);pointer-events:none;z-index:50;text-align:center;backdrop-filter:blur(6px);transition:opacity .6s;}
 #countdown-ov.show{display:block;}
 #countdown-ov .cd-lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;margin-bottom:2px;}
-#countdown-ov .cd-time{font-size:22px;font-weight:700;letter-spacing:.06em;color:var(--dim);}
+#countdown-ov .cd-time{font-size:22px;font-weight:700;letter-spacing:.06em;color:var(--text);}
 /* Loading overlay */
 #loading{position:fixed;inset:0;background:${bgColor};display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s;}
 #loading.done{opacity:0;pointer-events:none;}
@@ -9004,7 +9004,7 @@ window.addEventListener('message',ev=>{
   window.showPopupCard=function({img='',title='',body='',dur=5,color=''}={}){
     _card.innerHTML=(img?`<img src="${img}" style="width:100%;height:80px;object-fit:cover;display:block;">`:'')
       +`<div style="padding:8px 12px;"><div style="font-size:13px;font-weight:700;color:${color?'#'+color:'#e0e8ff'};margin-bottom:3px;">${title}</div>`
-      +(body?`<div style="font-size:11px;color:var(--dim);line-height:1.5;">${body}</div>`:'')+'</div>';
+      +(body?`<div style="font-size:11px;color:var(--text);line-height:1.5;">${body}</div>`:'')+'</div>';
     _card.style.opacity='1'; _card.style.transform='translateY(0)';
     if(_hideT) clearTimeout(_hideT);
     _hideT=setTimeout(()=>{ _card.style.opacity='0'; _card.style.transform='translateY(-10px)'; },dur*1000);
@@ -17342,14 +17342,14 @@ function clearAllDef() {
 function addCustomParam() {
   showModal('パラメータを追加', `
     <div style="display:grid;gap:8px;">
-      <div><label style="font-size:11px;color:var(--dim)">ID（英数字）</label><br>
+      <div><label style="font-size:11px;color:var(--text)">ID（英数字）</label><br>
         <input id="cp-id" type="text" placeholder="earWag" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
-      <div><label style="font-size:11px;color:var(--dim)">表示名</label><br>
+      <div><label style="font-size:11px;color:var(--text)">表示名</label><br>
         <input id="cp-lbl" type="text" placeholder="耳 ぴこぴこ" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       <div style="display:flex;gap:8px;">
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">最小値</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">最小値</label><br>
           <input id="cp-min" type="number" value="-1" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">最大値</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">最大値</label><br>
           <input id="cp-max" type="number" value="1" step="0.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
     </div>`, ()=>{
@@ -17467,15 +17467,15 @@ function gradientDeform() {
   const spanX=maxX-minX||1, spanY=maxY-minY||1;
   showModal('グラデーション変形', `
     <div style="display:grid;gap:8px;font-size:12px;">
-      <div><label style="color:var(--dim);font-size:11px">方向</label><br>
+      <div><label style="color:var(--text);font-size:11px">方向</label><br>
         <select id="gd-dir" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;">
           <option value="x">左→右 (X方向)</option>
           <option value="y">上→下 (Y方向)</option>
         </select></div>
       <div style="display:flex;gap:8px;">
-        <div style="flex:1"><label style="color:var(--dim);font-size:11px">始点スケール</label><br>
+        <div style="flex:1"><label style="color:var(--text);font-size:11px">始点スケール</label><br>
           <input id="gd-s0" type="number" value="0" step="0.1" min="0" max="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
-        <div style="flex:1"><label style="color:var(--dim);font-size:11px">終点スケール</label><br>
+        <div style="flex:1"><label style="color:var(--text);font-size:11px">終点スケール</label><br>
           <input id="gd-s1" type="number" value="1" step="0.1" min="0" max="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
       <div style="color:var(--dim);font-size:10px;">選択 ${vArr.length}頂点の変形にグラデーションをかけます</div>
@@ -18041,7 +18041,7 @@ function showMultiPoseBlend() {
   <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">スライダーで各ポーズの影響度を同時に調整できます。ニュートラル値からの差分を加算合成。</div>
   <div id="mpb-list"></div>
   <div style="display:flex;gap:6px;margin-top:8px;">
-    <button id="mpb-reset" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
+    <button id="mpb-reset" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
     <button id="mpb-update-neutral" style="flex:1;background:var(--surface);border:1px solid rgba(100,200,200,.3);color:#80c0c0;border-radius:4px;padding:3px;cursor:pointer;font-size:10px;" title="現在値をニュートラルとして更新">ニュートラル更新</button>
   </div>`;
   document.body.appendChild(panel);
@@ -18064,7 +18064,7 @@ function showDriverManager() {
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 14px;min-width:300px;max-width:420px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:11px;';
   const refresh = () => {
-    box.innerHTML = `<div style="font-size:12px;color:var(--dim);font-weight:bold;margin-bottom:4px;">🔗 パラメータドライバー管理</div>`;
+    box.innerHTML = `<div style="font-size:12px;color:var(--text);font-weight:bold;margin-bottom:4px;">🔗 パラメータドライバー管理</div>`;
     if (!_paramDrivers.length) { box.innerHTML += '<div style="color:var(--dim);">ドライバーはありません</div>'; }
     _paramDrivers.forEach((drv, i) => {
       const row = document.createElement('div');
@@ -19537,11 +19537,11 @@ function applyBrowFromMarkers() {
 function showEyeLookSetup() {
   const hasMk = ST.markers.eyeL && ST.markers.eyeR;
   const html = `
-    <p style="font-size:12px;color:var(--dim);margin:0 0 8px 0;">目の位置にマーカーを配置してから実行します。</p>
+    <p style="font-size:12px;color:var(--text);margin:0 0 8px 0;">目の位置にマーカーを配置してから実行します。</p>
     ${!hasMk?'<p style="color:var(--danger);font-size:11px;">⚠ 眉毛・まばたきセットアップを先に行ってください</p>':'<p style="color:#80d8a0;font-size:11px;">✓ 目マーカー検出済み</p>'}
-    <p style="font-size:11px;color:var(--dim);margin-top:8px;">eyeX（左右視線）・eyeY（上下視線）パラメータがない場合は自動追加します。</p>
+    <p style="font-size:11px;color:var(--text);margin-top:8px;">eyeX（左右視線）・eyeY（上下視線）パラメータがない場合は自動追加します。</p>
     <div style="margin-top:8px;">
-      <label style="font-size:11px;color:var(--dim)">移動量（px）</label>
+      <label style="font-size:11px;color:var(--text)">移動量（px）</label>
       <input id="el-amount" type="number" value="8" min="2" max="30" step="1"
         style="width:80px;margin-left:8px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:12px;">
     </div>
@@ -19676,22 +19676,22 @@ function addSpringBone() {
   if (ST.selVerts.size===0) { document.getElementById('lbl-status').textContent='頂点を選択してください'; return; }
   showModal('バネ骨格を追加', `
     <div style="display:grid;gap:8px;">
-      <div><label style="font-size:11px;color:var(--dim)">名前</label><br>
+      <div><label style="font-size:11px;color:var(--text)">名前</label><br>
         <input id="sb-nm" type="text" value="バネ${M.springs.length+1}"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       <div style="display:flex;gap:8px;">
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">硬さ(0-1)</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">硬さ(0-1)</label><br>
           <input id="sb-stiff" type="number" value="0.25" min="0.01" max="1" step="0.05"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">減衰(0-1)</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">減衰(0-1)</label><br>
           <input id="sb-damp" type="number" value="0.82" min="0.1" max="0.99" step="0.05"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
       <div style="display:flex;gap:8px;">
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">揺れ X(0-0.5)</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">揺れ X(0-0.5)</label><br>
           <input id="sb-scx" type="number" value="0.08" min="0" max="0.5" step="0.01"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
-        <div style="flex:1"><label style="font-size:11px;color:var(--dim)">揺れ Y(0-0.5)</label><br>
+        <div style="flex:1"><label style="font-size:11px;color:var(--text)">揺れ Y(0-0.5)</label><br>
           <input id="sb-scy" type="number" value="0.08" min="0" max="0.5" step="0.01"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;margin-top:3px;font-size:12px;"></div>
       </div>
@@ -22060,9 +22060,9 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
       showModal('トラックKFをコピー', `
         <div style="font-size:12px;display:grid;gap:8px;">
           <div>コピー元: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
-          <div><label style="font-size:11px;color:var(--dim)">コピー先パラメータ</label><br>
+          <div><label style="font-size:11px;color:var(--text)">コピー先パラメータ</label><br>
             <select id="track-copy-dst" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">${opts}</select></div>
-          <div><label style="font-size:11px;color:var(--dim)">値スケール (1.0=そのまま, -1.0=反転)</label><br>
+          <div><label style="font-size:11px;color:var(--text)">値スケール (1.0=そのまま, -1.0=反転)</label><br>
             <input id="track-copy-scale" type="number" value="1" step="0.1"
               style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
         </div>
@@ -22119,7 +22119,7 @@ tlLabelCanvas.addEventListener('contextmenu', e=>{
         <div style="font-size:12px;display:grid;gap:12px;">
           <div>パラメータ: <strong style="color:var(--accent)">${srcParam.lbl}</strong></div>
           <div>
-            <label style="font-size:11px;color:var(--dim)">色相 (0–360)</label>
+            <label style="font-size:11px;color:var(--text)">色相 (0–360)</label>
             <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
               <input id="tc-hue" type="range" min="0" max="359" value="${currentH}"
                 style="flex:1;accent-color:hsl(${currentH},70%,60%)"
@@ -28106,10 +28106,10 @@ function selectAllAnimKF() {
   // Show scale dialog to shift/scale all KFs in time
   showModal('全KFタイムスケール', `
     <div style="display:grid;gap:8px;font-size:12px;">
-      <div><label style="color:var(--dim);font-size:11px">タイムスケール (1.0=変更なし)</label><br>
+      <div><label style="color:var(--text);font-size:11px">タイムスケール (1.0=変更なし)</label><br>
         <input id="tl-scale" type="number" value="1.0" step="0.1" min="0.1" max="10"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
-      <div><label style="color:var(--dim);font-size:11px">タイムオフセット (秒)</label><br>
+      <div><label style="color:var(--text);font-size:11px">タイムオフセット (秒)</label><br>
         <input id="tl-offset" type="number" value="0" step="0.1" min="-60" max="60"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
       <div style="color:var(--dim);font-size:10px;">全トラックのKFに一括適用します</div>
@@ -28215,7 +28215,7 @@ function showAnimEasing() {
     showModal('イージング適用', `
       <div style="display:grid;gap:8px;font-size:12px;">
         <div style="color:var(--accent);font-size:13px;font-weight:600;">「${EASING_CATALOG.find(e=>e.id===easing)?.label||easing}」を適用</div>
-        <div><label style="color:var(--dim);font-size:11px">適用対象パラメータ</label><br>
+        <div><label style="color:var(--text);font-size:11px">適用対象パラメータ</label><br>
           <select id="anim-easing-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;">
             <option value="*">すべてのパラメータ</option>
             ${Object.entries(M.params).map(([k,p])=>`<option value="${k}">${p.lbl}</option>`).join('')}
