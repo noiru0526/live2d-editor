@@ -14657,7 +14657,7 @@ window.addEventListener('message',ev=>{
   function _renderWin(winners){
     _ov.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;margin-bottom:10px;">🎉 当選者！</div>`+
       winners.map(w=>`<div style="color:#fff;font-size:16px;padding:4px 0;">${w}</div>`).join('')+
-      `<div style="color:var(--dim);font-size:12px;margin-top:8px;">参加 ${_entries.size}名</div>`;
+      `<div style="color:var(--text);font-size:12px;margin-top:8px;">参加 ${_entries.size}名</div>`;
     _ov.style.display='block';
     setTimeout(()=>{ _ov.style.display='none'; },8000);
   }
@@ -25061,7 +25061,7 @@ function showKFDensityHeatmap() {
         </div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center;font-size:9px;color:var(--dim);">
+    <div style="display:flex;gap:6px;align-items:center;font-size:9px;color:var(--text);">
       <div style="width:60px;height:8px;background:linear-gradient(to right,#181818,#3a2010,#a06030,#e07840);border-radius:2px;"></div>
       <span>少 → 多</span>
     </div>
@@ -25075,7 +25075,7 @@ function showKFDensityHeatmap() {
     const p = M.params[name];
     const lbl = p?.lbl || name;
     const div = document.createElement('div');
-    div.style.cssText = `height:${ROW_H}px;line-height:${ROW_H}px;font-size:8px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;`;
+    div.style.cssText = `height:${ROW_H}px;line-height:${ROW_H}px;font-size:8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;`;
     div.textContent = lbl;
     div.title = name;
     labelsEl.appendChild(div);
@@ -25480,7 +25480,7 @@ function showParamStats() {
           ['KF先頭', `${firstT.toFixed(3)}s`],
           ['KF末尾', `${lastT.toFixed(3)}s`],
           ['KF密度', `${(frames.length/dur).toFixed(2)} KF/s`],
-        ].map(([k,v])=>`<tr><td style="color:var(--dim);padding:2px 12px 2px 0;">${k}</td><td style="color:var(--text);">${v}</td></tr>`).join('')}
+        ].map(([k,v])=>`<tr><td style="color:var(--text);padding:2px 12px 2px 0;">${k}</td><td style="color:var(--text);">${v}</td></tr>`).join('')}
       </table>
     </div>`
   );
@@ -27340,7 +27340,7 @@ function applyPlayheadToParams() {
     wrap.id='kf-inline-edit';
     wrap.style.cssText=`position:fixed;left:${e.clientX-60}px;top:${e.clientY-52}px;background:var(--surface);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 8px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);font-size:10px;font-family:monospace;min-width:130px;`;
     const pname=p?.lbl||hit.name;
-    wrap.innerHTML=`<div style="color:var(--dim);margin-bottom:4px;">${pname}</div>
+    wrap.innerHTML=`<div style="color:var(--text);margin-bottom:4px;">${pname}</div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
   <span style="color:var(--text);width:12px">v</span>
   <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
@@ -30432,7 +30432,7 @@ function buildSnippetUI() {
     row.onmouseenter = () => row.style.borderColor = 'rgba(255,255,255,.1)';
     row.onmouseleave = () => row.style.borderColor = 'transparent';
     const nameEl = document.createElement('span');
-    nameEl.style.cssText = 'flex:1;font-size:10px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    nameEl.style.cssText = 'flex:1;font-size:10px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
     nameEl.textContent = s.name;
     nameEl.title = `${Object.keys(s.tracks||{}).length}トラック / ${s.dur?.toFixed(2)||'?'}s`;
     const insBtn = document.createElement('button');
@@ -30542,7 +30542,7 @@ function buildRndParamList() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:6px;';
     const lbl = document.createElement('span');
-    lbl.style.cssText = 'font-size:9px;color:var(--dim);width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;';
+    lbl.style.cssText = 'font-size:9px;color:var(--text);width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;';
     lbl.textContent = k; lbl.title = k;
     const sl = document.createElement('input');
     sl.type = 'range'; sl.min = '0'; sl.max = '100'; sl.value = Math.round(str * 100);
