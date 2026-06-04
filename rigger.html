@@ -3245,7 +3245,7 @@ function showGuideManager() {
       <select id="gg-clr-${i}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 3px;font-size:10px;">
         ${COLORS.map((c,ci)=>`<option value="${c}" ${g.color===c?'selected':''} style="background:${c}">色${ci+1}</option>`).join('')}
       </select>
-      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:#3a1a1a;border:1px solid #6a2a2a;color:var(--danger);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
+      <button onclick="javascript:_customGuides.splice(${i},1);render();showGuideManager();" style="background:var(--danger-bg);border:1px solid rgba(180,60,60,.4);color:var(--danger);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;">✕</button>
     </div>`).join('');
   showModal('カスタムガイドライン管理', `
     <div style="font-size:11px;min-width:280px;display:grid;gap:6px;">
