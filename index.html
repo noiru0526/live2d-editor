@@ -810,7 +810,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
           <input type="checkbox" id="export-obs-mode" style="accent-color:var(--accent);">
           <span style="color:var(--text);font-weight:600;">🎬 OBSブラウザソース最適化</span>
         </label>
-        <span style="font-size:9px;color:var(--dim)">カーソル非表示・背景透明強制・スクロール無効</span>
+        <span style="font-size:9px;color:var(--text)">カーソル非表示・背景透明強制・スクロール無効</span>
         <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;margin-left:8px;">
           <input type="checkbox" id="export-responsive" style="accent-color:var(--accent);">
           <span style="color:var(--text);">📐 レスポンシブ（ウィンドウに追従）</span>
@@ -3639,7 +3639,7 @@ function updateKFList() {
     item.appendChild(row);
     if (cmt) {
       const cmtEl=document.createElement('div');
-      cmtEl.style.cssText='font-size:9px;color:var(--dim);padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
+      cmtEl.style.cssText='font-size:9px;color:var(--text);padding:1px 4px 2px 14px;line-height:1.3;word-break:break-all';
       cmtEl.textContent=cmt;
       item.appendChild(cmtEl);
     }
@@ -4303,7 +4303,7 @@ function _showEmbedCode(filePath) {
     <button onclick="navigator.clipboard?.writeText(document.getElementById('obs-url-out').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 OBS URLコピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 OBS URLコピー</button>
     <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-        <span style="font-size:9px;color:var(--dim);flex:1;">💾 URLプリセット（最大5件）</span>
+        <span style="font-size:9px;color:var(--text);flex:1;">💾 URLプリセット（最大5件）</span>
         <button id="obs-preset-save" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
       </div>
       <div id="obs-preset-list" style="display:flex;flex-direction:column;gap:3px;font-size:9px;"></div>
@@ -6904,7 +6904,7 @@ window._applyTrackPreset=function(preset){
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--text)">👁 視線</span><input id="ts-eye" type="range" min="0.2" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--accent);" oninput="const _ev=Math.max(0.2,Math.min(3,parseFloat(this.value)));curSensEye=_ev;document.getElementById('ts-eye-val').textContent=_ev.toFixed(2);_saveTS({eye:_ev});"><span id="ts-eye-val">1.00</span></label>
 <div style="font-size:9px;color:var(--text);margin-bottom:3px;">表情トランジション</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--gold)">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:var(--gold);" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
-<button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
+<button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
   document.body.appendChild(panel);
   // Sync sliders to persisted values on DOM creation (all settings)
   const _syncAllSliders=()=>{
@@ -17823,7 +17823,7 @@ function showChatTriggerPanel() {
       <span style="font-size:11px;color:var(--gold);font-weight:600;">💬 チャットトリガー設定</span>
       <button onclick="document.getElementById('chat-trigger-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">キーワードを検出してポーズ・パラメータ・クリップを切替。アバターHTMLに自動エクスポートされます。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;line-height:1.5;">キーワードを検出してポーズ・パラメータ・クリップを切替。アバターHTMLに自動エクスポートされます。</div>
     <div id="ct-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
     <div style="background:var(--bg);border:1px solid rgba(255,200,80,.3);border-radius:5px;padding:8px;">
       <div style="font-size:9px;color:var(--gold);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;">新規追加</div>
@@ -17836,7 +17836,7 @@ function showChatTriggerPanel() {
         </select>
         <select id="ct-target" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:10px;"></select>
         <div id="ct-value-row" style="display:none;display:flex;align-items:center;gap:4px;">
-          <span style="font-size:9px;color:var(--dim);white-space:nowrap;">値:</span>
+          <span style="font-size:9px;color:var(--text);white-space:nowrap;">値:</span>
           <input id="ct-value" type="number" step="0.1" min="-10" max="10" value="1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;outline:none;">
         </div>
         <button onclick="addChatTrigger()" style="background:#282828;border:1px solid rgba(255,200,80,.35);color:var(--gold);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">＋ 追加</button>
@@ -18038,7 +18038,7 @@ function showMultiPoseBlend() {
     <span style="font-size:11px;color:var(--text-bright);font-weight:600;">🎚 マルチポーズブレンダー</span>
     <button onclick="document.getElementById('multi-pose-blend-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0;">×</button>
   </div>
-  <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">スライダーで各ポーズの影響度を同時に調整できます。ニュートラル値からの差分を加算合成。</div>
+  <div style="font-size:9px;color:var(--text);margin-bottom:8px;">スライダーで各ポーズの影響度を同時に調整できます。ニュートラル値からの差分を加算合成。</div>
   <div id="mpb-list"></div>
   <div style="display:flex;gap:6px;margin-top:8px;">
     <button id="mpb-reset" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px;cursor:pointer;font-size:10px;">リセット</button>
@@ -18157,22 +18157,22 @@ function showPoseTweenDialog() {
       <span style="font-size:11px;color:var(--text-bright);font-weight:600;">🔀 ポーズトゥイーン</span>
       <button onclick="document.getElementById('pose-tween-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">2つのポーズ間を補間するKFを自動生成します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;">2つのポーズ間を補間するKFを自動生成します。</div>
     <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin-bottom:8px;">
-      <span style="font-size:9px;color:var(--dim)">開始ポーズ</span>
+      <span style="font-size:9px;color:var(--text)">開始ポーズ</span>
       <select id="pt-from" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
-      <span style="font-size:9px;color:var(--dim)">終了ポーズ</span>
+      <span style="font-size:9px;color:var(--text)">終了ポーズ</span>
       <select id="pt-to" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${poseOpts}</select>
-      <span style="font-size:9px;color:var(--dim)">開始時刻 (s)</span>
+      <span style="font-size:9px;color:var(--text)">開始時刻 (s)</span>
       <input id="pt-t0" type="number" value="${ST.animPlayhead.toFixed(2)}" step="0.1" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
-      <span style="font-size:9px;color:var(--dim)">継続時間 (s)</span>
+      <span style="font-size:9px;color:var(--text)">継続時間 (s)</span>
       <input id="pt-dur" type="number" value="0.5" min="0.05" step="0.05" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
-      <span style="font-size:9px;color:var(--dim)">ステップ数</span>
+      <span style="font-size:9px;color:var(--text)">ステップ数</span>
       <input id="pt-steps" type="number" value="1" min="1" max="20" step="1" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 5px;font-size:10px;">
-      <span style="font-size:9px;color:var(--dim)">イージング</span>
+      <span style="font-size:9px;color:var(--text)">イージング</span>
       <select id="pt-ease" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">${easingOpts}</select>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;">ステップ数=1: 開始KF+終了KFのみ生成 / 増やすと中間KFも追加</div>
     <button onclick="applyPoseTween()" style="width:100%;background:var(--surface);border:1px solid rgba(224,120,64,.5);color:var(--accent);border-radius:4px;padding:5px;cursor:pointer;font-size:11px;">✨ KF生成</button>`;
   document.body.appendChild(d);
   // Default: to = 1 (second option) if available
@@ -18706,7 +18706,7 @@ function renderWcExprBtns() {
     btn.id = `wc-expr-auto-${i}`;
     btn.textContent = ex.name;
     btn.title = '顔追跡値を一時オーバーライドしてこの表情を適用';
-    btn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.onclick = () => applyWcExprPreset(i, 'auto');
     container.appendChild(btn);
   });
@@ -18715,7 +18715,7 @@ function renderWcExprBtns() {
     const btn = document.createElement('button');
     btn.textContent = pr.name;
     btn.title = `保存プリセット「${pr.name}」を適用`;
-    btn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
+    btn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 5px;cursor:pointer;font-size:9px;';
     btn.oncontextmenu = (e) => {
       e.preventDefault();
       showCtxMenu(e.clientX, e.clientY, [
@@ -19097,7 +19097,7 @@ function _buildMidiPanel() {
       <span id="midi-status-txt" style="font-size:9px;color:var(--dim);">未接続</span>
       <button onclick="document.getElementById('midi-panel').remove();document.getElementById('btn-midi').classList.remove('on');" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">MIDIデバイスのCC(ノブ/スライダー)→パラメータ、ノート→ポーズ/表情のマッピング。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;line-height:1.5;">MIDIデバイスのCC(ノブ/スライダー)→パラメータ、ノート→ポーズ/表情のマッピング。</div>
     <button onclick="_midiConnect()" style="width:100%;background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:8px;">🔌 MIDIデバイスに接続</button>
     <!-- CC Monitor -->
     <div style="background:var(--bg);border-radius:4px;padding:6px;margin-bottom:8px;">
@@ -19106,7 +19106,7 @@ function _buildMidiPanel() {
     </div>
     <!-- CC Mappings -->
     <div style="margin-bottom:8px;">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px;font-weight:600;">CC → パラメータ</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px;font-weight:600;">CC → パラメータ</div>
       <div id="midi-cc-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;max-height:120px;overflow-y:auto;"></div>
       <div style="display:flex;gap:4px;align-items:center;">
         <input id="midi-cc-num" type="number" min="0" max="127" placeholder="CC#" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
@@ -19282,7 +19282,7 @@ function toggleGamepadPanel() {
         <input id="gpad-axis-scale" type="number" value="1" step="0.1" style="width:40px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;" title="スケール（倍率）">
         <button onclick="_gpadAddAxisMap()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋</button>
       </div>
-      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
+      <button onclick="_gpadLearnAxis()" id="gpad-learn-axis" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px;cursor:pointer;font-size:9px;margin-top:3px;">🎯 軸学習モード（スティックを動かして自動検出）</button>
     </div>
     <!-- Button Mappings -->
     <div>
@@ -23413,7 +23413,7 @@ function showKFRamp() {
     <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:44px;">KF数</span>
       <input id="ramp-n" type="number" value="10" min="2" max="200" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">補間</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">補間</span>
       <select id="ramp-interp" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         <option value="linear">linear</option><option value="smooth">smooth</option><option value="easeIn">easeIn</option><option value="easeOut">easeOut</option>
       </select>
@@ -23454,14 +23454,14 @@ function showAnimMerge() {
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">⊕ アニメーションマージ</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px">別のアニメーションJSONを読み込み、現在のトラックにマージします。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px">別のアニメーションJSONを読み込み、現在のトラックにマージします。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:60px;">時刻オフセット</span>
+      <span style="font-size:9px;color:var(--text);min-width:60px;">時刻オフセット</span>
       <input id="merge-offset" type="number" value="${(M.animation.duration||3).toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim)">秒</span>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:60px;">競合時</span>
+      <span style="font-size:9px;color:var(--text);min-width:60px;">競合時</span>
       <select id="merge-mode" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         <option value="add">追記（既存KFを保持）</option><option value="replace">上書き（同時刻を置換）</option>
       </select>
@@ -23546,7 +23546,7 @@ function showPoseSequencer() {
   window.seqRemove = i => { sequence.splice(i,1); renderSeq(); };
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:320px;max-height:80vh;overflow-y:auto;">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">🔀 ポーズシーケンサー</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px">ポーズを順番に並べてアニメーションKFを自動生成します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px">ポーズを順番に並べてアニメーションKFを自動生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <select id="seq-pose" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${poses.map((p,i)=>`<option value="${i}">${p.name}</option>`).join('')}</select>
       <input id="seq-hold" type="number" value="0.5" step="0.1" min="0.05" style="width:52px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
@@ -23634,7 +23634,7 @@ function showAnimTemplates() {
       ${templates.map(t=>`
         <div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;"
           onclick="applyAnimTemplate('${t.id}');document.getElementById('modal-ok').click()">
-          <div style="flex:1"><div style="color:var(--text)">${t.name}</div><div style="color:var(--dim);font-size:10px;">${t.desc}</div></div>
+          <div style="flex:1"><div style="color:var(--text)">${t.name}</div><div style="color:var(--text);font-size:10px;">${t.desc}</div></div>
           <span style="color:var(--accent);font-size:11px;">適用 →</span>
         </div>`).join('')}
     </div>
@@ -24272,7 +24272,7 @@ function renderClipTabs() {
     const mergeBtn = document.createElement('button');
     mergeBtn.textContent = '⊕ 全結合';
     mergeBtn.title = '全クリップを時系列に結合してメインアニメーションに書き出す';
-    mergeBtn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
+    mergeBtn.style.cssText = 'background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:9px;flex-shrink:0;';
     mergeBtn.onclick = () => mergeAllClips();
     document.getElementById('tl-clips-bar').appendChild(mergeBtn);
     // Overlay button
@@ -25402,7 +25402,7 @@ function showParamBatchEdit() {
       <h3 style="font-size:13px;color:var(--text);margin:0;">⚙ パラメータ一括編集</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;">ラベル・min/max・ステップを直接編集できます。✦はカスタムパラメータ。</div>
     <div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:4px;">
       <table style="width:100%;border-collapse:collapse;">
         <thead style="position:sticky;top:0;background:var(--bg-deep);z-index:1;">
@@ -26171,7 +26171,7 @@ function blendAnimations() {
         <input id="blend-w" type="range" min="0" max="100" value="50" style="flex:1;accent-color:var(--accent);">
         <span id="blend-w-val" style="color:var(--text);width:36px;">50%</span>
       </div>
-      <div style="font-size:9px;color:var(--dim);">0% = 現在のみ, 100% = ブレンド元のみ, 50% = 等量ミックス</div>
+      <div style="font-size:9px;color:var(--text);">0% = 現在のみ, 100% = ブレンド元のみ, 50% = 等量ミックス</div>
     </div>
     <div style="margin-bottom:10px;display:flex;align-items:center;gap:6px;">
       <input type="checkbox" id="blend-new-clip" style="accent-color:var(--accent);" checked>
@@ -26579,22 +26579,22 @@ function showClipBlend() {
   const opts = clips.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">⊕ クリップブレンド合成</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px">2つのクリップを時間軸ごとにブレンドして新規クリップを生成します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px">2つのクリップを時間軸ごとにブレンドして新規クリップを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップA</span>
+      <span style="font-size:9px;color:var(--text);min-width:32px;">クリップA</span>
       <select id="cb-a" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップB</span>
+      <span style="font-size:9px;color:var(--text);min-width:32px;">クリップB</span>
       <select id="cb-b" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">${opts}</select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:32px;">A比率</span>
+      <span style="font-size:9px;color:var(--text);min-width:32px;">A比率</span>
       <input type="range" id="cb-weight" min="0" max="1" step="0.01" value="0.5" style="flex:1;accent-color:var(--accent);">
       <span id="cb-w-lbl" style="font-size:9px;color:var(--dim);min-width:40px;text-align:right;">A 50%</span>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:32px;">クリップ名</span>
+      <span style="font-size:9px;color:var(--text);min-width:32px;">クリップ名</span>
       <input id="cb-name" type="text" value="ブレンド1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px">
@@ -27342,13 +27342,13 @@ function applyPlayheadToParams() {
     const pname=p?.lbl||hit.name;
     wrap.innerHTML=`<div style="color:var(--dim);margin-bottom:4px;">${pname}</div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:3px;">
-  <span style="color:var(--dim);width:12px">v</span>
+  <span style="color:var(--text);width:12px">v</span>
   <input id="kfie-v" type="number" value="${hit.kf.v.toFixed(4)}" step="${(p?.step)||0.01}" style="width:72px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
 </div>
 <div style="display:flex;gap:4px;align-items:center;margin-bottom:4px;">
-  <span style="color:var(--dim);width:12px">t</span>
+  <span style="color:var(--text);width:12px">t</span>
   <input id="kfie-t" type="number" value="${hit.kf.t.toFixed(4)}" step="0.001" style="width:72px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:1px 4px;font-size:10px;font-family:monospace;" />
-  <span style="color:var(--dim)">s</span>
+  <span style="color:var(--text)">s</span>
 </div>
 <div style="display:flex;gap:3px;justify-content:flex-end;">
   <button id="kfie-ok" style="background:rgba(224,120,64,.18);border:1px solid rgba(255,255,255,.15);color:var(--text);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:9px;">✓</button>
@@ -28112,7 +28112,7 @@ function selectAllAnimKF() {
       <div><label style="color:var(--text);font-size:11px">タイムオフセット (秒)</label><br>
         <input id="tl-offset" type="number" value="0" step="0.1" min="-60" max="60"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;margin-top:4px;font-size:12px;"></div>
-      <div style="color:var(--dim);font-size:10px;">全トラックのKFに一括適用します</div>
+      <div style="color:var(--text);font-size:10px;">全トラックのKFに一括適用します</div>
     </div>
   `, () => {
     const scale = parseFloat(document.getElementById('tl-scale').value)||1;
@@ -28745,7 +28745,7 @@ function renderSnapPanel() {
     img.title = 'クリックでパラメータを復元'; img.onclick = () => restoreSnapshotParams(i);
     const footer = document.createElement('div'); footer.style.cssText='padding:3px 6px;';
     const restoreBtn = document.createElement('button');
-    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;';
+    restoreBtn.textContent = '⟳ 復元'; restoreBtn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;';
     restoreBtn.onclick = () => restoreSnapshotParams(i);
     footer.appendChild(restoreBtn); card.appendChild(header); card.appendChild(img); card.appendChild(footer); grid.appendChild(card);
   });
@@ -29604,18 +29604,18 @@ function showPNGSequenceDialog() {
       <h3 style="font-size:13px;color:var(--text);margin:0;">🖼 PNGシーケンス書き出し</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px;">各フレームをPNGとしてダウンロードします。フレーム数が多い場合はブラウザがまとめてダウンロードします。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px;">各フレームをPNGとしてダウンロードします。フレーム数が多い場合はブラウザがまとめてダウンロードします。</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">開始 (s)</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">開始 (s)</label>
         <input id="ps-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">終了 (s)</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">終了 (s)</label>
         <input id="ps-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">FPS</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">FPS</label>
         <select id="ps-fps" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="12">12 fps</option>
           <option value="24" selected>24 fps</option>
@@ -29624,14 +29624,14 @@ function showPNGSequenceDialog() {
         </select>
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">ファイル名プレフィックス</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">ファイル名プレフィックス</label>
         <input id="ps-prefix" type="text" value="frame" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
     </div>
     <div style="margin-bottom:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <span style="font-size:8px;color:var(--dim);">プレビュー (開始 / 中間 / 終了)</span>
-        <button id="ps-play-btn" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
+        <span style="font-size:8px;color:var(--text);">プレビュー (開始 / 中間 / 終了)</span>
+        <button id="ps-play-btn" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 8px;cursor:pointer;font-size:9px;">▶ 再生</button>
       </div>
       <div id="ps-thumb-row" style="display:flex;gap:6px;">
         <canvas id="ps-thumb-0" width="90" height="90" style="border:1px solid rgba(255,255,255,.1);border-radius:3px;background:var(--bg-deep);flex:1;max-width:90px;"></canvas>
@@ -29845,18 +29845,18 @@ function showGIFExportDialog() {
       <h3 style="font-size:13px;color:var(--text);margin:0;">🎞 GIF書き出し</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px;">アニメーション区間をGIF89aとして書き出します。ファイルサイズ削減のため低FPS・小サイズを推奨。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px;">アニメーション区間をGIF89aとして書き出します。ファイルサイズ削減のため低FPS・小サイズを推奨。</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">開始 (s)</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">開始 (s)</label>
         <input id="gf-start" type="number" value="${li}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">終了 (s)</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">終了 (s)</label>
         <input id="gf-end" type="number" value="${lo}" step="0.1" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">FPS</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">FPS</label>
         <select id="gf-fps" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="5">5 fps</option>
           <option value="8">8 fps</option>
@@ -29866,7 +29866,7 @@ function showGIFExportDialog() {
         </select>
       </div>
       <div>
-        <label style="font-size:9px;color:var(--dim);display:block;margin-bottom:2px;">最大幅 (px)</label>
+        <label style="font-size:9px;color:var(--text);display:block;margin-bottom:2px;">最大幅 (px)</label>
         <select id="gf-w" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:11px;">
           <option value="240">240</option>
           <option value="320">320</option>
@@ -30597,7 +30597,7 @@ function toggleRndAnimate(on) {
   _pn.id='wf-panel';
   _pn.style.cssText='display:none;position:fixed;right:16px;top:48px;width:280px;background:var(--bg);border:1px solid var(--border);border-radius:8px;z-index:160;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,.6);font-family:monospace;font-size:9px;';
   _pn.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-    <span style="color:var(--dim);font-size:10px;font-weight:bold;">📈 波形モニター</span>
+    <span style="color:var(--text);font-size:10px;font-weight:bold;">📈 波形モニター</span>
     <button onclick="toggleWaveformMonitor()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;">×</button>
   </div>
   <div id="wf-sels" style="display:flex;flex-direction:column;gap:3px;margin-bottom:6px;"></div>
