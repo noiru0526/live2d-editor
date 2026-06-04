@@ -473,7 +473,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;heigh
       <!-- Live part preview -->
       <div id="part-preview-wrap" style="padding:2px;display:none;">
         <canvas id="part-preview-canvas" width="80" height="80" style="width:80px;height:80px;border:1px solid rgba(255,255,255,.12);border-radius:3px;display:block;margin:0 auto;background:var(--bg-deep);"></canvas>
-        <div id="part-preview-label" style="font-size:8px;color:var(--dim);text-align:center;margin-top:2px;"></div>
+        <div id="part-preview-label" style="font-size:8px;color:var(--text);text-align:center;margin-top:2px;"></div>
       </div>
     </div>
 
@@ -4939,7 +4939,7 @@ function batchRenameParts() {
             <input type="checkbox" id="brn-number"> 連番追加
           </label>
           <input id="brn-number-start" type="number" value="1" min="0" style="width:44px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;outline:none;">
-          <span style="font-size:9px;color:var(--dim);">から開始 (例: _01, _02...)</span>
+          <span style="font-size:9px;color:var(--text);">から開始 (例: _01, _02...)</span>
         </div>
         <div id="brn-preview" style="font-size:9px;color:var(--dim);background:var(--bg-deep);border-radius:var(--r-sm);padding:6px;max-height:100px;overflow-y:auto;white-space:pre-line;margin-top:2px;"></div>
       </div>
@@ -6724,7 +6724,7 @@ function buildBindingsUI() {
   list.innerHTML = bindings.map((b, i) => {
     const tl = P[b.target]?.l || b.target;
     return `<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;padding:2px 4px;background:var(--bg);border-radius:3px;border:1px solid var(--divider);">
-      <span style="flex:1;font-size:8px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${tl}">→ ${tl}</span>
+      <span style="flex:1;font-size:8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${tl}">→ ${tl}</span>
       <span style="font-size:7px;color:var(--dim);white-space:nowrap;">[${b.srcMin.toFixed(1)},${b.srcMax.toFixed(1)}]→[${b.dstMin.toFixed(1)},${b.dstMax.toFixed(1)}]</span>
       <button onclick="removeBinding('${selParam}',${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:9px;padding:0 2px;flex-shrink:0;" title="削除">✕</button>
     </div>`;

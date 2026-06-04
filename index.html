@@ -3633,7 +3633,7 @@ function updateKFList() {
     row.style.cssText='display:flex;align-items:center;width:100%';
     row.innerHTML=`<span style="color:${hasD?'#ffd060':'#888'}">●</span>
       <span class="kfv">${kfv.toFixed(2)}</span>
-      <span style="flex:1;font-size:10px;color:var(--dim);padding-left:6px">${hasD?'データあり':''}</span>
+      <span style="flex:1;font-size:10px;color:var(--text);padding-left:6px">${hasD?'データあり':''}</span>
       <span title="メモを編集" style="cursor:pointer;font-size:10px;color:${cmt?'#c8c8c8':'#888'};padding:0 3px" onclick="event.stopPropagation();editKFComment('${name}',${kfv})">💬</span>
       <span class="kfd-btn" onclick="event.stopPropagation();doDelKFVal('${name}',${kfv})">×</span>`;
     item.appendChild(row);
@@ -20945,7 +20945,7 @@ function renderDeformerTree() {
     const row = document.createElement('div');
     row.className = 'deformer-row' + (def.id === ST.activeDeformer ? ' active-def' : '');
     const icon = def.type === 'warp' ? '▦' : '↻';
-    const boundParam = def.boundParam ? `<span style="font-size:8px;color:var(--dim);margin-left:3px;">[${def.boundParam}]</span>` : '';
+    const boundParam = def.boundParam ? `<span style="font-size:8px;color:var(--text);margin-left:3px;">[${def.boundParam}]</span>` : '';
     const indent = depth > 0 ? `<span style="display:inline-block;width:${depth*10}px;opacity:0.4;font-size:10px;">${'└'.padStart(depth,'·')}</span>` : '';
     row.innerHTML = `
       ${indent}
