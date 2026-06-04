@@ -8157,7 +8157,7 @@ function showShortcutsOverlay() {
   ];
   const rows = shortcuts.map(([k, v])=> v ?
     `<tr><td style="padding:3px 8px;font-family:monospace;color:var(--gold);font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--dim);font-size:11px;">${v}</td></tr>` :
-    `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
+    `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
   ).join('');
   d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px;padding:0 12px;">
@@ -8165,7 +8165,7 @@ function showShortcutsOverlay() {
       <button onclick="document.getElementById('shortcuts-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;padding:0;">×</button>
     </div>
     <table style="width:100%;border-collapse:collapse;">${rows}</table>
-    <div style="text-align:center;color:var(--dim);font-size:9px;margin-top:12px;padding:0 12px;">クリックで閉じる / ショートカット: ? または Shift+?</div>
+    <div style="text-align:center;color:var(--text);font-size:9px;margin-top:12px;padding:0 12px;">クリックで閉じる / ショートカット: ? または Shift+?</div>
   </div>`;
   document.body.appendChild(d);
 }
@@ -8203,35 +8203,35 @@ function showWsTestPanel() {
     {label:'pose reset',json:'{"type":"pose","reset":true}'},
     {label:'speak',json:'{"type":"speak","text":"こんにちは"}'},
   ];
-  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
+  const presetsHtml=presets.map(p=>`<button onclick="document.getElementById('wt-input').value=${JSON.stringify(p.json)}" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 7px;cursor:pointer;font-size:9px;font-family:monospace">${p.label}</button>`).join('');
   ov.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;max-width:520px;width:95%;box-shadow:0 8px 32px rgba(0,0,0,.9)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;margin-bottom:12px">
       <span style="font-size:12px;font-weight:600;color:var(--text)">🔌 WebSocket 送信テスト</span>
       <button onclick="document.getElementById('ws-test-panel').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px">×</button>
     </div>
     <div style="margin-bottom:8px">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">送信先 URL</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px">送信先 URL</div>
       <input id="wt-url" type="text" value="ws://localhost:8765" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 8px;font-size:10px;font-family:monospace;box-sizing:border-box">
     </div>
     <div style="margin-bottom:8px">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">プリセット</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px">プリセット</div>
       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${presetsHtml}</div>
     </div>
     <div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:9px;color:var(--dim)">⚡ パラメータ送信</span>
+        <span style="font-size:9px;color:var(--text)">⚡ パラメータ送信</span>
         <span id="wt-pv-cur" style="font-size:9px;color:var(--dim);font-family:monospace">now: ${(pv['headX']||0).toFixed(3)}</span>
       </div>
       <div style="display:flex;gap:3px;align-items:center">
         <select id="wt-param-sel" onchange="document.getElementById('wt-pv-cur').textContent='now: '+(pv[this.value]!==undefined?(+pv[this.value]).toFixed(3):'—')" style="flex:1;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:9px;font-family:monospace">${Object.entries(P).map(([k,v])=>`<option value="${k}">${k} — ${v.l}</option>`).join('')}</select>
-        <button onclick="document.getElementById('wt-param-val').value=(pv[document.getElementById('wt-param-sel').value]||0).toFixed(3)" title="現在のpv値をセット" style="background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:9px">← pv</button>
+        <button onclick="document.getElementById('wt-param-val').value=(pv[document.getElementById('wt-param-sel').value]||0).toFixed(3)" title="現在のpv値をセット" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;cursor:pointer;font-size:9px">← pv</button>
         <input id="wt-param-val" type="number" step="0.1" value="0" min="-1" max="1" style="width:52px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:10px;text-align:center;font-family:monospace">
         <button onclick="document.getElementById('wt-input').value=JSON.stringify({type:'param',name:document.getElementById('wt-param-sel').value,value:+(parseFloat(document.getElementById('wt-param-val').value).toFixed(3))||0})" style="background:rgba(224,120,64,.15);border:1px solid rgba(224,120,64,.4);color:var(--accent-light);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px">→ JSON</button>
         <button onclick="(function(){const n=document.getElementById('wt-param-sel').value;const v=+(parseFloat(document.getElementById('wt-param-val').value).toFixed(3))||0;const ta=document.getElementById('wt-input');let o;try{o=JSON.parse(ta.value);}catch(e){o={};}if(!o.type||o.type!=='params'||typeof o.values!=='object'){o={type:'params',values:{}};}o.values[n]=v;ta.value=JSON.stringify(o);})()" title="params.valuesにマージ" style="background:rgba(96,200,140,.1);border:1px solid rgba(96,200,140,.35);color:var(--multi-sel);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px">+batch</button>
       </div>
     </div>
     ${expressions.length ? `<div style="margin-bottom:8px">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">🎭 表情送信</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px">🎭 表情送信</div>
       <div style="display:flex;gap:4px;align-items:center">
         <select id="wt-expr-sel" style="flex:1;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:9px;font-family:monospace"><option value="-1">— デフォルト —</option>${expressions.map((e,i)=>`<option value="${i}">${e.name}</option>`).join('')}</select>
         <input id="wt-expr-dur" type="number" step="500" value="3000" min="0" style="width:64px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:10px;text-align:center;font-family:monospace" title="持続時間(ms) 0=永続">
@@ -8240,14 +8240,14 @@ function showWsTestPanel() {
       </div>
     </div>` : ''}
     <div style="margin-bottom:8px">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">📸 現在のポーズをキャプチャ</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px">📸 現在のポーズをキャプチャ</div>
       <div style="display:flex;gap:3px">
         <button onclick="(function(){const v={};Object.entries(pv).forEach(([k,val])=>{if(Math.abs(val)>0.001)v[k]=+(+val).toFixed(3);});document.getElementById('wt-input').value=JSON.stringify({type:'params',values:v});})()" style="flex:1;background:rgba(96,200,140,.1);border:1px solid rgba(96,200,140,.3);color:var(--multi-sel);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px" title="0以外のpv値をparams JSONにまとめる">← 非ゼロpv</button>
-        <button onclick="(function(){const v={};Object.entries(pv).forEach(([k,val])=>{v[k]=+(+val).toFixed(3);});document.getElementById('wt-input').value=JSON.stringify({type:'params',values:v});})()" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px" title="全pv値をparams JSONにまとめる（0含む）">← 全pv</button>
+        <button onclick="(function(){const v={};Object.entries(pv).forEach(([k,val])=>{v[k]=+(+val).toFixed(3);});document.getElementById('wt-input').value=JSON.stringify({type:'params',values:v});})()" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:9px" title="全pv値をparams JSONにまとめる（0含む）">← 全pv</button>
       </div>
     </div>
     <div style="margin-bottom:10px">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px">JSON メッセージ</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px">JSON メッセージ</div>
       <textarea id="wt-input" rows="3" style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 8px;font-size:10px;font-family:monospace;resize:vertical;box-sizing:border-box">{"type":"kill"}</textarea>
     </div>
     <div style="display:flex;gap:6px;align-items:center">
@@ -8291,17 +8291,17 @@ function showWsApiRef() {
     ['pose','ポーズロック ON/OFF / リセット','{type:"pose",lock:true} / {type:"pose",reset:true}'],
   ];
   const rows=apiRows.map((r,i)=>i===0?
-    `<tr>${r.map(c=>`<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--border)">${c}</th>`).join('')}</tr>`:
-    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 8px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 8px;color:var(--dim);font-size:10px">${r[1]}</td><td style="padding:3px 8px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
+    `<tr>${r.map(c=>`<th style="padding:4px 8px;text-align:left;font-size:9px;color:var(--text);text-transform:uppercase;border-bottom:1px solid var(--border)">${c}</th>`).join('')}</tr>`:
+    `<tr style="background:${i%2?'transparent':'rgba(255,255,255,.02)'}"><td style="padding:3px 8px;font-family:monospace;color:#60c080;font-size:10px;white-space:nowrap">${r[0]}</td><td style="padding:3px 8px;color:var(--text);font-size:10px">${r[1]}</td><td style="padding:3px 8px;font-family:monospace;font-size:9px;color:#a0b0c8">${r[2]}</td></tr>`
   ).join('');
   d.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 0;max-width:640px;width:95%;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;padding:0 16px;margin-bottom:12px">
       <span style="font-size:11px;font-weight:600;color:var(--text)">🔌 WebSocket API リファレンス</span>
       <button onclick="document.getElementById('ws-api-ref-overlay').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:16px">×</button>
     </div>
-    <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:var(--dim)">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
+    <div style="padding:0 16px;margin-bottom:10px;font-size:9px;color:var(--text)">JSON メッセージを ws://localhost:xxxx へ送信するとアバターに反映されます。</div>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
-    <div style="padding:12px 16px 0;font-size:9px;color:var(--dim)">クリックして閉じる</div>
+    <div style="padding:12px 16px 0;font-size:9px;color:var(--text)">クリックして閉じる</div>
   </div>`;
   document.body.appendChild(d);
 }
