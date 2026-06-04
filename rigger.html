@@ -43,7 +43,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tb-more-sep{height:1px;background:var(--divider);margin:3px 0}
 .sep{width:1px;height:26px;background:var(--border);margin:0 3px;flex-shrink:0}
 .tgrp{display:flex;align-items:center;gap:3px;flex-shrink:0}
-.tgrp-label{font-size:9px;color:var(--dim);letter-spacing:1px;margin-right:3px;text-transform:uppercase}
+.tgrp-label{font-size:9px;color:var(--text);letter-spacing:1px;margin-right:3px;text-transform:uppercase}
 
 /* ===== MAIN LAYOUT ===== */
 #main{display:flex;flex:1;overflow:hidden}
@@ -150,7 +150,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 .rsec-caret{font-size:9px;color:var(--muted);transition:transform .15s;display:inline-block;width:10px;text-align:center}
 .rsec-caret.collapsed{transform:rotate(-90deg)}
 .rsec-ttl{font-size:11px;font-weight:500;letter-spacing:0.4px;color:var(--text);text-transform:uppercase;flex:1}
-.rsec-sub{font-size:9px;color:var(--dim)}
+.rsec-sub{font-size:9px;color:var(--text)}
 /* Inspector selection banner */
 #rp-sel-banner{padding:2px 8px;border-bottom:1px solid var(--divider);background:var(--bg);display:none}
 #rp-sel-name{font-size:11px;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
@@ -5242,10 +5242,10 @@ function showPartNoteList() {
   m.innerHTML=`<div class="modal-box" style="width:460px;max-height:80vh;display:flex;flex-direction:column;"><div class="modal-header"><span>パーツメモ一覧 (${noted.length}件)</span><button onclick="document.getElementById('rig-modal-overlay').remove()" class="modal-close">×</button></div>
     <div style="overflow-y:auto;flex:1;font-size:11px;">
       <table style="width:100%;border-collapse:collapse;">
-        <thead style="position:sticky;top:0;background:var(--bg-deep);"><tr style="font-size:9px;color:var(--dim);text-transform:uppercase;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">パーツ名</th><th style="padding:4px 6px;text-align:left;">メモ</th></tr></thead>
+        <thead style="position:sticky;top:0;background:var(--bg-deep);"><tr style="font-size:9px;color:var(--text);text-transform:uppercase;"><th style="padding:4px 6px;text-align:left;">#</th><th style="padding:4px 6px;text-align:left;">パーツ名</th><th style="padding:4px 6px;text-align:left;">メモ</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div style="padding:6px 8px;color:var(--dim);font-size:8px;">行クリックでパーツを選択</div>
+      <div style="padding:6px 8px;color:var(--text);font-size:8px;">行クリックでパーツを選択</div>
     </div></div>`;
   document.body.appendChild(m);
 }
@@ -5358,7 +5358,7 @@ function updatePhysicsUI() {
     const sl = document.createElement('div'); sl.className='phys-sliders'+(ph.enabled?' on':'');
     sl.innerHTML=`
       <div style="display:flex;gap:2px;margin-bottom:3px">
-        ${['髪','布','耳','硬め','ふわ'].map((lb,pi)=>`<button onclick="setPhysPreset(${i},${pi})" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--dim);border-radius:3px;padding:1px 0;cursor:pointer;font-size:8px" title="${['hair','cloth','ear','rigid','floaty'][pi]}">${lb}</button>`).join('')}
+        ${['髪','布','耳','硬め','ふわ'].map((lb,pi)=>`<button onclick="setPhysPreset(${i},${pi})" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:1px 0;cursor:pointer;font-size:8px" title="${['hair','cloth','ear','rigid','floaty'][pi]}">${lb}</button>`).join('')}
       </div>
       <div class="phys-row"><label>剛性</label><input type="range" min="1" max="100" value="${Math.round(ph.stiffness*100)}" oninput="setPartPhysics(${i},'stiffness',this.value/100);this.nextSibling.textContent=this.value"><span class="phys-val">${Math.round(ph.stiffness*100)}</span></div>
       <div class="phys-row"><label>減衰</label><input type="range" min="50" max="99" value="${Math.round(ph.damping*100)}" oninput="setPartPhysics(${i},'damping',this.value/100);this.nextSibling.textContent=this.value"><span class="phys-val">${Math.round(ph.damping*100)}</span></div>
@@ -5615,7 +5615,7 @@ function editExprValues(idx) {
   ov.onclick=(e)=>{if(e.target===ov)window._eevCancel?.();};
   ov.innerHTML=`<div class="eev-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px;width:340px;max-height:82vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.9)">
     <div style="display:flex;align-items:center;margin-bottom:10px"><span style="font-size:12px;font-weight:600;color:var(--text)">✏ 表情値編集: ${ex.name}</span><button onclick="_eevCancel()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px">×</button></div>
-    <div style="font-size:8px;color:var(--dim);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
+    <div style="font-size:8px;color:var(--text);margin-bottom:8px">ベースライン差分 0.01以下は薄表示 · スライダーでリアルタイムプレビュー</div>
     ${rows}
     <div style="display:flex;gap:6px;margin-top:12px">
       <button onclick="(function(){const w=document.querySelector('.eev-wrap');const t=w._tmp;Object.assign(expressions[${idx}].values,t);applyExpr(${idx});saveState();updateExpressionsUI();document.getElementById('expr-edit-overlay').remove();setStatus('表情「${ex.name}」を更新');})();" style="flex:1;background:rgba(224,120,64,.3);border:1px solid rgba(224,120,64,.5);color:var(--accent3);border-radius:4px;padding:5px;cursor:pointer;font-size:11px">保存</button>
@@ -6620,7 +6620,7 @@ ${pkeys.map(k=>`<option value="${k}"${lfo.param===k?' selected':''}>${k}</option
 <span class="lfo-wave-svg">${_lfoWaveSVG(lfo.wave, lfo.amp, lfo.offset)}</span>
 <button class="ih" onclick="removeLFO('${lfo.id}')" style="color:var(--text);font-size:10px;padding:0 4px">✕</button>
 </div>
-<div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:var(--dim)">
+<div style="display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:2px 4px;font-size:9px;color:var(--text)">
 <span>Hz</span><input type="range" min="0.01" max="5" step="0.01" value="${lfo.freq}" oninput="updateLFOField('${lfo.id}','freq',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2)" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.freq||0).toFixed(2)}</span>
 <span>振幅</span><input type="range" min="0" max="1" step="0.01" value="${lfo.amp}" oninput="updateLFOField('${lfo.id}','amp',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw){const _l=lfos.find(l=>l.id==='${lfo.id}');if(_l)_lw.innerHTML=_lfoWaveSVG(_l.wave,_l.amp,_l.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.amp||0).toFixed(2)}</span>
 <span>中心</span><input type="range" min="-1" max="1" step="0.01" value="${lfo.offset}" oninput="updateLFOField('${lfo.id}','offset',+this.value);this.nextElementSibling.textContent=(+this.value).toFixed(2);const _lw2=this.closest('div').parentElement.querySelector('.lfo-wave-svg');if(_lw2){const _l2=lfos.find(l=>l.id==='${lfo.id}');if(_l2)_lw2.innerHTML=_lfoWaveSVG(_l2.wave,_l2.amp,_l2.offset);}" style="height:3px;accent-color:var(--accent)"><span style="color:var(--dim);text-align:right">${(lfo.offset||0).toFixed(2)}</span>
@@ -8156,7 +8156,7 @@ function showShortcutsOverlay() {
     ['Ctrl+S','自動保存（2分ごと・手動でも可）'],
   ];
   const rows = shortcuts.map(([k, v])=> v ?
-    `<tr><td style="padding:3px 8px;font-family:monospace;color:var(--gold);font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--dim);font-size:11px;">${v}</td></tr>` :
+    `<tr><td style="padding:3px 8px;font-family:monospace;color:var(--gold);font-size:11px;">${k}</td><td style="padding:3px 8px;color:var(--text);font-size:11px;">${v}</td></tr>` :
     `<tr><td colspan="2" style="padding:6px 8px 3px;font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:1px;border-top:1px solid var(--border);">${k}</td></tr>`
   ).join('');
   d.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 8px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.8);" onclick="event.stopPropagation()">
@@ -9002,7 +9002,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #hotkey-panel kbd{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:0 4px;color:var(--text-bright);font-size:9px;margin-right:4px}
 #widget-overlay{position:fixed;bottom:16px;left:16px;display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:50}
 .wg-item{background:rgba(20,20,20,.85);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 10px;font-family:monospace;font-size:11px;color:var(--text);backdrop-filter:blur(4px);white-space:nowrap}
-.wg-label{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
+.wg-label{font-size:8px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px}
 .wg-val{font-size:11px;color:var(--text-bright);font-weight:700}
 #ctrl-panel{position:fixed;top:12px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:160px;display:none}
 #hp-bar-wrap{position:fixed;bottom:0;left:0;right:0;height:6px;background:rgba(0,0,0,.4);z-index:31;pointer-events:none;display:none}
@@ -9016,7 +9016,7 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 #corner-wm{position:fixed;pointer-events:none;z-index:36;font-family:sans-serif;white-space:nowrap}
 #chat-bubble{position:fixed;top:18%;right:2%;z-index:45;pointer-events:none;max-width:220px;font-size:11px;font-family:sans-serif;opacity:0;transition:opacity .3s ease}
 #chat-bubble .cb-text{background:rgba(255,255,255,.94);color:#1a1a1a;padding:6px 10px;border-radius:12px;border-bottom-right-radius:2px;line-height:1.5;word-break:break-word;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-#chat-bubble .cb-user{font-size:9px;font-weight:700;margin-bottom:2px;color:var(--dim);text-align:right}
+#chat-bubble .cb-user{font-size:9px;font-weight:700;margin-bottom:2px;color:var(--text);text-align:right}
 #marquee-bar{position:fixed;bottom:0;left:0;right:0;height:22px;background:rgba(0,0,0,.75);z-index:35;overflow:hidden;display:none;pointer-events:none}
 #marquee-inner{position:absolute;top:0;white-space:nowrap;font-family:sans-serif;font-size:11px;color:var(--text-bright);line-height:22px;padding-left:100%;display:inline-block}
 .chat-msg{background:rgba(10,10,10,.78);color:var(--text-bright);font-size:11px;font-family:sans-serif;padding:3px 8px;border-radius:10px;border-left:2px solid rgba(255,255,255,.2);animation:chatFadeIn .25s ease forwards;line-height:1.4;word-break:break-word}
@@ -9030,16 +9030,16 @@ canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%
 @keyframes pulseRing{0%,100%{box-shadow:inset 0 0 0 0 var(--pr,rgba(224,120,64,0))}50%{box-shadow:inset 0 0 22px 6px var(--pr,rgba(224,120,64,0.28))}}
 @keyframes grain{0%,100%{transform:translate(0,0)}10%{transform:translate(-2%,-3%)}30%{transform:translate(3%,-1%)}50%{transform:translate(-1%,2%)}70%{transform:translate(2%,3%)}90%{transform:translate(-3%,1%)}}
 @keyframes wobblecam{0%,100%{transform:rotate(0deg) scale(1)}20%{transform:rotate(0.15deg) scale(1.002)}40%{transform:rotate(-0.1deg) scale(0.999)}60%{transform:rotate(0.08deg) scale(1.001)}80%{transform:rotate(-0.12deg) scale(1.002)}}
-#ctrl-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid var(--divider);padding-bottom:4px}
+#ctrl-panel h4{font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid var(--divider);padding-bottom:4px}
 .cp-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
-.cp-lbl{font-size:9px;color:var(--dim);min-width:52px;text-align:right}
+.cp-lbl{font-size:9px;color:var(--text);min-width:52px;text-align:right}
 .cp-sl{flex:1;accent-color:var(--accent);height:3px}
 .cp-val{font-size:8px;color:var(--dim);min-width:28px;text-align:left}
 #calib-panel{position:fixed;top:12px;left:12px;background:rgba(30,30,30,.90);border:1px solid rgba(255,150,80,.15);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:10px;color:var(--text);backdrop-filter:blur(6px);z-index:100;min-width:200px;display:none}
 #mixer-panel{position:fixed;bottom:36px;right:12px;background:rgba(20,20,20,.92);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-family:sans-serif;font-size:10px;color:#b0b0b0;backdrop-filter:blur(6px);z-index:100;min-width:150px;max-width:200px;display:none}
-#mixer-panel h4{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid var(--divider);padding-bottom:3px}
+#mixer-panel h4{font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin:0 0 5px;border-bottom:1px solid var(--divider);padding-bottom:3px}
 .mx-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
-.mx-lbl{font-size:9px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
+.mx-lbl{font-size:9px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:55px;max-width:55px}
 .mx-sl{flex:1;accent-color:var(--accent);height:3px}
 .mx-v{font-size:8px;color:var(--dim);min-width:22px;text-align:right}
 #calib-panel h4{font-size:9px;color:var(--accent3);text-transform:uppercase;letter-spacing:.8px;margin:0 0 6px;border-bottom:1px solid rgba(255,150,80,.1);padding-bottom:4px}
