@@ -1042,7 +1042,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
 <div id="webcam-panel" style="display:none;position:fixed;bottom:40px;right:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;z-index:150;box-shadow:0 4px 16px rgba(0,0,0,.5);width:220px;">
   <div style="display:flex;align-items:center;margin-bottom:6px;gap:8px;">
     <span style="font-size:11px;font-weight:600;color:var(--accent)">📷 顔追跡</span>
-    <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:3px;margin-left:auto;">
+    <label style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:3px;margin-left:auto;">
       <input type="checkbox" id="wc-mirror" checked style="accent-color:var(--accent);width:10px;height:10px;">ミラー
     </label>
     <button onclick="toggleWebcamTest()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0 4px;">✕</button>
@@ -3242,7 +3242,7 @@ function buildParamUI() {
   if (validRecent.length > 0) {
     const recDiv = document.createElement('div');
     recDiv.style.cssText = 'margin-bottom:5px;padding:3px 4px;background:var(--surface);border:1px solid var(--border);border-radius:4px;';
-    recDiv.innerHTML = `<div style="font-size:9px;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
+    recDiv.innerHTML = `<div style="font-size:9px;color:var(--text);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">最近使用</div><div style="display:flex;flex-wrap:wrap;gap:2px;">` +
       validRecent.map(n => {
         const p = M.params[n]; const lbl = p?.lbl || n;
         const isAP = n === ST.ap;
@@ -4129,7 +4129,7 @@ function showExportHotkeyDialog() {
   const box = document.createElement('div');
   box.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto;';
   let rows = '';
-  rows += `<div style="margin-bottom:8px;padding:4px 8px;background:var(--bg);border-radius:4px;font-size:10px;color:var(--dim);">デフォルト: ポーズ1〜9が数字キー1〜9、デフォルト(無表情)が0</div>`;
+  rows += `<div style="margin-bottom:8px;padding:4px 8px;background:var(--bg);border-radius:4px;font-size:10px;color:var(--text);">デフォルト: ポーズ1〜9が数字キー1〜9、デフォルト(無表示)が0</div>`;
   rows += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;padding:4px 0;border-bottom:1px solid var(--border);">`;
   rows += `<span style="flex:1;font-size:11px;color:var(--text);">😐 デフォルト</span>`;
   rows += `<input data-pose="__default__" value="${_exportHotkeys['__default__']||'0'}" maxlength="1" style="width:36px;text-align:center;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:12px;">`;
@@ -8450,7 +8450,7 @@ window.addEventListener('message',ev=>{
     if(_log.length>_max) _log.pop();
     _ov.innerHTML=_log.map(e=>
       `<div style="background:rgba(20,20,20,.7);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--text-bright);display:flex;gap:5px;align-items:center;backdrop-filter:blur(3px);">
-        <span>${e.icon}</span><span style="color:var(--dim);">${e.t}</span><span>${e.text.slice(0,40)}</span></div>`
+        <span>${e.icon}</span><span style="color:var(--text);">${e.t}</span><span>${e.text.slice(0,40)}</span></div>`
     ).join('');
   }
   // Hook effects
@@ -13158,7 +13158,7 @@ window.addEventListener('message',ev=>{
       <div style="color:#ffd700;font-size:28px;font-weight:bold;margin-bottom:8px;">${currency}${amount}</div>
       <div style="color:#fff;font-size:18px;margin-bottom:6px;">${user||'Anonymous'} さん</div>
       ${msg?`<div style="color:var(--text);font-size:14px;margin-top:8px;max-width:260px;">"${msg}"</div>`:''}
-      <div style="color:var(--dim);font-size:12px;margin-top:8px;">ありがとうございます！</div>`;
+      <div style="color:var(--text);font-size:12px;margin-top:8px;">ありがとうございます！</div>`;
     _ov.style.transform='translateX(-50%) scale(1)';
     if(typeof window.triggerConfetti==='function') window.triggerConfetti();
     clearTimeout(_hideTimer);
@@ -13303,7 +13303,7 @@ window.addEventListener('message',ev=>{
     _wrap.innerHTML=`<div style="color:#ffd700;font-size:18px;font-weight:bold;">👆 連打チャレンジ！</div>
       <div style="color:#fff;font-size:48px;font-weight:bold;margin:8px 0;">${_count}</div>
       <div style="color:#aaf;font-size:14px;">${_cmd} で連打！</div>
-      <div style="color:var(--dim);font-size:14px;">残り ${_timeleft}秒</div>`;
+      <div style="color:var(--text);font-size:14px;">残り ${_timeleft}秒</div>`;
   }
   window.startClicker=function(){
     _count=0; _timeleft=_dur; _running=true; _wrap.style.display='block'; _render();
@@ -14708,7 +14708,7 @@ window.addEventListener('message',ev=>{
     const q=_qs[_qi%_qs.length]; _active=true;
     _ov.innerHTML=`<div style="color:#adf;font-size:12px;">Q${_qi+1}</div>
       <div style="color:#fff;font-size:20px;font-weight:bold;">${q.hint}</div>
-      <div style="color:var(--dim);font-size:12px;margin-top:6px;">チャットで回答してね</div>`;
+      <div style="color:var(--text);font-size:12px;margin-top:6px;">チャットで回答してね</div>`;
     _ov.style.display='block';
     _timer=setTimeout(()=>{ _timeUp(q); },30000);
   }
@@ -14759,7 +14759,7 @@ window.addEventListener('message',ev=>{
     const pctB=(_scoreB/total*100).toFixed(0);
     _wrap.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;">
       <span style="color:#f88;font-weight:bold;">${_nameA} ${_scoreA}</span>
-      <span style="color:var(--dim);font-size:12px;">チャットバトル</span>
+      <span style="color:var(--text);font-size:12px;">チャットバトル</span>
       <span style="color:#88f;font-weight:bold;">${_scoreB} ${_nameB}</span></div>
       <div style="height:12px;background:var(--border);border-radius:6px;overflow:hidden;display:flex;">
         <div style="width:${pctA}%;background:#f66;transition:width 0.3s;"></div>
@@ -14977,7 +14977,7 @@ window.addEventListener('message',ev=>{
     const rate=_times.length;
     _wrap.innerHTML=`<div style="color:#aaf;font-size:11px;">${_win}秒チャット</div>
       <div style="color:#fff;font-size:26px;font-weight:bold;">${rate}</div>
-      <div style="color:var(--dim);font-size:11px;">累計 ${_total}</div>`;
+      <div style="color:var(--text);font-size:11px;">累計 ${_total}</div>`;
   }
   document.body.appendChild(_wrap); _render();
   window.addEventListener('message',e=>{
@@ -19101,7 +19101,7 @@ function _buildMidiPanel() {
     <button onclick="_midiConnect()" style="width:100%;background:var(--surface);border:1px solid rgba(224,120,64,.4);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:8px;">🔌 MIDIデバイスに接続</button>
     <!-- CC Monitor -->
     <div style="background:var(--bg);border-radius:4px;padding:6px;margin-bottom:8px;">
-      <div style="font-size:9px;color:var(--dim);margin-bottom:4px;letter-spacing:.5px;">▶ 受信CC（最新8件）</div>
+      <div style="font-size:9px;color:var(--text);margin-bottom:4px;letter-spacing:.5px;">▶ 受信CC（最新8件）</div>
       <div id="midi-cc-monitor" style="font-family:monospace;font-size:9px;color:var(--dim);min-height:16px;"></div>
     </div>
     <!-- CC Mappings -->
@@ -19269,7 +19269,7 @@ function toggleGamepadPanel() {
       <span id="gpad-status-txt" style="font-size:9px;color:var(--dim);">未接続</span>
       <button onclick="document.getElementById('gpad-panel').remove();document.getElementById('btn-gamepad').classList.remove('on');_gpadActive=false;" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;line-height:1.5;">ゲームパッドのスティック軸をパラメータに、ボタンをポーズ/表情にマッピングします。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;line-height:1.5;">ゲームパッドのスティック軸をパラメータに、ボタンをポーズ/表情にマッピングします。</div>
     <!-- Gamepad visualizer -->
     <canvas id="gpad-canvas" width="296" height="60" style="display:block;background:var(--bg);border-radius:4px;border:1px solid var(--border);margin-bottom:8px;"></canvas>
     <!-- Axis Mappings -->
@@ -22441,16 +22441,16 @@ function generateIdleLoop() {
   const hasParam = n => !!M.params[n];
   box.innerHTML = `
 <div style="font-weight:600;color:var(--text-bright);font-size:13px;">✨ アイドルループ生成</div>
-<div style="color:var(--dim);font-size:9px;">自然なアイドルアニメーションを一括生成します（${dur.toFixed(1)}秒ループ）</div>
+<div style="color:var(--text);font-size:9px;">自然なアイドルアニメーションを一括生成します（${dur.toFixed(1)}秒ループ）</div>
 <table style="border-spacing:0 4px;width:100%;">
-  <tr><td colspan="2" style="color:var(--dim);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">🔧 コンポーネント選択</td></tr>
+  <tr><td colspan="2" style="color:var(--text);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">🔧 コンポーネント選択</td></tr>
   <tr><td><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="idle-blink" checked ${!hasParam('blinkL')&&!hasParam('blinkR')?'disabled':''}> まばたき</label></td>
       <td><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="idle-breath" checked> 呼吸</label></td></tr>
   <tr><td><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="idle-sway" checked> 頭揺れ (X)</label></td>
       <td><label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="idle-eye-saccade" checked> 目の揺れ</label></td></tr>
 </table>
 <table style="border-spacing:0 4px;width:100%;">
-  <tr><td colspan="2" style="color:var(--dim);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">⚙ パラメータ設定</td></tr>
+  <tr><td colspan="2" style="color:var(--text);font-size:9px;padding-bottom:2px;border-bottom:1px solid var(--border);">⚙ パラメータ設定</td></tr>
   <tr><td style="color:var(--text);width:110px;">まばたき速さ (秒)</td>
       <td><input id="idle-bspd" type="number" value="0.12" min="0.05" max="0.4" step="0.01" style="width:70px;background:var(--bg);border:1px solid var(--border);color:#fff;border-radius:3px;padding:2px 4px;font-size:10px;font-family:monospace;"></td></tr>
   <tr><td style="color:var(--text);">呼吸周期 (秒)</td>
@@ -22737,7 +22737,7 @@ function showLipSyncDialog() {
   mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(2px)';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid rgba(80,200,160,.4);border-radius:6px;padding:16px;width:260px;font-family:monospace;color:#c0d8e0;">
     <div style="font-size:11px;letter-spacing:1px;color:#60c8a0;text-transform:uppercase;margin-bottom:10px">👄 口パクKF 自動生成</div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px">BGM波形から mouthOpen のKFを生成します</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px">BGM波形から mouthOpen のKFを生成します</div>
     <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
       <label>パラメータ
         <select id="ls-param" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;margin-top:2px;font-size:10px">
@@ -23051,7 +23051,7 @@ function compareParamSnapshot() {
   showModal(`スナップショット比較 (${diffs.length}個に差分)`,
     `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:var(--surface);"><th style="padding:3px 8px;">パラメータ</th><th style="padding:3px 8px;">スナップ</th><th style="padding:3px 8px;">現在値</th><th style="padding:3px 8px;">差分</th></tr>
+        <tr style="color:var(--text);font-size:9px;position:sticky;top:0;background:var(--surface);"><th style="padding:3px 8px;">パラメータ</th><th style="padding:3px 8px;">スナップ</th><th style="padding:3px 8px;">現在値</th><th style="padding:3px 8px;">差分</th></tr>
         ${rows}
       </table>
     </div>`
@@ -23167,12 +23167,12 @@ function showKFRangeDelete() {
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:280px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">🗑 KF区間削除</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px">指定した時刻範囲内の全トラックKFを削除します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px">指定した時刻範囲内の全トラックKFを削除します。</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:24px;">開始</span>
+      <span style="font-size:9px;color:var(--text);min-width:24px;">開始</span>
       <input id="dr-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
-      <span style="font-size:9px;color:var(--dim);min-width:12px;">〜</span>
-      <span style="font-size:9px;color:var(--dim);min-width:24px;">終了</span>
+      <span style="font-size:9px;color:var(--text);min-width:12px;">〜</span>
+      <span style="font-size:9px;color:var(--text);min-width:24px;">終了</span>
       <input id="dr-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <div style="margin-bottom:8px;">
@@ -23229,16 +23229,16 @@ function showKFShift() {
   mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:260px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">↔ KFタイムシフト</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px">KFの時刻を前後にずらします。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px">KFの時刻を前後にずらします。</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <span style="font-size:9px;color:var(--dim);min-width:36px">対象</span>
+      <span style="font-size:9px;color:var(--text);min-width:36px">対象</span>
       <select id="ks-scope" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px;font-size:9px">
         <option value="all">全トラック</option>
         ${active&&tracks[active]?`<option value="active" selected>現在 (${active})</option>`:''}
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <span style="font-size:9px;color:var(--dim);min-width:36px">時刻</span>
+      <span style="font-size:9px;color:var(--text);min-width:36px">時刻</span>
       <input id="ks-offset" type="number" step="0.05" value="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px">
       <span style="font-size:9px;color:var(--dim)">秒</span>
     </div>
@@ -23273,14 +23273,14 @@ function showTimeStretch() {
   mo.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   mo.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:280px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">⏱ タイムストレッチ</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px">全KFの時刻を倍率で一括スケーリングします。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px">全KFの時刻を倍率で一括スケーリングします。</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <span style="font-size:9px;color:var(--dim);min-width:36px">倍率</span>
+      <span style="font-size:9px;color:var(--text);min-width:36px">倍率</span>
       <input id="ts-factor" type="range" min="0.1" max="4" step="0.05" value="1" style="flex:1;accent-color:var(--accent)" oninput="document.getElementById('ts-fv').textContent=parseFloat(this.value).toFixed(2)+'x'">
       <span id="ts-fv" style="font-size:10px;color:var(--accent);min-width:36px;text-align:right;font-family:monospace">1.00x</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <span style="font-size:9px;color:var(--dim);min-width:36px">尺も拡縮</span>
+      <span style="font-size:9px;color:var(--text);min-width:36px">尺も拡縮</span>
       <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="ts-dur" checked style="accent-color:var(--accent)"><span style="font-size:9px;color:#aaa">自動調整 (${cur.toFixed(1)}s → <span id="ts-dur-preview">${cur.toFixed(1)}</span>s)</span></label>
     </div>
     <div style="display:flex;gap:6px">
@@ -23320,22 +23320,22 @@ function showRangeCopyPaste() {
   const hasCb = _rangeClipboard !== null;
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">📋 区間コピー&ペースト</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px">指定区間の全トラックKFをコピーして、ペースト位置に貼り付けます。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px">指定区間の全トラックKFをコピーして、ペースト位置に貼り付けます。</div>
     <div style="font-size:9px;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:24px;">開始</span>
+      <span style="font-size:9px;color:var(--text);min-width:24px;">開始</span>
       <input id="rc-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
-      <span style="font-size:9px;color:var(--dim);min-width:12px;">〜</span>
-      <span style="font-size:9px;color:var(--dim);min-width:24px;">終了</span>
+      <span style="font-size:9px;color:var(--text);min-width:12px;">〜</span>
+      <span style="font-size:9px;color:var(--text);min-width:24px;">終了</span>
       <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <button id="rc-copy-btn" style="width:100%;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
     <div style="font-size:9px;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
     <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:60px;">挿入開始</span>
+      <span style="font-size:9px;color:var(--text);min-width:60px;">挿入開始</span>
       <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;">コピー済みKFを指定時刻からオフセットして追加します。<br>既存KFはマージ（同じ時刻±5msは上書き）。</div>
     <div style="display:flex;gap:6px">
       <button id="rc-paste-btn" style="flex:1;background:${hasCb?'rgba(224,120,64,.18)':'#1e1e1e'};border:1px solid ${hasCb?'rgba(224,120,64,.5)':'rgba(255,255,255,.08)'};color:${hasCb?'var(--accent)':'#404040'};border-radius:4px;padding:4px;cursor:pointer;font-size:10px;" ${!hasCb?'disabled':''}>📌 ペースト</button>
       <button onclick="this.closest('[style*=fixed]').remove()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px;cursor:pointer;font-size:10px">閉じる</button>
@@ -23391,27 +23391,27 @@ function showKFRamp() {
   mo.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;display:flex;align-items:center;justify-content:center';
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:290px">
     <h3 style="margin:0 0 8px;font-size:13px;color:var(--text)">∿ KF ランプ生成</h3>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:10px">区間内に等間隔KFのグラデーションを生成します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:10px">区間内に等間隔KFのグラデーションを生成します。</div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">パラメータ</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">パラメータ</span>
       <select id="ramp-param" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
         ${Object.entries(M.params).map(([k,v])=>`<option value="${k}" ${k===name?'selected':''}>${v.lbl||k}</option>`).join('')}
       </select>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">開始時刻</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">開始時刻</span>
       <input id="ramp-t0" type="number" value="${t.toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">終了時刻</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">終了時刻</span>
       <input id="ramp-t1" type="number" value="${Math.min(dur,t+1).toFixed(3)}" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">開始値</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">開始値</span>
       <input id="ramp-v0" type="number" value="${cur.toFixed(3)}" step="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">終了値</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">終了値</span>
       <input id="ramp-v1" type="number" value="0" step="0.01" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
-      <span style="font-size:9px;color:var(--dim);min-width:44px;">KF数</span>
+      <span style="font-size:9px;color:var(--text);min-width:44px;">KF数</span>
       <input id="ramp-n" type="number" value="10" min="2" max="200" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--text);min-width:44px;">補間</span>
       <select id="ramp-interp" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
@@ -24714,7 +24714,7 @@ function showKFList() {
   showModal(`KFリスト: ${p?.lbl||name} (${sorted.length}個)`,
     `<div style="font-size:11px;max-height:60vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:var(--surface);"><th style="padding:3px 8px;">#</th><th style="padding:3px 8px;">時刻</th><th style="padding:3px 8px;">値</th><th style="padding:3px 8px;">補間</th><th style="padding:3px 8px;">メモ</th></tr>
+        <tr style="color:var(--text);font-size:9px;position:sticky;top:0;background:var(--surface);"><th style="padding:3px 8px;">#</th><th style="padding:3px 8px;">時刻</th><th style="padding:3px 8px;">値</th><th style="padding:3px 8px;">補間</th><th style="padding:3px 8px;">メモ</th></tr>
         ${rows}
       </table>
       <div style="margin-top:8px;color:var(--dim);font-size:9px;">行クリックでプレイヘッド移動</div>
@@ -24749,7 +24749,7 @@ function showAllKfNotes() {
   showModal(`KFノート一覧 (${notes.length}件)`,
     `<div style="font-size:11px;max-height:65vh;overflow-y:auto;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr style="color:var(--dim);font-size:9px;position:sticky;top:0;background:var(--surface);">
+        <tr style="color:var(--text);font-size:9px;position:sticky;top:0;background:var(--surface);">
           <th style="padding:4px 8px;text-align:left;">時刻</th>
           <th style="padding:4px 8px;text-align:left;">トラック</th>
           <th style="padding:4px 8px;text-align:left;">ノート</th>
