@@ -2047,20 +2047,20 @@ function showGlueManager() {
     </div>`;
   }).join('');
   const html = `
-    <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">グルー: メッシュ境界を結合して動きを伝える</div>
+    <div style="font-size:11px;color:var(--text);margin-bottom:8px;">グルー: メッシュ境界を結合して動きを伝える</div>
     <div id="glue-list">${glueList || '<div style="color:var(--dim);font-size:10px;padding:4px;">グルーなし</div>'}</div>
     <hr style="border:none;border-top:1px solid var(--divider);margin:10px 0;">
-    <div style="font-size:10px;color:var(--dim);margin-bottom:6px;">新規グルーを追加</div>
+    <div style="font-size:10px;color:var(--text);margin-bottom:6px;">新規グルーを追加</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
-      <div><label style="font-size:9px;color:var(--dim);">ソースパーツ（追従側）</label><br>
+      <div><label style="font-size:9px;color:var(--text);">ソースパーツ（追従側）</label><br>
         <select id="glue-src" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
-      <div><label style="font-size:9px;color:var(--dim);">ターゲットパーツ（基準）</label><br>
+      <div><label style="font-size:9px;color:var(--text);">ターゲットパーツ（基準）</label><br>
         <select id="glue-dst" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">${partOpts}</select></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <label style="font-size:9px;color:var(--dim);">境界検出しきい値(px)</label>
+      <label style="font-size:9px;color:var(--text);">境界検出しきい値(px)</label>
       <input id="glue-thresh" type="number" value="20" min="1" max="200" style="width:70px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
-      <label style="font-size:9px;color:var(--dim);">ウェイト</label>
+      <label style="font-size:9px;color:var(--text);">ウェイト</label>
       <input id="glue-weight" type="number" value="1" min="0" max="1" step="0.05" style="width:55px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:3px;font-size:11px;">
     </div>
     <div style="display:flex;gap:8px;">
@@ -4280,13 +4280,13 @@ function _showEmbedCode(filePath) {
       <span style="color:var(--text);font-size:12px;font-weight:600;">📋 埋め込みコード</span>
       <button onclick="this.closest('#embed-code-dialog').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="color:var(--dim);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
+    <div style="color:var(--text);margin-bottom:4px;font-size:9px;">iframe (Webページ埋め込み)</div>
     <textarea id="embed-iframe-code" readonly style="width:100%;height:48px;background:var(--bg);border:1px solid var(--border);color:var(--gold);border-radius:4px;padding:6px;font-family:monospace;font-size:10px;resize:none;box-sizing:border-box;">${iframeCode}</textarea>
     <button onclick="navigator.clipboard?.writeText(document.getElementById('embed-iframe-code').value).then(()=>{this.textContent='✓ コピー済み';setTimeout(()=>this.textContent='📋 コピー',2000)})" style="margin-top:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:2px 8px;cursor:pointer;">📋 コピー</button>
-    <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
+    <div style="color:var(--text);margin:8px 0 4px;font-size:9px;">postMessage API例</div>
     <textarea readonly style="width:100%;height:64px;background:var(--bg);border:1px solid var(--border);color:var(--teal);border-radius:4px;padding:6px;font-family:monospace;font-size:9px;resize:none;box-sizing:border-box;">${postMsgEx}</textarea>
-    <div style="color:var(--dim);margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:var(--dim);">
+    <div style="color:var(--text);margin:8px 0 4px;font-size:9px;">OBS ブラウザソース URL（URLパラメータ付き）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:6px;font-size:9px;color:var(--text);">
       <label><input type="checkbox" id="obsq-bg" style="margin-right:2px;"> bg=00ff00 (クロマキー)</label>
       <label><input type="checkbox" id="obsq-mirror" style="margin-right:2px;"> mirror=1</label>
       <label><input type="checkbox" id="obsq-lowcpu" style="margin-right:2px;"> lowcpu=1</label>
@@ -4304,7 +4304,7 @@ function _showEmbedCode(filePath) {
     <div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;color:var(--dim);flex:1;">💾 URLプリセット（最大5件）</span>
-        <button id="obs-preset-save" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
+        <button id="obs-preset-save" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">+ 現在のURLを保存</button>
       </div>
       <div id="obs-preset-list" style="display:flex;flex-direction:column;gap:3px;font-size:9px;"></div>
     </div>
@@ -4530,7 +4530,7 @@ canvas.mirrored{transform:scaleX(-1);}
 #songcard{display:none;position:fixed;z-index:56;background:rgba(20,20,20,.9);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 14px;font-family:'Segoe UI',sans-serif;pointer-events:none;max-width:260px;backdrop-filter:blur(6px);}
 #songcard.show{display:block;animation:cbslide .3s ease both;}
 #songcard .sc-title{font-size:13px;font-weight:700;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#songcard .sc-artist{font-size:10px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#songcard .sc-artist{font-size:10px;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #watermark-ov{display:none;position:fixed;inset:0;pointer-events:none;z-index:93;display:flex;align-items:center;justify-content:center;}
 #watermark-ov.show{display:flex;}
 #watermark-ov span{font-family:'Segoe UI',sans-serif;font-weight:700;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.3);}
@@ -4677,7 +4677,7 @@ ${M.poses.length>0?`<div id="pose-bar"><button id="pbtn-0" onclick="_setPose(-1)
 3. 幅: <strong style="color:var(--gold)">${EW}</strong> / 高さ: <strong style="color:var(--gold)">${EH}</strong>
 <button onclick="navigator.clipboard?.writeText('幅: ${EW}\\n高さ: ${EH}')" style="margin-left:4px;background:rgba(224,120,64,.18);border:1px solid rgba(224,120,64,.5);border-radius:4px;color:var(--accent);font-size:9px;padding:1px 5px;cursor:pointer;">📋</button><br>
 ${chromaKey?'4. フィルタ → クロマキー (緑) を追加<br>':''}
-<span style="color:var(--dim)">カメラへのアクセスを許可してください</span>
+<span style="color:var(--text)">カメラへのアクセスを許可してください</span>
 ${M.poses.length>0?`<br><strong style="color:var(--gold)">表情 (数字キー)</strong><br>${M.poses.slice(0,9).map((p,i)=>`<span style="color:var(--gold)">${i+1}</span>: ${p.name}`).join(' / ')}<br><span style="color:var(--dim)">0キー = デフォルトに戻す</span>`:''}
 </div>
 ${bgmUrl?`<audio id="bgm-audio" src="${bgmUrl.replace(/"/g,'&quot;')}" ${bgmLoop?'loop':''} preload="auto" style="display:none"></audio>`:''}
@@ -5107,7 +5107,7 @@ function showClipChainDialog() {
       <span style="font-size:11px;color:var(--text);font-weight:600;">🔗 クリップ連鎖再生</span>
       <button onclick="document.getElementById('clip-chain-dialog').remove()" style="margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);margin-bottom:8px;">再生するクリップを順番に並べて連続再生します。</div>
+    <div style="font-size:9px;color:var(--text);margin-bottom:8px;">再生するクリップを順番に並べて連続再生します。</div>
     <div id="chain-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:180px;overflow-y:auto;"></div>
     <div style="display:flex;gap:4px;margin-bottom:8px;">
       <select id="chain-add-sel" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:2px 4px;font-size:10px;">
@@ -6888,21 +6888,21 @@ window._applyTrackPreset=function(preset){
   panel.id='track-settings-panel';
   panel.style.cssText='display:none;position:fixed;bottom:80px;left:10px;background:rgba(24,24,24,.97);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:10px 14px;color:var(--text);font-size:10px;font-family:monospace;z-index:100;min-width:180px;';
   panel.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--text);">📡 顔追跡設定</div>
-<div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--dim);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
+<div style="margin-bottom:8px;"><div style="font-size:9px;color:var(--text);margin-bottom:4px;">感度プリセット</div><div style="display:flex;gap:3px;">
 <button onclick="window._applyTrackPreset('gaming')" title="ゲーミング: 高感度・素早い反応" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--accent-light);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎮 ゲーマー</button>
-<button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
-<button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
+<button onclick="window._applyTrackPreset('desk')" title="デスク: バランス重視のデフォルト" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🖥 デスク</button>
+<button onclick="window._applyTrackPreset('studio')" title="表情豊か・高精度" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🎬 表情</button>
 <button onclick="window._applyTrackPreset('stable')" title="安定: 揺れ・ノイズ耐性" style="flex:1;background:var(--surface);border:1px solid var(--border);color:rgba(160,210,160,.8);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">🛡 安定</button>
 </div></div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">感度(全体)<input id="ts-sens" type="range" min="0.5" max="3" step="0.1" value="${typeof SENS!=='undefined'?SENS:1}" style="width:70px;accent-color:var(--accent);" oninput="curSens=parseFloat(this.value);document.getElementById('ts-sens-val').textContent=this.value"><span id="ts-sens-val">${typeof SENS!=='undefined'?SENS:1}</span></label>
-<div style="font-size:9px;color:var(--dim);margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
+<div style="font-size:9px;color:var(--text);margin-bottom:3px;margin-top:2px;">軸別感度 (全体×軸)</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:var(--danger)">X(左右)</span><input id="ts-sx" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:#ff6060;" oninput="curSensX=parseFloat(this.value);document.getElementById('ts-sx-val').textContent=this.value"><span id="ts-sx-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;"><span style="color:#80ff80">Y(上下)</span><input id="ts-sy" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--teal);" oninput="curSensY=parseFloat(this.value);document.getElementById('ts-sy-val').textContent=this.value"><span id="ts-sy-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--kf)">Z(傾き)</span><input id="ts-sz" type="range" min="0.1" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--kf);" oninput="curSensZ=parseFloat(this.value);document.getElementById('ts-sz-val').textContent=this.value"><span id="ts-sz-val">1</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">デッドゾーン<input id="ts-dz" type="range" min="0" max="0.4" step="0.01" value="0" style="width:70px;accent-color:var(--accent);" oninput="curDeadZone=parseFloat(this.value);document.getElementById('ts-dz-val').textContent=Math.round(this.value*100)+'%'"><span id="ts-dz-val">0%</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;">スムース<input id="ts-ema" type="range" min="0.05" max="0.5" step="0.01" value="0.1" style="width:70px;accent-color:var(--accent);" oninput="document.getElementById('ts-ema-val').textContent=parseFloat(this.value).toFixed(2);const a=parseFloat(this.value);for(const k of Object.keys(typeof EMA!=='undefined'?EMA:{}))EMA[k]=a;"><span id="ts-ema-val">0.10</span></label>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--text)">👁 視線</span><input id="ts-eye" type="range" min="0.2" max="3" step="0.05" value="1" style="width:70px;accent-color:var(--accent);" oninput="const _ev=Math.max(0.2,Math.min(3,parseFloat(this.value)));curSensEye=_ev;document.getElementById('ts-eye-val').textContent=_ev.toFixed(2);_saveTS({eye:_ev});"><span id="ts-eye-val">1.00</span></label>
-<div style="font-size:9px;color:var(--dim);margin-bottom:3px;">表情トランジション</div>
+<div style="font-size:9px;color:var(--text);margin-bottom:3px;">表情トランジション</div>
 <label style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;"><span style="color:var(--gold)">⏱ 速度</span><input id="ts-transms" type="range" min="0" max="2000" step="50" value="300" style="width:70px;accent-color:var(--gold);" oninput="const _tv=Math.max(0,Math.min(2000,parseFloat(this.value)));_poseTransMs=_tv;document.getElementById('ts-transms-val').textContent=_tv===0?'即時':_tv+'ms';_saveTS({transMs:_tv});"><span id="ts-transms-val">300ms</span></label>
 <button onclick="curSensX=1;curSensY=1;curSensZ=1;curSensEye=1;_poseTransMs=_POSE_TRANS_MS;['ts-sx','ts-sy','ts-sz'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=1;});['ts-sx-val','ts-sy-val','ts-sz-val'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='1';});const te=document.getElementById('ts-eye');if(te)te.value=1;const tev=document.getElementById('ts-eye-val');if(tev)tev.textContent='1.00';const tt=document.getElementById('ts-transms');if(tt)tt.value=_POSE_TRANS_MS;const ttv=document.getElementById('ts-transms-val');if(ttv)ttv.textContent=_POSE_TRANS_MS===0?'即時':_POSE_TRANS_MS+'ms';_saveTS({eye:1,transMs:_POSE_TRANS_MS});" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px;cursor:pointer;font-size:9px;">軸・視線・速度をリセット</button>`;
   document.body.appendChild(panel);
@@ -16959,7 +16959,7 @@ function showCtxMenu(x, y, items) {
     } else if (item.action === null && !item.disabled) {
       // Section header (non-clickable label)
       const el=document.createElement('div');
-      el.style.cssText='padding:3px 8px;font-size:9px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;user-select:none;';
+      el.style.cssText='padding:3px 8px;font-size:9px;color:var(--text);font-weight:600;text-transform:uppercase;letter-spacing:.05em;user-select:none;';
       el.textContent=(item.icon||'')+' '+(item.label||'');
       ctxMenu.appendChild(el);
     } else {
@@ -17864,7 +17864,7 @@ function renderCTList() {
   M.chatTriggers.forEach((t, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:3px 5px;background:var(--bg);border-radius:3px;font-size:10px;';
-    row.innerHTML = `<code style="color:var(--gold);background:var(--bg);padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:var(--dim);">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:var(--teal);cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
+    row.innerHTML = `<code style="color:var(--gold);background:var(--bg);padding:1px 4px;border-radius:2px;font-size:9px;">${t.keyword}</code><span style="flex:1;color:var(--text);">${actionLabel(t)}</span><button onclick="testChatTrigger(${i})" title="このトリガーをテスト実行" style="background:rgba(80,200,120,.15);border:1px solid rgba(80,200,120,.3);color:var(--teal);cursor:pointer;font-size:9px;padding:0 4px;border-radius:2px;flex-shrink:0;">▷</button><button onclick="removeChatTrigger(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0;">✕</button>`;
     list.appendChild(row);
   });
 }
@@ -23321,7 +23321,7 @@ function showRangeCopyPaste() {
   mo.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;width:300px">
     <h3 style="margin:0 0 10px;font-size:13px;color:var(--text)">📋 区間コピー&ペースト</h3>
     <div style="font-size:9px;color:var(--dim);margin-bottom:10px">指定区間の全トラックKFをコピーして、ペースト位置に貼り付けます。</div>
-    <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
+    <div style="font-size:9px;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">コピー元区間</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:24px;">開始</span>
       <input id="rc-start" type="number" value="${li}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
@@ -23330,7 +23330,7 @@ function showRangeCopyPaste() {
       <input id="rc-end" type="number" value="${lo}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;">
     </div>
     <button id="rc-copy-btn" style="width:100%;background:rgba(224,120,64,.12);border:1px solid rgba(224,120,64,.35);color:var(--accent);border-radius:4px;padding:4px;cursor:pointer;font-size:10px;margin-bottom:10px;">📋 この区間をコピー（${hasCb?'クリップボードあり':'空'}）</button>
-    <div style="font-size:9px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
+    <div style="font-size:9px;color:var(--text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">ペースト</div>
     <div style="display:flex;gap:6px;margin-bottom:4px;align-items:center;">
       <span style="font-size:9px;color:var(--dim);min-width:60px;">挿入開始</span>
       <input id="rc-paste" type="number" value="${dur.toFixed(3)}" step="0.1" min="0" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:3px;font-size:11px;" ${!hasCb?'disabled':''}>
@@ -23556,10 +23556,10 @@ function showPoseSequencer() {
     <div id="seq-list" style="max-height:200px;overflow-y:auto;margin-bottom:8px;"></div>
     <div id="seq-total" style="font-size:9px;color:var(--dim);margin-bottom:8px;">合計: 0s</div>
     <div style="display:flex;gap:4px;margin-bottom:8px;align-items:center;">
-      <label style="font-size:9px;color:var(--dim);white-space:nowrap;">開始時刻</label>
+      <label style="font-size:9px;color:var(--text);white-space:nowrap;">開始時刻</label>
       <input id="seq-start-t" type="number" value="0" step="0.1" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:11px;">
       <span style="font-size:9px;color:var(--dim)">s</span>
-      <label style="font-size:9px;color:var(--dim);white-space:nowrap;">ループ</label>
+      <label style="font-size:9px;color:var(--text);white-space:nowrap;">ループ</label>
       <input type="checkbox" id="seq-loop" style="accent-color:#80d8c0;">
       <label style="font-size:9px;color:var(--dim);white-space:nowrap;">×</label>
       <input id="seq-reps" type="number" value="1" min="1" max="20" style="width:32px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px;border-radius:3px;font-size:10px;">
@@ -25051,7 +25051,7 @@ function showKFDensityHeatmap() {
       <h3 style="font-size:13px;color:var(--text-bright);margin:0;">🗺 KFキーフレーム密度マップ</h3>
       <button onclick="this.closest('.mo').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:16px;">×</button>
     </div>
-    <div style="font-size:9px;color:var(--dim);">各トラックの時間方向KF密度（明るいほど集中）。再生時間: ${dur.toFixed(2)}s / ${tracks.length}トラック</div>
+    <div style="font-size:9px;color:var(--text);">各トラックの時間方向KF密度（明るいほど集中）。再生時間: ${dur.toFixed(2)}s / ${tracks.length}トラック</div>
     <div style="display:flex;gap:4px;align-items:flex-start;">
       <div id="kfd-labels" style="display:flex;flex-direction:column;width:120px;flex-shrink:0;gap:0;overflow:hidden;"></div>
       <div style="flex:1;overflow:hidden;">
@@ -25406,7 +25406,7 @@ function showParamBatchEdit() {
     <div style="overflow-y:auto;flex:1;border:1px solid var(--border);border-radius:4px;">
       <table style="width:100%;border-collapse:collapse;">
         <thead style="position:sticky;top:0;background:var(--bg-deep);z-index:1;">
-          <tr style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;">
+          <tr style="font-size:9px;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">
             <th style="padding:4px 6px;text-align:left;min-width:100px;">パラメータID</th>
             <th style="padding:4px 6px;text-align:left;">ラベル</th>
             <th style="padding:4px 6px;text-align:left;">最小</th>
@@ -25568,9 +25568,9 @@ function showParamCorrelation() {
   const W=280,H=280,PAD=30;
   const bodyHTML = `<div>
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
-      <label style="font-size:9px;color:var(--dim);">X軸 <select id="corr-a" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
-      <label style="font-size:9px;color:var(--dim);">Y軸 <select id="corr-b" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
-      <button onclick="drawCorrPlot()" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
+      <label style="font-size:9px;color:var(--text);">X軸 <select id="corr-a" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameA?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <label style="font-size:9px;color:var(--text);">Y軸 <select id="corr-b" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:9px;border-radius:3px;padding:1px;">${trackNames.map(n=>`<option value="${n}" ${n===nameB?'selected':''}>${M.params[n]?.lbl||n}</option>`).join('')}</select></label>
+      <button onclick="drawCorrPlot()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:9px;">描画</button>
     </div>
     <canvas id="corr-cvs" width="${W}" height="${H}" style="display:block;background:#0a0a0a;border-radius:4px;border:1px solid var(--border);"></canvas>
     <div id="corr-info" style="font-size:9px;color:var(--dim);margin-top:4px;text-align:center;"></div>
