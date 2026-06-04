@@ -441,7 +441,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <div id="param-groups-ui" style="padding:0 6px 2px;flex-shrink:0;display:none;"></div>
     <div id="pose-preset-panel" style="padding:2px 8px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap;min-height:22px;">
-      <span style="font-size:9px;color:var(--dim);flex-shrink:0;">ポーズ:</span>
+      <span style="font-size:9px;color:var(--text);flex-shrink:0;">ポーズ:</span>
       <div id="pose-preset-list" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;"></div>
       <button onclick="savePosePreset()" title="現在のパラメータをポーズプリセットとして保存" style="background:none;border:1px solid var(--border);color:var(--accent);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;height:18px;flex-shrink:0;">+</button>
       <button onclick="generatePoseVariation()" title="現在ポーズにランダムな微小変化を加えてバリエーション生成" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:0 5px;cursor:pointer;font-size:10px;height:18px;flex-shrink:0;" id="btn-pose-var">±</button>
@@ -509,7 +509,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     </div>
     <div style="padding:2px 8px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="ptitle" style="padding:2px 4px;display:flex;align-items:center;">ポーズ<button onclick="savePose()" style="margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 4px;" title="現在の値をポーズ保存">+</button><button onclick="savePoseAtPlayhead()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 2px;" title="再生ヘッド位置のアニメーション値をポーズ保存（アニメモード時）">⏱+</button><button onclick="showPoseMorphPanel()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:11px;padding:0 2px;" title="ポーズモーフ（2ポーズ間のブレンド）">⚗</button><button onclick="exportPosesJSON()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONエクスポート">📤</button><button onclick="importPosesJSON()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:10px;padding:0 2px;" title="ポーズをJSONインポート">📥</button></div>
-      <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 2px;font-size:9px;color:var(--dim);">
+      <div style="display:flex;align-items:center;gap:4px;padding:1px 4px 2px;font-size:9px;color:var(--text);">
         <span>遷移</span>
         <input type="range" id="pose-tween-dur" min="0" max="1" step="0.05" value="0.3"
           style="flex:1;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;"
@@ -535,7 +535,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         </div>
         <div id="deformer-tree" style="overflow-y:auto;flex:1;max-height:600px;"></div>
         <div id="deformer-param-bind" style="padding:2px 8px 2px;border-top:1px solid var(--divider);display:none;">
-          <div style="font-size:9px;color:var(--dim);margin-bottom:2px;">バインドパラメータ:</div>
+          <div style="font-size:9px;color:var(--text);margin-bottom:2px;">バインドパラメータ:</div>
           <select id="def-bind-param" onchange="setDeformerBindParam(this.value)"
             style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:3px;font-size:10px;">
             <option value="">(全パラメータ積算)</option>
@@ -794,7 +794,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <label style="display:flex;align-items:center;gap:4px;font-size:10px;cursor:pointer;margin-top:2px;">
           <input type="checkbox" id="export-bgm-loop" checked style="accent-color:var(--accent);">
           <span>BGMをループ</span>
-          <span style="color:var(--dim);margin-left:8px;">音量:</span>
+          <span style="color:var(--text);margin-left:8px;">音量:</span>
           <input id="export-bgm-vol" type="range" min="0" max="100" value="40" style="width:60px;accent-color:var(--accent);">
           <span id="export-bgm-vol-val" style="font-size:10px;color:var(--dim);width:24px;">40</span>
         </label>
@@ -896,7 +896,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
         <button onclick="bakePhysToTimeline()" style="background:var(--kf-bg);border:1px solid rgba(200,180,80,.4);color:var(--kf);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;" title="物理シミュ結果をタイムラインKFにベイク">🍞 ベイク</button>
       </div>
       <div id="spring-list" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
-      <div style="font-size:9px;color:var(--dim);line-height:1.5;">
+      <div style="font-size:9px;color:var(--text);line-height:1.5;">
         頂点を選択→追加 (髪・耳・アクセサリー等)<br>エクスポートHTMLで二次揺れが有効</div>
       <!-- Physics enhanced controls -->
       <div id="phys-global" style="margin-top:2px;border-top:1px solid var(--border);padding-top:2px;">
@@ -939,7 +939,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div style="padding:2px 6px;border-top:1px solid var(--border);flex-shrink:0;">
       <div class="mcfg-title" style="padding:0 0 2px 0;border:none;cursor:pointer;display:flex;align-items:center;" onclick="toggleSection('multi-avatar-body',this)">🎭 マルチアバター<span style="margin-left:auto;font-size:10px;color:var(--text)">▾</span></div>
       <div id="multi-avatar-body" style="display:none;">
-        <div style="font-size:9px;color:var(--dim);margin-bottom:2px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
+        <div style="font-size:9px;color:var(--text);margin-bottom:2px;line-height:1.5;">複数のアバターHTMLを並べる合成ページを生成。ファイルをアップロードするか、URLを入力してください。</div>
         <div id="ma-slots" style="display:flex;flex-direction:column;gap:2px;margin-bottom:2px;"></div>
         <div style="display:flex;gap:4px;">
           <button onclick="addMASlot()" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">＋ アバター追加</button>
@@ -1064,14 +1064,14 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <div id="wc-vowel" style="font-size:9px;background:var(--surface);border-radius:3px;padding:2px 5px;color:#ffa0e0;font-weight:600;">母音: —</div>
   </div>
   <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
-    <span style="font-size:9px;color:var(--dim);">平滑化:</span>
+    <span style="font-size:9px;color:var(--text);">平滑化:</span>
     <input type="range" id="wc-smooth" min="0" max="0.95" step="0.05" value="0.5" style="flex:1;accent-color:var(--accent);">
     <span id="wc-smooth-val" style="font-size:9px;color:var(--accent);width:28px;">0.50</span>
   </div>
   <!-- Gain / Sensitivity controls -->
   <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:5px;">
     <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;" onclick="const p=document.getElementById('wc-gain-panel');p.style.display=p.style.display==='none'?'block':'none';">
-      <span style="font-size:9px;color:var(--dim);">感度調整</span>
+      <span style="font-size:9px;color:var(--text);">感度調整</span>
       <span style="font-size:9px;color:var(--dim);">▼</span>
     </div>
     <div id="wc-gain-panel" style="display:none;margin-top:4px;">
@@ -1110,8 +1110,8 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <!-- 2D Face Controller -->
   <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <span style="font-size:9px;color:var(--dim);">2D顔コントローラー</span>
-      <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;">
+      <span style="font-size:9px;color:var(--text);">2D顔コントローラー</span>
+      <label style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:2px;">
         <input type="checkbox" id="fc2d-active" style="accent-color:var(--accent);width:10px;height:10px;" onchange="fc2dToggle()">手動制御
       </label>
     </div>
@@ -1127,19 +1127,19 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <!-- Expression presets panel -->
   <div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-      <span style="font-size:9px;color:var(--dim);">表情プリセット</span>
-      <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;margin-left:auto;">
+      <span style="font-size:9px;color:var(--text);">表情プリセット</span>
+      <label style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:2px;margin-left:auto;">
         <input type="checkbox" id="wc-expr-auto" style="accent-color:var(--pink);width:10px;height:10px;">自動検出
       </label>
-      <label style="font-size:9px;color:var(--dim);display:flex;align-items:center;gap:2px;" title="検出した表情名と同名のポーズを自動適用">
+      <label style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:2px;" title="検出した表情名と同名のポーズを自動適用">
         <input type="checkbox" id="wc-expr-apply-pose" style="accent-color:var(--accent);width:10px;height:10px;">ポーズ連動
       </label>
     </div>
     <div id="wc-expr-detected" style="font-size:9px;color:var(--pink);margin-bottom:4px;min-height:14px;"></div>
     <div id="wc-expr-btns" style="display:flex;gap:2px;flex-wrap:wrap;"></div>
     <div style="display:flex;gap:2px;margin-top:4px;">
-      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
-      <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
+      <button onclick="wcSaveExprPreset()" title="現在の顔追跡値を表情プリセットとして保存" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">＋ 現在を保存</button>
+      <button onclick="wcImportRiggerExpressions()" title="リガーのexpressions.jsonを読み込む" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;" title="リガーJSON読込">📥 リガー</button>
       <button onclick="autoGenerateExprTimeline()" title="表情プリセットからアニメーションタイムラインを自動生成（各表情を順番にKFとして配置）" style="background:#282828;border:1px solid rgba(255,200,80,.4);color:var(--gold);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🎬 タイムライン生成</button>
       <button onclick="wcClearExprPresets()" title="表情プリセットをすべて削除" style="background:var(--danger-bg);border:1px solid rgba(255,80,80,.3);color:var(--danger);border-radius:4px;padding:2px 4px;cursor:pointer;font-size:9px;">🗑</button>
     </div>
@@ -1425,9 +1425,9 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
   <div id="tl-clips-bar" style="display:none;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:3px 8px;display:flex;align-items:center;gap:4px;min-height:26px;flex-wrap:wrap;">
     <span style="font-size:10px;color:var(--text);white-space:nowrap;">クリップ:</span>
     <div id="tl-clip-tabs" style="display:flex;gap:2px;flex-wrap:wrap;flex:1;"></div>
-    <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
-    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
-    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
+    <button onclick="saveNewClip()" title="現在のアニメーションを新しいクリップとして保存" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">＋ 新規</button>
+    <button onclick="splitAnimAtPlayhead()" title="プレイヘッド位置でアニメーションを2クリップに分割" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">✂ 分割</button>
+    <button onclick="mergeAnimClips()" title="複数のクリップを順番に連結して新しいクリップを作成" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:9px;white-space:nowrap;">📎 連結</button>
   </div>
   <!-- Timeline minimap: full overview, click to jump, shows viewport window -->
   <div style="height:12px;flex-shrink:0;padding-left:90px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;" id="tl-minimap-wrap" title="ミニマップ — クリックでジャンプ">
@@ -1464,7 +1464,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);}
     <button onclick="geBezierToggle()" id="ge-bezier-btn" title="選択KFをベジェ曲線ハンドルに変換（独立した入出力タンジェント）" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:10px;display:none;">⌒ ベジェ</button>
     <div id="ge-overlay-chips" style="display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;max-width:200px;"></div>
     <button onclick="geShowOverlayPicker()" title="他パラメータを重ねて表示" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:1px 6px;cursor:pointer;font-size:10px;">＋ 重ねる</button>
-    <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--dim);margin-left:auto;">
+    <label style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--text);margin-left:auto;">
       スナップ<input type="checkbox" id="ge-snap" style="accent-color:var(--accent);">
     </label>
     <button onclick="toggleGraphEditor()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:0 4px;" title="グラフエディタを閉じる">×</button>
